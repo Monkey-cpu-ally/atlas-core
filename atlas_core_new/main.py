@@ -190,6 +190,7 @@ from .routes.tts import router as tts_router
 from .routes.user_data import router as user_data_router
 from .routes.lesson_plans import router as lesson_plans_router
 from .routes.ai_routing import router as ai_routing_router
+from .routes.atlas import router as atlas_router
 
 @app.get("/")
 def root():
@@ -244,6 +245,11 @@ def api_info():
         "endpoints": {
             "core": ["/health", "/identity", "/generate", "/chat", "/counsel"],
             "ai": ["/suggest", "/validate"],
+            "atlas": [
+                "/atlas/orchestrate",
+                "/atlas/projects",
+                "/atlas/projects/{project}/memory",
+            ],
             "bots": ["/bots", "/pipeline/validate", "/pipeline/init/{name}"],
             "forge": ["/forge/audit", "/forge/templates", "/forge/build/{template}"],
         },
@@ -2166,3 +2172,4 @@ app.include_router(tts_router)
 app.include_router(user_data_router)
 app.include_router(lesson_plans_router)
 app.include_router(ai_routing_router)
+app.include_router(atlas_router)

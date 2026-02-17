@@ -1,0 +1,98 @@
+{
+  "request": {
+    "project": "string",
+    "user_input": "string",
+    "mode": "mentor|warrior|builder",
+    "context": {
+      "constraints": [
+        "string"
+      ]
+    },
+    "pipeline_stage": "blueprint|build|modify"
+  },
+  "response": {
+    "project": "string",
+    "mode": "mentor|warrior|builder",
+    "intent": "blueprint_request|learning_request|security_request|general_planning|image_blueprint_extraction",
+    "intent_reason": "string",
+    "pipeline_stage": "blueprint|build|modify",
+    "validation_status": "ok|flagged|blocked",
+    "ajani": {
+      "summary": "string",
+      "structured_plan": [
+        "string"
+      ],
+      "component_breakdown": [
+        "string"
+      ],
+      "constraints": [
+        "string"
+      ],
+      "measurable_requirements": [
+        "string"
+      ],
+      "risk_list": [
+        "string"
+      ],
+      "test_plan": [
+        "string"
+      ],
+      "parts_list": [
+        "string"
+      ]
+    },
+    "minerva": {
+      "summary": "string",
+      "teaching_goal": "string",
+      "lego_steps": [
+        "string"
+      ],
+      "clarity_notes": [
+        "string"
+      ],
+      "teach_back_questions": [
+        "string"
+      ]
+    },
+    "hermes": {
+      "summary": "string",
+      "validation_status": "ok|flagged|blocked",
+      "safety_mode": "normal|simulation_only|blocked",
+      "checks": [
+        "string"
+      ],
+      "flags": [
+        "string"
+      ],
+      "blocked_reasons": [
+        "string"
+      ],
+      "enforced_constraints": [
+        "string"
+      ]
+    },
+    "project_memory": {
+      "project": "string",
+      "current_version": "string",
+      "pipeline_stage": "blueprint|build|modify",
+      "last_blueprint": {},
+      "parts_list": [
+        "string"
+      ],
+      "tasks": [
+        "string"
+      ],
+      "decisions": [
+        "string"
+      ],
+      "artifacts": {},
+      "updated_at": "ISO-8601 datetime"
+    }
+  },
+  "endpoints": {
+    "orchestrate": "POST /atlas/orchestrate",
+    "projects": "GET /atlas/projects",
+    "project_memory": "GET /atlas/projects/{project}/memory",
+    "project_reset": "POST /atlas/projects/{project}/reset"
+  }
+}
