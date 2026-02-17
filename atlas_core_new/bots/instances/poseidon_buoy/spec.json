@@ -1,0 +1,29 @@
+{
+  "name": "POSEIDON-BUOY",
+  "version": "1.0",
+  "generation": "Gen-1",
+  "domain": "WATER",
+  "class": "BUOY",
+  "sensors": [
+    "pH",
+    "turbidity",
+    "water_temp",
+    "gps"
+  ],
+  "mission": "TBD",
+  "environment": "TBD",
+  "safety_rules": [
+    "no wildlife interaction",
+    "no sharp tools",
+    "stop if lifted",
+    "local-first",
+    "human approval for deployment"
+  ],
+  "allowed_actions": [
+    "log",
+    "map",
+    "sense",
+    "sleep",
+    "sync"
+  ]
+}
