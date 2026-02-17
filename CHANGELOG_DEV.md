@@ -37,3 +37,8 @@ Format:
 - Summary: Refactored `frontend/src/client/atlasClient.ts` to use shared JSON fetch helpers and in-flight GET request coalescing to reduce duplicate concurrent requests.
 - Risk: Low (same endpoint URLs, methods, and error message patterns; no schema changes).
 - Rollback: Revert the pass-2 frontend optimization commit.
+
+### Area: Pass 3 Visual Polish
+- Summary: Applied CSS-only visual consistency polish in `atlas_core_new/static/css/main.css` (spacing rhythm, hierarchy, card/button/input consistency, reduced glow/noise, maintained focus visibility and contrast).
+- Risk: Low to medium (visual-only overrides may require tuning per theme).
+- Rollback: Revert the pass-3 UI polish commit.

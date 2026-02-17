@@ -7618,3 +7618,103 @@
             outline-offset: 2px;
             box-shadow: 0 0 0 3px var(--accent-primary-dim);
         }
+
+        /* ========================================
+           PASS 3 VISUAL POLISH: FUTURISTIC-MINIMAL
+           ======================================== */
+        :root {
+            --accent-primary: #6aaea0;
+            --accent-primary-dim: rgba(106, 174, 160, 0.16);
+            --border-default: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.28);
+        }
+
+        .container {
+            display: grid;
+            gap: var(--space-6);
+        }
+
+        .section-title {
+            font-weight: var(--weight-semibold);
+            line-height: var(--leading-tight);
+        }
+
+        .card,
+        .chat-container,
+        .status-indicator,
+        header,
+        footer {
+            background: linear-gradient(180deg, rgba(24, 24, 34, 0.94), rgba(17, 17, 24, 0.94));
+            border: 1px solid var(--border-default);
+        }
+
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn--primary,
+        .action-btn,
+        .send-btn {
+            color: #0a1110;
+            background: var(--accent-primary);
+            border: 1px solid rgba(177, 229, 219, 0.45);
+            box-shadow: none;
+        }
+
+        .btn--primary:hover,
+        .action-btn:hover,
+        .send-btn:hover {
+            filter: none;
+            box-shadow: 0 0 0 1px rgba(106, 174, 160, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn--secondary,
+        .control-toggle,
+        .category-btn,
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+        }
+
+        .btn--secondary:hover,
+        .control-toggle:hover,
+        .category-btn:hover,
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .chat-input,
+        .design-select,
+        .design-prompt,
+        .input {
+            background: rgba(10, 12, 16, 0.8);
+            border: 1px solid var(--border-default);
+        }
+
+        .chat-input::placeholder,
+        .input::placeholder {
+            color: rgba(160, 160, 176, 0.86);
+        }
+
+        .dashboard-section {
+            padding: var(--space-6) 0;
+            margin: var(--space-6) 0;
+        }
+
+        .description {
+            max-width: 75ch;
+        }
+
+        .empty-state,
+        .loading {
+            border: 1px dashed var(--border-default);
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.02);
+            padding: var(--space-6);
+        }
