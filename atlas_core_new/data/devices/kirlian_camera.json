@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "devices": [
+    {
+      "id": "device_kirlian_biofield_camera",
+      "title": "Kirlian Biofield Camera (Modern Prototype)",
+      "type": "sensor_system",
+      "goal": "Capture measurable signals (not mystical claims) such as corona discharge imagery or thermal/EM proxies.",
+      "inputs": ["camera_sensor", "high_voltage_module_optional", "environmental_sensors"],
+      "outputs": ["image_frames", "metadata_json"],
+      "constraints": {
+        "safety": ["no exposed HV", "enclosure required", "fuse protection"],
+        "budget_usd": 200,
+        "complexity": "medium"
+      },
+      "build_phases": [
+        "Phase 1: research + safe enclosure design",
+        "Phase 2: sensor selection + data logging",
+        "Phase 3: calibration + repeatable experiments",
+        "Phase 4: UI dashboard + documentation"
+      ],
+      "owner_persona": "hermes",
+      "tags": ["sensors", "photography", "electronics", "experiments"]
+    }
+  ]
+}
