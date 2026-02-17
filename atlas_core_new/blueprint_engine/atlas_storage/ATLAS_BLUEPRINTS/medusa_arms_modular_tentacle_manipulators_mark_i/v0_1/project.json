@@ -1,0 +1,189 @@
+{
+  "blueprint_id": "9c6bbe03-5a9c-425a-85cb-e0f66678ba0c",
+  "version": "0.1",
+  "title": "MEDUSA ARMS \u2014 Modular Tentacle Manipulators (Mark I)",
+  "domain": "ROBOTICS",
+  "safety_tier": "MEDIUM",
+  "created_at": "2026-02-14T23:50:01.061402Z",
+  "objective": "Sleek, soft-sheathed, segmented manipulator arms with distributed control for smooth, fluid motion and compact concealment.",
+  "assumptions": [
+    "Mark I is a benchtop demo arm (1-2 tentacles), not a wearable system yet.",
+    "Soft sheath is cosmetic + safety; internal structure carries load.",
+    "No autonomous weaponization; manipulation only (pick/place, reach, hold)."
+  ],
+  "requirements": [
+    {
+      "id": "R1",
+      "statement": "Smooth multi-axis bend without kinks.",
+      "metric": "min bend radius",
+      "target": ">= 40mm"
+    },
+    {
+      "id": "R2",
+      "statement": "Carry light payload at the tip.",
+      "metric": "payload",
+      "target": ">= 0.5kg"
+    },
+    {
+      "id": "R3",
+      "statement": "Segment-level control for fluid motion.",
+      "metric": "segments",
+      "target": "8-12"
+    }
+  ],
+  "architecture": [
+    {
+      "name": "SEGMENT_SPINE",
+      "purpose": "Internal segmented backbone for controlled bending.",
+      "inputs": [],
+      "outputs": [],
+      "components": [
+        {
+          "name": "Linear Actuator",
+          "qty": 4,
+          "role": "tendon drive",
+          "notes": "simpler Mark I approach"
+        }
+      ]
+    },
+    {
+      "name": "SOFT_SHEATH",
+      "purpose": "Silicone/TPU outer skin for safe touch + aesthetics.",
+      "inputs": [],
+      "outputs": [],
+      "components": [
+        {
+          "name": "Silicone Elastomer (Shore A 20-50)",
+          "qty": 1,
+          "role": "outer skin",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "DISTRIBUTED_CONTROL",
+      "purpose": "Segment controller nodes for smooth motion.",
+      "inputs": [],
+      "outputs": [],
+      "components": [
+        {
+          "name": "Microcontroller (STM32/ESP32)",
+          "qty": 2,
+          "role": "control nodes",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "END_EFFECTOR",
+      "purpose": "Interchangeable gripper/suction/pad.",
+      "inputs": [],
+      "outputs": [],
+      "components": [
+        {
+          "name": "3D printed gripper",
+          "qty": 1,
+          "role": "manipulation",
+          "notes": null
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "CFRP (Carbon Fiber Reinforced Polymer)",
+      "use": "lightweight spine plates",
+      "justification": "stiff but light"
+    },
+    {
+      "name": "Silicone Elastomer (Shore A 20-50)",
+      "use": "outer sheath",
+      "justification": "soft-touch + safety"
+    },
+    {
+      "name": "Kevlar Fabric",
+      "use": "internal reinforcement wrap (optional)",
+      "justification": "tear resistance"
+    }
+  ],
+  "components": [],
+  "tools": [
+    {
+      "name": "3D Printer (SLA)",
+      "purpose": "High-detail segment molds or spine parts"
+    },
+    {
+      "name": "Soldering Station",
+      "purpose": "Control boards and wiring"
+    },
+    {
+      "name": "Calipers/Micrometer",
+      "purpose": "Segment tolerance checks"
+    }
+  ],
+  "power_flow": [
+    "Battery/DC supply -> Controller bus -> Segment actuators",
+    "Controller bus -> sensors (optional encoders) -> motion feedback"
+  ],
+  "control_logic": [
+    "Segment interpolation: smooth spline-based bend commands",
+    "Safety: torque/current limits to prevent pinches",
+    "Calibration: home each segment; store offsets"
+  ],
+  "fabrication_steps": [
+    {
+      "step": 1,
+      "title": "Build 1 segment prototype",
+      "instructions": [
+        "Print/machine one segment",
+        "Fit actuator/tendon routing",
+        "Test bend range"
+      ],
+      "verification": [
+        "No binding; consistent bend; cables not pinched"
+      ]
+    },
+    {
+      "step": 2,
+      "title": "Scale to 8-12 segments",
+      "instructions": [
+        "Repeat segment build",
+        "Add distributed control nodes",
+        "Add outer sheath"
+      ],
+      "verification": [
+        "Uniform motion across segments; stable control"
+      ]
+    }
+  ],
+  "test_plan": [
+    "Bend repeatability test (100 cycles)",
+    "Payload test at tip",
+    "Thermal test for actuators",
+    "Sheath durability test (abrasion + tear)"
+  ],
+  "failure_modes": [
+    {
+      "mode": "Segment binding",
+      "cause": "tolerance stackup",
+      "effect": "jerky motion",
+      "mitigation": "shim + reprint + better alignment pins",
+      "severity": "MED"
+    },
+    {
+      "mode": "Sheath tearing",
+      "cause": "stress concentration",
+      "effect": "damage",
+      "mitigation": "reinforcement mesh + thicker radii",
+      "severity": "MED"
+    },
+    {
+      "mode": "Overcurrent",
+      "cause": "payload overload",
+      "effect": "shutdown",
+      "mitigation": "current limit + mechanical clutch",
+      "severity": "HIGH"
+    }
+  ],
+  "revision_notes": []
+}
