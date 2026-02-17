@@ -1,0 +1,140 @@
+{
+  "blueprint_id": "c90142e9-90f0-4dd4-aaf2-6510eefb0c59",
+  "version": "0.1",
+  "title": "METAL FLOWERS \u2014 Deployable Geo-Seed Sculptures (Mark I)",
+  "domain": "MATERIALS",
+  "safety_tier": "LOW",
+  "created_at": "2026-02-14T23:45:33.955553Z",
+  "objective": "Geometrically precise deployable 'petal' structure that opens/closes to protect a seed capsule and act as a micro-habitat marker.",
+  "assumptions": [
+    "Mark I is a passive mechanical sculpture + seed capsule holder (no bioengineering).",
+    "Acts as a protective casing + marker; seeding is conventional (real seeds)."
+  ],
+  "requirements": [
+    {
+      "id": "R1",
+      "statement": "Repeatable petal deploy mechanism.",
+      "metric": "cycles",
+      "target": ">= 500 open/close cycles"
+    },
+    {
+      "id": "R2",
+      "statement": "Weather resistance.",
+      "metric": "exposure",
+      "target": "rain + dust + UV"
+    }
+  ],
+  "architecture": [
+    {
+      "name": "PETAL_MECHANISM",
+      "purpose": "Hinged petals with cam ring actuator",
+      "inputs": [],
+      "outputs": [],
+      "components": [
+        {
+          "name": "Cam ring + hinge pins",
+          "qty": 1,
+          "role": "deployment mechanism",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "name": "SEED_CAPSULE",
+      "purpose": "Protected seed container with drainage",
+      "inputs": [],
+      "outputs": [],
+      "components": [
+        {
+          "name": "Seed capsule insert",
+          "qty": 1,
+          "role": "holds seeds",
+          "notes": null
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "6061-T6 Aluminum",
+      "use": "petals + core hub",
+      "justification": "easy machining + corrosion resistance"
+    },
+    {
+      "name": "Stainless Steel 304",
+      "use": "hinge pins",
+      "justification": "wear resistance"
+    },
+    {
+      "name": "TPU (Thermoplastic Polyurethane)",
+      "use": "gaskets",
+      "justification": "water/dust seal"
+    }
+  ],
+  "components": [],
+  "tools": [
+    {
+      "name": "Laser Cutter",
+      "purpose": "Cut petals from sheet stock"
+    },
+    {
+      "name": "CNC Mill",
+      "purpose": "Machine core hub and cam ring"
+    },
+    {
+      "name": "Torque Wrench Set",
+      "purpose": "consistent assembly torque"
+    }
+  ],
+  "power_flow": [],
+  "control_logic": [],
+  "fabrication_steps": [
+    {
+      "step": 1,
+      "title": "Cut petals + hinge prep",
+      "instructions": [
+        "Laser cut petals",
+        "Deburr edges",
+        "Drill hinge holes"
+      ],
+      "verification": [
+        "Holes align; petals move freely"
+      ]
+    },
+    {
+      "step": 2,
+      "title": "Machine hub + cam ring",
+      "instructions": [
+        "CNC hub",
+        "CNC cam ring",
+        "Fit petals to ring"
+      ],
+      "verification": [
+        "Ring actuates petals smoothly"
+      ]
+    }
+  ],
+  "test_plan": [
+    "Cycle test open/close",
+    "Dust ingress test",
+    "Rain spray test",
+    "UV exposure test (accelerated if possible)"
+  ],
+  "failure_modes": [
+    {
+      "mode": "Hinge wear",
+      "cause": "friction + grit",
+      "effect": "stiff motion",
+      "mitigation": "bushings + seals",
+      "severity": "MED"
+    },
+    {
+      "mode": "Corrosion",
+      "cause": "environment",
+      "effect": "seizing",
+      "mitigation": "anodize + stainless pins",
+      "severity": "LOW"
+    }
+  ],
+  "revision_notes": []
+}
