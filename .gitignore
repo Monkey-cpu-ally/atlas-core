@@ -1,5 +1,6 @@
 # Atlas Blueprint Storage (generated project files)
 atlas_core_new/blueprint_engine/atlas_storage/
+atlas_core_new/data/atlas_project_memory.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
