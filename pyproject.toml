@@ -15,3 +15,12 @@ dependencies = [
     "feedparser",
     "httpx",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
