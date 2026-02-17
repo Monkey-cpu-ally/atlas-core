@@ -1,0 +1,29 @@
+{
+  "name": "AETHER-STATION",
+  "version": "1.0",
+  "generation": "Gen-1",
+  "domain": "AIR",
+  "class": "STATION",
+  "sensors": [
+    "pm25",
+    "co2",
+    "voc",
+    "air_temp",
+    "humidity"
+  ],
+  "mission": "TBD",
+  "environment": "TBD",
+  "safety_rules": [
+    "no wildlife interaction",
+    "no sharp tools",
+    "stop if lifted",
+    "local-first",
+    "human approval for deployment"
+  ],
+  "allowed_actions": [
+    "log",
+    "sense",
+    "sleep",
+    "sync"
+  ]
+}
