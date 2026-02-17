@@ -1,6 +1,6 @@
 """Atlas command-center routes for hybrid frontend/backend flow."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query
 
 from atlas_core_new.atlas_orchestrator.knowledge import (
     ACADEMIC_FIELDS,
@@ -16,7 +16,8 @@ from atlas_core_new.atlas_orchestrator.knowledge import (
     HYBRID_OPERATIONAL_RULES,
     LONG_TERM_EVOLUTION_PLAN,
     TEACHING_FRAMEWORK_LOCK,
-    get_project_registry_entry,
+    get_project_registry_by_id,
+    search_project_registry,
 )
 from atlas_core_new.atlas_orchestrator.models import (
     AtlasOrchestrateRequest,
@@ -24,7 +25,7 @@ from atlas_core_new.atlas_orchestrator.models import (
     ProjectMemorySnapshot,
     ProjectSummary,
 )
-from atlas_core_new.atlas_orchestrator.service import AtlasOrchestratorService
+from atlas_core_new.atlas_orchestrator.service import AtlasOrchestratorService, DoctrineFreezeViolationError
 
 
 router = APIRouter(prefix="/atlas", tags=["atlas-command-center"])
@@ -34,18 +35,27 @@ atlas_service = AtlasOrchestratorService()
 
 @router.post("/orchestrate", response_model=AtlasOrchestrateResponse)
 def orchestrate(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
-    return atlas_service.orchestrate(req)
+    try:
+        return atlas_service.orchestrate(req)
+    except DoctrineFreezeViolationError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @router.post("/route", response_model=AtlasOrchestrateResponse)
 def orchestrate_route(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
-    return atlas_service.orchestrate(req)
+    try:
+        return atlas_service.orchestrate(req)
+    except DoctrineFreezeViolationError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @public_router.post("/route", response_model=AtlasOrchestrateResponse)
 def root_route(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
     """MVP route endpoint alias requested in PRD."""
-    return atlas_service.orchestrate(req)
+    try:
+        return atlas_service.orchestrate(req)
+    except DoctrineFreezeViolationError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @router.get("/vision")
@@ -81,10 +91,17 @@ def get_project_registry() -> dict:
     return {"projects": ATLAS_PROJECT_REGISTRY}
 
 
-@router.get("/project-registry/{project}")
-def get_project_registry_item(project: str) -> dict:
-    entry = get_project_registry_entry(project)
-    return {"project": project, "entry": entry}
+@router.get("/project-registry/search")
+def search_project_registry_items(q: str = Query(..., min_length=1, max_length=128)) -> dict:
+    return {"query": q, "matches": search_project_registry(q)}
+
+
+@router.get("/project-registry/{project_id}")
+def get_project_registry_item(project_id: str) -> dict:
+    entry = get_project_registry_by_id(project_id)
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found in registry.")
+    return {"project_id": project_id, "entry": entry}
 
 
 @router.get("/capability-matrix")
@@ -127,7 +144,10 @@ def list_projects() -> list[ProjectSummary]:
 
 @router.get("/projects/{project}/memory", response_model=ProjectMemorySnapshot)
 def get_project_memory(project: str) -> ProjectMemorySnapshot:
-    return atlas_service.get_project_memory(project)
+    try:
+        return atlas_service.get_project_memory(project)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/projects/{project}/reset", response_model=ProjectMemorySnapshot)

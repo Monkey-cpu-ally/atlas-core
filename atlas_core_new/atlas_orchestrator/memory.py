@@ -60,10 +60,10 @@ class ProjectMemoryStore:
         )
 
     @staticmethod
-    def _default_state(project: str) -> dict[str, Any]:
+    def _default_state(project: str, initial_version: str = "v0.1") -> dict[str, Any]:
         return {
             "project": project,
-            "current_version": "v0.1",
+            "current_version": initial_version,
             "pipeline_stage": "blueprint",
             "last_blueprint": None,
             "parts_list": [],
@@ -73,11 +73,19 @@ class ProjectMemoryStore:
             "updated_at": _utc_now(),
         }
 
-    def get_project(self, project: str) -> ProjectMemorySnapshot:
+    def get_project(
+        self,
+        project: str,
+        *,
+        create_if_missing: bool = True,
+        initial_version: str = "v0.1",
+    ) -> ProjectMemorySnapshot | None:
         with self._lock:
             payload = self._load_all()
             if project not in payload:
-                payload[project] = self._default_state(project)
+                if not create_if_missing:
+                    return None
+                payload[project] = self._default_state(project, initial_version=initial_version)
                 self._save_all(payload)
             return ProjectMemorySnapshot(**payload[project])
 
@@ -97,10 +105,10 @@ class ProjectMemoryStore:
             summaries.sort(key=lambda item: item.updated_at, reverse=True)
             return summaries
 
-    def reset_project(self, project: str) -> ProjectMemorySnapshot:
+    def reset_project(self, project: str, *, initial_version: str = "v0.1") -> ProjectMemorySnapshot:
         with self._lock:
             payload = self._load_all()
-            payload[project] = self._default_state(project)
+            payload[project] = self._default_state(project, initial_version=initial_version)
             self._save_all(payload)
             return ProjectMemorySnapshot(**payload[project])
 

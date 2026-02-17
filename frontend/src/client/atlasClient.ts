@@ -100,6 +100,26 @@ export async function getProjectRegistry(baseUrl: string) {
   return response.json();
 }
 
+export async function searchProjectRegistry(baseUrl: string, query: string) {
+  const response = await fetch(
+    `${baseUrl}/atlas/project-registry/search?q=${encodeURIComponent(query)}`
+  );
+  if (!response.ok) {
+    throw new Error(`Atlas project registry search failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getProjectRegistryItem(baseUrl: string, projectId: string) {
+  const response = await fetch(
+    `${baseUrl}/atlas/project-registry/${encodeURIComponent(projectId)}`
+  );
+  if (!response.ok) {
+    throw new Error(`Atlas project registry item failed (${response.status})`);
+  }
+  return response.json();
+}
+
 export async function getCapabilityMatrix(baseUrl: string) {
   const response = await fetch(`${baseUrl}/atlas/capability-matrix`);
   if (!response.ok) {

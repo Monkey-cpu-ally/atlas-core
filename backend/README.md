@@ -14,7 +14,8 @@ FastAPI backend entrypoint is `backend/main.py`.
 - `GET /atlas/domains`
 - `GET /atlas/prototypes/active`
 - `GET /atlas/project-registry`
-- `GET /atlas/project-registry/{project}`
+- `GET /atlas/project-registry/search?q=...`
+- `GET /atlas/project-registry/{project_id}`
 - `GET /atlas/capability-matrix`
 - `GET /atlas/teaching-framework`
 - `GET /atlas/academic-integration-plan`

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -71,6 +72,9 @@ ACADEMIC_FIELDS: dict[str, list[str]] = {
         "Power Systems",
         "AI Architecture",
         "Human-Computer Interaction",
+        "Software Engineering",
+        "Systems Design",
+        "Cognitive Science",
     ],
 }
 
@@ -336,7 +340,7 @@ LONG_TERM_EVOLUTION_PLAN: list[str] = [
 
 
 _FIELD_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "Electromagnetics": ("electromagnetic", "induction", "field", "coil", "em"),
+    "Electromagnetics": ("electromagnetic", "induction", "magnetic", "electric field", "coil"),
     "Signal Processing": ("signal", "fft", "filter", "noise", "frequency"),
     "Acoustics": ("acoustic", "sound", "harmonic", "resonance", "wave"),
     "Control Systems Engineering": ("control loop", "feedback", "stability", "pid"),
@@ -346,9 +350,21 @@ _FIELD_KEYWORDS: dict[str, tuple[str, ...]] = {
     "Embedded Systems": ("embedded", "microcontroller", "firmware"),
     "Robotics": ("robot", "actuator", "kinematics"),
     "Power Systems": ("power", "battery", "voltage", "current"),
-    "AI Architecture": ("model", "inference", "agent", "ai"),
+    "AI Architecture": ("ai architecture", "agent orchestration", "inference pipeline", "model serving"),
     "Human-Computer Interaction": ("ui", "ux", "interface", "interaction"),
+    "Software Engineering": ("software engineering", "backend", "api design", "codebase"),
+    "Systems Design": ("systems design", "system architecture", "modular design"),
+    "Cognitive Science": ("cognitive science", "learning science", "memory anchor"),
 }
+
+
+def _keyword_hit(text: str, keyword: str) -> bool:
+    lowered = text.lower()
+    key = keyword.lower().strip()
+    if " " in key:
+        return key in lowered
+    pattern = rf"(?<![a-z0-9]){re.escape(key)}(?![a-z0-9])"
+    return re.search(pattern, lowered) is not None
 
 
 def is_resonance_scanner_request(text: str) -> bool:
@@ -362,7 +378,7 @@ def infer_relevant_fields(text: str) -> list[str]:
     lowered = text.lower()
     matches: list[str] = []
     for field, keywords in _FIELD_KEYWORDS.items():
-        if any(keyword in lowered for keyword in keywords):
+        if any(_keyword_hit(lowered, keyword) for keyword in keywords):
             matches.append(field)
 
     if is_resonance_scanner_request(text):
@@ -395,4 +411,31 @@ def get_project_registry_entry(project_name_or_id: str) -> dict[str, Any] | None
         if lookup_norm and (lookup_norm in entry_id_norm or entry_id_norm in lookup_norm):
             return entry
     return None
+
+
+def get_project_registry_by_id(project_id: str) -> dict[str, Any] | None:
+    lookup = project_id.strip().lower()
+    for entry in ATLAS_PROJECT_REGISTRY:
+        if str(entry["id"]).lower() == lookup:
+            return entry
+    return None
+
+
+def search_project_registry(query: str) -> list[dict[str, Any]]:
+    lookup = query.strip().lower()
+    lookup_norm = "".join(ch for ch in lookup if ch.isalnum())
+    matches: list[dict[str, Any]] = []
+    for entry in ATLAS_PROJECT_REGISTRY:
+        entry_id = str(entry["id"]).lower()
+        entry_name = str(entry["name"]).lower()
+        entry_id_norm = "".join(ch for ch in entry_id if ch.isalnum())
+        entry_name_norm = "".join(ch for ch in entry_name if ch.isalnum())
+        if (
+            lookup == entry_id
+            or lookup == entry_name
+            or (lookup_norm and lookup_norm in entry_id_norm)
+            or (lookup_norm and lookup_norm in entry_name_norm)
+        ):
+            matches.append(entry)
+    return matches
 

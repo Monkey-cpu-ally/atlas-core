@@ -182,11 +182,16 @@
     "domains": "GET /atlas/domains",
     "active_prototype": "GET /atlas/prototypes/active",
     "project_registry": "GET /atlas/project-registry",
+    "project_registry_search": "GET /atlas/project-registry/search?q=...",
     "capability_matrix": "GET /atlas/capability-matrix",
     "teaching_framework": "GET /atlas/teaching-framework",
     "academic_integration_plan": "GET /atlas/academic-integration-plan",
     "operational_rules": "GET /atlas/operational-rules",
     "doctrine": "GET /atlas/doctrine"
+  },
+  "error_contract": {
+    "409": "Doctrine freeze violation (unregistered project under freeze)",
+    "404": "Registry item or project memory not found"
   },
   "ui_structure_lock": {
     "left_panel": "Projects",

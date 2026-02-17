@@ -25,6 +25,7 @@ Use `src/client/atlasClient.ts` to call:
 - `GET /atlas/domains`
 - `GET /atlas/prototypes/active`
 - `GET /atlas/project-registry`
+- `GET /atlas/project-registry/search?q=...`
 - `GET /atlas/capability-matrix`
 - `GET /atlas/teaching-framework`
 - `GET /atlas/academic-integration-plan`
