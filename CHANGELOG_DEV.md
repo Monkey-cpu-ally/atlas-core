@@ -43,3 +43,18 @@ Format:
 - Summary: Applied CSS-only visual consistency polish in `atlas_core_new/static/css/main.css` (spacing rhythm, hierarchy, card/button/input consistency, reduced glow/noise, maintained focus visibility and contrast).
 - Risk: Low to medium (visual-only overrides may require tuning per theme).
 - Rollback: Revert the pass-3 UI polish commit.
+
+### Area: Specification Authoring
+- Summary: Added 10 structured markdown specifications for Polymath Forge and Atlas hybrid system:
+  - `docs/00_MASTER_DOCTRINE.md`
+  - `docs/01_ACADEMY_STRUCTURE_22_SUBJECTS.md`
+  - `docs/02_TEACHING_STANDARD_IVY_SIMPLE.md`
+  - `docs/03_TOME_UI_BOOK_LAYOUT_SPEC.md`
+  - `docs/04_TOOL_SYSTEM_SPEC.md`
+  - `docs/05_MATERIAL_VAULT_SPEC.md`
+  - `docs/06_BIO_STUDY_MODELS_SPEC.md`
+  - `docs/07_PROJECT_ARTIFACT_VAULT_SPEC.md`
+  - `docs/08_UNLOCKS_TESTS_RETEST_ENGINE_SPEC.md`
+  - `docs/09_BUILDER_ROADMAP.md`
+- Risk: Low (documentation-only; no application code changes).
+- Rollback: Revert the documentation commit for these files.
