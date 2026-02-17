@@ -12,6 +12,7 @@
   },
   "response": {
     "project": "string",
+    "version": "v0.1",
     "mode": "mentor|warrior|builder",
     "intent": "blueprint_request|learning_request|security_request|general_planning|image_blueprint_extraction",
     "intent_reason": "string",
@@ -19,6 +20,10 @@
     "validation_status": "ok|flagged|blocked",
     "ajani": {
       "summary": "string",
+      "goal": "string",
+      "spec": [
+        "string"
+      ],
       "structured_plan": [
         "string"
       ],
@@ -44,6 +49,7 @@
     "minerva": {
       "summary": "string",
       "teaching_goal": "string",
+      "explanation": "string",
       "lego_steps": [
         "string"
       ],
@@ -52,11 +58,13 @@
       ],
       "teach_back_questions": [
         "string"
-      ]
+      ],
+      "next_action": "string"
     },
     "hermes": {
       "summary": "string",
       "validation_status": "ok|flagged|blocked",
+      "approval_status": "approved|flagged|blocked",
       "safety_mode": "normal|simulation_only|blocked",
       "checks": [
         "string"
@@ -90,7 +98,9 @@
     }
   },
   "endpoints": {
+    "route": "POST /route",
     "orchestrate": "POST /atlas/orchestrate",
+    "orchestrate_alias": "POST /atlas/route",
     "projects": "GET /atlas/projects",
     "project_memory": "GET /atlas/projects/{project}/memory",
     "project_reset": "POST /atlas/projects/{project}/reset"

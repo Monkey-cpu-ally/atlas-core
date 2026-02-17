@@ -4,7 +4,9 @@ FastAPI backend entrypoint is `backend/main.py`.
 
 ## Atlas Orchestrator endpoints
 
+- `POST /route` (primary MVP route endpoint)
 - `POST /atlas/orchestrate`
+- `POST /atlas/route`
 - `GET /atlas/projects`
 - `GET /atlas/projects/{project}/memory`
 - `POST /atlas/projects/{project}/reset`

@@ -12,11 +12,23 @@ from atlas_core_new.atlas_orchestrator.service import AtlasOrchestratorService
 
 
 router = APIRouter(prefix="/atlas", tags=["atlas-command-center"])
+public_router = APIRouter(tags=["atlas-command-center"])
 atlas_service = AtlasOrchestratorService()
 
 
 @router.post("/orchestrate", response_model=AtlasOrchestrateResponse)
 def orchestrate(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
+    return atlas_service.orchestrate(req)
+
+
+@router.post("/route", response_model=AtlasOrchestrateResponse)
+def orchestrate_route(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
+    return atlas_service.orchestrate(req)
+
+
+@public_router.post("/route", response_model=AtlasOrchestrateResponse)
+def root_route(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
+    """MVP route endpoint alias requested in PRD."""
     return atlas_service.orchestrate(req)
 
 

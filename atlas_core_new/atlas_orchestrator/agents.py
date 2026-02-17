@@ -109,8 +109,17 @@ class AjaniModule:
         if intent == "security_request":
             measurable_requirements.append("Security controls must be mapped to specific tests.")
 
+        spec = [
+            f"Intent: {intent}",
+            f"Pipeline stage: {stage}",
+            "Output must remain structured and testable.",
+            "Project memory is isolated per project.",
+        ]
+
         return AjaniOutput(
             summary=f"Ajani prepared a {stage} plan for: {objective}",
+            goal=objective,
+            spec=spec,
             structured_plan=structured_plan,
             component_breakdown=component_breakdown,
             constraints=constraints,
@@ -167,12 +176,20 @@ class MinervaModule:
                 "This iteration focuses on learning from failure and improving without losing safety."
             )
 
+        explanation = (
+            "Minerva reframed the engineering plan into clear, teachable steps that can be "
+            "executed safely and reviewed stage-by-stage."
+        )
+        next_action = "Choose Step 1 and confirm the success metric before execution."
+
         return MinervaOutput(
             summary=f"Minerva translated Ajani's plan into {tone} lego-style guidance.",
             teaching_goal=f"Help the user execute the {stage} stage with confidence and clarity.",
+            explanation=explanation,
             lego_steps=lego_steps,
             clarity_notes=clarity_notes,
             teach_back_questions=teach_back_questions,
+            next_action=next_action,
             cultural_context=context_line,
         )
 
@@ -213,20 +230,24 @@ class HermesModule:
         flagged = policy.flagged or bool(flags)
         if blocked:
             validation_status = "blocked"
+            approval_status = "blocked"
             safety_mode = "blocked"
             summary = "Hermes blocked the request due to hard-rule violations."
         elif flagged:
             validation_status = "flagged"
+            approval_status = "flagged"
             safety_mode = policy.safety_mode if policy.safety_mode != "blocked" else "normal"
             summary = "Hermes flagged constraints that require caution before execution."
         else:
             validation_status = "ok"
+            approval_status = "approved"
             safety_mode = policy.safety_mode
             summary = "Hermes validated the output and all checks passed."
 
         return HermesOutput(
             summary=summary,
             validation_status=validation_status,
+            approval_status=approval_status,
             safety_mode=safety_mode,
             checks=checks,
             flags=flags,

@@ -16,6 +16,7 @@ Frontend app lives here.
 
 Use `src/client/atlasClient.ts` to call:
 
+- `POST /route` (primary)
 - `POST /atlas/orchestrate`
 - `GET /atlas/projects`
 - `GET /atlas/projects/{project}/memory`

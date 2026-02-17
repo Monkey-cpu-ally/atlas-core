@@ -19,22 +19,40 @@ class PolicyDecision:
 class PolicyEngine:
     _blocked_terms = (
         "weapon",
+        "weaponization",
+        "gun",
+        "rifle",
+        "explosive",
         "bomb",
         "kill",
         "harm someone",
         "illegal",
         "bypass law",
         "malware",
-        "exploit vulnerability",
+        "detonator",
+        "trigger mechanism",
+        "build attack",
+        "attack instructions",
     )
     _bio_terms = (
         "gene edit",
+        "genetic engineering",
+        "bio",
         "pathogen",
         "virus",
         "bioweapon",
         "wet lab",
         "dna synthesis",
         "crispr",
+    )
+    _simulation_only_security_terms = (
+        "exploit",
+        "penetration testing",
+        "pentest",
+        "vulnerability research",
+        "red team",
+        "social engineering",
+        "privilege escalation",
     )
 
     def evaluate(self, user_input: str) -> PolicyDecision:
@@ -56,13 +74,23 @@ class PolicyEngine:
         if any(term in lowered for term in self._bio_terms):
             decision.flagged = True
             decision.safety_mode = "simulation_only"
-            decision.flags.append("bio_request_simulation_only")
+            decision.flags.append("sensitive_domain_simulation_only")
             decision.enforced_constraints.append(
                 "Bio topics are limited to simulation-only and safe research mode."
             )
 
+        decision.checks.append("Checked security exploit boundaries.")
+        if any(term in lowered for term in self._simulation_only_security_terms):
+            decision.flagged = True
+            decision.safety_mode = "simulation_only"
+            decision.flags.append("security_simulation_only")
+            decision.enforced_constraints.append(
+                "Security exploit topics must remain defensive and simulation-only."
+            )
+
         decision.checks.append("Checked weaponization restrictions.")
         decision.enforced_constraints.append("No weaponization instructions.")
+        decision.enforced_constraints.append("Sensitive domains require defensive framing.")
         decision.enforced_constraints.append("Outputs must include measurable requirements.")
         decision.enforced_constraints.append("Outputs must include testable steps.")
         return decision

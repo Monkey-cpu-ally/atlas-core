@@ -26,6 +26,11 @@ class AtlasOrchestratorService:
             explicit_stage=request.pipeline_stage,
         )
         policy_decision = self.policy.evaluate(request.user_input)
+        safe_user_input = request.user_input
+        if policy_decision.blocked:
+            safe_user_input = (
+                "Policy blocked original request. Generate only safe, defensive, high-level guidance."
+            )
 
         context_constraints = []
         if request.context and isinstance(request.context.get("constraints"), list):
@@ -35,13 +40,13 @@ class AtlasOrchestratorService:
         # Non-negotiable routing order:
         # Ajani -> Minerva -> Hermes
         ajani_output = self.ajani.generate(
-            user_input=request.user_input,
+            user_input=safe_user_input,
             intent=intent,
             stage=stage,
             constraints=constraints,
         )
         minerva_output = self.minerva.generate(
-            user_input=request.user_input,
+            user_input=safe_user_input,
             mode=request.mode,
             stage=stage,
             ajani_output=ajani_output,
@@ -65,6 +70,7 @@ class AtlasOrchestratorService:
 
         return AtlasOrchestrateResponse(
             project=request.project,
+            version=memory_snapshot.current_version,
             mode=request.mode,
             intent=intent,
             intent_reason=intent_reason,

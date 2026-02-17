@@ -17,6 +17,7 @@ IntentType = Literal[
 PipelineStage = Literal["blueprint", "build", "modify"]
 ValidationStatus = Literal["ok", "flagged", "blocked"]
 SafetyMode = Literal["normal", "simulation_only", "blocked"]
+ApprovalStatus = Literal["approved", "flagged", "blocked"]
 
 
 class AtlasOrchestrateRequest(BaseModel):
@@ -30,6 +31,8 @@ class AtlasOrchestrateRequest(BaseModel):
 class AjaniOutput(BaseModel):
     persona: Literal["ajani"] = "ajani"
     summary: str
+    goal: str
+    spec: list[str]
     structured_plan: list[str]
     component_breakdown: list[str]
     constraints: list[str]
@@ -44,9 +47,11 @@ class MinervaOutput(BaseModel):
     persona: Literal["minerva"] = "minerva"
     summary: str
     teaching_goal: str
+    explanation: str
     lego_steps: list[str]
     clarity_notes: list[str]
     teach_back_questions: list[str]
+    next_action: str
     cultural_context: str | None = None
 
 
@@ -54,6 +59,7 @@ class HermesOutput(BaseModel):
     persona: Literal["hermes"] = "hermes"
     summary: str
     validation_status: ValidationStatus
+    approval_status: ApprovalStatus
     safety_mode: SafetyMode
     checks: list[str]
     flags: list[str]
@@ -75,6 +81,7 @@ class ProjectMemorySnapshot(BaseModel):
 
 class AtlasOrchestrateResponse(BaseModel):
     project: str
+    version: str
     mode: ModeType
     intent: IntentType
     intent_reason: str

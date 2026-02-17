@@ -11,6 +11,7 @@ export interface AtlasRequest {
 
 export interface AtlasResponse {
   project: string;
+  version: string;
   mode: AtlasMode;
   intent: string;
   intent_reason: string;
@@ -26,7 +27,7 @@ export async function orchestrateAtlas(
   baseUrl: string,
   payload: AtlasRequest
 ): Promise<AtlasResponse> {
-  const response = await fetch(`${baseUrl}/atlas/orchestrate`, {
+  const response = await fetch(`${baseUrl}/route`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -37,6 +38,22 @@ export async function orchestrateAtlas(
     throw new Error(`Atlas orchestrate failed (${response.status}): ${text}`);
   }
 
+  return (await response.json()) as AtlasResponse;
+}
+
+export async function orchestrateAtlasViaLegacyEndpoint(
+  baseUrl: string,
+  payload: AtlasRequest
+): Promise<AtlasResponse> {
+  const response = await fetch(`${baseUrl}/atlas/orchestrate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Atlas orchestrate failed (${response.status}): ${text}`);
+  }
   return (await response.json()) as AtlasResponse;
 }
 
