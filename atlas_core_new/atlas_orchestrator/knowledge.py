@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from typing import Any
 
 
@@ -203,6 +204,21 @@ ATLAS_PROJECT_REGISTRY: list[dict[str, Any]] = [
 ]
 
 
+def _normalize_alnum(value: str) -> str:
+    return "".join(ch for ch in value.lower().strip() if ch.isalnum())
+
+
+_REGISTRY_SEARCH_ROWS: list[tuple[dict[str, Any], str, str, str, str]] = []
+_REGISTRY_BY_ID: dict[str, dict[str, Any]] = {}
+for _entry in ATLAS_PROJECT_REGISTRY:
+    _entry_id = str(_entry["id"]).lower()
+    _entry_name = str(_entry["name"]).lower()
+    _entry_id_norm = _normalize_alnum(_entry_id)
+    _entry_name_norm = _normalize_alnum(_entry_name)
+    _REGISTRY_SEARCH_ROWS.append((_entry, _entry_id, _entry_name, _entry_id_norm, _entry_name_norm))
+    _REGISTRY_BY_ID.setdefault(_entry_id, _entry)
+
+
 CAPABILITY_MATRIX: list[dict[str, str]] = [
     {
         "capability": "Blueprint generation",
@@ -358,13 +374,16 @@ _FIELD_KEYWORDS: dict[str, tuple[str, ...]] = {
 }
 
 
-def _keyword_hit(text: str, keyword: str) -> bool:
-    lowered = text.lower()
+def _keyword_hit(lowered_text: str, keyword: str) -> bool:
     key = keyword.lower().strip()
     if " " in key:
-        return key in lowered
-    pattern = rf"(?<![a-z0-9]){re.escape(key)}(?![a-z0-9])"
-    return re.search(pattern, lowered) is not None
+        return key in lowered_text
+    return _single_keyword_pattern(key).search(lowered_text) is not None
+
+
+@lru_cache(maxsize=128)
+def _single_keyword_pattern(keyword: str) -> re.Pattern[str]:
+    return re.compile(rf"(?<![a-z0-9]){re.escape(keyword)}(?![a-z0-9])")
 
 
 def is_resonance_scanner_request(text: str) -> bool:
@@ -395,12 +414,8 @@ def infer_relevant_fields(text: str) -> list[str]:
 
 def get_project_registry_entry(project_name_or_id: str) -> dict[str, Any] | None:
     lookup = project_name_or_id.strip().lower()
-    lookup_norm = "".join(ch for ch in lookup if ch.isalnum())
-    for entry in ATLAS_PROJECT_REGISTRY:
-        entry_id = str(entry["id"]).lower()
-        entry_name = str(entry["name"]).lower()
-        entry_id_norm = "".join(ch for ch in entry_id if ch.isalnum())
-        entry_name_norm = "".join(ch for ch in entry_name if ch.isalnum())
+    lookup_norm = _normalize_alnum(lookup)
+    for entry, entry_id, entry_name, entry_id_norm, entry_name_norm in _REGISTRY_SEARCH_ROWS:
 
         if entry_id == lookup:
             return entry
@@ -415,21 +430,14 @@ def get_project_registry_entry(project_name_or_id: str) -> dict[str, Any] | None
 
 def get_project_registry_by_id(project_id: str) -> dict[str, Any] | None:
     lookup = project_id.strip().lower()
-    for entry in ATLAS_PROJECT_REGISTRY:
-        if str(entry["id"]).lower() == lookup:
-            return entry
-    return None
+    return _REGISTRY_BY_ID.get(lookup)
 
 
 def search_project_registry(query: str) -> list[dict[str, Any]]:
     lookup = query.strip().lower()
-    lookup_norm = "".join(ch for ch in lookup if ch.isalnum())
+    lookup_norm = _normalize_alnum(lookup)
     matches: list[dict[str, Any]] = []
-    for entry in ATLAS_PROJECT_REGISTRY:
-        entry_id = str(entry["id"]).lower()
-        entry_name = str(entry["name"]).lower()
-        entry_id_norm = "".join(ch for ch in entry_id if ch.isalnum())
-        entry_name_norm = "".join(ch for ch in entry_name if ch.isalnum())
+    for entry, entry_id, entry_name, entry_id_norm, entry_name_norm in _REGISTRY_SEARCH_ROWS:
         if (
             lookup == entry_id
             or lookup == entry_name
