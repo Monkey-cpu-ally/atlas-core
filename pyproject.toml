@@ -11,8 +11,6 @@ dependencies = [
     "pydantic",
     "openai",
     "python-multipart",
-    "pydantic-settings",
-    "feedparser",
     "httpx",
 ]
 
