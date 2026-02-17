@@ -24,139 +24,142 @@ export interface AtlasResponse {
   project_memory: Record<string, unknown>;
 }
 
+const inflightGetRequests = new Map<string, Promise<unknown>>();
+
+async function fetchJson<T>(
+  url: string,
+  errorPrefix: string,
+  init?: RequestInit,
+  includeErrorBody = false
+): Promise<T> {
+  const response = await fetch(url, init);
+  if (!response.ok) {
+    if (includeErrorBody) {
+      const text = await response.text();
+      throw new Error(`${errorPrefix} (${response.status}): ${text}`);
+    }
+    throw new Error(`${errorPrefix} (${response.status})`);
+  }
+  return (await response.json()) as T;
+}
+
+// Coalesce concurrent GETs for identical URLs.
+async function fetchJsonGet<T>(url: string, errorPrefix: string): Promise<T> {
+  const existing = inflightGetRequests.get(url) as Promise<T> | undefined;
+  if (existing) {
+    return existing;
+  }
+  const request = fetchJson<T>(url, errorPrefix).finally(() => {
+    inflightGetRequests.delete(url);
+  });
+  inflightGetRequests.set(url, request as Promise<unknown>);
+  return request;
+}
+
 export async function orchestrateAtlas(
   baseUrl: string,
   payload: AtlasRequest
 ): Promise<AtlasResponse> {
-  const response = await fetch(`${baseUrl}/route`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Atlas orchestrate failed (${response.status}): ${text}`);
-  }
-
-  return (await response.json()) as AtlasResponse;
+  return fetchJson<AtlasResponse>(
+    `${baseUrl}/route`,
+    "Atlas orchestrate failed",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    true
+  );
 }
 
 export async function orchestrateAtlasViaLegacyEndpoint(
   baseUrl: string,
   payload: AtlasRequest
 ): Promise<AtlasResponse> {
-  const response = await fetch(`${baseUrl}/atlas/orchestrate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Atlas orchestrate failed (${response.status}): ${text}`);
-  }
-  return (await response.json()) as AtlasResponse;
+  return fetchJson<AtlasResponse>(
+    `${baseUrl}/atlas/orchestrate`,
+    "Atlas orchestrate failed",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    true
+  );
 }
 
 export async function getProjectMemory(baseUrl: string, project: string) {
-  const response = await fetch(
-    `${baseUrl}/atlas/projects/${encodeURIComponent(project)}/memory`
+  return fetchJsonGet(
+    `${baseUrl}/atlas/projects/${encodeURIComponent(project)}/memory`,
+    "Atlas memory fetch failed"
   );
-  if (!response.ok) {
-    throw new Error(`Atlas memory fetch failed (${response.status})`);
-  }
-  return response.json();
 }
 
 export async function getAtlasVision(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/vision`);
-  if (!response.ok) {
-    throw new Error(`Atlas vision fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(`${baseUrl}/atlas/vision`, "Atlas vision fetch failed");
 }
 
 export async function getAtlasDomains(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/domains`);
-  if (!response.ok) {
-    throw new Error(`Atlas domains fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(`${baseUrl}/atlas/domains`, "Atlas domains fetch failed");
 }
 
 export async function getActivePrototype(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/prototypes/active`);
-  if (!response.ok) {
-    throw new Error(`Atlas active prototype fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(
+    `${baseUrl}/atlas/prototypes/active`,
+    "Atlas active prototype fetch failed"
+  );
 }
 
 export async function getProjectRegistry(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/project-registry`);
-  if (!response.ok) {
-    throw new Error(`Atlas project registry fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(
+    `${baseUrl}/atlas/project-registry`,
+    "Atlas project registry fetch failed"
+  );
 }
 
 export async function searchProjectRegistry(baseUrl: string, query: string) {
-  const response = await fetch(
-    `${baseUrl}/atlas/project-registry/search?q=${encodeURIComponent(query)}`
+  return fetchJsonGet(
+    `${baseUrl}/atlas/project-registry/search?q=${encodeURIComponent(query)}`,
+    "Atlas project registry search failed"
   );
-  if (!response.ok) {
-    throw new Error(`Atlas project registry search failed (${response.status})`);
-  }
-  return response.json();
 }
 
 export async function getProjectRegistryItem(baseUrl: string, projectId: string) {
-  const response = await fetch(
-    `${baseUrl}/atlas/project-registry/${encodeURIComponent(projectId)}`
+  return fetchJsonGet(
+    `${baseUrl}/atlas/project-registry/${encodeURIComponent(projectId)}`,
+    "Atlas project registry item failed"
   );
-  if (!response.ok) {
-    throw new Error(`Atlas project registry item failed (${response.status})`);
-  }
-  return response.json();
 }
 
 export async function getCapabilityMatrix(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/capability-matrix`);
-  if (!response.ok) {
-    throw new Error(`Atlas capability matrix fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(
+    `${baseUrl}/atlas/capability-matrix`,
+    "Atlas capability matrix fetch failed"
+  );
 }
 
 export async function getTeachingFramework(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/teaching-framework`);
-  if (!response.ok) {
-    throw new Error(`Atlas teaching framework fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(
+    `${baseUrl}/atlas/teaching-framework`,
+    "Atlas teaching framework fetch failed"
+  );
 }
 
 export async function getAcademicIntegrationPlan(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/academic-integration-plan`);
-  if (!response.ok) {
-    throw new Error(`Atlas academic integration plan fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(
+    `${baseUrl}/atlas/academic-integration-plan`,
+    "Atlas academic integration plan fetch failed"
+  );
 }
 
 export async function getOperationalRules(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/operational-rules`);
-  if (!response.ok) {
-    throw new Error(`Atlas operational rules fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(
+    `${baseUrl}/atlas/operational-rules`,
+    "Atlas operational rules fetch failed"
+  );
 }
 
 export async function getDoctrine(baseUrl: string) {
-  const response = await fetch(`${baseUrl}/atlas/doctrine`);
-  if (!response.ok) {
-    throw new Error(`Atlas doctrine fetch failed (${response.status})`);
-  }
-  return response.json();
+  return fetchJsonGet(`${baseUrl}/atlas/doctrine`, "Atlas doctrine fetch failed");
 }
 

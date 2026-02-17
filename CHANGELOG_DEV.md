@@ -32,3 +32,8 @@ Format:
 - Summary: Optimized registry lookups in `atlas_orchestrator/knowledge.py` with precomputed normalized indexes and cached regex compilation for keyword matching.
 - Risk: Low (lookup and matching internals refactor with same function signatures and outputs).
 - Rollback: Revert the pass-2 backend optimization commit.
+
+### Area: Pass 2 Performance (Frontend)
+- Summary: Refactored `frontend/src/client/atlasClient.ts` to use shared JSON fetch helpers and in-flight GET request coalescing to reduce duplicate concurrent requests.
+- Risk: Low (same endpoint URLs, methods, and error message patterns; no schema changes).
+- Rollback: Revert the pass-2 frontend optimization commit.
