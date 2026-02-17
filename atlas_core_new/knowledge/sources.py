@@ -4,8 +4,8 @@ Organized by domain, mapped to persona specialties.
 
 These are patterns learned from sources, not stored copies.
 """
-from dataclasses import dataclass, field
-from typing import List, Dict
+from dataclasses import dataclass
+from typing import List
 
 
 @dataclass

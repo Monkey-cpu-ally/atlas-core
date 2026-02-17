@@ -104,7 +104,7 @@ def chat(req: ChatRequest):
                 max_completion_tokens=256
             )
             return {"persona": persona, "response": response.choices[0].message.content}
-        except Exception as e:
+        except Exception:
             return {"error": "An error occurred processing your request", "persona": persona, "response": "Sorry, I encountered a temporary error. Please try again."}
 
     voice_cmd = detect_lesson_voice_command(req.message)
@@ -241,7 +241,7 @@ def chat(req: ChatRequest):
             "response": content,
             "conversation_id": conversation_id
         }
-    except Exception as e:
+    except Exception:
         import traceback
         traceback.print_exc()
         return {"error": "An error occurred processing your request", "persona": persona, "response": "Sorry, I encountered a temporary error. Please try again."}

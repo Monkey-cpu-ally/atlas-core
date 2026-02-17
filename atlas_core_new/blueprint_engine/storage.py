@@ -6,7 +6,7 @@ import re
 import uuid
 import zipfile
 from datetime import datetime
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
@@ -325,7 +325,7 @@ def build_manual(project_slug: str, version: str):
 
     packet = BlueprintPacket(**read_json(project_json))
 
-    pdf_path = generate_manual_pdf(packet, paths)
+    _pdf_path = generate_manual_pdf(packet, paths)
     return {"status": "ok", "pdf_path": f"/atlas/projects/{project_slug}/{os.path.basename(paths['root'])}/manual.pdf"}
 
 

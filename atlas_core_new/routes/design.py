@@ -274,7 +274,7 @@ def generate_design(req: DesignRequest):
         return {"error": "AI services are currently offline. Please try again later."}
 
     persona = req.persona.lower()
-    style_info = req.style or {}
+    _style_info = req.style or {}
 
     persona_style = {
         "ajani": "Bold, sharp edges, high contrast, tactical. Primary: #dc143c (crimson), accents: #ff4444",
@@ -594,7 +594,7 @@ End with a "TRY THIS FIRST" micro-task they can do in 5-10 minutes to get starte
             "response": content,
             "category": category
         }
-    except Exception as e:
+    except Exception:
         import traceback
         traceback.print_exc()
         return {"error": "An error occurred processing your request", "persona": persona, "response": "Sorry, I encountered a temporary error. Please try again."}

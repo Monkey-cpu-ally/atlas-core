@@ -14,7 +14,6 @@ import time
 import logging
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import Optional, Callable, Any
 
 logger = logging.getLogger("atlas.refusal_engine")
 

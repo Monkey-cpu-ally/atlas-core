@@ -14,7 +14,6 @@ Workflow:
 """
 
 import uuid
-from datetime import datetime
 
 PIPELINE_PHASES = [
     "idea",

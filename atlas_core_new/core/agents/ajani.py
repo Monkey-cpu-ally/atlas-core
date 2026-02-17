@@ -13,7 +13,7 @@ Personality: Strategic, methodical, sees the big picture
 Specialty: Task decomposition, project planning, verification
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import json
 
 from .base_agent import BaseAgent, AgentRole, AgentCapability, AgentResponse

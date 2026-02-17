@@ -194,7 +194,7 @@ def add_message(conversation_id: int, req: MessageCreate):
                     max_completion_tokens=2048
                 )
                 ai_response = response.choices[0].message.content or ""
-            except Exception as e:
+            except Exception:
                 ai_response = "I encountered a temporary error. Please try again."
         else:
             ai_response = "I'm currently offline. Please check AI integration setup."

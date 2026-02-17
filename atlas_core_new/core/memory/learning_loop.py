@@ -11,9 +11,8 @@ This creates a growing knowledge base that informs future decisions.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from enum import Enum
-import json
 
 
 class LessonType(Enum):

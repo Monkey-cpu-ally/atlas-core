@@ -21,7 +21,7 @@ class RobotArmPlugin(DesignPlugin):
     def generate_variant(self, idx: int, constraints: Dict[str, Any]) -> Dict[str, Any]:
         reach = float(constraints.get("reach_m", 0.8))
         payload = float(constraints.get("payload_kg", 3.0))
-        vmax = float(constraints.get("bus_voltage_v", 48))
+        _vmax = float(constraints.get("bus_voltage_v", 48))
         pmax = float(constraints.get("max_power_w", 800))
 
         drive = random.choice(["Servos", "Steppers", "Hybrid (servo joints + stepper base)"])

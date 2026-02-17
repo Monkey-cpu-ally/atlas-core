@@ -13,11 +13,10 @@ Stores embeddings of:
 - User preferences and context
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 import hashlib
-import json
 
 
 @dataclass
@@ -116,7 +115,7 @@ class VectorStore:
     ) -> List[Tuple[VectorEntry, float]]:
         query_embedding = self._simple_embedding(query)
         
-        candidates = []
+        _candidates = []
         if entry_type and entry_type in self.type_index:
             candidate_ids = self.type_index[entry_type]
         else:

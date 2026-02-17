@@ -19,10 +19,9 @@ BREAKTHROUGHS must be tagged: Conceptual, Theoretical, Ethical, or Safety
 NEVER allowed: "X% success", "this works", "this can be built", materials lists, step-by-step procedures
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from dataclasses import dataclass
+from typing import List, Optional
 from enum import Enum
-from datetime import datetime
 
 
 SYSTEM_DISCLAIMER = """

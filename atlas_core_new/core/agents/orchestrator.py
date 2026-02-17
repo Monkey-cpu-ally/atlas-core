@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from enum import Enum
-import json
 
 from .base_agent import AgentRole, AgentResponse
 from .ajani import AjaniAgent
@@ -28,11 +27,11 @@ from .hermes import HermesAgent
 from ..kernel.task_router import TaskRouter, ClassifiedTask
 from ..kernel.action_logger import ActionLogger, ActionType
 from ..kernel.tool_runner import ToolRunner
-from ..kernel.checkpoint import GitCheckpointSystem, CheckpointType, checkpoint_system
+from ..kernel.checkpoint import CheckpointType, checkpoint_system
 from ..kernel.file_ops import FileOperations
 from ..memory.decision_log import DecisionLog, DecisionType
-from ..memory.learning_loop import LearningLoop, learning_loop
-from ..memory.state_tracker import StateTracker, state_tracker, RiskPriority
+from ..memory.learning_loop import learning_loop
+from ..memory.state_tracker import state_tracker, RiskPriority
 
 
 class ExecutionStatus(Enum):

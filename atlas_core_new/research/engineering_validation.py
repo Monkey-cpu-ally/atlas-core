@@ -23,7 +23,6 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import Optional
 
 logger = logging.getLogger("atlas.engineering_validation")
 

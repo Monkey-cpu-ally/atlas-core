@@ -5,7 +5,6 @@ Tool capabilities for AI personas: web search, calculator, code execution.
 """
 
 import math
-import re
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 

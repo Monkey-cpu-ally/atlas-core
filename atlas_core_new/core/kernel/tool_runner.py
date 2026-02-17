@@ -16,8 +16,6 @@ from enum import Enum
 import subprocess
 import tempfile
 import os
-import signal
-import json
 
 
 class ExecutionStatus(Enum):
@@ -160,7 +158,7 @@ class ToolRunner:
         safe_globals["datetime"] = dt_mod
         
         output_capture = []
-        original_print = print
+        _original_print = print
         
         def captured_print(*args, **kwargs):
             msg = " ".join(str(a) for a in args)

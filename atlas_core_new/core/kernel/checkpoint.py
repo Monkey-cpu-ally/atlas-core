@@ -4,7 +4,6 @@ Auto-commits on successful task execution with version tagging.
 """
 
 import subprocess
-import os
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
