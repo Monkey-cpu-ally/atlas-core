@@ -13,6 +13,13 @@ FastAPI backend entrypoint is `backend/main.py`.
 - `GET /atlas/vision`
 - `GET /atlas/domains`
 - `GET /atlas/prototypes/active`
+- `GET /atlas/project-registry`
+- `GET /atlas/project-registry/{project}`
+- `GET /atlas/capability-matrix`
+- `GET /atlas/teaching-framework`
+- `GET /atlas/academic-integration-plan`
+- `GET /atlas/operational-rules`
+- `GET /atlas/doctrine`
 
 These routes implement the command-center flow:
 1. Intake

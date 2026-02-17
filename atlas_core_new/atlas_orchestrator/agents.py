@@ -5,6 +5,7 @@ from __future__ import annotations
 from .knowledge import (
     ACTIVE_PROTOTYPE,
     ATLAS_CAPABILITY_BOUNDARIES,
+    TEACHING_FRAMEWORK_LOCK,
     infer_relevant_fields,
     is_resonance_scanner_request,
 )
@@ -68,6 +69,7 @@ class AjaniModule:
         stage: PipelineStage,
         constraints: list[str],
         version_tag: str,
+        registered_project: dict | None = None,
     ) -> AjaniOutput:
         parts = _collect_parts(user_input)
         objective = user_input.strip().split("\n")[0][:180]
@@ -232,6 +234,11 @@ class AjaniModule:
         if intent == "security_request":
             measurable_requirements.append("Security controls must be mapped to specific tests.")
 
+        if registered_project:
+            deps = registered_project.get("academic_dependencies", [])
+            if isinstance(deps, list) and deps:
+                required_fields = [str(dep) for dep in deps]
+
         if is_resonance_scanner_request(user_input):
             required_fields = list(ACTIVE_PROTOTYPE["academic_dependencies"].keys())
 
@@ -241,6 +248,14 @@ class AjaniModule:
             "Output must remain structured and testable.",
             "Project memory is isolated per project.",
         ]
+        if registered_project:
+            spec.extend(
+                [
+                    f"Registered project category: {registered_project.get('category', 'unknown')}",
+                    f"Registered phase target: {registered_project.get('current_phase', 'unknown')}",
+                    f"Registered objective: {registered_project.get('objective', 'n/a')}",
+                ]
+            )
 
         return AjaniOutput(
             summary=f"Ajani prepared a {stage} plan for: {objective}",
@@ -345,6 +360,10 @@ class MinervaModule:
             "Prioritize fixes by safety impact, then performance impact.",
             "Revalidate and publish next version notes.",
         ]
+        mini_build_exercise = (
+            "Build a paper or whiteboard block diagram with labeled components and one pass/fail test per block."
+        )
+        teaching_framework_sequence = list(TEACHING_FRAMEWORK_LOCK["sequence"])
 
         return MinervaOutput(
             summary=f"Minerva translated Ajani's plan into {tone} lego-style guidance.",
@@ -361,6 +380,8 @@ class MinervaModule:
             memory_anchors=memory_anchors,
             risk_failure_modes=risk_failure_modes,
             improvement_path=improvement_path,
+            mini_build_exercise=mini_build_exercise,
+            teaching_framework_sequence=teaching_framework_sequence,
             next_action=next_action,
             cultural_context=context_line,
         )
@@ -412,6 +433,11 @@ class HermesModule:
         if not minerva_output.explanation or not minerva_output.next_action:
             flags.append("minerva_structure_incomplete")
             edge_case_checks.append("FAILED: Minerva structure missing explanation/next action.")
+        if minerva_output.teaching_framework_sequence != list(TEACHING_FRAMEWORK_LOCK["sequence"]):
+            flags.append("teaching_framework_order_violation")
+            edge_case_checks.append("FAILED: Teaching framework order violated.")
+        else:
+            edge_case_checks.append("PASS: Teaching framework lock enforced in canonical order.")
 
         blocked = policy.blocked
         flagged = policy.flagged or bool(flags)

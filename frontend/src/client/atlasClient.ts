@@ -12,6 +12,7 @@ export interface AtlasRequest {
 export interface AtlasResponse {
   project: string;
   version: string;
+  project_registry_entry?: Record<string, unknown> | null;
   mode: AtlasMode;
   intent: string;
   intent_reason: string;
@@ -87,6 +88,54 @@ export async function getActivePrototype(baseUrl: string) {
   const response = await fetch(`${baseUrl}/atlas/prototypes/active`);
   if (!response.ok) {
     throw new Error(`Atlas active prototype fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getProjectRegistry(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/project-registry`);
+  if (!response.ok) {
+    throw new Error(`Atlas project registry fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getCapabilityMatrix(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/capability-matrix`);
+  if (!response.ok) {
+    throw new Error(`Atlas capability matrix fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getTeachingFramework(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/teaching-framework`);
+  if (!response.ok) {
+    throw new Error(`Atlas teaching framework fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getAcademicIntegrationPlan(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/academic-integration-plan`);
+  if (!response.ok) {
+    throw new Error(`Atlas academic integration plan fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getOperationalRules(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/operational-rules`);
+  if (!response.ok) {
+    throw new Error(`Atlas operational rules fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getDoctrine(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/doctrine`);
+  if (!response.ok) {
+    throw new Error(`Atlas doctrine fetch failed (${response.status})`);
   }
   return response.json();
 }

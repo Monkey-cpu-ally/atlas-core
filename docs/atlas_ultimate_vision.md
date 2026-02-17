@@ -113,3 +113,36 @@ Atlas cannot:
 4. Simulation engine integration
 5. Advanced modular reasoning network
 
+## Full Project Registry
+All projects are expected to be registered with:
+- project name
+- category
+- academic dependencies
+- current phase
+- version
+
+Current and planned registry:
+1. Wearable Resonance Scanner (v1)
+2. Atlas Core Hybrid System
+3. Blueprint Engine (Lego Output System)
+4. Environmental / Green Systems (Future)
+5. Advanced Academic Engine
+
+## Capability Matrix Lock
+Role drift prevention:
+- Ajani: engineering generation
+- Minerva: explanation and conceptual teaching
+- Hermes: security, validation, policy
+- Atlas: routing, memory, governance
+
+## Teaching Framework Lock
+Ordered and non-skippable:
+1. Definition
+2. Physical intuition
+3. Mathematical core (when ready)
+4. Real-world example
+5. Prototype connection
+6. Risk & failure modes
+7. Mini build exercise
+8. Review loop
+

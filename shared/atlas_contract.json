@@ -13,6 +13,7 @@
   "response": {
     "project": "string",
     "version": "v0.1",
+    "project_registry_entry": {},
     "mode": "mentor|warrior|builder",
     "intent": "blueprint_request|learning_request|security_request|general_planning|image_blueprint_extraction",
     "intent_reason": "string",
@@ -110,6 +111,17 @@
       "improvement_path": [
         "string"
       ],
+      "mini_build_exercise": "string",
+      "teaching_framework_sequence": [
+        "Definition",
+        "Physical intuition",
+        "Mathematical core (when ready)",
+        "Real-world example",
+        "Prototype connection",
+        "Risk & failure modes",
+        "Mini build exercise",
+        "Review loop"
+      ],
       "next_action": "string"
     },
     "hermes": {
@@ -168,7 +180,13 @@
     "project_reset": "POST /atlas/projects/{project}/reset",
     "vision": "GET /atlas/vision",
     "domains": "GET /atlas/domains",
-    "active_prototype": "GET /atlas/prototypes/active"
+    "active_prototype": "GET /atlas/prototypes/active",
+    "project_registry": "GET /atlas/project-registry",
+    "capability_matrix": "GET /atlas/capability-matrix",
+    "teaching_framework": "GET /atlas/teaching-framework",
+    "academic_integration_plan": "GET /atlas/academic-integration-plan",
+    "operational_rules": "GET /atlas/operational-rules",
+    "doctrine": "GET /atlas/doctrine"
   },
   "ui_structure_lock": {
     "left_panel": "Projects",
@@ -186,11 +204,13 @@
     "Modify"
   ],
   "teaching_pattern": [
-    "Concept overview",
-    "Component breakdown",
-    "Physical analogy",
-    "Step-by-step assembly",
-    "Risk/failure modes",
-    "Improvement path"
+    "Definition",
+    "Physical intuition",
+    "Mathematical core (when ready)",
+    "Real-world example",
+    "Prototype connection",
+    "Risk & failure modes",
+    "Mini build exercise",
+    "Review loop"
   ]
 }

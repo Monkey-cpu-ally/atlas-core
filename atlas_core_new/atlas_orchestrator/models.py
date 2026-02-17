@@ -70,6 +70,8 @@ class MinervaOutput(BaseModel):
     memory_anchors: list[str]
     risk_failure_modes: list[str]
     improvement_path: list[str]
+    mini_build_exercise: str
+    teaching_framework_sequence: list[str]
     next_action: str
     cultural_context: str | None = None
 
@@ -103,6 +105,7 @@ class ProjectMemorySnapshot(BaseModel):
 class AtlasOrchestrateResponse(BaseModel):
     project: str
     version: str
+    project_registry_entry: dict[str, Any] | None = None
     mode: ModeType
     intent: IntentType
     intent_reason: str

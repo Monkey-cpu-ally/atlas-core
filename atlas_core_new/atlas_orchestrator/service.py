@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .agents import AjaniModule, HermesModule, MinervaModule
 from .classifier import IntentClassifier, infer_pipeline_stage
+from .knowledge import DOCTRINE_FREEZE, get_project_registry_entry
 from .memory import ProjectMemoryStore
 from .models import AtlasOrchestrateRequest, AtlasOrchestrateResponse, ProjectMemorySnapshot, ProjectSummary
 from .policy import PolicyEngine
@@ -36,6 +37,7 @@ class AtlasOrchestratorService:
 
     def orchestrate(self, request: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
         current_snapshot = self.memory.get_project(request.project)
+        registry_entry = get_project_registry_entry(request.project)
         intent, intent_reason = self.classifier.classify(request.user_input)
         stage = infer_pipeline_stage(
             user_input=request.user_input,
@@ -54,6 +56,16 @@ class AtlasOrchestratorService:
         if request.context and isinstance(request.context.get("constraints"), list):
             context_constraints = [str(item) for item in request.context["constraints"]]
         constraints = [*policy_decision.enforced_constraints, *context_constraints]
+        if registry_entry:
+            constraints.append(
+                f"Project registry reference: {registry_entry.get('name')} ({registry_entry.get('version')})"
+            )
+        elif not DOCTRINE_FREEZE.get("expansion_allowed", True):
+            policy_decision.flagged = True
+            policy_decision.flags.append("unregistered_project_under_freeze")
+            constraints.append(
+                "Architecture freeze active: use registered projects only until milestone complete."
+            )
 
         # Non-negotiable routing order:
         # Ajani -> Minerva -> Hermes
@@ -63,6 +75,7 @@ class AtlasOrchestratorService:
             stage=stage,
             constraints=constraints,
             version_tag=planned_version,
+            registered_project=registry_entry,
         )
         minerva_output = self.minerva.generate(
             user_input=safe_user_input,
@@ -92,6 +105,7 @@ class AtlasOrchestratorService:
         return AtlasOrchestrateResponse(
             project=request.project,
             version=memory_snapshot.current_version,
+            project_registry_entry=registry_entry,
             mode=request.mode,
             intent=intent,
             intent_reason=intent_reason,
