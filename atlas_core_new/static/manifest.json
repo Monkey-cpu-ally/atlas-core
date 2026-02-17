@@ -1,0 +1,55 @@
+{
+  "name": "Atlas Core - ATLAS-PRIME",
+  "short_name": "Atlas Core",
+  "description": "Your personal AI council - Ajani, Minerva, and Hermes at your service",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "education", "utilities"],
+  "icons": [
+    {
+      "src": "/static/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Talk to Ajani",
+      "short_name": "Ajani",
+      "description": "Start a conversation with Ajani",
+      "url": "/?persona=ajani",
+      "icons": [{"src": "/static/images/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Talk to Minerva",
+      "short_name": "Minerva",
+      "description": "Start a conversation with Minerva",
+      "url": "/?persona=minerva",
+      "icons": [{"src": "/static/images/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Talk to Hermes",
+      "short_name": "Hermes",
+      "description": "Start a conversation with Hermes",
+      "url": "/?persona=hermes",
+      "icons": [{"src": "/static/images/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Trinity Counsel",
+      "short_name": "Counsel",
+      "description": "Consult all three personas",
+      "url": "/?persona=trinity",
+      "icons": [{"src": "/static/images/icon-192.png", "sizes": "192x192"}]
+    }
+  ]
+}
