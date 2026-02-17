@@ -4,6 +4,8 @@ atlas_core/main.py
 FastAPI entry point.
 """
 
+import importlib
+import logging
 import os
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File
@@ -32,7 +34,6 @@ from .research.research_docs import (
     get_research_document, get_all_documents_for_persona, get_test_ready_projects,
     get_projects_by_phase, format_document_summary, format_document_full, ProjectPhase
 )
-import os
 from .forge import (
     SafetyKernel, RefusalEngine, HumanGate, CauldronLiteFactory,
     AjaniStrategist, MinervaEthics, HermesFabrication,
@@ -76,14 +77,8 @@ from .research.simulation_data import (
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from umojaforge.simulator_api import router as simulator_router
-from umojaforge.spcm_api import router as spcm_router
 from atlas_core_new.core.agents.api import router as agents_router
 from atlas_core_new.core.runtime.hermes_router_api import router as hermes_api_router
-from doctrine.api import router as doctrine_router
-from doctrine.chameleon_api import router as chameleon_router
-from uws_workshop.uws.api import router as uws_router
-from pre_reality_engine.api import router as pre_reality_router
 from atlas_core_new.research.research_tracker_api import router as research_tracker_router
 from atlas_core_new.engineering.api import router as engineering_router
 from atlas_core_new.research.supervisor_api import router as supervisor_router
@@ -91,21 +86,15 @@ from atlas_core_new.research.build_api import router as build_router
 from atlas_core_new.tools.figma_api import router as figma_router
 from atlas_core_new.research.hephaestus_api import router as hephaestus_router
 from atlas_core_new.hermes_reality.api.reality_routes import router as reality_router
-from atlas_core_new.design_engine.api import router as design_engine_router
 from atlas_core_new.blueprint_engine.api import router as blueprint_engine_router
-from atlas_core_new.blueprint_engine.storage import router as atlas_storage_router
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Atlas Core", version="0.3.3")
 register_error_handlers(app)
 
-app.include_router(simulator_router)
-app.include_router(spcm_router)
 app.include_router(agents_router)
 app.include_router(hermes_api_router)
-app.include_router(doctrine_router)
-app.include_router(chameleon_router)
-app.include_router(uws_router)
-app.include_router(pre_reality_router)
 app.include_router(research_tracker_router)
 app.include_router(engineering_router)
 app.include_router(supervisor_router)
@@ -113,9 +102,32 @@ app.include_router(build_router)
 app.include_router(figma_router)
 app.include_router(hephaestus_router)
 app.include_router(reality_router)
-app.include_router(design_engine_router)
 app.include_router(blueprint_engine_router)
-app.include_router(atlas_storage_router)
+
+
+def _include_optional_router(module_path: str, attr_name: str = "router") -> None:
+    """Include routers from optional integration modules when installed."""
+    try:
+        module = importlib.import_module(module_path)
+    except ModuleNotFoundError:
+        logger.warning("Optional module '%s' not installed; skipping router include.", module_path)
+        return
+
+    router_obj = getattr(module, attr_name, None)
+    if router_obj is None:
+        logger.warning("Optional module '%s' missing '%s'; skipping router include.", module_path, attr_name)
+        return
+    app.include_router(router_obj)
+
+
+_include_optional_router("umojaforge.simulator_api")
+_include_optional_router("umojaforge.spcm_api")
+_include_optional_router("doctrine.api")
+_include_optional_router("doctrine.chameleon_api")
+_include_optional_router("uws_workshop.uws.api")
+_include_optional_router("pre_reality_engine.api")
+_include_optional_router("atlas_core_new.blueprint_engine.storage")
+_include_optional_router("atlas_core_new.design_engine.api")
 
 def get_db():
     if SessionLocal is None:

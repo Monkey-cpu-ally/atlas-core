@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from .agents import AjaniModule, HermesModule, MinervaModule
 from .classifier import IntentClassifier, infer_pipeline_stage
 from .knowledge import DOCTRINE_FREEZE, get_project_registry_entry
-from .memory import ProjectMemoryStore
+from .memory import ProjectMemoryStore, bump_minor_version
 from .models import AtlasOrchestrateRequest, AtlasOrchestrateResponse, ProjectMemorySnapshot, ProjectSummary
 from .policy import PolicyEngine
 
@@ -30,17 +30,7 @@ def _normalize_version(value: str | None) -> str:
 def _predict_next_version(current_version: str, stage: str) -> str:
     if stage != "modify":
         return current_version
-
-    cleaned = current_version.strip().lower()
-    if not cleaned.startswith("v"):
-        return "v0.1"
-    try:
-        major_str, minor_str = cleaned[1:].split(".")
-        major = int(major_str)
-        minor = int(minor_str)
-    except Exception:
-        return "v0.1"
-    return f"v{major}.{minor + 1}"
+    return bump_minor_version(current_version)
 
 
 class AtlasOrchestratorService:

@@ -25,7 +25,7 @@ def _dedupe_keep_order(values: list[str]) -> list[str]:
     return ordered
 
 
-def _bump_minor_version(version: str) -> str:
+def bump_minor_version(version: str) -> str:
     cleaned = version.strip().lower()
     if not cleaned.startswith("v"):
         return "v0.1"
@@ -128,7 +128,7 @@ class ProjectMemoryStore:
             state = payload.get(project, self._default_state(project))
 
             if stage == "modify":
-                state["current_version"] = _bump_minor_version(state.get("current_version", "v0.1"))
+                state["current_version"] = bump_minor_version(state.get("current_version", "v0.1"))
 
             state["pipeline_stage"] = stage
             if stage == "blueprint":
