@@ -5,15 +5,12 @@ FastAPI entry point.
 """
 
 import os
-import base64
 from pathlib import Path
-from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response, StreamingResponse
-from .utils.error_handling import register_error_handlers, AtlasError, not_found, bad_request, service_unavailable, ai_not_configured, sanitize_error
-from .utils.rate_limiter import rate_limit_ai, rate_limit_strict
-from typing import Optional
+from fastapi.responses import FileResponse
+from .utils.error_handling import register_error_handlers, not_found, sanitize_error
 from pydantic import BaseModel
 
 from .core.agent.agent_state import AgentLoop, AgentState
@@ -45,11 +42,11 @@ from .forge.templates import (
     blueprint_ant_cleaner, blueprint_crab_water_sampler, blueprint_octopus_pipe_repair,
 )
 from .forge.parts_library import STANDARD_PARTS, JOINT_FAMILIES, ORGAN_PACKS
-from .curriculum import get_all_fields, get_field_lessons, get_lesson, get_next_lesson, ALL_CURRICULA
+from .curriculum import get_all_fields, get_field_lessons, get_lesson, get_next_lesson
 from .projects.registry import project_registry
 from .knowledge import (
     KNOWLEDGE_PHILOSOPHY, KNOWLEDGE_SOURCES, KNOWLEDGE_BOUNDARIES,
-    get_sources_for_persona, knowledge_pack_registry, get_context_from_packs
+    get_sources_for_persona, knowledge_pack_registry
 )
 from .specs import (
     CORE_ARCHITECTURE, TRI_CORE_COUNCIL,
@@ -76,8 +73,6 @@ from .research.simulation_data import (
     get_all_projects_summary, get_project_theoretical_data,
     get_project_models, get_model_detail, SYSTEM_DISCLAIMER
 )
-from sqlalchemy.orm import Session
-import json
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))

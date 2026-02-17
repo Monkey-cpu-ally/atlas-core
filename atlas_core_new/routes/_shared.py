@@ -1,6 +1,5 @@
 import os
 from openai import OpenAI
-from fastapi import Depends
 from atlas_core_new.db import SessionLocal
 
 AI_INTEGRATIONS_OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")

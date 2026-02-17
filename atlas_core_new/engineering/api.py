@@ -27,7 +27,6 @@ from .observability import (
     get_health_summary,
     emit,
     EventCategory,
-    EventLevel,
 )
 from .validation import ProjectSpec, validate_project, autofill_minimums
 from .domain_packs import DOMAINS, domain_pack, build_minimum_build_card, apply_overrides
@@ -312,7 +311,7 @@ def eng_convert_batch(payload: TextIntakePayload, autofill: bool = True):
     }
 
 
-from .project_domain_map import get_project_domain, get_project_domain_info, get_all_mappings, get_domain_projects
+from .project_domain_map import get_project_domain_info, get_all_mappings
 
 @router.get("/project-domains")
 def eng_project_domains():

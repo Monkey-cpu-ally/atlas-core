@@ -1,6 +1,6 @@
 import random
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from pydantic import BaseModel
 from atlas_core_new.utils.error_handling import sanitize_error
 from atlas_core_new.db import (
