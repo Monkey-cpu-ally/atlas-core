@@ -1,0 +1,30 @@
+{
+  "name": "HERMES-SENTINEL",
+  "version": "1.0",
+  "generation": "Gen-1",
+  "domain": "INFRA",
+  "class": "SENTINEL",
+  "sensors": [
+    "gps",
+    "accelerometer",
+    "tamper",
+    "camera"
+  ],
+  "mission": "TBD",
+  "environment": "TBD",
+  "safety_rules": [
+    "no wildlife interaction",
+    "no sharp tools",
+    "stop if lifted",
+    "local-first",
+    "human approval for deployment"
+  ],
+  "allowed_actions": [
+    "alert",
+    "lockdown",
+    "log",
+    "sense",
+    "sleep",
+    "sync"
+  ]
+}
