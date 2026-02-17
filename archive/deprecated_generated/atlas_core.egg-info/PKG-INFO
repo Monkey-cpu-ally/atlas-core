@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: atlas-core
+Version: 0.3.1
+Summary: AI persona-based educational and creative assistant system with three African/African American warrior personas
+Requires-Python: >=3.11
+Requires-Dist: fastapi>=0.100.0
+Requires-Dist: uvicorn>=0.22.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: psycopg2-binary>=2.9.0
+Requires-Dist: pydantic
+Requires-Dist: openai
+Requires-Dist: python-multipart
+Requires-Dist: pydantic-settings
+Requires-Dist: feedparser
+Requires-Dist: httpx
