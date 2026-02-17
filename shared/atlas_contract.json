@@ -24,6 +24,13 @@
       "spec": [
         "string"
       ],
+      "version_tag": "v0.1",
+      "system_architecture_diagram": [
+        "string"
+      ],
+      "required_academic_fields": [
+        "string"
+      ],
       "structured_plan": [
         "string"
       ],
@@ -44,19 +51,63 @@
       ],
       "parts_list": [
         "string"
+      ],
+      "tools_list": [
+        "string"
+      ],
+      "wiring_power_logic": [
+        "string"
+      ],
+      "calibration_procedure": [
+        "string"
+      ],
+      "test_protocol": [
+        "string"
+      ],
+      "failure_analysis": [
+        "string"
+      ],
+      "performance_metrics": [
+        "string"
+      ],
+      "iteration_changes": [
+        "string"
+      ],
+      "revalidation_steps": [
+        "string"
       ]
     },
     "minerva": {
       "summary": "string",
       "teaching_goal": "string",
       "explanation": "string",
+      "concept_overview": "string",
+      "concept_analogy": "string",
+      "component_breakdown": [
+        "string"
+      ],
       "lego_steps": [
+        "string"
+      ],
+      "step_by_step_understanding": [
         "string"
       ],
       "clarity_notes": [
         "string"
       ],
       "teach_back_questions": [
+        "string"
+      ],
+      "reflective_reinforcement": [
+        "string"
+      ],
+      "memory_anchors": [
+        "string"
+      ],
+      "risk_failure_modes": [
+        "string"
+      ],
+      "improvement_path": [
         "string"
       ],
       "next_action": "string"
@@ -69,6 +120,9 @@
       "checks": [
         "string"
       ],
+      "edge_case_checks": [
+        "string"
+      ],
       "flags": [
         "string"
       ],
@@ -77,7 +131,15 @@
       ],
       "enforced_constraints": [
         "string"
-      ]
+      ],
+      "capability_boundaries": {
+        "can": [
+          "string"
+        ],
+        "cannot": [
+          "string"
+        ]
+      }
     },
     "project_memory": {
       "project": "string",
@@ -103,6 +165,32 @@
     "orchestrate_alias": "POST /atlas/route",
     "projects": "GET /atlas/projects",
     "project_memory": "GET /atlas/projects/{project}/memory",
-    "project_reset": "POST /atlas/projects/{project}/reset"
-  }
+    "project_reset": "POST /atlas/projects/{project}/reset",
+    "vision": "GET /atlas/vision",
+    "domains": "GET /atlas/domains",
+    "active_prototype": "GET /atlas/prototypes/active"
+  },
+  "ui_structure_lock": {
+    "left_panel": "Projects",
+    "center_panel": "Command input",
+    "right_panel": [
+      "Ajani",
+      "Minerva",
+      "Hermes"
+    ],
+    "bottom_panel": "Pipeline tracker"
+  },
+  "pipeline": [
+    "Blueprint",
+    "Build",
+    "Modify"
+  ],
+  "teaching_pattern": [
+    "Concept overview",
+    "Component breakdown",
+    "Physical analogy",
+    "Step-by-step assembly",
+    "Risk/failure modes",
+    "Improvement path"
+  ]
 }

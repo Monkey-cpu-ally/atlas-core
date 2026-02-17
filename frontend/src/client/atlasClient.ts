@@ -67,3 +67,27 @@ export async function getProjectMemory(baseUrl: string, project: string) {
   return response.json();
 }
 
+export async function getAtlasVision(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/vision`);
+  if (!response.ok) {
+    throw new Error(`Atlas vision fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getAtlasDomains(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/domains`);
+  if (!response.ok) {
+    throw new Error(`Atlas domains fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getActivePrototype(baseUrl: string) {
+  const response = await fetch(`${baseUrl}/atlas/prototypes/active`);
+  if (!response.ok) {
+    throw new Error(`Atlas active prototype fetch failed (${response.status})`);
+  }
+  return response.json();
+}
+

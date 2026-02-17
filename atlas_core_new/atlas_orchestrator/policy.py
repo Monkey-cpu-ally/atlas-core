@@ -37,7 +37,7 @@ class PolicyEngine:
     _bio_terms = (
         "gene edit",
         "genetic engineering",
-        "bio",
+        "biological",
         "pathogen",
         "virus",
         "bioweapon",

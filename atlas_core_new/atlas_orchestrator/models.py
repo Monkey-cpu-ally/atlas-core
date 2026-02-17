@@ -33,6 +33,9 @@ class AjaniOutput(BaseModel):
     summary: str
     goal: str
     spec: list[str]
+    version_tag: str
+    system_architecture_diagram: list[str]
+    required_academic_fields: list[str]
     structured_plan: list[str]
     component_breakdown: list[str]
     constraints: list[str]
@@ -40,6 +43,14 @@ class AjaniOutput(BaseModel):
     risk_list: list[str]
     test_plan: list[str]
     parts_list: list[str]
+    tools_list: list[str]
+    wiring_power_logic: list[str]
+    calibration_procedure: list[str]
+    test_protocol: list[str]
+    failure_analysis: list[str]
+    performance_metrics: list[str]
+    iteration_changes: list[str]
+    revalidation_steps: list[str]
     artifacts: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -48,9 +59,17 @@ class MinervaOutput(BaseModel):
     summary: str
     teaching_goal: str
     explanation: str
+    concept_overview: str
+    concept_analogy: str
+    component_breakdown: list[str]
     lego_steps: list[str]
+    step_by_step_understanding: list[str]
     clarity_notes: list[str]
     teach_back_questions: list[str]
+    reflective_reinforcement: list[str]
+    memory_anchors: list[str]
+    risk_failure_modes: list[str]
+    improvement_path: list[str]
     next_action: str
     cultural_context: str | None = None
 
@@ -62,9 +81,11 @@ class HermesOutput(BaseModel):
     approval_status: ApprovalStatus
     safety_mode: SafetyMode
     checks: list[str]
+    edge_case_checks: list[str]
     flags: list[str]
     blocked_reasons: list[str]
     enforced_constraints: list[str]
+    capability_boundaries: dict[str, list[str]]
 
 
 class ProjectMemorySnapshot(BaseModel):

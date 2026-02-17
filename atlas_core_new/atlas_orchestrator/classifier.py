@@ -17,6 +17,9 @@ class IntentClassifier:
             "diagram",
             "assembly",
             "build plan",
+            "resonance scanner",
+            "wearable scanner",
+            "prototype",
         ),
         "learning_request": (
             "teach",

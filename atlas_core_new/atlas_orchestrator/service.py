@@ -9,6 +9,22 @@ from .models import AtlasOrchestrateRequest, AtlasOrchestrateResponse, ProjectMe
 from .policy import PolicyEngine
 
 
+def _predict_next_version(current_version: str, stage: str) -> str:
+    if stage != "modify":
+        return current_version
+
+    cleaned = current_version.strip().lower()
+    if not cleaned.startswith("v"):
+        return "v0.1"
+    try:
+        major_str, minor_str = cleaned[1:].split(".")
+        major = int(major_str)
+        minor = int(minor_str)
+    except Exception:
+        return "v0.1"
+    return f"v{major}.{minor + 1}"
+
+
 class AtlasOrchestratorService:
     def __init__(self) -> None:
         self.classifier = IntentClassifier()
@@ -19,12 +35,14 @@ class AtlasOrchestratorService:
         self.memory = ProjectMemoryStore()
 
     def orchestrate(self, request: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
+        current_snapshot = self.memory.get_project(request.project)
         intent, intent_reason = self.classifier.classify(request.user_input)
         stage = infer_pipeline_stage(
             user_input=request.user_input,
             intent=intent,
             explicit_stage=request.pipeline_stage,
         )
+        planned_version = _predict_next_version(current_snapshot.current_version, stage)
         policy_decision = self.policy.evaluate(request.user_input)
         safe_user_input = request.user_input
         if policy_decision.blocked:
@@ -44,6 +62,7 @@ class AtlasOrchestratorService:
             intent=intent,
             stage=stage,
             constraints=constraints,
+            version_tag=planned_version,
         )
         minerva_output = self.minerva.generate(
             user_input=safe_user_input,
@@ -67,6 +86,8 @@ class AtlasOrchestratorService:
             intent=intent,
             user_input=request.user_input,
         )
+        # Version in returned Ajani payload must match committed project state.
+        ajani_output.version_tag = memory_snapshot.current_version
 
         return AtlasOrchestrateResponse(
             project=request.project,

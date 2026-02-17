@@ -21,3 +21,6 @@ Use `src/client/atlasClient.ts` to call:
 - `GET /atlas/projects`
 - `GET /atlas/projects/{project}/memory`
 - `POST /atlas/projects/{project}/reset`
+- `GET /atlas/vision`
+- `GET /atlas/domains`
+- `GET /atlas/prototypes/active`

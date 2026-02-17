@@ -2,6 +2,14 @@
 
 from fastapi import APIRouter
 
+from atlas_core_new.atlas_orchestrator.knowledge import (
+    ACADEMIC_FIELDS,
+    ACTIVE_PROTOTYPE,
+    ATLAS_CAPABILITY_BOUNDARIES,
+    ATLAS_VISION,
+    FIELD_TEACHING_REQUIREMENTS,
+    LONG_TERM_EVOLUTION_PLAN,
+)
 from atlas_core_new.atlas_orchestrator.models import (
     AtlasOrchestrateRequest,
     AtlasOrchestrateResponse,
@@ -30,6 +38,28 @@ def orchestrate_route(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
 def root_route(req: AtlasOrchestrateRequest) -> AtlasOrchestrateResponse:
     """MVP route endpoint alias requested in PRD."""
     return atlas_service.orchestrate(req)
+
+
+@router.get("/vision")
+def get_atlas_vision() -> dict:
+    return {
+        "vision": ATLAS_VISION,
+        "capability_boundaries": ATLAS_CAPABILITY_BOUNDARIES,
+        "evolution_plan": LONG_TERM_EVOLUTION_PLAN,
+    }
+
+
+@router.get("/domains")
+def get_atlas_domains() -> dict:
+    return {
+        "domains": ACADEMIC_FIELDS,
+        "teaching_requirements": FIELD_TEACHING_REQUIREMENTS,
+    }
+
+
+@router.get("/prototypes/active")
+def get_active_prototype() -> dict:
+    return {"prototype": ACTIVE_PROTOTYPE}
 
 
 @router.get("/projects", response_model=list[ProjectSummary])
