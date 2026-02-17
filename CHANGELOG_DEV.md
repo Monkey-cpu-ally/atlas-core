@@ -22,6 +22,7 @@ Format:
 - Summary: Repository is operating on managed branch `cursor/three-js-library-import-ed42`; staged pass commits are recorded on this branch.
 - Risk: Low (process note only).
 - Rollback: N/A.
+- TODO: If you want a dedicated `cleanup-perf-ui` branch in this environment, confirm branch-policy override so commits can be moved safely.
 
 ### Area: Pass 1 Audit
 - Summary: Added cleanup audit report at `docs/pass1_cleanup_audit.md` documenting dead-weight scan outcomes and no-behavior-change constraints.
