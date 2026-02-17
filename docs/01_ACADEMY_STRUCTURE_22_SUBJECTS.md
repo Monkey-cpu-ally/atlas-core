@@ -107,7 +107,43 @@ Subjects: 12, 16, 17, 18, 19
 
 ---
 
-## 8. Governance
+## 8. Subject Project Requirement (Minimum 2+ Per Subject)
+
+Every subject must maintain at least **two active anchor projects**.
+These are mandatory applied projects used for unlock evidence and retest recovery.
+
+| # | Subject | Project A (Anchor) | Project B (Anchor) |
+|---|---|---|---|
+| 01 | Logic and Critical Reasoning | Fallacy Detection Casebook | Argument Mapping and Counterexample Lab |
+| 02 | Mathematical Foundations (Algebra/Functions) | Function Behavior Visual Atlas | Constraint-Based Unit and Formula Solver |
+| 03 | Calculus and Differential Modeling | Thermal Cooling Differential Simulator | Constrained Optimization Study (Angle/Energy) |
+| 04 | Linear Algebra and Geometry | Vector Transform and Basis Explorer | PCA and Dimensionality Reduction Notebook |
+| 05 | Probability, Statistics, and Uncertainty | Monte Carlo Risk Estimator | A/B Test Evaluation Console |
+| 06 | Scientific Method and Experimental Design | Hypothesis Tracking Journal | Experimental Protocol Quality Rubric |
+| 07 | Programming Fundamentals | CLI Study/Habit Tracker | Structured Text Parser and Validator |
+| 08 | Data Structures and Algorithms | Pathfinding Benchmark Harness | Cache Strategy and Complexity Simulator |
+| 09 | Software Engineering Practice | Modular Service Blueprint | Test Coverage and Defect Trend Dashboard |
+| 10 | Computer Systems and Networking | Packet Flow Sandbox | Client-Server Load Probe Study |
+| 11 | Systems Design and Architecture | Scalable Knowledge Service Architecture | Failure Mode and Bottleneck Topology Map |
+| 12 | Classical Mechanics | Projectile Motion Simulator | Pendulum and Damping Parameter Explorer |
+| 13 | Electromagnetics | Induction Coil Simulation Study | Field Gradient Visualization Grid |
+| 14 | Acoustics and Wave Physics | Room Resonance Estimator | Harmonics and Standing Wave Analyzer |
+| 15 | Quantum Mechanics (Applied Foundations) | Two-Slit Probability Simulator | Measurement Uncertainty and Collapse Notebook |
+| 16 | Materials Science | Material Selection Decision Matrix | Fatigue and Stress Comparison Model |
+| 17 | Circuits, Electronics, and Power Systems | DC Power Budget Planner | Analog Filter and Signal Chain Worksheet |
+| 18 | Embedded Systems and Instrumentation | Sensor Fusion Prototype Plan | Telemetry Logging and Alert Pipeline Plan |
+| 19 | Signal Processing | FFT Denoising Pipeline | Band-Pass and Feature Extraction Playground |
+| 20 | Control Systems Engineering | PID Tuning Sandbox | Closed-Loop Stability and Disturbance Checker |
+| 21 | AI Architecture and Human-Computer Interaction | Multi-Agent Workflow Blueprint | Prompt Safety and UX Feedback Protocol |
+| 22 | Neuroscience, Bio-Signal Interpretation, and Safety Ethics | EEG Band Interpretation Simulator (Safe) | Bio-Signal Ethics and Risk Review Matrix |
+
+Notes:
+- Projects can evolve by version but cannot be removed without replacement.
+- At least one anchor project per subject must remain test-active at all times.
+
+---
+
+## 9. Governance
 
 - Subject additions/removals require doctrine change review.
 - Reordering dependencies requires explicit risk note.

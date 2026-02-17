@@ -58,3 +58,11 @@ Format:
   - `docs/09_BUILDER_ROADMAP.md`
 - Risk: Low (documentation-only; no application code changes).
 - Rollback: Revert the documentation commit for these files.
+
+### Area: Specification Gap Closure
+- Summary: Updated spec set to explicitly include:
+  - minimum 2+ anchor projects for each of 22 subjects (`docs/01_ACADEMY_STRUCTURE_22_SUBJECTS.md`)
+  - the exact rule "PhD backbone / 6th-grade clarity" (`docs/02_TEACHING_STANDARD_IVY_SIMPLE.md`)
+  - explicit book/tome tab system with red bookmark behavior (`docs/03_TOME_UI_BOOK_LAYOUT_SPEC.md`)
+- Risk: Low (documentation-only refinements).
+- Rollback: Revert the documentation gap-closure commit.

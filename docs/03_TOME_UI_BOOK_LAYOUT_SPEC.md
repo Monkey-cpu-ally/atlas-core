@@ -34,6 +34,18 @@ The interface should feel like a modern technical codex: deliberate, quiet, and 
 - Center pane remains primary
 - Persona outputs become tabbed sections
 
+### 2.3 Book/Tome Tabs and Red Bookmark Contract
+- The center pane behaves like a **book/tome reader** with tabbed sections.
+- Tabs represent major tome sections (for example: Doctrine, Academy, Build, Vault, Tests, Roadmap).
+- A **red bookmark marker** indicates the active tab/page.
+- The red bookmark is persistent across page refresh and navigation return.
+- Bookmark behavior states:
+  - Active: saturated red marker, always visible
+  - Inactive: neutral marker
+  - Hover/focus: highlighted edge with clear focus visibility
+- The bookmark marker is decorative for identity but also functional as a navigation affordance.
+- Tab changes must preserve reading position/history where feasible.
+
 ---
 
 ## 3. Tome Page Anatomy
@@ -131,6 +143,7 @@ Each panel should show:
 - [ ] Form fields are visually and functionally consistent
 - [ ] Empty states are present and actionable
 - [ ] Navigation paths are clear and stable
+- [ ] Book/tome tabs are consistent and the red bookmark state is always clear
 - [ ] Focus and contrast accessibility checks pass
 
 ---

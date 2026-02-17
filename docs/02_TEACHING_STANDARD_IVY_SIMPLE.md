@@ -14,12 +14,17 @@ IVY-SIMPLE defines how to teach with:
 - **Ivy-level rigor** (correctness, depth, discipline)
 - **Simple delivery** (clarity, structure, low cognitive overload)
 
+Hard rule: **PhD backbone / 6th-grade clarity**.
+- "PhD backbone" means first-principles correctness, explicit assumptions, and defensible reasoning.
+- "6th-grade clarity" means plain-language explanation, step-by-step pacing, and no jargon dependence.
+
 Target outcome: the learner can understand, apply, and explain concepts without jargon dependency.
 
 ---
 
 ## 2. Core Principles
 
+0. **PhD backbone / 6th-grade clarity is mandatory**
 1. Precision over hype
 2. Plain language before formal notation
 3. One idea per step
@@ -119,3 +124,4 @@ A lesson is accepted only when:
 - rubric minimum is met
 - teach-back answers indicate comprehension
 - next action is specific and measurable
+- it satisfies the **PhD backbone / 6th-grade clarity** rule
