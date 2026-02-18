@@ -3,7 +3,7 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Flutter HUD + Unity 3D Core
-- Version: v1.1 (Draft)
+- Version: v1.2 (Draft)
 - Last Updated: 2026-02-17
 - Owner: Platform Integration
 
@@ -178,6 +178,11 @@ Optional:
 - Required payload:
   - `phase` (`COUNCIL_ACTIVE` | `SPEAKING_AJANI` | `COUNCIL_IDLE_GLOW` | `SPEAKING_MINERVA` | `SPEAKING_HERMES` | `IDLE`)
   - `coreRotationState` (`rotating` | `stopped` | `resume_ramp`)
+  - `backgroundDimPercent` (number, 0-10)
+  - `sigilVisible` (boolean)
+  - `sigilRotationMode` (`static` | `ultra_slow`)
+  - `sigilOpacityPercent` (optional number, 8-15 when visible)
+  - `sigilRotationPeriodSec` (optional number, 30-60 when `ultra_slow`)
   - `pauseMs` (optional; used for `COUNCIL_IDLE_GLOW`)
 
 10. `v1.identityFeedbackCue`
@@ -229,6 +234,7 @@ Error response must include:
 - Unity must not silently remap mode/domain/module identifiers.
 - Voice-first center state (`IDLE`, `LISTENING_PENDING_NAME`, `LISTENING_TO_AI`, `PROCESSING`, `SPEAKING`) must remain synchronized across both runtimes.
 - Council states (`COUNCIL_ACTIVE`, `COUNCIL_IDLE_GLOW`, `SPEAKING_AJANI`, `SPEAKING_MINERVA`, `SPEAKING_HERMES`) must remain synchronized across both runtimes.
+- During council phases, sigil state must remain Ghost Purple and speaker-invariant (core overlays may change by speaker, sigil does not).
 
 ---
 
@@ -256,6 +262,8 @@ Minimum contract tests:
 - retry behavior for timeout paths
 - ordering preservation for sequential mode/domain/module changes
 - duplicate event idempotency validation
+- council sigil payload validation (`sigilVisible`, opacity bounds, rotation mode constraints)
+- council activation ordering validation (Ghost Purple baseline -> delayed sigil visibility)
 
 ---
 

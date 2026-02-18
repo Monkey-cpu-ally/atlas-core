@@ -3,7 +3,7 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Dial UI + 3D Core + Skin System
-- Version: v1.1 (Draft)
+- Version: v1.2 (Draft)
 - Last Updated: 2026-02-17
 - Owner: Validation and Reliability
 
@@ -44,6 +44,9 @@ Define measurable quality gates for:
 | Accent activation -> haptic cue sync delta | <= 30 ms | > 50 ms | > 80 ms |
 | Accent activation -> tone cue sync delta | <= 30 ms | > 50 ms | > 80 ms |
 | Council activation -> core full-stop rotation | <= 700 ms | > 900 ms | > 1200 ms |
+| Council Ghost Purple baseline -> sigil visible | 300 ms (+/- 60 ms) | > +/- 90 ms drift | > +/- 140 ms drift |
+| Council sigil opacity while visible | 8-15% | outside 7-16% | outside 6-18% |
+| Council sigil fade-out duration | 400-600 ms | < 320 ms or > 700 ms | < 250 ms or > 850 ms |
 | Council completion -> rotation resume start | <= 500 ms | > 700 ms | > 1000 ms |
 
 ---
@@ -81,7 +84,13 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Council Ghost Purple baseline activation correctness
 - Council phase overlay behavior correctness (Ajani/Minerva/Hermes overlays)
 - Council stillness enforcement correctness (no idle rotation drift)
+- Council sigil behavior correctness:
+  - appears only in `COUNCIL_ACTIVE` path
+  - delayed appearance after Ghost Purple baseline activation
+  - stays Ghost Purple across all council speaker turns
+  - remains behind core and within low-opacity range
 - Council completion fade duration correctness (500–800 ms target)
+- Council completion shutdown order correctness (sigil fade -> Ghost Purple fade -> rotation resume -> background dim fade)
 
 ## 5.3 Skin Suite
 - Apply/cancel preview behavior
@@ -100,6 +109,7 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Council phase event ordering integrity
 - Identity feedback cue timing integrity
 - Council idle-glow pause duration integrity (1 second target between speakers)
+- Council sigil payload integrity (`sigilVisible`, `sigilOpacityPercent`, `sigilRotationMode`, bounds validation)
 
 ## 5.5 Stability Suite
 - Long session memory stability
@@ -119,6 +129,7 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 | Core readiness and recovery | no blocking startup failures in release profile |
 | Accessibility checks | all critical flows pass |
 | Council sequence correctness | strict Ajani -> Minerva -> Hermes order with neutral return |
+| Council sigil integrity | delayed council-only visibility, speaker-invariant Ghost Purple behavior |
 
 ---
 

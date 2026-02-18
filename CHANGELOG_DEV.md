@@ -138,5 +138,11 @@ Format:
 - Summary (language lock): Added explicit doctrine phrasing in council identity spec:
   - "stillness = authority"
   - "Just deeper."
+- Summary (ethereal sigil ring): Added a council-only sigil layer contract across architecture docs:
+  - delayed sigil reveal (~300 ms after Ghost Purple activation)
+  - low-opacity Ghost Purple sigil behind core (8-15%, speaker-invariant)
+  - static-first motion rule (ultra-slow optional)
+  - explicit completion shutdown order including sigil fade and background dim fade
+  - bridge payload fields and QA checks for sigil state correctness
 - Risk: Low (documentation-only refinement).
 - Rollback: Revert the spiritual mode + council refinement commit.

@@ -1,9 +1,9 @@
-# AI Center Ripple + Color Activation System (Voice Core + Council)
+# AI Center Ripple + Color Activation System (Voice Core + Council + Ethereal Sigil Ring)
 
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Dial HUD + 3D Core + Voice UI
-- Version: v1.2 (Draft)
+- Version: v1.3 (Draft)
 - Last Updated: 2026-02-17
 - Owner: Identity and Visual Systems
 
@@ -252,12 +252,14 @@ Trigger:
 - user says `Council` (hold flow or wake-word flow)
 
 Council activation behavior:
-1. stronger micro haptic confirmation
-2. center expands slowly to max 1.08x
-3. core rotation decelerates to complete stop
-4. Ghost Purple rim light activates
-5. low ambient harmonic tone begins
-6. subtle halo ring appears around core
+1. background dim layer fades in to 5-10%
+2. stronger micro haptic confirmation
+3. center expands slowly to max 1.08x
+4. core rotation decelerates to complete stop
+5. Ghost Purple rim light activates
+6. after a 300 ms delay, ethereal sigil ring fades in behind the core
+7. low ambient harmonic tone begins
+8. subtle halo ring appears around core
 
 State:
 - `COUNCIL_ACTIVE`
@@ -267,6 +269,28 @@ Council stillness rule:
 - no idle rotation
 - no mechanical motion cues
 - stillness = authority
+
+## 11.1 Ethereal Sigil Ring (Council-Only)
+
+Purpose:
+- represent collective wisdom and ancestral intelligence
+- reinforce presence without theatrical effects
+
+Visual characteristics:
+- thin circular geometric pattern, behind the 3D core
+- Ghost Purple tint with slight translucency
+- very low opacity: 8-15%
+- no hard lines and no aggressive glow
+- sacred-geometry-inspired structure:
+  - concentric line system
+  - subtle radial glyph markers
+  - minimal complexity
+
+Motion behavior:
+- recommended mode: static
+- optional mode: ultra-slow rotation only
+  - approximately 1 full rotation every 30-60 seconds
+- if motion is enabled, it must be almost imperceptible
 
 ---
 
@@ -278,8 +302,11 @@ Fixed order:
 3. Hermes concludes third
 
 Visual behavior:
-- base council glow remains Ghost Purple between speakers
-- active speaker overlays temporary identity accent:
+- base council identity remains Ghost Purple between speakers:
+  - Ghost Purple rim baseline
+  - council halo
+  - ethereal sigil ring
+- active speaker overlays temporary identity accent on the core only:
   - Ajani overlay: crimson
   - Minerva overlay: teal
   - Hermes overlay: ivory
@@ -289,12 +316,14 @@ Visual behavior:
 - after each speaker segment, fade back to Ghost Purple baseline and hold `COUNCIL_IDLE_GLOW` for 1 second
 
 Completion:
-1. Ghost Purple fades over 500–800 ms
-2. halo dissolves
-3. core rotation resumes slowly
-4. center scale returns to 1.0
-5. ambient council tone fades out
-6. core returns to neutral idle
+1. sigil ring fades out over 400-600 ms
+2. Ghost Purple fades out
+3. halo dissolves
+4. core rotation resumes slowly
+5. center scale returns to 1.0
+6. ambient council tone fades out
+7. background dim layer fades out
+8. core returns to neutral idle
 
 ---
 
@@ -335,6 +364,13 @@ Halo:
 - thin circular band around core
 - opacity breathing cycle: 4–6 seconds
 
+Council sigil ring:
+- council-only surface rendered behind core
+- opacity must remain in 8-15% range
+- tint remains Ghost Purple across all council speakers
+- default motion mode is `static`
+- optional rotation mode is ultra-slow only (30-60 sec per full turn)
+
 Particles:
 - very low density, almost invisible
 - no visible particle swarms
@@ -370,6 +406,11 @@ Identity renderer consumes:
 - `rippleProfileId`
 - `motionProfileModifier` (optional)
 - `coreRotationState` (`rotating` | `stopped` | `resume_ramp`)
+- `backgroundDimPercent` (0-10)
+- `councilSigilVisible` (boolean)
+- `councilSigilOpacityPercent` (8-15 when visible)
+- `councilSigilRotationMode` (`static` | `ultra_slow`)
+- `councilSigilRotationPeriodSec` (optional; 30-60 when `ultra_slow`)
 
 State consumers:
 - Unity 3D core renderer (primary)
@@ -423,6 +464,10 @@ Accept only when:
 - active pulses preserve readability/contrast
 - council core remains still during active council mode
 - council pause windows between speakers hold for 1 second (+/- tolerance)
+- council sigil appears only in council mode and only after Ghost Purple activation with ~300 ms delay
+- council sigil remains Ghost Purple across Ajani/Minerva/Hermes speaker turns
+- council sigil opacity remains within 8-15% while visible
+- council completion fades sigil before full neutral return and removes background dim
 
 ---
 
@@ -432,6 +477,9 @@ Single AI = energy.
 Council = stillness.
 
 Council mode should feel deeper, calmer, and more authoritative, not louder or more dramatic.
+The sigil is not decoration. It is presence.
+It should feel like entering a chamber of higher deliberation: still, focused, intentional.
+Never flashy.
 Just deeper.
 
 ---
