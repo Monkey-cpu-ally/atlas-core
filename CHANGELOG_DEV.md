@@ -93,3 +93,12 @@ Format:
 - TODO: Need exact filenames/content list for the requested `/docs/phase1` and `/docs/architecture` additions before creating those files.
 - Risk: Low (documentation-only edits).
 - Rollback: Revert the spec-quality tightening commit.
+
+### Area: Architecture Spec Pack (Dial + Bridge + Skin + QA)
+- Summary: Added implementation-grade markdown specs in `docs/architecture/`:
+  - `DIAL_INTERACTION_SPEC.md`
+  - `UNITY_BRIDGE_EVENT_CONTRACT.md`
+  - `SKIN_TOKEN_SCHEMA.md`
+  - `PERFORMANCE_QA_TEST_PLAN.md`
+- Risk: Low (documentation-only additions; no application code).
+- Rollback: Revert the architecture spec pack commit.
