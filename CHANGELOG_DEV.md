@@ -146,3 +146,13 @@ Format:
   - bridge payload fields and QA checks for sigil state correctness
 - Risk: Low (documentation-only refinement).
 - Rollback: Revert the spiritual mode + council refinement commit.
+
+### Area: Flutter Scaffold (Voice Core + Council + Sigil)
+- Summary: Added `frontend/flutter_atlas_scaffold/` starter package with:
+  - canonical state model (`VoiceCoreVisualState`, council enums, sigil state)
+  - `VoiceCoreController` for council activation timeline, speaker phases, pause, and completion return
+  - bridge payload helpers for `v1.councilPhaseChanged` including sigil/dim fields
+  - composable widgets (`VoiceCoreLayer`, `EtherealSigilRing`, `NeutralRingShell`)
+  - baseline Flutter tests for council delay, sigil invariance, completion reset, and bridge payload shape
+- Risk: Low to medium (new isolated scaffold code; integration still required in a production app).
+- Rollback: Revert the commit introducing `frontend/flutter_atlas_scaffold/`.
