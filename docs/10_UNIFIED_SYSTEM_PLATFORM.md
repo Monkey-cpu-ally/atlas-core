@@ -28,6 +28,10 @@ Domain shifts do not change the engine; they change:
 
 This creates a single R&D and build language across all projects.
 
+Working definition of the platform:
+- **Platform** = shared technical engine + shared validation rules + shared governance rules
+- **Expression** = domain-specific deployment of that same platform under a different constraint profile
+
 ---
 
 ## 3. Core Shared Engine Across All Domains
@@ -151,3 +155,16 @@ This is the operating advantage of the unified platform model.
 - No domain siloing that breaks shared architecture governance
 
 Unified does not mean generic; it means systematically scalable.
+
+---
+
+## 10. Glossary
+
+- **Architecture:** The fixed technical pattern used to design and validate systems.
+- **Constraint:** A hard limit that shapes design decisions (for example: mass, power, thermal, reliability).
+- **Expression:** A domain realization of the same platform architecture.
+- **Integration Depth:** How strongly subsystems depend on each other in data, power, and control behavior.
+- **Observability:** How well internal system state can be measured and interpreted.
+- **Platform:** Shared engine + validation stack + governance stack used across all five expressions.
+- **Scale:** Growth in component count, operating area, runtime duration, and coupling complexity.
+- **Validation Quality:** Strength of evidence that a system meets requirements under defined test conditions.

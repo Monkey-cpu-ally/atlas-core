@@ -83,3 +83,13 @@ Format:
   - `docs/13_CROSS_DOMAIN_INTEGRATION_MAP.md`
 - Risk: Low (documentation-only additions; no application code).
 - Rollback: Revert the commit introducing docs 10-13.
+
+### Area: Spec Quality Tightening (Docs 10-13)
+- Summary: Refined docs 10-13 for cross-file consistency and precision:
+  - aligned wording around "one platform, five expressions"
+  - removed ambiguous subject naming drift
+  - strengthened definition language
+  - added plain-language Glossary sections to each document
+- TODO: Need exact filenames/content list for the requested `/docs/phase1` and `/docs/architecture` additions before creating those files.
+- Risk: Low (documentation-only edits).
+- Rollback: Revert the spec-quality tightening commit.

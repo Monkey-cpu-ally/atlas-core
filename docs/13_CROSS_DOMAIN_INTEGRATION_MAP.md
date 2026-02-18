@@ -14,6 +14,7 @@ This document defines how all 22 subjects contribute to one engineering-centered
 Every subject is mandatory. No subject is optional, demoted, or excluded.
 
 The map is designed to keep robotics/building focus strong while preserving equal structural importance across all disciplines.
+It is the subject-level execution map for **one platform, five expressions**.
 
 ---
 
@@ -44,7 +45,20 @@ The map is designed to keep robotics/building focus strong while preserving equa
 
 ---
 
-## 3. Integration Profiles (22/22)
+## 3. One Platform, Five Expressions Integration Rule
+
+Each subject must support at least one of the five platform expressions:
+1. Wearable (Micro)
+2. Robotics (Meso)
+3. Environmental (Macro)
+4. Aerospace (Extreme)
+5. Hybrid Convergence
+
+In practice, most subjects support multiple expressions through shared methods, constraints, and validation logic.
+
+---
+
+## 4. Integration Profiles (22/22)
 
 ### 3.1 Aerospace Engineering
 - **Primary contribution:** Reliability-first design under strict mass, thermal, and mission constraints.
@@ -202,7 +216,7 @@ The map is designed to keep robotics/building focus strong while preserving equa
 
 ---
 
-## 4. Matrix Governance Rules
+## 5. Matrix Governance Rules
 
 - All 22 subjects are compulsory contributors to the platform.
 - Cross-links must be preserved during roadmap updates.
@@ -211,8 +225,18 @@ The map is designed to keep robotics/building focus strong while preserving equa
 
 ---
 
-## 5. Safety and Scope Boundaries
+## 6. Safety and Scope Boundaries
 
 - No unsafe biological instructions are permitted.
 - Nanotechnology coverage remains theoretical and engineering-grounded; no speculative fabrication playbooks.
 - Claims must remain measurable, testable, and non-speculative.
+
+---
+
+## 7. Glossary
+
+- **Cross-Link:** A required dependency relationship between one subject and other subjects.
+- **Integration Profile:** Structured definition of a subject’s role in the platform (contribution, links, project outputs).
+- **Project Contribution:** Concrete work output a subject provides to platform phases.
+- **Structural Importance:** Equal requirement status in the architecture; no subject can be treated as optional.
+- **Subject Set:** The canonical 22 disciplines that must remain present in the platform model.

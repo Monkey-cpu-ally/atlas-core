@@ -14,16 +14,17 @@ The Builder Scale Ladder defines the ordered competency progression for platform
 Each tier increases constraint intensity, integration complexity, and validation burden.
 
 The ladder is cumulative. Higher tiers require retained competence from lower tiers.
+The ladder is the execution path for the core doctrine: **one platform, five expressions**.
 
 ---
 
 ## 2. Ladder Overview
 
-1. **Tier 1 — Wearable Systems**
-2. **Tier 2 — Robotics Platforms**
-3. **Tier 3 — Environmental Systems**
-4. **Tier 4 — Aerospace Constraints**
-5. **Tier 5 — Hybrid Systems**
+1. **Tier 1 — Wearable Systems (Micro Expression)**
+2. **Tier 2 — Robotics Platforms (Meso Expression)**
+3. **Tier 3 — Environmental Systems (Macro Expression)**
+4. **Tier 4 — Aerospace Constraints (Extreme Expression)**
+5. **Tier 5 — Hybrid Systems (Convergence Expression)**
 
 ---
 
@@ -142,7 +143,7 @@ The ladder is cumulative. Higher tiers require retained competence from lower ti
 ### Technical Focus
 - Weight optimization under strict performance targets
 - Thermal stress modeling and mitigation
-- High reliability and fail-operational behavior
+- Reliability requirements and fail-operational behavior
 - Tight tolerance integration in constrained envelopes
 
 ### Skills Required
@@ -155,7 +156,7 @@ The ladder is cumulative. Higher tiers require retained competence from lower ti
 - Aerospace Engineering
 - Physics
 - Mathematics
-- Materials-focused Chemistry
+- Chemistry
 - Software Engineering
 - Electronics
 
@@ -189,7 +190,7 @@ The ladder is cumulative. Higher tiers require retained competence from lower ti
 
 ### Subjects Activated
 - Artificial Intelligence
-- Systems-level Software Engineering
+- Software Engineering
 - Robotics
 - Aerospace Engineering
 - Environmental Science
@@ -222,8 +223,27 @@ No tier promotion by narrative confidence alone.
 
 ---
 
-## 5. Ladder Governance
+## 5. Cross-File Consistency Rule
+
+- Tier names and expression names must remain consistent with `10_UNIFIED_SYSTEM_PLATFORM.md`.
+- Subject names must map to the canonical 22-subject set in `13_CROSS_DOMAIN_INTEGRATION_MAP.md`.
+- "Subjects Activated" means primary contributors for that tier, not the full dependency set.
+
+---
+
+## 6. Ladder Governance
 
 - All tier definitions are mandatory program standards.
 - Tier scope changes require documented rationale and rollback plan.
 - Validation rigor must increase with tier complexity.
+
+---
+
+## 7. Glossary
+
+- **Activated Subjects:** Primary disciplines used to execute a tier’s core work.
+- **Convergence Expression:** Hybrid tier where multiple domain expressions run in one integrated architecture.
+- **Fail-Operational:** System continues safe, bounded function even after defined faults.
+- **Progression Gate:** Required evidence checkpoint before advancing to the next tier.
+- **Tier:** A defined scale/constraint level with specific skills, risks, and validation demands.
+- **Validation Metric:** Quantitative test measure used to accept or reject tier performance.

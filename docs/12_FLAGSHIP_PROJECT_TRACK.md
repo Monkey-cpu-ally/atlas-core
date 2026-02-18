@@ -12,6 +12,7 @@
 
 This track defines one unified flagship project that scales through five phases.  
 Each phase is a constrained expansion of a shared architecture, not a standalone disconnected build.
+This roadmap is the operational path for **one platform, five expressions**.
 
 ---
 
@@ -26,11 +27,11 @@ Each phase is a constrained expansion of a shared architecture, not a standalone
 
 ### Required Subjects
 - Electronics
-- Signal Processing
 - Software Engineering
 - Mathematics
 - Physics
 - Biology (safe interpretation context only)
+- Psychology
 
 ### Prototype Plan
 1. Define sensing target bands and environmental assumptions
@@ -80,7 +81,7 @@ Phase 1 de-risks the sensing core and demonstrates a measurable signal product f
 - Software Engineering
 - Robotics
 - Mathematics
-- Systems Design
+- Architecture
 - Environmental Science
 
 ### Prototype Plan
@@ -130,7 +131,7 @@ Phase 2 creates a scalable sensing architecture that reduces integration cost an
 - Electronics
 - Software Engineering
 - Mathematics
-- Control Systems Engineering
+- Artificial Intelligence
 
 ### Prototype Plan
 1. Design frame and mounting geometry for sensing/control stack
@@ -226,7 +227,7 @@ Phase 4 transitions the platform from prototype to deployable infrastructure, de
 - Aerospace Engineering
 - Physics
 - Mathematics
-- Materials Science / Chemistry
+- Chemistry
 - Electronics
 - Software Engineering
 
@@ -265,7 +266,18 @@ Phase 5 demonstrates platform readiness for high-constraint markets by proving r
 
 ---
 
-## 3. Program Governance
+## 3. One Platform, Five Expressions Alignment
+
+- **Phase 1** aligns to Tier 1 (Wearable / Micro).
+- **Phase 2** bridges Tier 1 to Tier 2 through modular expansion.
+- **Phase 3** aligns to Tier 2 (Robotics / Meso).
+- **Phase 4** aligns to Tier 3 (Environmental / Macro).
+- **Phase 5** aligns to Tier 4 (Aerospace / Extreme).
+- Hybrid convergence (Tier 5) is the post-phase integration state built on validated outputs from all prior phases.
+
+---
+
+## 4. Program Governance
 
 - Each phase must close with a documented go/no-go review.
 - Unvalidated assumptions cannot roll forward as accepted facts.
@@ -273,7 +285,7 @@ Phase 5 demonstrates platform readiness for high-constraint markets by proving r
 
 ---
 
-## 4. Program Outcome
+## 5. Program Outcome
 
 This track builds one coherent technology spine:
 - from wearable sensing proof,
@@ -281,3 +293,13 @@ This track builds one coherent technology spine:
 - to robotic embodiment,
 - to environmental deployment,
 - to aerospace-constrained engineering credibility.
+
+---
+
+## 6. Glossary
+
+- **Flagship Track:** The primary end-to-end build pathway used to validate the platform.
+- **Go/No-Go Review:** Formal decision checkpoint to continue, pause, or redesign a phase.
+- **Investor-Grade Value Statement:** A concise statement linking technical milestone to market and risk-reduction value.
+- **Phase:** A bounded work package with fixed objectives, tools, materials, risks, and validation evidence.
+- **Shared Architecture:** The unchanged core system design pattern used across all phases.
