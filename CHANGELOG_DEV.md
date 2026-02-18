@@ -107,3 +107,11 @@ Format:
 - Summary: Added `docs/architecture/AI_IDENTITY_COLOR_SHIFT_SYSTEM.md` defining speaker-linked accent behavior for Ajani/Minerva/Hermes, transition timing, visual bounds, integration rules, and acceptance checklist.
 - Risk: Low (documentation-only addition; no application code).
 - Rollback: Revert the AI identity color-shift spec commit.
+
+### Area: AI Center-Only Identity Refinement
+- Summary: Refined `docs/architecture/AI_IDENTITY_COLOR_SHIFT_SYSTEM.md` to center-only activation behavior:
+  - center core + waveform respond to active speaker
+  - rings and outer HUD remain neutral
+  - ripple/pulse transitions tightened with explicit timing and bounds
+- Risk: Low (documentation-only refinement).
+- Rollback: Revert the center-only identity refinement commit.
