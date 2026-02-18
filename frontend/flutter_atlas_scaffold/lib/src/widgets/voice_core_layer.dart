@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/voice_core_state.dart';
+import '../models/voice_core_timing.dart';
 import 'ethereal_sigil_ring.dart';
 import 'neutral_ring_shell.dart';
 
@@ -11,6 +12,7 @@ class VoiceCoreLayer extends StatelessWidget {
     this.waveform,
     this.sigilSize = 260,
     this.coreSize = 220,
+    this.timing = VoiceCoreTiming.spec,
     super.key,
   });
 
@@ -19,6 +21,7 @@ class VoiceCoreLayer extends StatelessWidget {
   final Widget? waveform;
   final double sigilSize;
   final double coreSize;
+  final VoiceCoreTiming timing;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +31,7 @@ class VoiceCoreLayer extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
+          duration: timing.backgroundDimFadeDuration,
           curve: Curves.easeOut,
           opacity: dimOpacity,
           child: const ColoredBox(color: Colors.black),
@@ -42,9 +45,11 @@ class VoiceCoreLayer extends StatelessWidget {
                 EtherealSigilRing(
                   sigilState: state.councilSigil,
                   size: sigilSize,
+                  fadeInDuration: timing.sigilFadeInDuration,
+                  fadeOutDuration: timing.sigilFadeOutDuration,
                 ),
                 AnimatedScale(
-                  duration: const Duration(milliseconds: 250),
+                  duration: timing.coreScaleDuration,
                   curve: Curves.easeOut,
                   scale: state.coreScale,
                   child: SizedBox.square(

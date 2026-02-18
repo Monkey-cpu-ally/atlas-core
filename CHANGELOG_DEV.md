@@ -159,3 +159,12 @@ Format:
 - Summary (packaging fix): Added `.gitignore` exception for `frontend/flutter_atlas_scaffold/lib/**` so Dart source files are tracked (repo had a global `lib/` ignore).
 - Risk: Low (scoped ignore exception for one path).
 - Rollback: Revert the `.gitignore` exception commit.
+- Summary (state machine + bridge hardening): Tightened the scaffold to be implementation-grade:
+  - strict council speaker order enforcement (Ajani -> Minerva -> Hermes)
+  - rejection of invalid transitions (pause/complete guards)
+  - cancellable timing tokens to prevent stale delayed callbacks from re-opening sigil
+  - centralized `VoiceCoreTiming` config shared by controller/widgets/tests (delay + fade + bounds)
+  - inbound bridge handler with payload validation and enum parsing (`UnityBridgeInboundHandler`)
+  - expanded test coverage for delay/opacity/order rules + widget timing wiring
+- Risk: Low to medium (API surface expanded inside scaffold; still isolated from app runtime).
+- Rollback: Revert the follow-up scaffold hardening commit(s).

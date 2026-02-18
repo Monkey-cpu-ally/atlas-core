@@ -4,18 +4,23 @@ import 'package:flutter/material.dart';
 
 import '../controllers/voice_core_controller.dart';
 import '../models/voice_core_state.dart';
+import '../models/voice_core_timing.dart';
 
 class EtherealSigilRing extends StatefulWidget {
   const EtherealSigilRing({
     required this.sigilState,
     this.color = VoiceCoreController.ghostPurpleAccent,
     this.size = 260,
+    this.fadeInDuration = VoiceCoreTiming.spec.sigilFadeInDuration,
+    this.fadeOutDuration = VoiceCoreTiming.spec.sigilFadeOutDuration,
     super.key,
   });
 
   final CouncilSigilState sigilState;
   final Color color;
   final double size;
+  final Duration fadeInDuration;
+  final Duration fadeOutDuration;
 
   @override
   State<EtherealSigilRing> createState() => _EtherealSigilRingState();
@@ -67,13 +72,19 @@ class _EtherealSigilRingState extends State<EtherealSigilRing>
   Widget build(BuildContext context) {
     final boundedOpacity =
         (widget.sigilState.opacityPercent.clamp(8, 15) / 100).toDouble();
+    final targetOpacity = widget.sigilState.visible ? boundedOpacity : 0.0;
+    final duration =
+        widget.sigilState.visible ? widget.fadeInDuration : widget.fadeOutDuration;
 
     return SizedBox.square(
       dimension: widget.size,
-      child: AnimatedOpacity(
-        opacity: widget.sigilState.visible ? boundedOpacity : 0,
-        duration: const Duration(milliseconds: 300),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(end: targetOpacity),
+        duration: duration,
         curve: Curves.easeOut,
+        builder: (context, value, child) {
+          return Opacity(opacity: value, child: child);
+        },
         child: RotationTransition(
           turns: _rotationController,
           child: RepaintBoundary(

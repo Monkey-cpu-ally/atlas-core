@@ -14,8 +14,10 @@ This is intentionally a focused scaffold, not a full app.
   - canonical visual/state model
 - `lib/src/controllers/voice_core_controller.dart`
   - council timeline + state transitions
+- `lib/src/models/voice_core_timing.dart`
+  - centralized timing and bounds config for controller/widgets/tests
 - `lib/src/bridge/unity_bridge_contract.dart`
-  - event names + payload serializers
+  - event names + payload serializers + inbound validator/handler
 - `lib/src/widgets/voice_core_layer.dart`
   - composable widget stack (dim + sigil + core + neutral rings)
 - `lib/src/widgets/ethereal_sigil_ring.dart`
@@ -33,6 +35,8 @@ This is intentionally a focused scaffold, not a full app.
    - `setCouncilPause()`
    - `completeCouncil()`
 4. Emit bridge events with `UnityBridgeEmitter.emitCouncilPhaseChanged(...)`.
+5. Apply inbound Unity updates with `UnityBridgeInboundHandler.handleEvent(...)`.
+6. Reuse one `VoiceCoreTiming` config instance across controller and `VoiceCoreLayer`.
 
 ## Notes
 

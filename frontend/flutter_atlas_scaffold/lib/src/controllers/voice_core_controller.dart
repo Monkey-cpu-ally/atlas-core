@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/voice_core_state.dart';
+import '../models/voice_core_timing.dart';
 
 typedef DelayFn = Future<void> Function(Duration duration);
 
@@ -8,22 +9,29 @@ class VoiceCoreController extends ChangeNotifier {
   VoiceCoreController({
     DelayFn? delayFn,
     VoiceCoreVisualState? initialState,
+    VoiceCoreTiming timing = VoiceCoreTiming.spec,
   })  : _delayFn = delayFn ?? Future<void>.delayed,
+        _timing = timing,
         _state = initialState ?? const VoiceCoreVisualState.idle();
-
-  static const Duration councilSigilDelay = Duration(milliseconds: 300);
-  static const Duration councilSigilFadeOutDuration =
-      Duration(milliseconds: 500);
 
   static const Color neutralAccent = Color(0xFF7A7A80);
   static const Color ghostPurpleAccent = Color(0xFF8D79B8);
   static const Color ajaniAccent = Color(0xFF9A2F3A);
   static const Color minervaAccent = Color(0xFF2B8E9A);
   static const Color hermesAccent = Color(0xFFE7DFC9);
+  static const List<IdentitySpeaker> councilSpeakerOrder = <IdentitySpeaker>[
+    IdentitySpeaker.ajani,
+    IdentitySpeaker.minerva,
+    IdentitySpeaker.hermes,
+  ];
 
   final DelayFn _delayFn;
+  final VoiceCoreTiming _timing;
   VoiceCoreVisualState _state;
+  var _timelineToken = 0;
+  var _nextSpeakerIndex = 0;
 
+  VoiceCoreTiming get timing => _timing;
   VoiceCoreVisualState get state => _state;
 
   Future<void> enterCouncilActive({
@@ -32,11 +40,13 @@ class VoiceCoreController extends ChangeNotifier {
     double sigilOpacityPercent = 12,
     double? sigilRotationPeriodSec,
   }) async {
-    final boundedDim = backgroundDimPercent.clamp(0, 10).toDouble();
-    final boundedOpacity = sigilOpacityPercent.clamp(8, 15).toDouble();
+    final boundedDim = _clampBackgroundDim(backgroundDimPercent);
+    final boundedOpacity = _clampSigilOpacity(sigilOpacityPercent);
     final boundedRotationPeriod = sigilRotationMode == SigilRotationMode.ultraSlow
-        ? (sigilRotationPeriodSec ?? 45).clamp(30, 60).toDouble()
+        ? _clampSigilRotationPeriod(sigilRotationPeriodSec ?? 45)
         : null;
+    final token = _advanceTimeline();
+    _nextSpeakerIndex = 0;
 
     _state = _state.copyWith(
       clearCurrentSpeaker: true,
@@ -57,8 +67,12 @@ class VoiceCoreController extends ChangeNotifier {
     );
     notifyListeners();
 
-    await _delayFn(councilSigilDelay);
-    if (_state.currentState != VoiceCoreUiState.councilActive) {
+    await _delayFn(_timing.councilSigilRevealDelay);
+    if (!_isCurrentTimeline(token)) {
+      return;
+    }
+    if (_state.currentState != VoiceCoreUiState.councilActive ||
+        _state.voiceMode != VoiceMode.council) {
       return;
     }
     _state = _state.copyWith(
@@ -67,7 +81,11 @@ class VoiceCoreController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setCouncilSpeaker(IdentitySpeaker speaker) {
+  bool setCouncilSpeaker(IdentitySpeaker speaker) {
+    if (!_canMoveToSpeaker(speaker)) {
+      return false;
+    }
+
     final speakerState = switch (speaker) {
       IdentitySpeaker.ajani => VoiceCoreUiState.speakingAjani,
       IdentitySpeaker.minerva => VoiceCoreUiState.speakingMinerva,
@@ -88,10 +106,18 @@ class VoiceCoreController extends ChangeNotifier {
       coreOverlayColor: _speakerOverlay(speaker),
       councilSigil: _state.councilSigil.copyWith(visible: true),
     );
+    _nextSpeakerIndex += 1;
     notifyListeners();
+    return true;
   }
 
-  void setCouncilPause() {
+  bool setCouncilPause() {
+    final isPauseAllowed = _state.currentState == VoiceCoreUiState.speakingAjani ||
+        _state.currentState == VoiceCoreUiState.speakingMinerva;
+    if (!isPauseAllowed) {
+      return false;
+    }
+
     _state = _state.copyWith(
       clearCurrentSpeaker: true,
       clearCoreOverlayColor: true,
@@ -101,9 +127,16 @@ class VoiceCoreController extends ChangeNotifier {
       councilSigil: _state.councilSigil.copyWith(visible: true),
     );
     notifyListeners();
+    return true;
   }
 
-  Future<void> completeCouncil() async {
+  Future<bool> completeCouncil() async {
+    if (_state.currentState != VoiceCoreUiState.speakingHermes ||
+        _nextSpeakerIndex != councilSpeakerOrder.length) {
+      return false;
+    }
+    final token = _advanceTimeline();
+
     _state = _state.copyWith(
       clearCurrentSpeaker: true,
       clearCoreOverlayColor: true,
@@ -113,7 +146,10 @@ class VoiceCoreController extends ChangeNotifier {
     );
     notifyListeners();
 
-    await _delayFn(councilSigilFadeOutDuration);
+    await _delayFn(_timing.councilSigilFadeOutDuration);
+    if (!_isCurrentTimeline(token)) {
+      return false;
+    }
     _state = _state.copyWith(
       voiceMode: VoiceMode.single,
       currentState: VoiceCoreUiState.idle,
@@ -124,10 +160,57 @@ class VoiceCoreController extends ChangeNotifier {
       coreRotationState: CoreRotationState.resumeRamp,
       councilSigil: const CouncilSigilState.hidden(),
     );
+    _nextSpeakerIndex = 0;
+    notifyListeners();
+    return true;
+  }
+
+  void synchronizeCouncilPhase({
+    required CouncilPhase phase,
+    required CoreRotationState coreRotationState,
+    required double backgroundDimPercent,
+    required bool sigilVisible,
+    required SigilRotationMode sigilRotationMode,
+    double? sigilOpacityPercent,
+    double? sigilRotationPeriodSec,
+  }) {
+    _advanceTimeline();
+    final speaker = _speakerForPhase(phase);
+    final boundedDim = _clampBackgroundDim(backgroundDimPercent);
+    final boundedOpacity = _clampSigilOpacity(sigilOpacityPercent ?? 12);
+    final boundedRotationPeriod = sigilRotationMode == SigilRotationMode.ultraSlow
+        ? _clampSigilRotationPeriod(sigilRotationPeriodSec ?? 45)
+        : null;
+    final isIdle = phase == CouncilPhase.idle;
+
+    _nextSpeakerIndex = _speakerIndexForPhase(phase);
+    _state = _state.copyWith(
+      currentSpeaker: speaker,
+      clearCurrentSpeaker: speaker == null,
+      currentState: _uiStateForPhase(phase),
+      voiceMode: isIdle ? VoiceMode.single : VoiceMode.council,
+      councilPhase: phase,
+      accentColor: isIdle ? neutralAccent : ghostPurpleAccent,
+      coreOverlayColor: speaker != null ? _speakerOverlay(speaker) : null,
+      clearCoreOverlayColor: speaker == null,
+      backgroundDimPercent: isIdle ? 0 : boundedDim,
+      coreScale: isIdle ? 1.0 : 1.08,
+      coreRotationState: coreRotationState,
+      councilSigil: isIdle
+          ? const CouncilSigilState.hidden()
+          : CouncilSigilState(
+              visible: sigilVisible,
+              opacityPercent: sigilVisible ? boundedOpacity : 0,
+              rotationMode: sigilRotationMode,
+              rotationPeriodSec: sigilVisible ? boundedRotationPeriod : null,
+            ),
+    );
     notifyListeners();
   }
 
   void resetIdle() {
+    _advanceTimeline();
+    _nextSpeakerIndex = 0;
     _state = const VoiceCoreVisualState.idle();
     notifyListeners();
   }
@@ -171,6 +254,117 @@ class VoiceCoreController extends ChangeNotifier {
       SigilRotationMode.static => 'static',
       SigilRotationMode.ultraSlow => 'ultra_slow',
     };
+  }
+
+  static CouncilPhase councilPhaseFromId(String phase) {
+    return switch (phase) {
+      'COUNCIL_ACTIVE' => CouncilPhase.councilActive,
+      'SPEAKING_AJANI' => CouncilPhase.speakingAjani,
+      'COUNCIL_IDLE_GLOW' => CouncilPhase.councilIdleGlow,
+      'SPEAKING_MINERVA' => CouncilPhase.speakingMinerva,
+      'SPEAKING_HERMES' => CouncilPhase.speakingHermes,
+      'IDLE' => CouncilPhase.idle,
+      _ => throw FormatException('Unknown council phase: $phase'),
+    };
+  }
+
+  static CoreRotationState coreRotationStateFromId(String state) {
+    return switch (state) {
+      'rotating' => CoreRotationState.rotating,
+      'stopped' => CoreRotationState.stopped,
+      'resume_ramp' => CoreRotationState.resumeRamp,
+      _ => throw FormatException('Unknown core rotation state: $state'),
+    };
+  }
+
+  static SigilRotationMode sigilRotationModeFromId(String mode) {
+    return switch (mode) {
+      'static' => SigilRotationMode.static,
+      'ultra_slow' => SigilRotationMode.ultraSlow,
+      _ => throw FormatException('Unknown sigil rotation mode: $mode'),
+    };
+  }
+
+  bool _canMoveToSpeaker(IdentitySpeaker speaker) {
+    if (_state.voiceMode != VoiceMode.council) {
+      return false;
+    }
+    if (_nextSpeakerIndex >= councilSpeakerOrder.length) {
+      return false;
+    }
+    final expectedSpeaker = councilSpeakerOrder[_nextSpeakerIndex];
+    if (speaker != expectedSpeaker) {
+      return false;
+    }
+
+    if (_nextSpeakerIndex == 0) {
+      return _state.currentState == VoiceCoreUiState.councilActive ||
+          _state.currentState == VoiceCoreUiState.councilIdleGlow;
+    }
+    return _state.currentState == VoiceCoreUiState.councilIdleGlow;
+  }
+
+  IdentitySpeaker? _speakerForPhase(CouncilPhase phase) {
+    return switch (phase) {
+      CouncilPhase.speakingAjani => IdentitySpeaker.ajani,
+      CouncilPhase.speakingMinerva => IdentitySpeaker.minerva,
+      CouncilPhase.speakingHermes => IdentitySpeaker.hermes,
+      CouncilPhase.councilActive ||
+      CouncilPhase.councilIdleGlow ||
+      CouncilPhase.idle => null,
+    };
+  }
+
+  VoiceCoreUiState _uiStateForPhase(CouncilPhase phase) {
+    return switch (phase) {
+      CouncilPhase.councilActive => VoiceCoreUiState.councilActive,
+      CouncilPhase.speakingAjani => VoiceCoreUiState.speakingAjani,
+      CouncilPhase.councilIdleGlow => VoiceCoreUiState.councilIdleGlow,
+      CouncilPhase.speakingMinerva => VoiceCoreUiState.speakingMinerva,
+      CouncilPhase.speakingHermes => VoiceCoreUiState.speakingHermes,
+      CouncilPhase.idle => VoiceCoreUiState.idle,
+    };
+  }
+
+  int _speakerIndexForPhase(CouncilPhase phase) {
+    return switch (phase) {
+      CouncilPhase.councilActive => 0,
+      CouncilPhase.speakingAjani => 1,
+      CouncilPhase.speakingMinerva => 2,
+      CouncilPhase.speakingHermes => 3,
+      CouncilPhase.councilIdleGlow => _nextSpeakerIndex.clamp(1, 2).toInt(),
+      CouncilPhase.idle => 0,
+    };
+  }
+
+  int _advanceTimeline() {
+    _timelineToken += 1;
+    return _timelineToken;
+  }
+
+  bool _isCurrentTimeline(int token) {
+    return token == _timelineToken;
+  }
+
+  double _clampBackgroundDim(double dimPercent) {
+    return dimPercent
+        .clamp(_timing.minBackgroundDimPercent, _timing.maxBackgroundDimPercent)
+        .toDouble();
+  }
+
+  double _clampSigilOpacity(double opacityPercent) {
+    return opacityPercent
+        .clamp(_timing.minSigilOpacityPercent, _timing.maxSigilOpacityPercent)
+        .toDouble();
+  }
+
+  double _clampSigilRotationPeriod(double rotationPeriodSec) {
+    return rotationPeriodSec
+        .clamp(
+          _timing.minSigilRotationPeriodSec,
+          _timing.maxSigilRotationPeriodSec,
+        )
+        .toDouble();
   }
 
   Color _speakerOverlay(IdentitySpeaker speaker) {
