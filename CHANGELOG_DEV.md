@@ -168,3 +168,8 @@ Format:
   - expanded test coverage for delay/opacity/order rules + widget timing wiring
 - Risk: Low to medium (API surface expanded inside scaffold; still isolated from app runtime).
 - Rollback: Revert the follow-up scaffold hardening commit(s).
+
+### Area: Architecture Mockup (SVG)
+- Summary: Added `docs/architecture/COUNCIL_SIGIL_RING_MOCKUP.svg` showing a side-by-side idle vs council visual mockup (Ghost Purple baseline + background dim + ethereal sigil ring behind core; rings remain neutral).
+- Risk: None (documentation-only asset).
+- Rollback: Revert the commit adding the SVG mockup.
