@@ -173,3 +173,8 @@ Format:
 - Summary: Added `docs/architecture/COUNCIL_SIGIL_RING_MOCKUP.svg` showing a side-by-side idle vs council visual mockup (Ghost Purple baseline + background dim + ethereal sigil ring behind core; rings remain neutral).
 - Risk: None (documentation-only asset).
 - Rollback: Revert the commit adding the SVG mockup.
+
+### Area: Architecture Mockup (SVG) — Council Speaker Sequence
+- Summary: Added `docs/architecture/COUNCIL_SPEAKER_SEQUENCE_MOCKUP.svg` showing the council speaker sequence (Ajani -> Minerva -> Hermes) where only the core overlay changes per speaker and the sigil remains Ghost Purple.
+- Risk: None (documentation-only asset).
+- Rollback: Revert the commit adding the speaker-sequence SVG mockup.
