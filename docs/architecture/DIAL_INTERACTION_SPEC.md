@@ -141,12 +141,23 @@ Required interaction paths:
 1. Hold-to-activate (`onLongPressStart` -> `onLongPressEnd`)
 2. Wake-word activation (hands-free)
 
+Accepted voice targets:
+- `ajani`
+- `minerva`
+- `hermes`
+- `council`
+
 Required center states:
 - `IDLE`
 - `LISTENING_PENDING_NAME`
 - `LISTENING_TO_AI`
 - `PROCESSING`
 - `SPEAKING`
+- `COUNCIL_ACTIVE`
+- `COUNCIL_IDLE_GLOW`
+- `SPEAKING_AJANI`
+- `SPEAKING_MINERVA`
+- `SPEAKING_HERMES`
 
 Ring behavior during center voice activation:
 - rings remain visually neutral

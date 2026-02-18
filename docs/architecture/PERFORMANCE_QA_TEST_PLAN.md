@@ -41,6 +41,8 @@ Define measurable quality gates for:
 | Bridge round-trip (critical events) | <= 80 ms | > 120 ms | > 200 ms |
 | Hold-start -> listening band visible | <= 200 ms | > 260 ms | > 350 ms |
 | Wake-word detect -> center activation | <= 300 ms | > 420 ms | > 600 ms |
+| Accent activation -> haptic cue sync delta | <= 30 ms | > 50 ms | > 80 ms |
+| Accent activation -> tone cue sync delta | <= 30 ms | > 50 ms | > 80 ms |
 
 ---
 
@@ -74,6 +76,8 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Animation completion signaling
 - Speaker-accent center activation correctness (Ajani/Minerva/Hermes)
 - Ripple fade timing on response end
+- Council Ghost Purple baseline activation correctness
+- Council phase overlay behavior correctness (Ajani/Minerva/Hermes overlays)
 
 ## 5.3 Skin Suite
 - Apply/cancel preview behavior
@@ -89,6 +93,8 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Desync recovery workflow
 - Wake-word detection flow integrity
 - Hold-start/hold-end event ordering integrity
+- Council phase event ordering integrity
+- Identity feedback cue timing integrity
 
 ## 5.5 Stability Suite
 - Long session memory stability
@@ -107,6 +113,7 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 | Skin application | 100% non-destructive to state |
 | Core readiness and recovery | no blocking startup failures in release profile |
 | Accessibility checks | all critical flows pass |
+| Council sequence correctness | strict Ajani -> Minerva -> Hermes order with neutral return |
 
 ---
 

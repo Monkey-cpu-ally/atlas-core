@@ -124,3 +124,12 @@ Format:
   - added QA metrics/tests for voice-first activation timing and neutrality rules
 - Risk: Low (documentation-only refinement).
 - Rollback: Revert the voice-first center core refinement commit.
+
+### Area: Spiritual Mode + Council System Expansion
+- Summary: Expanded voice-core architecture with:
+  - micro haptic/tone feedback at name recognition
+  - center-only spiritual visual layer (halo/particles/energy ripple)
+  - council mode (`council`) with Ghost Purple baseline and sequenced Ajani->Minerva->Hermes flow
+  - bridge and QA updates for council and cue-timing validation
+- Risk: Low (documentation-only refinement).
+- Rollback: Revert the spiritual mode + council refinement commit.

@@ -3,7 +3,7 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Flutter HUD + Unity 3D Core
-- Version: v1.0 (Draft)
+- Version: v1.1 (Draft)
 - Last Updated: 2026-02-17
 - Owner: Platform Integration
 
@@ -112,10 +112,16 @@ Optional:
   - `confidence`
 
 9. `v1.wakeWordDetected`
-- Trigger: hands-free wake-word engine detects AI name
+- Trigger: hands-free wake-word engine detects `ajani|minerva|hermes|council`
 - Required payload:
   - `speakerId`
   - `source` (`bluetooth` | `device_mic`)
+
+10. `v1.councilRequested`
+- Trigger: parser resolves `council` target
+- Required payload:
+  - `source` (`hold` | `wake_word`)
+  - `confidence`
 
 ## 5.2 Unity -> Flutter
 
@@ -167,6 +173,19 @@ Optional:
   - `speakerId`
   - `responseId`
 
+9. `v1.councilPhaseChanged`
+- Trigger: council sequence advances phase
+- Required payload:
+  - `phase` (`COUNCIL_ACTIVE` | `SPEAKING_AJANI` | `COUNCIL_IDLE_GLOW` | `SPEAKING_MINERVA` | `SPEAKING_HERMES` | `IDLE`)
+
+10. `v1.identityFeedbackCue`
+- Trigger: center accent activation sync point
+- Required payload:
+  - `cueType` (`single_ai` | `council`)
+  - `speakerId` (`ajani` | `minerva` | `hermes` | `council`)
+  - `hapticMs` (number)
+  - `toneMs` (number)
+
 ---
 
 ## 6. Ack and Timeout Policy
@@ -207,6 +226,7 @@ Error response must include:
 - On reconnect/desync, Flutter sends a full state snapshot event (v1) to rehydrate Unity.
 - Unity must not silently remap mode/domain/module identifiers.
 - Voice-first center state (`IDLE`, `LISTENING_PENDING_NAME`, `LISTENING_TO_AI`, `PROCESSING`, `SPEAKING`) must remain synchronized across both runtimes.
+- Council states (`COUNCIL_ACTIVE`, `COUNCIL_IDLE_GLOW`, `SPEAKING_AJANI`, `SPEAKING_MINERVA`, `SPEAKING_HERMES`) must remain synchronized across both runtimes.
 
 ---
 
