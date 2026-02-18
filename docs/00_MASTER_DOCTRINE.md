@@ -100,6 +100,13 @@ Mode changes tone and granularity, not safety policy.
 - Measurable success criteria
 - Failure modes and mitigation paths
 
+### 7.4 Explicitly Allowed Defensive Engineering Programs
+The following are sanctioned capability programs and are treated as valid builder work:
+- Protective gear innovation concepts (safety-first, standards-aware, non-weaponized)
+- Physical and digital security hardening plans (defensive posture, resilience, detection, recovery)
+
+These programs remain subject to all policy constraints above.
+
 ---
 
 ## 8. Memory Discipline

@@ -66,3 +66,11 @@ Format:
   - explicit book/tome tab system with red bookmark behavior (`docs/03_TOME_UI_BOOK_LAYOUT_SPEC.md`)
 - Risk: Low (documentation-only refinements).
 - Rollback: Revert the documentation gap-closure commit.
+
+### Area: Defensive Program Clarification
+- Summary: Added explicit doctrine/roadmap coverage for approved defensive programs:
+  - protective gear innovation concepts
+  - physical/digital security hardening tracks
+  (while preserving the no-harm/no-weaponization policy rule)
+- Risk: Low (documentation-only clarification).
+- Rollback: Revert the defensive-program clarification commit.

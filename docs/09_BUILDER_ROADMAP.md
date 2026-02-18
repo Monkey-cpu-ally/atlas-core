@@ -78,7 +78,37 @@ Deliver a disciplined personal mastery platform in ordered, testable stages:
 
 ---
 
-## 3. Cross-Phase Constraints
+## 3. Immediate Defensive Program Tracks (Approved)
+
+### Track A — Protective Gear Innovation Program
+**Purpose:** Improve safety, durability, and usability of personal protective systems.
+
+**Core workstreams:**
+- Modular workshop protection kit concepts
+- Smart PPE companion concepts (exposure alerts, logging, thresholds)
+- Respiratory/eye safety usability improvements
+
+**Acceptance criteria:**
+- Safety-first design framing
+- Testable comfort/mobility/reliability metrics
+- No weaponization pathway in scope
+
+### Track B — Security Hardening Program
+**Purpose:** Improve physical and digital resilience with layered defensive controls.
+
+**Core workstreams:**
+- Home/workshop physical hardening baselines
+- Digital account/network hardening baselines
+- Backup/recovery drills and incident playbooks
+
+**Acceptance criteria:**
+- Layered defense plan with measurable controls
+- Recovery readiness demonstrated
+- No offensive exploit guidance in scope
+
+---
+
+## 4. Cross-Phase Constraints
 
 - No bypass of Hermes policy gates
 - No cross-project memory contamination
@@ -87,7 +117,7 @@ Deliver a disciplined personal mastery platform in ordered, testable stages:
 
 ---
 
-## 4. Success Metrics
+## 5. Success Metrics
 
 - Subject completion quality (not just completion count)
 - Retest-to-pass efficiency trend
@@ -97,7 +127,7 @@ Deliver a disciplined personal mastery platform in ordered, testable stages:
 
 ---
 
-## 5. Risk Register (Top-Level)
+## 6. Risk Register (Top-Level)
 
 1. Scope sprawl without governance checkpoints
 2. Over-complex teaching outputs reducing adoption
@@ -108,7 +138,7 @@ Mitigation: stage gates, review loops, and explicit rollback plans.
 
 ---
 
-## 6. Rollback Philosophy
+## 7. Rollback Philosophy
 
 Each phase must be independently reversible:
 - document versions are immutable once published
