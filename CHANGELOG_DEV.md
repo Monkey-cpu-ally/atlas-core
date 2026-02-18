@@ -131,5 +131,9 @@ Format:
   - center-only spiritual visual layer (halo/particles/energy ripple)
   - council mode (`council`) with Ghost Purple baseline and sequenced Ajani->Minerva->Hermes flow
   - bridge and QA updates for council and cue-timing validation
+- Summary (final refinement): Council mode now enforces stillness-first behavior:
+  - core decelerates to full stop during council activation
+  - 1-second pause cadence between council speakers
+  - controlled council completion fade and gradual rotation resume
 - Risk: Low (documentation-only refinement).
 - Rollback: Revert the spiritual mode + council refinement commit.

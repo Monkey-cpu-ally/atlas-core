@@ -177,6 +177,8 @@ Optional:
 - Trigger: council sequence advances phase
 - Required payload:
   - `phase` (`COUNCIL_ACTIVE` | `SPEAKING_AJANI` | `COUNCIL_IDLE_GLOW` | `SPEAKING_MINERVA` | `SPEAKING_HERMES` | `IDLE`)
+  - `coreRotationState` (`rotating` | `stopped` | `resume_ramp`)
+  - `pauseMs` (optional; used for `COUNCIL_IDLE_GLOW`)
 
 10. `v1.identityFeedbackCue`
 - Trigger: center accent activation sync point

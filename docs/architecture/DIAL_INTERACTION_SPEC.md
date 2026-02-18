@@ -3,7 +3,7 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Ajani / Minerva / Hermes Dial Console
-- Version: v1.1 (Draft)
+- Version: v1.2 (Draft)
 - Last Updated: 2026-02-17
 - Owner: Interaction Architecture
 

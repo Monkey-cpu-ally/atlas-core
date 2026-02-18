@@ -253,12 +253,19 @@ Trigger:
 
 Council activation behavior:
 1. stronger micro haptic confirmation
-2. Ghost Purple rim light activates
-3. center expansion can reach 1.08x max
-4. subtle rotating energy ring appears
+2. center expands slowly to max 1.08x
+3. core rotation decelerates to complete stop
+4. Ghost Purple rim light activates
+5. low ambient harmonic tone begins
+6. subtle halo ring appears around core
 
 State:
 - `COUNCIL_ACTIVE`
+
+Council stillness rule:
+- core must be visually still while council is active
+- no idle rotation
+- no mechanical motion cues
 
 ---
 
@@ -275,12 +282,18 @@ Visual behavior:
   - Ajani overlay: crimson
   - Minerva overlay: teal
   - Hermes overlay: ivory
-- after each speaker segment, fade back to Ghost Purple baseline
+- Ajani segment: subtle ripple + deep harmonic layer
+- Minerva segment: softer ripple + gentle chime layer
+- Hermes segment: minimal ripple + clean tone layer
+- after each speaker segment, fade back to Ghost Purple baseline and hold `COUNCIL_IDLE_GLOW` for 1 second
 
 Completion:
-- ripple fades
-- Ghost Purple fades
-- core returns to neutral idle
+1. Ghost Purple fades over 500–800 ms
+2. halo dissolves
+3. core rotation resumes slowly
+4. center scale returns to 1.0
+5. ambient council tone fades out
+6. core returns to neutral idle
 
 ---
 
@@ -292,6 +305,11 @@ Base council ambience:
 
 Between speaker transitions:
 - soft rising swell
+
+Speaker tone layers:
+- Ajani: deeper harmonic emphasis
+- Minerva: lighter chime emphasis
+- Hermes: clean high-band precision layer
 
 Constraint:
 - no dramatic cinematic stingers
@@ -305,10 +323,20 @@ Ripple:
 - radial distortion
 - low speed, low intensity
 - no high-frequency flicker
+- no aggressive ripple spikes
 
 Glow:
 - emission/rim-light layer only
 - no full-UI tint
+- no dramatic pulse bursts
+
+Halo:
+- thin circular band around core
+- opacity breathing cycle: 4–6 seconds
+
+Particles:
+- very low density, almost invisible
+- no visible particle swarms
 
 Performance:
 - target 60 fps
@@ -340,6 +368,7 @@ Identity renderer consumes:
 - `glowIntensity`
 - `rippleProfileId`
 - `motionProfileModifier` (optional)
+- `coreRotationState` (`rotating` | `stopped` | `resume_ramp`)
 
 State consumers:
 - Unity 3D core renderer (primary)
@@ -361,9 +390,9 @@ Single-speaker path:
 Council path:
 - `IDLE -> COUNCIL_ACTIVE` (council detected)
 - `COUNCIL_ACTIVE -> SPEAKING_AJANI`
-- `SPEAKING_AJANI -> COUNCIL_IDLE_GLOW`
+- `SPEAKING_AJANI -> COUNCIL_IDLE_GLOW` (1 second pause)
 - `COUNCIL_IDLE_GLOW -> SPEAKING_MINERVA`
-- `SPEAKING_MINERVA -> COUNCIL_IDLE_GLOW`
+- `SPEAKING_MINERVA -> COUNCIL_IDLE_GLOW` (1 second pause)
 - `COUNCIL_IDLE_GLOW -> SPEAKING_HERMES`
 - `SPEAKING_HERMES -> IDLE`
 
@@ -391,15 +420,27 @@ Accept only when:
 - council baseline glow persists between speakers
 - all flows return to neutral deterministically
 - active pulses preserve readability/contrast
+- council core remains still during active council mode
+- council pause windows between speakers hold for 1 second (+/- tolerance)
 
 ---
 
-## 20. Glossary
+## 20. Design Philosophy
+
+Single AI = energy.  
+Council = stillness.
+
+Council mode should feel deeper, calmer, and more authoritative, not louder or more dramatic.
+
+---
+
+## 21. Glossary
 
 - **Accent Rim Light:** Colored edge highlight around center core.
 - **Council Idle Glow:** Ghost Purple baseline between council speaker turns.
 - **Council Mode:** Sequenced tri-AI speaking mode with shared baseline identity.
 - **Ghost Purple:** Council accent color (soft violet-blue, non-neon).
+- **Council Stillness Rule:** Requirement that center core holds visual stillness during council activation.
 - **Listening Pending Name:** Hold-start state before AI name resolution.
 - **Neutral State:** Default center-core state with no active accent.
 - **Ripple Profile:** Persona-specific wave behavior (speed, softness, edge definition).

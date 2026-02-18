@@ -3,7 +3,7 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Dial UI + 3D Core + Skin System
-- Version: v1.0 (Draft)
+- Version: v1.1 (Draft)
 - Last Updated: 2026-02-17
 - Owner: Validation and Reliability
 
@@ -43,6 +43,8 @@ Define measurable quality gates for:
 | Wake-word detect -> center activation | <= 300 ms | > 420 ms | > 600 ms |
 | Accent activation -> haptic cue sync delta | <= 30 ms | > 50 ms | > 80 ms |
 | Accent activation -> tone cue sync delta | <= 30 ms | > 50 ms | > 80 ms |
+| Council activation -> core full-stop rotation | <= 700 ms | > 900 ms | > 1200 ms |
+| Council completion -> rotation resume start | <= 500 ms | > 700 ms | > 1000 ms |
 
 ---
 
@@ -78,6 +80,8 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Ripple fade timing on response end
 - Council Ghost Purple baseline activation correctness
 - Council phase overlay behavior correctness (Ajani/Minerva/Hermes overlays)
+- Council stillness enforcement correctness (no idle rotation drift)
+- Council completion fade duration correctness (500–800 ms target)
 
 ## 5.3 Skin Suite
 - Apply/cancel preview behavior
@@ -95,6 +99,7 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Hold-start/hold-end event ordering integrity
 - Council phase event ordering integrity
 - Identity feedback cue timing integrity
+- Council idle-glow pause duration integrity (1 second target between speakers)
 
 ## 5.5 Stability Suite
 - Long session memory stability
