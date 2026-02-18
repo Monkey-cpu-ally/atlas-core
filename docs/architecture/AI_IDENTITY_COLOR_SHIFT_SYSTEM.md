@@ -266,6 +266,7 @@ Council stillness rule:
 - core must be visually still while council is active
 - no idle rotation
 - no mechanical motion cues
+- stillness = authority
 
 ---
 
@@ -431,6 +432,7 @@ Single AI = energy.
 Council = stillness.
 
 Council mode should feel deeper, calmer, and more authoritative, not louder or more dramatic.
+Just deeper.
 
 ---
 

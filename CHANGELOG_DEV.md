@@ -135,5 +135,8 @@ Format:
   - core decelerates to full stop during council activation
   - 1-second pause cadence between council speakers
   - controlled council completion fade and gradual rotation resume
+- Summary (language lock): Added explicit doctrine phrasing in council identity spec:
+  - "stillness = authority"
+  - "Just deeper."
 - Risk: Low (documentation-only refinement).
 - Rollback: Revert the spiritual mode + council refinement commit.
