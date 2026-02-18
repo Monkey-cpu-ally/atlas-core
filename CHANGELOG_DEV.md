@@ -102,3 +102,8 @@ Format:
   - `PERFORMANCE_QA_TEST_PLAN.md`
 - Risk: Low (documentation-only additions; no application code).
 - Rollback: Revert the architecture spec pack commit.
+
+### Area: AI Identity Color-Shift Spec
+- Summary: Added `docs/architecture/AI_IDENTITY_COLOR_SHIFT_SYSTEM.md` defining speaker-linked accent behavior for Ajani/Minerva/Hermes, transition timing, visual bounds, integration rules, and acceptance checklist.
+- Risk: Low (documentation-only addition; no application code).
+- Rollback: Revert the AI identity color-shift spec commit.
