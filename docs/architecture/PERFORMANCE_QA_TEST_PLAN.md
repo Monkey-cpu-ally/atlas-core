@@ -39,6 +39,8 @@ Define measurable quality gates for:
 | Skin preview apply latency | <= 120 ms | > 160 ms | > 220 ms |
 | Mode switch visual settle | <= 300 ms | > 400 ms | > 550 ms |
 | Bridge round-trip (critical events) | <= 80 ms | > 120 ms | > 200 ms |
+| Hold-start -> listening band visible | <= 200 ms | > 260 ms | > 350 ms |
+| Wake-word detect -> center activation | <= 300 ms | > 420 ms | > 600 ms |
 
 ---
 
@@ -62,12 +64,16 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Multi-ring conflict handling
 - Center core gesture isolation (orbit/zoom/tap)
 - Reduced-motion behavior equivalence
+- Long-press center activation timing and cancellation behavior
+- Ring neutrality verification during center identity activation
 
 ## 5.2 3D Core Suite
 - Core ready handshake timing
 - Mode-driven visual response checks
 - Hotspot event correctness
 - Animation completion signaling
+- Speaker-accent center activation correctness (Ajani/Minerva/Hermes)
+- Ripple fade timing on response end
 
 ## 5.3 Skin Suite
 - Apply/cancel preview behavior
@@ -81,6 +87,8 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Timeout and retry behavior
 - Duplicate event idempotency
 - Desync recovery workflow
+- Wake-word detection flow integrity
+- Hold-start/hold-end event ordering integrity
 
 ## 5.5 Stability Suite
 - Long session memory stability

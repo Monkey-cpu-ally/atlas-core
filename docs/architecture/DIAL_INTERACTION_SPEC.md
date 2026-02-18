@@ -3,7 +3,7 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Ajani / Minerva / Hermes Dial Console
-- Version: v1.0 (Draft)
+- Version: v1.1 (Draft)
 - Last Updated: 2026-02-17
 - Owner: Interaction Architecture
 
@@ -48,20 +48,37 @@ Each ring has:
 - selected segment index
 - independent angular position
 
+## 3.1 Command Ring Segment Set (Voice-First Rule)
+
+Command Ring is mode-only.  
+`TALK` is removed from ring navigation.
+
+Recommended command segments:
+- Blueprint
+- Build
+- Modify
+- Simulate
+- Log
+- Reflect
+
+Voice access is always available from the center core (hold + wake word) and is not a ring segment.
+
 ---
 
 ## 4. Hit Zone and Gesture Priority
 
 Priority order for touch ownership:
-1. Ring segment in active radius band
-2. Center 3D core viewport
-3. Global overlays (modals, pickers)
+1. Center long-press zone (voice-first hold trigger)
+2. Ring segment in active radius band
+3. Center 3D core viewport (orbit/zoom/tap)
+4. Global overlays (modals, pickers)
 
 Rules:
 - First valid touch-down target owns the pointer until release/cancel.
 - Ring drag should not leak into center orbit while pointer is owned by a ring.
 - Multi-touch for center zoom is allowed only if no ring owns touch.
 - Skin picker modal has top priority and blocks all ring/center interactions.
+- Long-press ownership on center blocks ring rotation until long-press end/cancel.
 
 ---
 
@@ -116,7 +133,29 @@ If an action is blocked by policy, selection can highlight but command execution
 
 ---
 
-## 8. Motion and Feedback Rules
+## 8. Voice-First Center Interaction Contract
+
+Center core supports voice-first control independent of rings.
+
+Required interaction paths:
+1. Hold-to-activate (`onLongPressStart` -> `onLongPressEnd`)
+2. Wake-word activation (hands-free)
+
+Required center states:
+- `IDLE`
+- `LISTENING_PENDING_NAME`
+- `LISTENING_TO_AI`
+- `PROCESSING`
+- `SPEAKING`
+
+Ring behavior during center voice activation:
+- rings remain visually neutral
+- ring selection state does not auto-change
+- ring input may be locked while active hold ownership exists
+
+---
+
+## 9. Motion and Feedback Rules
 
 Required feedback channels:
 - visual highlight transition on active segment
@@ -130,7 +169,7 @@ Motion quality requirements:
 
 ---
 
-## 9. Accessibility and Precision Rules
+## 10. Accessibility and Precision Rules
 
 - Ring labels must remain readable under active skin typography rules.
 - Interaction must support reduced-motion mode:
@@ -142,7 +181,7 @@ Motion quality requirements:
 
 ---
 
-## 10. Error and Recovery States
+## 11. Error and Recovery States
 
 Defined interaction errors:
 - pointer cancel during drag
@@ -156,7 +195,7 @@ Recovery behavior:
 
 ---
 
-## 11. Telemetry Requirements
+## 12. Telemetry Requirements
 
 Track interaction metrics per ring:
 - drag duration
@@ -169,7 +208,7 @@ Use these metrics to tune motion profile and segment spacing.
 
 ---
 
-## 12. Acceptance Criteria
+## 13. Acceptance Criteria
 
 A ring interaction implementation is accepted when:
 - snap commit is deterministic
@@ -177,10 +216,11 @@ A ring interaction implementation is accepted when:
 - state changes occur only on committed snap
 - reduced-motion behavior remains functionally equivalent
 - all ring actions emit expected state transitions
+- center voice interaction paths do not corrupt ring state
 
 ---
 
-## 13. Glossary
+## 14. Glossary
 
 - **Commit:** The moment a selection becomes official and updates global state.
 - **Inertia:** Continued movement after release based on prior drag velocity.

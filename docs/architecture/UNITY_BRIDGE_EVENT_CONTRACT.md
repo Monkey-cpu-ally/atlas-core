@@ -61,37 +61,61 @@ Optional:
 
 ## 5.1 Flutter -> Unity
 
-1. `v1.modeChanged`
+1. `v1.voiceHoldStart`
+- Trigger: onLongPressStart on center core
+- Required payload:
+  - `pointerId`
+  - `uiStateId` (`LISTENING_PENDING_NAME`)
+
+2. `v1.voiceHoldEnd`
+- Trigger: onLongPressEnd on center core
+- Required payload:
+  - `pointerId`
+  - `nameDetected` (boolean)
+
+3. `v1.modeChanged`
 - Trigger: Command Ring commit
 - Required payload:
   - `modeId`
   - `previousModeId`
   - `transitionStyle` (optional hint)
 
-2. `v1.domainChanged`
+4. `v1.domainChanged`
 - Trigger: Domain Ring commit
 - Required payload:
   - `domainId`
   - `previousDomainId`
 
-3. `v1.moduleChanged`
+5. `v1.moduleChanged`
 - Trigger: Module Ring commit
 - Required payload:
   - `moduleId`
   - `domainId`
 
-4. `v1.skinChanged`
+6. `v1.skinChanged`
 - Trigger: Skin picker apply
 - Required payload:
   - `skinId`
   - `motionProfileId`
   - `materialProfileId`
 
-5. `v1.coreCommand`
+7. `v1.coreCommand`
 - Trigger: direct center action (future hotspot bindings)
 - Required payload:
   - `commandId`
   - `commandArgs` (object)
+
+8. `v1.speakerNamed`
+- Trigger: voice parser detects `ajani|minerva|hermes`
+- Required payload:
+  - `speakerId`
+  - `confidence`
+
+9. `v1.wakeWordDetected`
+- Trigger: hands-free wake-word engine detects AI name
+- Required payload:
+  - `speakerId`
+  - `source` (`bluetooth` | `device_mic`)
 
 ## 5.2 Unity -> Flutter
 
@@ -125,6 +149,23 @@ Optional:
 - Required payload:
   - `performanceTier`
   - `reason`
+
+6. `v1.listeningStateChanged`
+- Trigger: center core enters/exits listening visual state
+- Required payload:
+  - `state` (`IDLE` | `LISTENING_PENDING_NAME` | `LISTENING_TO_AI` | `PROCESSING` | `SPEAKING`)
+
+7. `v1.aiResponseStart`
+- Trigger: AI begins response audio/text playback
+- Required payload:
+  - `speakerId`
+  - `responseId`
+
+8. `v1.aiResponseEnd`
+- Trigger: AI response playback ends
+- Required payload:
+  - `speakerId`
+  - `responseId`
 
 ---
 
@@ -165,6 +206,7 @@ Error response must include:
 - Source of truth for 3D local animation progress is Unity.
 - On reconnect/desync, Flutter sends a full state snapshot event (v1) to rehydrate Unity.
 - Unity must not silently remap mode/domain/module identifiers.
+- Voice-first center state (`IDLE`, `LISTENING_PENDING_NAME`, `LISTENING_TO_AI`, `PROCESSING`, `SPEAKING`) must remain synchronized across both runtimes.
 
 ---
 

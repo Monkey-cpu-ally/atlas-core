@@ -115,3 +115,12 @@ Format:
   - ripple/pulse transitions tightened with explicit timing and bounds
 - Risk: Low (documentation-only refinement).
 - Rollback: Revert the center-only identity refinement commit.
+
+### Area: Voice-First Center Core Finalization
+- Summary: Updated architecture specs to lock voice-first behavior:
+  - removed `TALK` from command ring (`DIAL_INTERACTION_SPEC.md`)
+  - added hold + wake-word center-state flows
+  - expanded bridge events for hold/wake/listening/speaking states
+  - added QA metrics/tests for voice-first activation timing and neutrality rules
+- Risk: Low (documentation-only refinement).
+- Rollback: Revert the voice-first center core refinement commit.
