@@ -156,3 +156,6 @@ Format:
   - baseline Flutter tests for council delay, sigil invariance, completion reset, and bridge payload shape
 - Risk: Low to medium (new isolated scaffold code; integration still required in a production app).
 - Rollback: Revert the commit introducing `frontend/flutter_atlas_scaffold/`.
+- Summary (packaging fix): Added `.gitignore` exception for `frontend/flutter_atlas_scaffold/lib/**` so Dart source files are tracked (repo had a global `lib/` ignore).
+- Risk: Low (scoped ignore exception for one path).
+- Rollback: Revert the `.gitignore` exception commit.
