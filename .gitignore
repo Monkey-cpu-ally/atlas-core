@@ -30,6 +30,10 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Allow committed Flutter scaffold source under frontend.
+!frontend/flutter_atlas_scaffold/lib/
+!frontend/flutter_atlas_scaffold/lib/**
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
