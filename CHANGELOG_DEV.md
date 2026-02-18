@@ -74,3 +74,12 @@ Format:
   (while preserving the no-harm/no-weaponization policy rule)
 - Risk: Low (documentation-only clarification).
 - Rollback: Revert the defensive-program clarification commit.
+
+### Area: Unified Builder Spec Expansion
+- Summary: Added and populated four new markdown specifications:
+  - `docs/10_UNIFIED_SYSTEM_PLATFORM.md`
+  - `docs/11_BUILDER_SCALE_LADDER.md`
+  - `docs/12_FLAGSHIP_PROJECT_TRACK.md`
+  - `docs/13_CROSS_DOMAIN_INTEGRATION_MAP.md`
+- Risk: Low (documentation-only additions; no application code).
+- Rollback: Revert the commit introducing docs 10-13.
