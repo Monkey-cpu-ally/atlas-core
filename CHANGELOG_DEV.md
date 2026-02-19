@@ -207,3 +207,15 @@ Format:
 - Rollback: Revert the commit that modifies AndroidManifest/Info.plist and console defaults.
 - Summary (UX): Updated the Atlas Console base URL hint to explicitly include physical-device LAN IP usage.
 - Summary (UX): Added quick presets + persisted base URL + /health connectivity check for emulator/simulator/USB reverse/LAN IP workflows.
+
+## 2026-02-19
+
+### Area: Skin System (Free Selection Model)
+- Summary: Updated architecture specs to enforce user-driven skin selection:
+  - skins are manually selected at any time (no auto-switch by mode)
+  - apply uses a smooth 400–600 ms crossfade
+  - selection persists across restart/mode/AI/council changes
+  - skins must remain compatible with center-only identity accents (Ajani/Minerva/Hermes + Ghost Purple council)
+  - baseline skin set updated to: Lumen Core, Archive Grid, Circuit Veil, Module Array
+- Risk: Low (documentation-only; implementation to follow UI layer).
+- Rollback: Revert the commit introducing the spec updates.

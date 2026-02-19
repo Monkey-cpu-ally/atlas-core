@@ -3,8 +3,8 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Ajani / Minerva / Hermes Dial Console
-- Version: v1.2 (Draft)
-- Last Updated: 2026-02-17
+- Version: v1.3 (Draft)
+- Last Updated: 2026-02-19
 - Owner: Interaction Architecture
 
 ---
@@ -62,6 +62,28 @@ Recommended command segments:
 - Reflect
 
 Voice access is always available from the center core (hold + wake word) and is not a ring segment.
+
+## 3.2 Status/Utility Ring Segment Set (Skins)
+
+Status/Utility ring provides meta controls that do not alter command semantics.
+
+Required segments:
+- Skins
+
+Skin selection rule (free selection model):
+- user may select a skin at any time from the "Skins" segment
+- skins do not auto-switch based on mode
+- mode = function, skin = atmosphere (independent systems)
+
+Skin apply behavior:
+- smooth crossfade 400–600 ms (no hard cuts)
+- selection persists across:
+  - app restart
+  - mode change
+  - AI speaker change
+  - council activation
+
+Skin changes must not reset ring selections or current mode/domain/module.
 
 ---
 

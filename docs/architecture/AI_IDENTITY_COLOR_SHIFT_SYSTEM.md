@@ -3,8 +3,8 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Dial HUD + 3D Core + Voice UI
-- Version: v1.3 (Draft)
-- Last Updated: 2026-02-17
+- Version: v1.4 (Draft)
+- Last Updated: 2026-02-19
 - Owner: Identity and Visual Systems
 
 ---
@@ -444,6 +444,9 @@ Council path:
 
 - Identity activation overlays center core on top of current skin baseline.
 - Skin controls baseline look; identity controls temporary speaker behavior.
+- Skins must not override or remap identity accent colors:
+  - AI accents and Ghost Purple must remain consistent across all skins
+  - if a skin cannot render identity overlays cleanly, the skin is invalid
 - Identity behavior must not modify:
   - command semantics
   - mode/domain/module state

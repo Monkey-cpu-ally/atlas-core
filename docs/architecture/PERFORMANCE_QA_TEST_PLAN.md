@@ -3,8 +3,8 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Dial UI + 3D Core + Skin System
-- Version: v1.2 (Draft)
-- Last Updated: 2026-02-17
+- Version: v1.3 (Draft)
+- Last Updated: 2026-02-19
 - Owner: Validation and Reliability
 
 ---
@@ -37,6 +37,7 @@ Define measurable quality gates for:
 | Input-to-response latency | <= 50 ms | > 60 ms | > 90 ms |
 | Ring snap settle duration | 180–260 ms | > 300 ms | > 400 ms |
 | Skin preview apply latency | <= 120 ms | > 160 ms | > 220 ms |
+| Skin apply crossfade duration | 400–600 ms | < 320 ms or > 750 ms | < 250 ms or > 900 ms |
 | Mode switch visual settle | <= 300 ms | > 400 ms | > 550 ms |
 | Bridge round-trip (critical events) | <= 80 ms | > 120 ms | > 200 ms |
 | Hold-start -> listening band visible | <= 200 ms | > 260 ms | > 350 ms |
@@ -97,6 +98,13 @@ Tier C may use reduced visual effect budgets but cannot fail core interactions.
 - Persistence after app restart
 - No logic drift across skin swaps
 - Accessibility checks per skin (contrast/focus/readability)
+- Skin selection independence:
+  - skin does not auto-switch on mode change
+  - skin does not auto-switch on AI speaker change
+  - skin does not auto-switch on council activation
+- Identity compatibility:
+  - AI accent overlays remain correct on all skins
+  - council Ghost Purple remains muted/translucent and readable on all skins
 
 ## 5.4 Bridge Contract Suite
 - Valid event acceptance

@@ -3,8 +3,8 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Flutter HUD + Unity 3D Core
-- Version: v1.2 (Draft)
-- Last Updated: 2026-02-17
+- Version: v1.3 (Draft)
+- Last Updated: 2026-02-19
 - Owner: Platform Integration
 
 ---
@@ -98,6 +98,10 @@ Optional:
   - `skinId`
   - `motionProfileId`
   - `materialProfileId`
+  - `transitionMs` (number; target 400-600 for smooth crossfade)
+
+Optional payload:
+- `applyType` (`preview` | `apply`)
 
 7. `v1.coreCommand`
 - Trigger: direct center action (future hotspot bindings)
@@ -235,6 +239,8 @@ Error response must include:
 - Voice-first center state (`IDLE`, `LISTENING_PENDING_NAME`, `LISTENING_TO_AI`, `PROCESSING`, `SPEAKING`) must remain synchronized across both runtimes.
 - Council states (`COUNCIL_ACTIVE`, `COUNCIL_IDLE_GLOW`, `SPEAKING_AJANI`, `SPEAKING_MINERVA`, `SPEAKING_HERMES`) must remain synchronized across both runtimes.
 - During council phases, sigil state must remain Ghost Purple and speaker-invariant (core overlays may change by speaker, sigil does not).
+- Skin selection is user-driven and must not auto-switch based on mode changes.
+- Skins must not override identity accent colors (identity overlays remain global and independent).
 
 ---
 

@@ -3,8 +3,8 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Dial HUD + 3D Core Visual Layer
-- Version: v1.0 (Draft)
-- Last Updated: 2026-02-17
+- Version: v1.1 (Draft)
+- Last Updated: 2026-02-19
 - Owner: Visual Systems Architecture
 
 ---
@@ -47,6 +47,24 @@ Skins may not change:
 - routing behavior
 - policy/safety behavior
 - command meaning
+
+## 3.1 Free Selection Model (Mode != Skin)
+
+Core rule:
+- skins are fully user-selectable at any time
+- skins do not auto-switch based on mode
+
+Definition:
+- **Mode = function.** (what the system does)
+- **Skin = atmosphere.** (how the system feels)
+
+Persistence rule:
+- the selected skin persists across:
+  - app restart
+  - mode change
+  - AI speaker change
+  - council activation
+- skin remains active until manually changed
 
 ---
 
@@ -128,34 +146,50 @@ Invalid skin definitions must fail before runtime apply.
 
 ---
 
-## 7. Baseline Skin Profiles
+## 7. Baseline Skin Profiles (Initial Set)
 
-## 7.1 Obsidian Lab
-- Density: telemetry-heavy
-- Material bias: dark slate + restrained glow
-- Motion bias: deliberate, low-bounce
-- Typical use: simulate, diagnostics, logs
+## 7.1 Lumen Core
+- Intent: minimal, clean background with a single accent energy line
+- Material bias: smooth, low-noise surfaces
+- Density bias: minimal to standard
 
-## 7.2 Atlas Command
-- Density: standard
-- Material bias: map/terrain-informed overlays + metallic framing
-- Motion bias: moderate inertia with clear snap feedback
-- Typical use: global project navigation and domain switching
+## 7.2 Archive Grid
+- Intent: bold geometric blocks with cultural strength and structure
+- Material bias: strong panel separation, crisp edges
+- Density bias: standard (structured layout)
 
-## 7.3 Ivory Surgical
-- Density: minimal to standard
-- Material bias: clean high-contrast precision surfaces
-- Motion bias: tight, fast settle, minimal overshoot
-- Typical use: stepwise blueprint and learning modes
+## 7.3 Circuit Veil
+- Intent: white/tech/angular precision with subtle micro circuit lines
+- Material bias: high-contrast precision look (clean, surgical)
+- Density bias: minimal to standard
+
+## 7.4 Module Array
+- Intent: modular panels and component-style engineering aesthetic
+- Material bias: visible structure without clutter
+- Density bias: standard to telemetry (component-forward)
 
 ---
 
 ## 8. Runtime Apply Rules
 
-- Skin preview may apply non-destructively.
-- Confirmed apply writes active skin state.
-- Canceled preview restores previous skin without state drift.
+- User selects a skin from the outer ring "Skins" tab (Status/Utility ring).
+- Skin apply must be a smooth crossfade:
+  - target: 400–600 ms
+  - no hard cuts
+- Confirmed apply writes active skin state and persists it.
 - Skin changes must not reset selected mode/domain/module.
+
+Optional preview model (allowed but not required):
+- Skin preview may apply non-destructively.
+- Canceled preview restores previous skin without state drift.
+
+AI accent compatibility rule:
+- skins must not override AI accent colors
+- speaker accent overlays remain global and independent from skins
+
+Council compatibility rule:
+- Ghost Purple overlay must render correctly on all skins
+- it must remain muted/translucent and never clash with skin base colors
 
 ---
 
