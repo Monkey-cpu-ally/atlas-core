@@ -205,3 +205,4 @@ Format:
   - Atlas Console now defaults base URL to `10.0.2.2` on Android emulator, `127.0.0.1` on iOS simulator
 - Risk: Medium (cleartext + ATS exceptions are dev-friendly; tighten before App Store/Play release).
 - Rollback: Revert the commit that modifies AndroidManifest/Info.plist and console defaults.
+- Summary (UX): Updated the Atlas Console base URL hint to explicitly include physical-device LAN IP usage.
