@@ -14,6 +14,7 @@ class DialPanel extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(12),
     this.dynamicTiltUnit = 0.0,
+    this.tiltBlendDuration = Duration.zero,
     super.key,
   });
 
@@ -26,6 +27,10 @@ class DialPanel extends StatelessWidget {
 
   /// [-1..1] input used only when `panelTiltMode == dynamic`.
   final double dynamicTiltUnit;
+
+  /// Optional smoothing for panel tilt changes (used by Appearance Lab sliders).
+  /// Keep zero duration for "direct" interaction modes.
+  final Duration tiltBlendDuration;
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +69,27 @@ class DialPanel extends StatelessWidget {
     );
 
     if (tiltMode != PanelTiltMode.off) {
-      panelChild = Transform(
-        alignment: Alignment.center,
-        transform: Matrix4.identity()
-          ..setEntry(3, 2, 0.0012)
-          ..rotateX(rotateX)
-          ..rotateY(rotateY),
-        child: panelChild,
-      );
+      final matrix = Matrix4.identity()
+        ..setEntry(3, 2, 0.0012)
+        ..rotateX(rotateX)
+        ..rotateY(rotateY);
+
+      final shouldBlend =
+          tiltBlendDuration != Duration.zero && tiltMode != PanelTiltMode.dynamic;
+
+      panelChild = shouldBlend
+          ? AnimatedContainer(
+              duration: tiltBlendDuration,
+              curve: Curves.easeOut,
+              transformAlignment: Alignment.center,
+              transform: matrix,
+              child: panelChild,
+            )
+          : Transform(
+              alignment: Alignment.center,
+              transform: matrix,
+              child: panelChild,
+            );
     }
 
     return panelChild;
