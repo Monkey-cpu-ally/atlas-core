@@ -17,8 +17,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -28,6 +26,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Flutter projects must track their source.
+# Do not ignore the Flutter `lib/` directory.
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
