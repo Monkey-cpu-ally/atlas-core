@@ -178,3 +178,9 @@ Format:
 - Summary: Added `docs/architecture/COUNCIL_SPEAKER_SEQUENCE_MOCKUP.svg` showing the council speaker sequence (Ajani -> Minerva -> Hermes) where only the core overlay changes per speaker and the sigil remains Ghost Purple.
 - Risk: None (documentation-only asset).
 - Rollback: Revert the commit adding the speaker-sequence SVG mockup.
+
+### Area: FlutterFlow Integration (Monorepo Sync)
+- Summary: Imported the FlutterFlow-exported Flutter project from branch `flutterflow` into `frontend/flutterflow_app/` so the monorepo branch can include Flutter code without replacing backend/docs at repo root.
+- Summary (fix): Replaced `frontend/flutterflow_app/.gitignore` with Flutter/Dart ignores to ensure `lib/` is tracked (FlutterFlow branch previously ignored `lib/`, causing missing Dart sources).
+- Risk: Medium (adds mobile/web platform folders and assets to repo; may increase repo size).
+- Rollback: Revert the commit that adds `frontend/flutterflow_app/`.
