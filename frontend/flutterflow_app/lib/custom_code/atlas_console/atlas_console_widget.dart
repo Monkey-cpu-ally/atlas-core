@@ -156,77 +156,78 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
         ? const Duration(seconds: 12)
         : const Duration(seconds: 45); // slow, not stopped
 
-    final fade = _appearanceLabExiting ? 0.0 : 1.0;
+    final overlaysOpacity = _appearanceLabExiting ? 0.0 : 1.0;
 
     Widget panel(String title, Widget child) {
-      return SizedBox(
-        width: 280,
-        child: DialPanel(
-          visualPrefs: _visualPrefs,
-          surfaceColor: scheme.surface.withOpacity(0.92),
-          borderColor: scheme.outline,
-          borderRadius: BorderRadius.circular(12),
-          dynamicTiltUnit: 0.0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              child,
-            ],
+      return AnimatedOpacity(
+        opacity: overlaysOpacity,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+        child: SizedBox(
+          width: 280,
+          child: DialPanel(
+            visualPrefs: _visualPrefs,
+            surfaceColor: scheme.surface.withOpacity(0.92),
+            borderColor: scheme.outline,
+            borderRadius: BorderRadius.circular(12),
+            dynamicTiltUnit: 0.0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                child,
+              ],
+            ),
           ),
         ),
       );
     }
 
-    return AnimatedOpacity(
-      opacity: fade,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(color: skinTokens.background),
-          // Background dim (5-8%).
-          AnimatedOpacity(
-            opacity: _appearanceLabExiting ? 0.0 : 0.07,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOut,
-            child: const ColoredBox(color: Colors.black),
-          ),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 980;
-                final dial = SizedBox(
-                  width: dialSize,
-                  height: dialSize,
-                  child: VoiceCoreLayer(
-                    state: _voiceCore.state,
-                    // Do not rely on the council dim toggle in Appearance Lab.
-                    visualPrefs:
-                        _visualPrefs.copyWith(councilDimOverlayEnabled: false),
-                    timing: _voiceCore.timing,
-                    ringColor: skinTokens.ringStroke,
-                    ringOpacity: ringOpacity,
-                    ringStrokeWidth: ringStrokeWidth,
-                    backgroundColor: skinTokens.background,
-                    microDetailColor: skinTokens.border,
-                    frameColor: skinTokens.border,
-                    coreWidget: _PlaceholderCore(
-                      surface: skinTokens.surface,
-                      border: skinTokens.border,
-                      text: skinTokens.textSecondary,
-                      rim: rimColor,
-                      rotationPeriod: coreRotationPeriod,
-                    ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ColoredBox(color: skinTokens.background),
+        // Background dim (5–8%).
+        AnimatedOpacity(
+          opacity: _appearanceLabExiting ? 0.0 : 0.07,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOut,
+          child: const ColoredBox(color: Colors.black),
+        ),
+        SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 980;
+              final dial = SizedBox(
+                width: dialSize,
+                height: dialSize,
+                child: VoiceCoreLayer(
+                  state: _voiceCore.state,
+                  // Do not rely on the council dim toggle in Appearance Lab.
+                  visualPrefs:
+                      _visualPrefs.copyWith(councilDimOverlayEnabled: false),
+                  timing: _voiceCore.timing,
+                  ringColor: skinTokens.ringStroke,
+                  ringOpacity: ringOpacity,
+                  ringStrokeWidth: ringStrokeWidth,
+                  backgroundColor: skinTokens.background,
+                  microDetailColor: skinTokens.border,
+                  frameColor: skinTokens.border,
+                  coreWidget: _PlaceholderCore(
+                    surface: skinTokens.surface,
+                    border: skinTokens.border,
+                    text: skinTokens.textSecondary,
+                    rim: rimColor,
+                    rotationPeriod: coreRotationPeriod,
                   ),
-                );
+                ),
+              );
 
                 final left = panel(
                   'Left',
@@ -419,73 +420,90 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                   ),
                 );
 
-                if (!isWide) {
-                  return Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      Center(child: dial),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+              if (!isWide) {
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(0, 56, 0, 20),
                         child: Column(
                           children: [
-                            left,
+                            Center(child: dial),
                             const SizedBox(height: 12),
-                            right,
-                            const SizedBox(height: 12),
-                            bottom,
-                            const SizedBox(height: 16),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: ElevatedButton(
-                                onPressed: _exitAppearanceLab,
-                                child: const Text('Exit'),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                children: [
+                                  left,
+                                  const SizedBox(height: 12),
+                                  right,
+                                  const SizedBox(height: 12),
+                                  bottom,
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
-                    ],
-                  );
-                }
-
-                return Stack(
-                  children: [
-                    Center(child: dial),
+                    ),
                     Positioned(
                       top: 12,
                       right: 12,
+                      child: AnimatedOpacity(
+                        opacity: overlaysOpacity,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOut,
+                        child: ElevatedButton(
+                          onPressed: _exitAppearanceLab,
+                          child: const Text('Exit'),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return Stack(
+                children: [
+                  Center(child: dial),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: AnimatedOpacity(
+                      opacity: overlaysOpacity,
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOut,
                       child: ElevatedButton(
                         onPressed: _exitAppearanceLab,
                         child: const Text('Exit'),
                       ),
                     ),
-                    Positioned(
-                      top: 64,
-                      left: 16,
-                      child: left,
+                  ),
+                  Positioned(
+                    top: 64,
+                    left: 16,
+                    child: left,
+                  ),
+                  Positioned(
+                    top: 64,
+                    right: 16,
+                    child: right,
+                  ),
+                  Positioned(
+                    bottom: 16,
+                    left: (constraints.maxWidth - 620) / 2,
+                    child: SizedBox(
+                      width: 620,
+                      child: bottom,
                     ),
-                    Positioned(
-                      top: 64,
-                      right: 16,
-                      child: right,
-                    ),
-                    Positioned(
-                      bottom: 16,
-                      left: (constraints.maxWidth - 620) / 2,
-                      child: SizedBox(
-                        width: 620,
-                        child: bottom,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+                  ),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1319,6 +1337,8 @@ class _PlaceholderCore extends StatelessWidget {
     required this.surface,
     required this.border,
     required this.text,
+    required this.rim,
+    required this.rotationPeriod,
   });
 
   final Color surface;
@@ -1345,12 +1365,14 @@ class _PlaceholderCore extends StatelessWidget {
             Positioned.fill(
               child: Padding(
                 padding: const EdgeInsets.all(6),
-                child: DecoratedBox(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOut,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: rim.withOpacity(0.55),
-                      width: 5,
+                      color: rim.withOpacity(0.42),
+                      width: 4,
                     ),
                   ),
                 ),
