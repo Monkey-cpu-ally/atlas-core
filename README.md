@@ -1,2 +1,7 @@
-# Atlas Core
-Safety-first environmental robotics framework with AI persona-based educational assistant system.
+# Atlas Facse
+
+A new Flutter project.
+
+## Getting Started
+
+FlutterFlow projects are built to run on the Flutter _stable_ release.
