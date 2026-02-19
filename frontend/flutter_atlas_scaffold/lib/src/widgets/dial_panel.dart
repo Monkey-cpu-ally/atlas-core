@@ -68,16 +68,19 @@ class DialPanel extends StatelessWidget {
       child: panelChild,
     );
 
-    if (tiltMode != PanelTiltMode.off) {
-      final matrix = Matrix4.identity()
-        ..setEntry(3, 2, 0.0012)
-        ..rotateX(rotateX)
-        ..rotateY(rotateY);
+    final wantsBlend =
+        tiltBlendDuration != Duration.zero && tiltMode != PanelTiltMode.dynamic;
+    final wantsStableWrapper = tiltBlendDuration != Duration.zero;
 
-      final shouldBlend =
-          tiltBlendDuration != Duration.zero && tiltMode != PanelTiltMode.dynamic;
+    if (tiltMode != PanelTiltMode.off || wantsStableWrapper) {
+      final matrix = tiltMode == PanelTiltMode.off
+          ? Matrix4.identity()
+          : (Matrix4.identity()
+            ..setEntry(3, 2, 0.0012)
+            ..rotateX(rotateX)
+            ..rotateY(rotateY));
 
-      panelChild = shouldBlend
+      panelChild = wantsBlend
           ? AnimatedContainer(
               duration: tiltBlendDuration,
               curve: Curves.easeOut,
