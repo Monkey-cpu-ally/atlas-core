@@ -5,6 +5,7 @@ import 'package:flutter_atlas_scaffold/atlas_voice_core.dart';
 
 import '/app_state.dart';
 import '../atlas_backend/atlas_backend_client.dart';
+import 'dart:math' as math;
 
 class AtlasConsoleWidget extends StatefulWidget {
   const AtlasConsoleWidget({super.key});
@@ -25,6 +26,8 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   String _mode = 'mentor';
   late AtlasSkinId _skin;
   late DialVisualPrefs _visualPrefs;
+  final ScrollController _scrollController = ScrollController();
+  double _dynamicTiltUnit = 0.0;
 
   bool _loading = false;
   String? _error;
@@ -52,7 +55,19 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     );
 
     _skin = AtlasSkinIdX.fromId(FFAppState().skinId);
-    _visualPrefs = DialVisualPrefs.defaults;
+    _visualPrefs = DialVisualPrefsCodec.decodeOrDefaults(
+      FFAppState().dialVisualPrefsJson,
+    );
+
+    _scrollController.addListener(() {
+      if (!mounted) return;
+      if (_visualPrefs.panelTiltMode != PanelTiltMode.dynamic) return;
+      final o = _scrollController.offset;
+      final unit = (math.sin(o / 180.0) * 0.35).clamp(-0.5, 0.5).toDouble();
+      if ((unit - _dynamicTiltUnit).abs() > 0.01) {
+        setState(() => _dynamicTiltUnit = unit);
+      }
+    });
   }
 
   @override
@@ -61,6 +76,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _baseUrlController.dispose();
     _projectController.dispose();
     _inputController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -156,15 +172,60 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
 
   void _setBackgroundType(BackgroundType type) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(backgroundType: type));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
   }
 
   void _setFrameType(FrameType type) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(frameType: type));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
   }
 
   void _setDimOverlay(bool enabled) {
     setState(() => _visualPrefs =
         _visualPrefs.copyWith(councilDimOverlayEnabled: enabled));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setPanelTiltMode(PanelTiltMode mode) {
+    setState(() => _visualPrefs = _visualPrefs.copyWith(panelTiltMode: mode));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setPanelShadowMode(PanelDepthShadowMode mode) {
+    setState(
+      () => _visualPrefs = _visualPrefs.copyWith(panelDepthShadowMode: mode),
+    );
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setPanelMaterialMode(PanelMaterialMode mode) {
+    setState(
+      () => _visualPrefs = _visualPrefs.copyWith(panelMaterialMode: mode),
+    );
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setFrameOpacity(FrameOpacityMode mode) {
+    setState(() => _visualPrefs = _visualPrefs.copyWith(frameOpacityMode: mode));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setRingMaterial(RingMaterialMode mode) {
+    setState(() => _visualPrefs = _visualPrefs.copyWith(ringMaterialMode: mode));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setRingTransparency(double value) {
+    setState(() => _visualPrefs = _visualPrefs.copyWith(
+          ringTransparencyStrength: DialVisualMath.clampRingTransparency(value),
+        ));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setLabelAutoContrast(bool enabled) {
+    setState(() => _visualPrefs =
+        _visualPrefs.copyWith(labelContrastAutoAdjust: enabled));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
   }
 
   Future<void> _promptLanIp() async {
@@ -210,13 +271,12 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
           fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
         );
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outline),
-      ),
+    return DialPanel(
+      visualPrefs: _visualPrefs,
+      surfaceColor: scheme.surface,
+      borderColor: scheme.outline,
+      borderRadius: BorderRadius.circular(12),
+      dynamicTiltUnit: _dynamicTiltUnit,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -243,6 +303,28 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
       base: Theme.of(context),
     );
 
+    final ringMaterial = _visualPrefs.ringMaterialMode;
+    final ringOpacityBase = switch (ringMaterial) {
+      RingMaterialMode.solidMatte => 0.50,
+      RingMaterialMode.frostedGlass => 0.30,
+      RingMaterialMode.transparentGlass => 0.22,
+      RingMaterialMode.lineOnlyMinimal => skinTokens.ringOpacity,
+      RingMaterialMode.mixedInnerSolidOuterTransparent => 0.38,
+    };
+    final ringStrokeWidth = switch (ringMaterial) {
+      RingMaterialMode.solidMatte => 1.9,
+      RingMaterialMode.frostedGlass => 1.6,
+      RingMaterialMode.transparentGlass => 1.2,
+      RingMaterialMode.lineOnlyMinimal => skinTokens.ringStrokeWidth,
+      RingMaterialMode.mixedInnerSolidOuterTransparent => 1.5,
+    };
+    final ringOpacity = (ringOpacityBase *
+            (1.0 - DialVisualMath.clampRingTransparency(
+              _visualPrefs.ringTransparencyStrength,
+            )))
+        .clamp(0.05, 0.85)
+        .toDouble();
+
     final suggestionSummary =
         (_last?['ajani']?['summary'] ?? _last?['ajani']?['goal'] ?? '')
             .toString();
@@ -265,6 +347,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
           animation: _voiceCore,
           builder: (context, _) {
             return ListView(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
               children: [
             // Voice core visual layer (Unity placeholder for now).
@@ -280,8 +363,8 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                 timing: _voiceCore.timing,
                 visualPrefs: _visualPrefs,
                 ringColor: skinTokens.ringStroke,
-                ringOpacity: skinTokens.ringOpacity,
-                ringStrokeWidth: skinTokens.ringStrokeWidth,
+                ringOpacity: ringOpacity,
+                ringStrokeWidth: ringStrokeWidth,
                 backgroundColor: skinTokens.background,
                 microDetailColor: skinTokens.border,
                 frameColor: skinTokens.border,
@@ -409,6 +492,31 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'Frame opacity:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<FrameOpacityMode>(
+                        value: _visualPrefs.frameOpacityMode,
+                        items: FrameOpacityMode.values
+                            .map(
+                              (o) => DropdownMenuItem(
+                                value: o,
+                                child: Text(o.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setFrameOpacity(v);
+                        },
+                      ),
+                    ],
+                  ),
                   SwitchListTile(
                     value: _visualPrefs.councilDimOverlayEnabled,
                     onChanged: _setDimOverlay,
@@ -418,6 +526,115 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                     ),
                     subtitle: Text(
                       'Optional background dim (5–10%) during Council.',
+                      style: TextStyle(color: skinTokens.textSecondary),
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'Panel tilt:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<PanelTiltMode>(
+                        value: _visualPrefs.panelTiltMode,
+                        items: PanelTiltMode.values
+                            .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setPanelTiltMode(v);
+                        },
+                      ),
+                      const SizedBox(width: 18),
+                      Text(
+                        'Shadow:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<PanelDepthShadowMode>(
+                        value: _visualPrefs.panelDepthShadowMode,
+                        items: PanelDepthShadowMode.values
+                            .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setPanelShadowMode(v);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'Panel material:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<PanelMaterialMode>(
+                        value: _visualPrefs.panelMaterialMode,
+                        items: PanelMaterialMode.values
+                            .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setPanelMaterialMode(v);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'Ring material:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<RingMaterialMode>(
+                        value: _visualPrefs.ringMaterialMode,
+                        items: RingMaterialMode.values
+                            .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setRingMaterial(v);
+                        },
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Ring transparency:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      Expanded(
+                        child: Slider(
+                          value: _visualPrefs.ringTransparencyStrength,
+                          min: 0.0,
+                          max: 0.60,
+                          divisions: 12,
+                          label:
+                              '${(_visualPrefs.ringTransparencyStrength * 100).round()}%',
+                          onChanged: _setRingTransparency,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SwitchListTile(
+                    value: _visualPrefs.labelContrastAutoAdjust,
+                    onChanged: _setLabelAutoContrast,
+                    title: Text(
+                      'Label contrast auto-adjust',
+                      style: TextStyle(color: skinTokens.textPrimary),
+                    ),
+                    subtitle: Text(
+                      'Recommended ON',
                       style: TextStyle(color: skinTokens.textSecondary),
                     ),
                     dense: true,

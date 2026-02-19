@@ -239,5 +239,6 @@ Format:
   - optional frame plate under the dial
   - sigil/rings/core layer order aligned to the modular visual stack
   - council dim overlay can be toggled on/off
-- Risk: Medium (early implementation; dynamic tilt/gyro and per-ring materials are staged next).
+- Summary (panel system): Added panel tilt/shadow/material support and persisted modular visual prefs to app state.
+- Risk: Medium (early implementation; gyro and per-ring materials are staged next).
 - Rollback: Revert the commit(s) introducing `dial_visual_prefs.dart`, background/frame widgets, and console toggles.

@@ -20,6 +20,8 @@ class FFAppState extends ChangeNotifier {
       _aiMode = prefs.getString('ff_aiMode') ?? _aiMode;
       _atlasBaseUrl = prefs.getString('ff_atlasBaseUrl') ?? _atlasBaseUrl;
       _skinId = prefs.getString('ff_skinId') ?? _skinId;
+      _dialVisualPrefsJson =
+          prefs.getString('ff_dialVisualPrefsJson') ?? _dialVisualPrefsJson;
     });
   }
 
@@ -52,6 +54,14 @@ class FFAppState extends ChangeNotifier {
   set skinId(String value) {
     _skinId = value;
     prefs.setString('ff_skinId', value);
+  }
+
+  /// Persisted modular visual preferences as JSON.
+  String _dialVisualPrefsJson = '';
+  String get dialVisualPrefsJson => _dialVisualPrefsJson;
+  set dialVisualPrefsJson(String value) {
+    _dialVisualPrefsJson = value;
+    prefs.setString('ff_dialVisualPrefsJson', value);
   }
 
   /// True while AI is processing a response
