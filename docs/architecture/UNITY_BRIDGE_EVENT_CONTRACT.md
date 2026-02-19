@@ -128,6 +128,16 @@ Optional payload:
   - `source` (`hold` | `wake_word`)
   - `confidence`
 
+11. `v1.appearanceLabChanged`
+- Trigger: user enters/exits Appearance Lab (manual visual calibration mode)
+- Required payload:
+  - `active` (boolean)
+  - `dimPercent` (number; 5-8)
+  - `speakerId` (must be `hermes` while active)
+  - `disableRipple` (boolean; must be true while active)
+  - `disableCouncil` (boolean; must be true while active)
+  - `coreRotationProfile` (`normal` | `slow`) (slow must not be fully stopped)
+
 ## 5.2 Unity -> Flutter
 
 1. `v1.coreReady`

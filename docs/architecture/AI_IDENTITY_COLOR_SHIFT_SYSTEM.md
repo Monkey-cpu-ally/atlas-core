@@ -485,6 +485,37 @@ Council = stillness.
 
 Council mode should feel deeper, calmer, and more authoritative, not louder or more dramatic.
 The sigil is not decoration. It is presence.
+
+---
+
+## 14. Appearance Lab (Calibration Mode)
+
+Purpose:
+- manual visual customization mode
+- system-level calibration environment
+
+Activation:
+- user selects "Appearance Lab" from the Status/Utility ring
+
+Behavior (non-negotiable):
+1. background dims slightly (5–8%)
+2. core rotation slows but does **not** fully stop
+3. Hermes becomes active AI identity
+4. center rim shifts to soft Ivory accent
+5. ripple effects disabled
+6. council mode disabled
+7. minimal system tone plays (clean, short)
+
+Visual constraints:
+- no sigil
+- no spiritual halo
+- no particles
+- no dramatic glow
+
+Philosophy:
+- Council Mode = ritual
+- Appearance Lab = calibration
+- Hermes governs calibration
 It should feel like entering a chamber of higher deliberation: still, focused, intentional.
 Never flashy.
 Just deeper.

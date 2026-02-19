@@ -242,3 +242,14 @@ Format:
 - Summary (panel system): Added panel tilt/shadow/material support and persisted modular visual prefs to app state.
 - Risk: Medium (early implementation; gyro and per-ring materials are staged next).
 - Rollback: Revert the commit(s) introducing `dial_visual_prefs.dart`, background/frame widgets, and console toggles.
+
+### Area: Appearance Lab (Calibration Mode)
+- Summary: Implemented "Appearance Lab" manual calibration mode per final behavior spec:
+  - Hermes governs calibration (Ivory core rim accent while active)
+  - background dims subtly (5–8%) and fades out on exit (~400ms)
+  - council mode disabled while Appearance Lab is active (guarded in `VoiceCoreController`)
+  - live controls for panel tilt degrees, frame type/opacity, ring material + transparency + line weight, background type
+  - no save button; changes persist immediately; exit auto-saves; reset restores skin-provided defaults
+- Summary (scaffold): Added skin-level visual defaults (`AtlasSkins.visualDefaults`) used by reset-to-default behavior.
+- Risk: Medium (UI layout changes; new persisted pref fields may require one-time migration for old JSON values).
+- Rollback: Revert the commit(s) introducing Appearance Lab + the new dial visual preference fields.

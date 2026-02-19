@@ -67,6 +67,11 @@ Persistence rule:
   - council activation
 - skin remains active until manually changed
 
+Reset-to-default rule (Appearance Lab):
+- "Reset to Default" restores the **skin-provided baseline visual defaults**
+  (panel/frame/ring/background defaults for that skin).
+- It does not override system safety rules, identity rules, or mode semantics.
+
 ---
 
 ## 4. Token Families

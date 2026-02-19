@@ -70,6 +70,7 @@ Status/Utility ring provides meta controls that do not alter command semantics.
 
 Required segments:
 - Skins
+- Appearance Lab
 
 Skin selection rule (free selection model):
 - user may select a skin at any time from the "Skins" segment
@@ -85,6 +86,13 @@ Skin apply behavior:
   - council activation
 
 Skin changes must not reset ring selections or current mode/domain/module.
+
+Appearance Lab rule:
+- selecting "Appearance Lab" enters a **manual calibration environment** for visual preferences (panel/frame/ring/background).
+- Hermes governs calibration (technical, precise) and becomes the active AI identity for the core accent while in this mode.
+- council mode is disabled while Appearance Lab is active.
+- exit automatically saves the current visual configuration (no explicit save button).
+- "Reset to Default" restores **skin-provided** baseline visual defaults (not hardcoded global defaults).
 
 ---
 

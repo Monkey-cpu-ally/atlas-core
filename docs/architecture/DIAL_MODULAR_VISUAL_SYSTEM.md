@@ -74,7 +74,9 @@ Rules:
 
 ## 4. Ring Material System
 
-Each ring can be configured independently.
+Phase note:
+- v1.0 may ship with a single ring material configuration applied to all rings.
+- v1.1+ expands to per-ring materials (inner/middle/outer/status independently).
 
 Material:
 - `SOLID_MATTE`
@@ -85,6 +87,9 @@ Material:
 
 Transparency strength:
 - 0% – 60%
+
+Line weight:
+- multiplicative stroke weight `0.6–2.2` (used for fine calibration without changing ring geometry)
 
 Label contrast auto-adjust:
 - `ON` (recommended)
@@ -162,6 +167,11 @@ This includes:
 - frame settings
 - ring material settings
 - background settings
+
+Appearance Lab (manual calibration):
+- the system provides an "Appearance Lab" environment for live tuning of the preferences above.
+- changes apply in real-time and persist automatically on exit (no save button).
+- "Reset to Default" restores skin-level baseline defaults.
 
 ---
 
