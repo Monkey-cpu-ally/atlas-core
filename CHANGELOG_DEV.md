@@ -189,3 +189,11 @@ Format:
 - Summary: Re-imported the latest FlutterFlow export after it pushed the missing Dart sources (`lib/` and `lib/main.dart`) and restored the monorepo sync notes file.
 - Risk: Medium (large import delta; requires Flutter tooling locally to validate build).
 - Rollback: Revert the commit that updates `frontend/flutterflow_app/` with the new export.
+
+### Area: FlutterFlow App (Backend + Council Demo Wiring)
+- Summary: Added a minimal “Atlas Console” screen inside the FlutterFlow app mirror:
+  - calls FastAPI `POST /route` and displays Ajani/Minerva/Hermes summaries
+  - embeds the `flutter_atlas_scaffold` voice core layer with a council/sigil visual demo (placeholder core for now)
+  - adds a simple Home -> Atlas navigation button
+- Risk: Medium (FlutterFlow exports may overwrite page files; treat as a starting integration).
+- Rollback: Revert the commit adding the console widget and route wiring.

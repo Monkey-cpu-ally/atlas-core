@@ -1,5 +1,6 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/custom_code/atlas_console/atlas_console_widget.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -77,17 +78,7 @@ class _AtlasWidgetState extends State<AtlasWidget> {
         ),
         body: SafeArea(
           top: true,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Stack(
-                children: [],
-              ),
-              Stack(
-                children: [],
-              ),
-            ],
-          ),
+          child: const AtlasConsoleWidget(),
         ),
       ),
     );
