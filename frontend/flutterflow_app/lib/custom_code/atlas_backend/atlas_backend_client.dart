@@ -25,6 +25,48 @@ class AtlasBackendClient {
 
   final http.Client? _httpClient;
 
+  /// Calls:
+  /// - GET /health  -> {"ok": true, "version": "..."}
+  Future<Map<String, dynamic>> health({
+    required String baseUrl,
+  }) async {
+    final uri = Uri.parse('${_normalizeBaseUrl(baseUrl)}/health');
+    final client = _httpClient ?? http.Client();
+    try {
+      final res = await client.get(
+        uri,
+        headers: const {
+          'Accept': 'application/json',
+        },
+      );
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        throw AtlasBackendException(
+          message: 'Atlas /health failed',
+          statusCode: res.statusCode,
+          responseBody: res.body,
+        );
+      }
+
+      final decoded = jsonDecode(res.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw AtlasBackendException(
+          message: 'Unexpected response type from /health',
+          statusCode: res.statusCode,
+          responseBody: res.body,
+        );
+      }
+      return decoded;
+    } on FormatException catch (e) {
+      throw AtlasBackendException(
+        message: 'Invalid JSON from backend: $e',
+      );
+    } finally {
+      if (_httpClient == null) {
+        client.close();
+      }
+    }
+  }
+
   /// Calls FastAPI public route alias:
   /// - POST /route  (AtlasOrchestrateRequest -> AtlasOrchestrateResponse)
   Future<Map<String, dynamic>> orchestrate({

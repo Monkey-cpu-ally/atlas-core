@@ -18,6 +18,7 @@ class FFAppState extends ChangeNotifier {
     prefs = await SharedPreferences.getInstance();
     _safeInit(() {
       _aiMode = prefs.getString('ff_aiMode') ?? _aiMode;
+      _atlasBaseUrl = prefs.getString('ff_atlasBaseUrl') ?? _atlasBaseUrl;
     });
   }
 
@@ -34,6 +35,14 @@ class FFAppState extends ChangeNotifier {
   set aiMode(String value) {
     _aiMode = value;
     prefs.setString('ff_aiMode', value);
+  }
+
+  /// Persisted backend base URL (dev and local LAN setups).
+  String _atlasBaseUrl = '';
+  String get atlasBaseUrl => _atlasBaseUrl;
+  set atlasBaseUrl(String value) {
+    _atlasBaseUrl = value;
+    prefs.setString('ff_atlasBaseUrl', value);
   }
 
   /// True while AI is processing a response

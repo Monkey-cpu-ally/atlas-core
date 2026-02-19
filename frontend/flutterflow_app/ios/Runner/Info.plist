@@ -47,6 +47,8 @@
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
+		<key>NSAllowsArbitraryLoadsInLocalNetworking</key>
+		<true/>
 	</dict>
 
 	<!-- Needed when connecting to a LAN IP (iOS 14+) -->

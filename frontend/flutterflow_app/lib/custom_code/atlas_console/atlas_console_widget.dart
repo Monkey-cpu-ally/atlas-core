@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_atlas_scaffold/atlas_voice_core.dart';
 
+import '/app_state.dart';
 import '../atlas_backend/atlas_backend_client.dart';
 
 class AtlasConsoleWidget extends StatefulWidget {
@@ -27,6 +28,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   String? _error;
   Map<String, dynamic>? _last;
 
+  bool _healthLoading = false;
+  Map<String, dynamic>? _health;
+  String? _healthError;
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +44,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
         : (defaultTargetPlatform == TargetPlatform.android
             ? 'http://10.0.2.2:8000'
             : 'http://127.0.0.1:8000');
-    _baseUrlController = TextEditingController(text: defaultBaseUrl);
+    final saved = FFAppState().atlasBaseUrl.trim();
+    _baseUrlController = TextEditingController(
+      text: saved.isNotEmpty ? saved : defaultBaseUrl,
+    );
   }
 
   @override
@@ -94,6 +102,79 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
         });
       }
     }
+  }
+
+  Future<void> _checkHealth() async {
+    final baseUrl = _baseUrlController.text.trim();
+    if (baseUrl.isEmpty) {
+      setState(() {
+        _healthError = 'Base URL is required.';
+      });
+      return;
+    }
+    setState(() {
+      _healthLoading = true;
+      _healthError = null;
+      _health = null;
+    });
+    try {
+      final res = await _client.health(baseUrl: baseUrl);
+      setState(() {
+        _health = res;
+      });
+    } on AtlasBackendException catch (e) {
+      setState(() {
+        _healthError =
+            '${e.message}\nHTTP: ${e.statusCode}\n${e.responseBody ?? ''}';
+      });
+    } catch (e) {
+      setState(() {
+        _healthError = 'Unexpected error: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _healthLoading = false);
+      }
+    }
+  }
+
+  void _setBaseUrl(String url) {
+    _baseUrlController.text = url;
+    FFAppState().atlasBaseUrl = url;
+    setState(() {});
+  }
+
+  Future<void> _promptLanIp() async {
+    final ipController = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Computer LAN IP'),
+          content: TextField(
+            controller: ipController,
+            decoration: const InputDecoration(
+              hintText: 'Example: 192.168.1.20',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(ipController.text),
+              child: const Text('Set'),
+            ),
+          ],
+        );
+      },
+    );
+
+    final ip = (value ?? '').trim();
+    if (ip.isEmpty) return;
+    _setBaseUrl('http://$ip:8000');
   }
 
   Widget _panel({
@@ -160,11 +241,64 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                 children: [
                   TextField(
                     controller: _baseUrlController,
+                    onChanged: (v) => FFAppState().atlasBaseUrl = v,
                     decoration: const InputDecoration(
                       labelText: 'Atlas Base URL',
                       hintText:
                           'Android emulator: http://10.0.2.2:8000  •  iOS simulator: http://127.0.0.1:8000  •  Physical device: http://<YOUR_LAN_IP>:8000',
                       border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => _setBaseUrl('http://10.0.2.2:8000'),
+                        child: const Text('Android Emulator'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => _setBaseUrl('http://127.0.0.1:8000'),
+                        child: const Text('iOS Simulator'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => _setBaseUrl('http://127.0.0.1:8000'),
+                        child: const Text('Android (adb reverse)'),
+                      ),
+                      OutlinedButton(
+                        onPressed: _promptLanIp,
+                        child: const Text('Physical device (LAN IP)'),
+                      ),
+                      OutlinedButton(
+                        onPressed: _healthLoading ? null : _checkHealth,
+                        child: Text(_healthLoading ? 'Checking…' : 'Check /health'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (_health != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Backend ok: ${_health?['ok']}  •  version: ${_health?['version'] ?? '(unknown)'}',
+                        style: const TextStyle(color: Color(0xFFB8F5C2)),
+                      ),
+                    ),
+                  if (_healthError != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _healthError!,
+                        style: const TextStyle(color: Color(0xFFFFB4B4)),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Tip (Samsung Z Fold over USB): run `adb reverse tcp:8000 tcp:8000` then use http://127.0.0.1:8000',
+                      style: TextStyle(color: Color(0xFFB8B8C8), fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 10),
