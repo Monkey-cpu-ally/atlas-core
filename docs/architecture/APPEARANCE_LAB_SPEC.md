@@ -3,7 +3,7 @@
 ## Document Control
 - Program: Unified Builder Polymath Platform
 - Surface: Dial HUD + 3D Core + Panels
-- Version: v1.0 (Final)
+- Version: v1.1 (Final)
 - Last Updated: 2026-02-19
 - Owner: Visual Systems Architecture
 
@@ -89,6 +89,25 @@ Panels:
 - No save button required.
 - Exit automatically saves configuration.
 - "Reset to Default" restores **base skin values** (skin-provided visual defaults).
+
+### 5.1 Interaction Refinement (Silent + Smooth)
+
+Appearance Lab is a precision chamber.
+
+Slider behavior:
+- no haptic ticks while dragging
+- no sound effects while adjusting
+- motion is fluid and continuous (no snapping while dragging)
+- changes update in real-time
+
+Easing:
+- smooth visual interpolation with a 200–300 ms blend
+- no animation spikes on drag or release
+
+Value confirmation (on release):
+- no vibration
+- no click sound
+- only subtle visual stabilization; the UI remains calm
 
 ---
 

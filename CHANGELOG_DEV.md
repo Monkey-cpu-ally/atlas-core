@@ -254,6 +254,10 @@ Format:
   - exit button is top-minimal on narrow and wide layouts
   - exit sequence dissolves controls + fades dim overlay without fading the full dial
   - core rim color animates (Ivory -> neutral) on exit
+- Summary (interaction refinement): Appearance Lab sliders are silent and continuous:
+  - removed discrete divisions/labels to avoid snapping
+  - no haptic or sound feedback during drag or on release
+  - 200–300 ms visual blend for dial response to slider adjustments
 - Summary (scaffold): Added skin-level visual defaults (`AtlasSkins.visualDefaults`) used by reset-to-default behavior.
 - Risk: Medium (UI layout changes; new persisted pref fields may require one-time migration for old JSON values).
 - Rollback: Revert the commit(s) introducing Appearance Lab + the new dial visual preference fields.
