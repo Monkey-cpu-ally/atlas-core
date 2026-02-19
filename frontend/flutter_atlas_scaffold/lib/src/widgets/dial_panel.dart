@@ -31,7 +31,13 @@ class DialPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final tiltMode = visualPrefs.panelTiltMode;
 
-    final baseTiltDeg = DialVisualMath.tiltDegrees(tiltMode);
+    final baseTiltDeg = tiltMode == PanelTiltMode.off
+        ? 0.0
+        : DialVisualMath.clampTiltDegrees(
+            visualPrefs.panelTiltDegrees == 0.0
+                ? DialVisualMath.tiltDegrees(tiltMode)
+                : visualPrefs.panelTiltDegrees,
+          );
     final dynamicDeg = tiltMode == PanelTiltMode.dynamic
         ? (dynamicTiltUnit.clamp(-1.0, 1.0) * 4.0)
         : 0.0;

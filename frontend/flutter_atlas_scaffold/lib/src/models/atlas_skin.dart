@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'dial_visual_prefs.dart';
+
 /// Free-selection skin system (Mode != Skin).
 ///
 /// - Mode = function
@@ -117,6 +119,68 @@ class AtlasSkins {
           ringStroke: Color(0xFF7A8796),
           ringOpacity: 0.34,
           ringStrokeWidth: 1.25,
+        ),
+    };
+  }
+
+  static DialVisualPrefs visualDefaults(AtlasSkinId skin) {
+    // These are skin-level defaults only. Users can override in Appearance Lab.
+    return switch (skin) {
+      AtlasSkinId.lumenCore => const DialVisualPrefs(
+          panelTiltMode: PanelTiltMode.off,
+          panelTiltDegrees: 6.0,
+          panelDepthShadowMode: PanelDepthShadowMode.softShadow,
+          panelMaterialMode: PanelMaterialMode.matte,
+          frameType: FrameType.none,
+          frameOpacityMode: FrameOpacityMode.semiTransparent,
+          ringMaterialMode: RingMaterialMode.lineOnlyMinimal,
+          ringTransparencyStrength: 0.20,
+          ringLineWeight: 1.0,
+          labelContrastAutoAdjust: true,
+          backgroundType: BackgroundType.matteMinimal,
+          councilDimOverlayEnabled: true,
+        ),
+      AtlasSkinId.archiveGrid => const DialVisualPrefs(
+          panelTiltMode: PanelTiltMode.subtle,
+          panelTiltDegrees: 7.0,
+          panelDepthShadowMode: PanelDepthShadowMode.elevatedPlateShadow,
+          panelMaterialMode: PanelMaterialMode.brushedMetal,
+          frameType: FrameType.hexagonalPlate,
+          frameOpacityMode: FrameOpacityMode.semiTransparent,
+          ringMaterialMode: RingMaterialMode.solidMatte,
+          ringTransparencyStrength: 0.12,
+          ringLineWeight: 1.25,
+          labelContrastAutoAdjust: true,
+          backgroundType: BackgroundType.gradient,
+          councilDimOverlayEnabled: true,
+        ),
+      AtlasSkinId.circuitVeil => const DialVisualPrefs(
+          panelTiltMode: PanelTiltMode.off,
+          panelTiltDegrees: 6.0,
+          panelDepthShadowMode: PanelDepthShadowMode.softShadow,
+          panelMaterialMode: PanelMaterialMode.glass,
+          frameType: FrameType.circularPlate,
+          frameOpacityMode: FrameOpacityMode.outlineOnly,
+          ringMaterialMode: RingMaterialMode.transparentGlass,
+          ringTransparencyStrength: 0.42,
+          ringLineWeight: 0.95,
+          labelContrastAutoAdjust: true,
+          backgroundType: BackgroundType.solidColor,
+          councilDimOverlayEnabled: true,
+        ),
+      AtlasSkinId.moduleArray => const DialVisualPrefs(
+          panelTiltMode: PanelTiltMode.subtle,
+          panelTiltDegrees: 6.0,
+          panelDepthShadowMode: PanelDepthShadowMode.softShadow,
+          panelMaterialMode: PanelMaterialMode.matte,
+          frameType: FrameType.angularTechFrame,
+          frameOpacityMode: FrameOpacityMode.semiTransparent,
+          ringMaterialMode: RingMaterialMode.mixedInnerSolidOuterTransparent,
+          ringTransparencyStrength: 0.26,
+          ringLineWeight: 1.15,
+          labelContrastAutoAdjust: true,
+          backgroundType: BackgroundType.deepCosmicSpace,
+          councilDimOverlayEnabled: true,
         ),
     };
   }

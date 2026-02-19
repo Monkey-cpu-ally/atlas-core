@@ -30,9 +30,11 @@ class VoiceCoreController extends ChangeNotifier {
   VoiceCoreVisualState _state;
   var _timelineToken = 0;
   var _nextSpeakerIndex = 0;
+  var _appearanceLabActive = false;
 
   VoiceCoreTiming get timing => _timing;
   VoiceCoreVisualState get state => _state;
+  bool get isAppearanceLabActive => _appearanceLabActive;
 
   Future<void> enterCouncilActive({
     double backgroundDimPercent = 8,
@@ -40,6 +42,9 @@ class VoiceCoreController extends ChangeNotifier {
     double sigilOpacityPercent = 12,
     double? sigilRotationPeriodSec,
   }) async {
+    if (_appearanceLabActive) {
+      return;
+    }
     final boundedDim = _clampBackgroundDim(backgroundDimPercent);
     final boundedOpacity = _clampSigilOpacity(sigilOpacityPercent);
     final boundedRotationPeriod = sigilRotationMode == SigilRotationMode.ultraSlow
@@ -82,6 +87,9 @@ class VoiceCoreController extends ChangeNotifier {
   }
 
   bool setCouncilSpeaker(IdentitySpeaker speaker) {
+    if (_appearanceLabActive) {
+      return false;
+    }
     if (!_canMoveToSpeaker(speaker)) {
       return false;
     }
@@ -112,6 +120,9 @@ class VoiceCoreController extends ChangeNotifier {
   }
 
   bool setCouncilPause() {
+    if (_appearanceLabActive) {
+      return false;
+    }
     final isPauseAllowed = _state.currentState == VoiceCoreUiState.speakingAjani ||
         _state.currentState == VoiceCoreUiState.speakingMinerva;
     if (!isPauseAllowed) {
@@ -131,6 +142,9 @@ class VoiceCoreController extends ChangeNotifier {
   }
 
   Future<bool> completeCouncil() async {
+    if (_appearanceLabActive) {
+      return false;
+    }
     if (_state.currentState != VoiceCoreUiState.speakingHermes ||
         _nextSpeakerIndex != councilSpeakerOrder.length) {
       return false;
@@ -174,6 +188,9 @@ class VoiceCoreController extends ChangeNotifier {
     double? sigilOpacityPercent,
     double? sigilRotationPeriodSec,
   }) {
+    if (_appearanceLabActive) {
+      return;
+    }
     _advanceTimeline();
     final speaker = _speakerForPhase(phase);
     final boundedDim = _clampBackgroundDim(backgroundDimPercent);
@@ -210,6 +227,43 @@ class VoiceCoreController extends ChangeNotifier {
 
   void resetIdle() {
     _advanceTimeline();
+    _appearanceLabActive = false;
+    _nextSpeakerIndex = 0;
+    _state = const VoiceCoreVisualState.idle();
+    notifyListeners();
+  }
+
+  /// Appearance Lab ("calibration") visual state:
+  /// - Hermes active accent (Ivory)
+  /// - Background dim (5-8%)
+  /// - No council/sigil
+  /// - Core rotation should slow but not fully stop (handled by renderer)
+  void enterAppearanceLab({
+    double backgroundDimPercent = 6,
+  }) {
+    final boundedDim = backgroundDimPercent.clamp(5, 8).toDouble();
+    _advanceTimeline();
+    _appearanceLabActive = true;
+    _nextSpeakerIndex = 0;
+
+    _state = _state.copyWith(
+      voiceMode: VoiceMode.single,
+      clearCoreOverlayColor: true,
+      currentSpeaker: IdentitySpeaker.hermes,
+      currentState: VoiceCoreUiState.idle,
+      councilPhase: CouncilPhase.idle,
+      accentColor: hermesAccent,
+      backgroundDimPercent: boundedDim,
+      coreScale: 1.0,
+      coreRotationState: CoreRotationState.rotating,
+      councilSigil: const CouncilSigilState.hidden(),
+    );
+    notifyListeners();
+  }
+
+  void exitAppearanceLab() {
+    _advanceTimeline();
+    _appearanceLabActive = false;
     _nextSpeakerIndex = 0;
     _state = const VoiceCoreVisualState.idle();
     notifyListeners();

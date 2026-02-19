@@ -146,4 +146,14 @@ void main() {
     expect(controller.state.currentState, VoiceCoreUiState.idle);
     expect(controller.state.councilSigil.visible, isFalse);
   });
+
+  test('appearance lab disables council activation', () async {
+    final controller = VoiceCoreController(
+      delayFn: (_) async {},
+    );
+    controller.enterAppearanceLab();
+    await controller.enterCouncilActive();
+    expect(controller.state.councilSigil.visible, isFalse);
+    expect(controller.isAppearanceLabActive, isTrue);
+  });
 }

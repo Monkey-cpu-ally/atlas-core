@@ -39,12 +39,14 @@ enum BackgroundType {
 class DialVisualPrefs {
   const DialVisualPrefs({
     this.panelTiltMode = PanelTiltMode.off,
+    this.panelTiltDegrees = 6.0,
     this.panelDepthShadowMode = PanelDepthShadowMode.softShadow,
     this.panelMaterialMode = PanelMaterialMode.matte,
     this.frameType = FrameType.none,
     this.frameOpacityMode = FrameOpacityMode.semiTransparent,
     this.ringMaterialMode = RingMaterialMode.lineOnlyMinimal,
     this.ringTransparencyStrength = 0.20,
+    this.ringLineWeight = 1.0,
     this.labelContrastAutoAdjust = true,
     this.backgroundType = BackgroundType.solidColor,
     this.councilDimOverlayEnabled = true,
@@ -53,6 +55,9 @@ class DialVisualPrefs {
   static const DialVisualPrefs defaults = DialVisualPrefs();
 
   final PanelTiltMode panelTiltMode;
+  /// Preferred tilt amount for non-off panel tilt modes.
+  /// Used by Appearance Lab panel tilt slider. Clamped to 0–15 degrees.
+  final double panelTiltDegrees;
   final PanelDepthShadowMode panelDepthShadowMode;
   final PanelMaterialMode panelMaterialMode;
 
@@ -62,6 +67,8 @@ class DialVisualPrefs {
   final RingMaterialMode ringMaterialMode;
   /// 0.0 – 0.60 per spec.
   final double ringTransparencyStrength;
+  /// Multiplicative ring line weight (stroke width).
+  final double ringLineWeight;
   final bool labelContrastAutoAdjust;
 
   final BackgroundType backgroundType;
@@ -69,18 +76,21 @@ class DialVisualPrefs {
 
   DialVisualPrefs copyWith({
     PanelTiltMode? panelTiltMode,
+    double? panelTiltDegrees,
     PanelDepthShadowMode? panelDepthShadowMode,
     PanelMaterialMode? panelMaterialMode,
     FrameType? frameType,
     FrameOpacityMode? frameOpacityMode,
     RingMaterialMode? ringMaterialMode,
     double? ringTransparencyStrength,
+    double? ringLineWeight,
     bool? labelContrastAutoAdjust,
     BackgroundType? backgroundType,
     bool? councilDimOverlayEnabled,
   }) {
     return DialVisualPrefs(
       panelTiltMode: panelTiltMode ?? this.panelTiltMode,
+      panelTiltDegrees: panelTiltDegrees ?? this.panelTiltDegrees,
       panelDepthShadowMode: panelDepthShadowMode ?? this.panelDepthShadowMode,
       panelMaterialMode: panelMaterialMode ?? this.panelMaterialMode,
       frameType: frameType ?? this.frameType,
@@ -88,6 +98,7 @@ class DialVisualPrefs {
       ringMaterialMode: ringMaterialMode ?? this.ringMaterialMode,
       ringTransparencyStrength:
           ringTransparencyStrength ?? this.ringTransparencyStrength,
+      ringLineWeight: ringLineWeight ?? this.ringLineWeight,
       labelContrastAutoAdjust:
           labelContrastAutoAdjust ?? this.labelContrastAutoAdjust,
       backgroundType: backgroundType ?? this.backgroundType,
@@ -99,12 +110,14 @@ class DialVisualPrefs {
   Map<String, Object?> toMap() {
     return <String, Object?>{
       'panelTiltMode': panelTiltMode.name,
+      'panelTiltDegrees': panelTiltDegrees,
       'panelDepthShadowMode': panelDepthShadowMode.name,
       'panelMaterialMode': panelMaterialMode.name,
       'frameType': frameType.name,
       'frameOpacityMode': frameOpacityMode.name,
       'ringMaterialMode': ringMaterialMode.name,
       'ringTransparencyStrength': ringTransparencyStrength,
+      'ringLineWeight': ringLineWeight,
       'labelContrastAutoAdjust': labelContrastAutoAdjust,
       'backgroundType': backgroundType.name,
       'councilDimOverlayEnabled': councilDimOverlayEnabled,
@@ -125,8 +138,18 @@ class DialVisualPrefs {
     }
 
     final ringTransparency = map['ringTransparencyStrength'];
-    final ringTransparencyValue =
-        (ringTransparency is num) ? ringTransparency.toDouble() : defaults.ringTransparencyStrength;
+    final ringTransparencyValue = (ringTransparency is num)
+        ? ringTransparency.toDouble()
+        : defaults.ringTransparencyStrength;
+
+    final tiltDegreesRaw = map['panelTiltDegrees'];
+    final tiltDegreesValue =
+        (tiltDegreesRaw is num) ? tiltDegreesRaw.toDouble() : defaults.panelTiltDegrees;
+
+    final ringLineWeightRaw = map['ringLineWeight'];
+    final ringLineWeightValue = (ringLineWeightRaw is num)
+        ? ringLineWeightRaw.toDouble()
+        : defaults.ringLineWeight;
 
     return DialVisualPrefs(
       panelTiltMode: _enum(
@@ -134,6 +157,7 @@ class DialVisualPrefs {
         map['panelTiltMode'],
         defaults.panelTiltMode,
       ),
+      panelTiltDegrees: DialVisualMath.clampTiltDegrees(tiltDegreesValue),
       panelDepthShadowMode: _enum(
         PanelDepthShadowMode.values,
         map['panelDepthShadowMode'],
@@ -161,6 +185,7 @@ class DialVisualPrefs {
       ),
       ringTransparencyStrength:
           DialVisualMath.clampRingTransparency(ringTransparencyValue),
+      ringLineWeight: DialVisualMath.clampRingLineWeight(ringLineWeightValue),
       labelContrastAutoAdjust: map['labelContrastAutoAdjust'] is bool
           ? (map['labelContrastAutoAdjust'] as bool)
           : defaults.labelContrastAutoAdjust,
@@ -181,6 +206,14 @@ class DialVisualMath {
 
   static double clampRingTransparency(double value) {
     return value.clamp(0.0, 0.60).toDouble();
+  }
+
+  static double clampTiltDegrees(double value) {
+    return value.clamp(0.0, 15.0).toDouble();
+  }
+
+  static double clampRingLineWeight(double value) {
+    return value.clamp(0.6, 2.2).toDouble();
   }
 
   static double tiltDegrees(PanelTiltMode mode) {
