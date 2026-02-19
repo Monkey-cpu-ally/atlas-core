@@ -1,5 +1,7 @@
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_atlas_scaffold/atlas_voice_core.dart';
 
@@ -28,6 +30,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   late DialVisualPrefs _visualPrefs;
   final ScrollController _scrollController = ScrollController();
   double _dynamicTiltUnit = 0.0;
+  bool _appearanceLabActive = false;
+  bool _appearanceLabExiting = false;
+  bool _accentPreviewEnabled = false;
+  String _accentPreviewId = 'hermes';
 
   bool _loading = false;
   String? _error;
@@ -78,6 +84,409 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _enterAppearanceLab() async {
+    setState(() {
+      _appearanceLabActive = true;
+      _appearanceLabExiting = false;
+      _accentPreviewEnabled = false;
+      _accentPreviewId = 'hermes';
+    });
+    _voiceCore.enterAppearanceLab(backgroundDimPercent: 6);
+    // Minimal calibration tone + subtle confirmation.
+    HapticFeedback.selectionClick();
+    // ignore: deprecated_member_use
+    SystemSound.play(SystemSoundType.click);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Appearance calibration mode active.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _exitAppearanceLab() async {
+    setState(() => _appearanceLabExiting = true);
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+    _voiceCore.exitAppearanceLab();
+    setState(() {
+      _appearanceLabActive = false;
+      _appearanceLabExiting = false;
+    });
+  }
+
+  void _resetToSkinDefaults() {
+    final defaults = AtlasSkins.visualDefaults(_skin);
+    setState(() => _visualPrefs = defaults);
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  Widget _buildAppearanceLab(
+    BuildContext context,
+    AtlasSkinTokens skinTokens,
+    double ringOpacity,
+    double ringStrokeWidth,
+  ) {
+    // Appearance Lab rules:
+    // - controlled environment
+    // - no council (disabled by controller)
+    // - Hermes ivory accent
+    // - no sigil / halo / particles (not rendered here)
+    final scheme = Theme.of(context).colorScheme;
+
+    final previewOn = _accentPreviewEnabled;
+    final previewId = _accentPreviewId;
+    final previewRim = switch (previewId) {
+      'ajani' => VoiceCoreController.ajaniAccent,
+      'minerva' => VoiceCoreController.minervaAccent,
+      'hermes' => VoiceCoreController.hermesAccent,
+      'council' => VoiceCoreController.ghostPurpleAccent,
+      _ => VoiceCoreController.hermesAccent,
+    };
+    final rimColor = _appearanceLabExiting
+        ? VoiceCoreController.neutralAccent
+        : (previewOn ? previewRim : VoiceCoreController.hermesAccent);
+
+    final dialSize = 340.0;
+    final coreRotationPeriod = _appearanceLabExiting
+        ? const Duration(seconds: 12)
+        : const Duration(seconds: 45); // slow, not stopped
+
+    final fade = _appearanceLabExiting ? 0.0 : 1.0;
+
+    Widget panel(String title, Widget child) {
+      return SizedBox(
+        width: 280,
+        child: DialPanel(
+          visualPrefs: _visualPrefs,
+          surfaceColor: scheme.surface.withOpacity(0.92),
+          borderColor: scheme.outline,
+          borderRadius: BorderRadius.circular(12),
+          dynamicTiltUnit: 0.0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              child,
+            ],
+          ),
+        ),
+      );
+    }
+
+    return AnimatedOpacity(
+      opacity: fade,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: skinTokens.background),
+          // Background dim (5-8%).
+          AnimatedOpacity(
+            opacity: _appearanceLabExiting ? 0.0 : 0.07,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+            child: const ColoredBox(color: Colors.black),
+          ),
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 980;
+                final dial = SizedBox(
+                  width: dialSize,
+                  height: dialSize,
+                  child: VoiceCoreLayer(
+                    state: _voiceCore.state,
+                    // Do not rely on the council dim toggle in Appearance Lab.
+                    visualPrefs:
+                        _visualPrefs.copyWith(councilDimOverlayEnabled: false),
+                    timing: _voiceCore.timing,
+                    ringColor: skinTokens.ringStroke,
+                    ringOpacity: ringOpacity,
+                    ringStrokeWidth: ringStrokeWidth,
+                    backgroundColor: skinTokens.background,
+                    microDetailColor: skinTokens.border,
+                    frameColor: skinTokens.border,
+                    coreWidget: _PlaceholderCore(
+                      surface: skinTokens.surface,
+                      border: skinTokens.border,
+                      text: skinTokens.textSecondary,
+                      rim: rimColor,
+                      rotationPeriod: coreRotationPeriod,
+                    ),
+                  ),
+                );
+
+                final left = panel(
+                  'Left',
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Panel tilt (degrees)',
+                        style:
+                            TextStyle(color: skinTokens.textSecondary, fontSize: 12),
+                      ),
+                      Slider(
+                        value: _visualPrefs.panelTiltDegrees,
+                        min: 0,
+                        max: 15,
+                        divisions: 15,
+                        label: '${_visualPrefs.panelTiltDegrees.toStringAsFixed(0)}°',
+                        onChanged: _setPanelTiltDegrees,
+                      ),
+                      Row(
+                        children: [
+                          const SizedBox(width: 6),
+                          Text(
+                            'Mode:',
+                            style: TextStyle(color: skinTokens.textSecondary),
+                          ),
+                          const SizedBox(width: 10),
+                          DropdownButton<PanelTiltMode>(
+                            value: _visualPrefs.panelTiltMode,
+                            items: PanelTiltMode.values
+                                .map((m) => DropdownMenuItem(
+                                      value: m,
+                                      child: Text(m.name),
+                                    ))
+                                .toList(),
+                            onChanged: (v) {
+                              if (v == null) return;
+                              _setPanelTiltMode(v);
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButton<FrameType>(
+                              value: _visualPrefs.frameType,
+                              isExpanded: true,
+                              items: FrameType.values
+                                  .map((f) => DropdownMenuItem(
+                                        value: f,
+                                        child: Text(f.name),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                _setFrameType(v);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButton<FrameOpacityMode>(
+                        value: _visualPrefs.frameOpacityMode,
+                        items: FrameOpacityMode.values
+                            .map((o) => DropdownMenuItem(
+                                  value: o,
+                                  child: Text(o.name),
+                                ))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setFrameOpacity(v);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+
+                final right = panel(
+                  'Right',
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButton<RingMaterialMode>(
+                        value: _visualPrefs.ringMaterialMode,
+                        isExpanded: true,
+                        items: RingMaterialMode.values
+                            .map((m) => DropdownMenuItem(
+                                  value: m,
+                                  child: Text(m.name),
+                                ))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setRingMaterial(v);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Transparency (0–60%)',
+                        style:
+                            TextStyle(color: skinTokens.textSecondary, fontSize: 12),
+                      ),
+                      Slider(
+                        value: _visualPrefs.ringTransparencyStrength,
+                        min: 0.0,
+                        max: 0.60,
+                        divisions: 12,
+                        label:
+                            '${(_visualPrefs.ringTransparencyStrength * 100).round()}%',
+                        onChanged: _setRingTransparency,
+                      ),
+                      Text(
+                        'Line weight',
+                        style:
+                            TextStyle(color: skinTokens.textSecondary, fontSize: 12),
+                      ),
+                      Slider(
+                        value: _visualPrefs.ringLineWeight,
+                        min: 0.6,
+                        max: 2.2,
+                        divisions: 16,
+                        label: _visualPrefs.ringLineWeight.toStringAsFixed(2),
+                        onChanged: _setRingLineWeight,
+                      ),
+                    ],
+                  ),
+                );
+
+                final bottom = panel(
+                  'Bottom',
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButton<BackgroundType>(
+                        value: _visualPrefs.backgroundType,
+                        isExpanded: true,
+                        items: BackgroundType.values
+                            .map((b) => DropdownMenuItem(
+                                  value: b,
+                                  child: Text(b.name),
+                                ))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setBackgroundType(v);
+                        },
+                      ),
+                      SwitchListTile(
+                        value: _accentPreviewEnabled,
+                        onChanged: (v) => setState(() => _accentPreviewEnabled = v),
+                        title: const Text('Accent preview toggle'),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      if (_accentPreviewEnabled)
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            for (final id in ['ajani', 'minerva', 'hermes', 'council'])
+                              ChoiceChip(
+                                label: Text(id),
+                                selected: _accentPreviewId == id,
+                                onSelected: (_) =>
+                                    setState(() => _accentPreviewId = id),
+                              ),
+                          ],
+                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          OutlinedButton(
+                            onPressed: _resetToSkinDefaults,
+                            child: const Text('Reset to Default'),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'Exit auto-saves',
+                            style: TextStyle(
+                              color: skinTokens.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+
+                if (!isWide) {
+                  return Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      Center(child: dial),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          children: [
+                            left,
+                            const SizedBox(height: 12),
+                            right,
+                            const SizedBox(height: 12),
+                            bottom,
+                            const SizedBox(height: 16),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: ElevatedButton(
+                                onPressed: _exitAppearanceLab,
+                                child: const Text('Exit'),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Stack(
+                  children: [
+                    Center(child: dial),
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: ElevatedButton(
+                        onPressed: _exitAppearanceLab,
+                        child: const Text('Exit'),
+                      ),
+                    ),
+                    Positioned(
+                      top: 64,
+                      left: 16,
+                      child: left,
+                    ),
+                    Positioned(
+                      top: 64,
+                      right: 16,
+                      child: right,
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      left: (constraints.maxWidth - 620) / 2,
+                      child: SizedBox(
+                        width: 620,
+                        child: bottom,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _run() async {
@@ -187,7 +596,27 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   }
 
   void _setPanelTiltMode(PanelTiltMode mode) {
-    setState(() => _visualPrefs = _visualPrefs.copyWith(panelTiltMode: mode));
+    // If the user changes mode, nudge degrees into the expected band.
+    var degrees = _visualPrefs.panelTiltDegrees;
+    if (mode == PanelTiltMode.off) {
+      degrees = 0.0;
+    } else if (mode == PanelTiltMode.subtle && degrees < 5.0) {
+      degrees = 6.0;
+    } else if (mode == PanelTiltMode.noticeable && degrees < 10.0) {
+      degrees = 12.0;
+    } else if (mode == PanelTiltMode.dynamic && degrees < 5.0) {
+      degrees = 6.0;
+    }
+    setState(() => _visualPrefs =
+        _visualPrefs.copyWith(panelTiltMode: mode, panelTiltDegrees: degrees));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setPanelTiltDegrees(double degrees) {
+    final d = DialVisualMath.clampTiltDegrees(degrees);
+    final mode = d <= 0.0 ? PanelTiltMode.off : _visualPrefs.panelTiltMode;
+    setState(() =>
+        _visualPrefs = _visualPrefs.copyWith(panelTiltDegrees: d, panelTiltMode: mode));
     FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
   }
 
@@ -218,6 +647,13 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   void _setRingTransparency(double value) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(
           ringTransparencyStrength: DialVisualMath.clampRingTransparency(value),
+        ));
+    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+  }
+
+  void _setRingLineWeight(double value) {
+    setState(() => _visualPrefs = _visualPrefs.copyWith(
+          ringLineWeight: DialVisualMath.clampRingLineWeight(value),
         ));
     FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
   }
@@ -311,13 +747,16 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
       RingMaterialMode.lineOnlyMinimal => skinTokens.ringOpacity,
       RingMaterialMode.mixedInnerSolidOuterTransparent => 0.38,
     };
-    final ringStrokeWidth = switch (ringMaterial) {
+    final ringStrokeWidthBase = switch (ringMaterial) {
       RingMaterialMode.solidMatte => 1.9,
       RingMaterialMode.frostedGlass => 1.6,
       RingMaterialMode.transparentGlass => 1.2,
       RingMaterialMode.lineOnlyMinimal => skinTokens.ringStrokeWidth,
       RingMaterialMode.mixedInnerSolidOuterTransparent => 1.5,
     };
+    final ringStrokeWidth = (ringStrokeWidthBase * _visualPrefs.ringLineWeight)
+        .clamp(0.6, 4.0)
+        .toDouble();
     final ringOpacity = (ringOpacityBase *
             (1.0 - DialVisualMath.clampRingTransparency(
               _visualPrefs.ringTransparencyStrength,
@@ -334,6 +773,20 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     final validationStatus = (_last?['validation_status'] ?? '').toString();
     final intent = (_last?['intent'] ?? '').toString();
     final version = (_last?['version'] ?? '').toString();
+
+    if (_appearanceLabActive) {
+      return AnimatedTheme(
+        data: skinTheme,
+        duration: AtlasSkins.transitionDuration,
+        curve: Curves.easeInOut,
+        child: _buildAppearanceLab(
+          context,
+          skinTokens,
+          ringOpacity,
+          ringStrokeWidth,
+        ),
+      );
+    }
 
     return AnimatedTheme(
       data: skinTheme,
@@ -359,6 +812,11 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                   surface: skinTokens.surface,
                   border: skinTokens.border,
                   text: skinTokens.textSecondary,
+                  rim: _voiceCore.state.accentColor,
+                  rotationPeriod:
+                      _voiceCore.state.coreRotationState == CoreRotationState.stopped
+                          ? Duration.zero
+                          : const Duration(seconds: 12),
                 ),
                 timing: _voiceCore.timing,
                 visualPrefs: _visualPrefs,
@@ -391,6 +849,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      OutlinedButton(
+                        onPressed: _enterAppearanceLab,
+                        child: const Text('Appearance Lab'),
+                      ),
                       OutlinedButton(
                         onPressed: () => _setBaseUrl('http://10.0.2.2:8000'),
                         child: const Text('Android Emulator'),
@@ -862,27 +1324,108 @@ class _PlaceholderCore extends StatelessWidget {
   final Color surface;
   final Color border;
   final Color text;
+  final Color rim;
+  final Duration rotationPeriod;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: surface,
-        border: Border.all(
-          color: border,
-          width: 2,
-        ),
-      ),
-      child: Center(
-        child: Text(
-          '3D Core',
-          style: TextStyle(
-            color: text,
-            fontWeight: FontWeight.w600,
+    return _RotatingCore(
+      rotationPeriod: rotationPeriod,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: surface,
+          border: Border.all(
+            color: border,
+            width: 2,
           ),
         ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: rim.withOpacity(0.55),
+                      width: 5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: Text(
+                '3D Core',
+                style: TextStyle(
+                  color: text,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _RotatingCore extends StatefulWidget {
+  const _RotatingCore({
+    required this.rotationPeriod,
+    required this.child,
+  });
+
+  final Duration rotationPeriod;
+  final Widget child;
+
+  @override
+  State<_RotatingCore> createState() => _RotatingCoreState();
+}
+
+class _RotatingCoreState extends State<_RotatingCore>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RotatingCore oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.rotationPeriod != widget.rotationPeriod) {
+      _sync();
+    }
+  }
+
+  void _sync() {
+    if (widget.rotationPeriod.inMilliseconds <= 0) {
+      _controller.stop();
+      _controller.value = 0;
+      return;
+    }
+    _controller
+      ..duration = widget.rotationPeriod
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RotationTransition(
+      turns: _controller,
+      child: widget.child,
     );
   }
 }
