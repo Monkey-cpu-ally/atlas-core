@@ -232,3 +232,12 @@ Format:
   - `flutterflow_app`: persisted skin picker + 400–600ms crossfade (default 500ms) applied to the Atlas Console
 - Risk: Medium (FlutterFlow exports can overwrite generated files; keep custom code isolated and re-apply after export updates).
 - Rollback: Revert the commits introducing the skin tokens and UI wiring.
+
+### Area: Dial Modular Visual System (Flutter Implementation Seed)
+- Summary: Implemented modular visual layers in the scaffold `VoiceCoreLayer` and exposed basic toggles in the FlutterFlow app:
+  - optional background renderer (solid/gradient/noise/cosmic)
+  - optional frame plate under the dial
+  - sigil/rings/core layer order aligned to the modular visual stack
+  - council dim overlay can be toggled on/off
+- Risk: Medium (early implementation; dynamic tilt/gyro and per-ring materials are staged next).
+- Rollback: Revert the commit(s) introducing `dial_visual_prefs.dart`, background/frame widgets, and console toggles.

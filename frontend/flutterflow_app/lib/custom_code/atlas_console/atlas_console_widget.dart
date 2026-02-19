@@ -24,6 +24,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
 
   String _mode = 'mentor';
   late AtlasSkinId _skin;
+  late DialVisualPrefs _visualPrefs;
 
   bool _loading = false;
   String? _error;
@@ -51,6 +52,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     );
 
     _skin = AtlasSkinIdX.fromId(FFAppState().skinId);
+    _visualPrefs = DialVisualPrefs.defaults;
   }
 
   @override
@@ -150,6 +152,19 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   void _setSkin(AtlasSkinId skin) {
     setState(() => _skin = skin);
     FFAppState().skinId = skin.id;
+  }
+
+  void _setBackgroundType(BackgroundType type) {
+    setState(() => _visualPrefs = _visualPrefs.copyWith(backgroundType: type));
+  }
+
+  void _setFrameType(FrameType type) {
+    setState(() => _visualPrefs = _visualPrefs.copyWith(frameType: type));
+  }
+
+  void _setDimOverlay(bool enabled) {
+    setState(() => _visualPrefs =
+        _visualPrefs.copyWith(councilDimOverlayEnabled: enabled));
   }
 
   Future<void> _promptLanIp() async {
@@ -263,9 +278,13 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                   text: skinTokens.textSecondary,
                 ),
                 timing: _voiceCore.timing,
+                visualPrefs: _visualPrefs,
                 ringColor: skinTokens.ringStroke,
                 ringOpacity: skinTokens.ringOpacity,
                 ringStrokeWidth: skinTokens.ringStrokeWidth,
+                backgroundColor: skinTokens.background,
+                microDetailColor: skinTokens.border,
+                frameColor: skinTokens.border,
               ),
             ),
             const SizedBox(height: 12),
@@ -343,6 +362,66 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'Background:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<BackgroundType>(
+                        value: _visualPrefs.backgroundType,
+                        items: BackgroundType.values
+                            .map(
+                              (b) => DropdownMenuItem(
+                                value: b,
+                                child: Text(b.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setBackgroundType(v);
+                        },
+                      ),
+                      const SizedBox(width: 18),
+                      Text(
+                        'Frame:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<FrameType>(
+                        value: _visualPrefs.frameType,
+                        items: FrameType.values
+                            .map(
+                              (f) => DropdownMenuItem(
+                                value: f,
+                                child: Text(f.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setFrameType(v);
+                        },
+                      ),
+                    ],
+                  ),
+                  SwitchListTile(
+                    value: _visualPrefs.councilDimOverlayEnabled,
+                    onChanged: _setDimOverlay,
+                    title: Text(
+                      'Council dim overlay',
+                      style: TextStyle(color: skinTokens.textPrimary),
+                    ),
+                    subtitle: Text(
+                      'Optional background dim (5–10%) during Council.',
+                      style: TextStyle(color: skinTokens.textSecondary),
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
                   const SizedBox(height: 8),
                   if (_health != null)
