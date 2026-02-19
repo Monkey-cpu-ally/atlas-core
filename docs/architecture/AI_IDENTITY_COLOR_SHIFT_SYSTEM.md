@@ -18,6 +18,10 @@ Design intent:
 - express AI identity with precision,
 - avoid full-UI color flooding.
 
+Note:
+- Modular visual preferences may change background/ring/frame/panel atmosphere (see Dial Modular Visual System).
+- Identity overlays remain center-only and must remain readable across all configurations.
+
 Voice-first rule:
 - `TALK` is removed from the command ring.
 - Voice is always available through center hold and wake word.

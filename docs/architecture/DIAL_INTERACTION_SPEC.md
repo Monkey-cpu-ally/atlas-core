@@ -28,6 +28,7 @@ In scope:
 
 Out of scope:
 - Visual theme token values (see Skin Token Schema)
+- Modular visual layer configuration (see Dial Modular Visual System)
 - Event payload schemas (see Unity Bridge Event Contract)
 - Performance gate criteria (see Performance and QA Test Plan)
 

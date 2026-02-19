@@ -31,6 +31,7 @@ Out of scope:
 - ring math and snapping rules
 - bridge event semantics
 - project/domain business logic
+- user layer toggles and modular visual preference system (see Dial Modular Visual System)
 
 ---
 

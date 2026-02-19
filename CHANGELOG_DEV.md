@@ -220,6 +220,11 @@ Format:
 - Risk: Low (documentation-only; implementation to follow UI layer).
 - Rollback: Revert the commit introducing the spec updates.
 
+### Area: Dial Modular Visual System
+- Summary: Added `docs/architecture/DIAL_MODULAR_VISUAL_SYSTEM.md` defining optional, independently configurable visual layers (panels/frame/rings/background), canonical layer stack order, and persistence rules.
+- Risk: Low (documentation-only; implementation staged in UI layer).
+- Rollback: Revert the commit that adds the modular visual system doc.
+
 ### Area: Skin System (Flutter Implementation Seed)
 - Summary: Added a minimal free-selection skin system implementation:
   - `flutter_atlas_scaffold`: `AtlasSkins` tokens + `AtlasSkinId` for the initial 4 skins

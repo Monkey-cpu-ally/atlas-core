@@ -27,6 +27,7 @@ In scope:
 Out of scope:
 - Ring motion internals (Dial Interaction Spec)
 - Skin token internals (Skin Token Schema)
+- Modular visual preference system (Dial Modular Visual System)
 - Device performance gates (Performance and QA Test Plan)
 
 ---

@@ -16,6 +16,7 @@ Define measurable quality gates for:
 - runtime stability
 - visual integrity across skins
 - state/event correctness across Flutter and Unity layers
+- modular visual layer integrity (optional layers and persistence)
 
 ---
 
