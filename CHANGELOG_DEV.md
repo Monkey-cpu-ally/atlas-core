@@ -219,3 +219,11 @@ Format:
   - baseline skin set updated to: Lumen Core, Archive Grid, Circuit Veil, Module Array
 - Risk: Low (documentation-only; implementation to follow UI layer).
 - Rollback: Revert the commit introducing the spec updates.
+
+### Area: Skin System (Flutter Implementation Seed)
+- Summary: Added a minimal free-selection skin system implementation:
+  - `flutter_atlas_scaffold`: `AtlasSkins` tokens + `AtlasSkinId` for the initial 4 skins
+  - `VoiceCoreLayer` now accepts ring style parameters so skins can affect ring feel without touching identity accents
+  - `flutterflow_app`: persisted skin picker + 400–600ms crossfade (default 500ms) applied to the Atlas Console
+- Risk: Medium (FlutterFlow exports can overwrite generated files; keep custom code isolated and re-apply after export updates).
+- Rollback: Revert the commits introducing the skin tokens and UI wiring.

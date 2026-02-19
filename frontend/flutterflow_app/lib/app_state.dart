@@ -19,6 +19,7 @@ class FFAppState extends ChangeNotifier {
     _safeInit(() {
       _aiMode = prefs.getString('ff_aiMode') ?? _aiMode;
       _atlasBaseUrl = prefs.getString('ff_atlasBaseUrl') ?? _atlasBaseUrl;
+      _skinId = prefs.getString('ff_skinId') ?? _skinId;
     });
   }
 
@@ -43,6 +44,14 @@ class FFAppState extends ChangeNotifier {
   set atlasBaseUrl(String value) {
     _atlasBaseUrl = value;
     prefs.setString('ff_atlasBaseUrl', value);
+  }
+
+  /// Persisted UI skin selection (free selection model; manual only).
+  String _skinId = 'lumen_core';
+  String get skinId => _skinId;
+  set skinId(String value) {
+    _skinId = value;
+    prefs.setString('ff_skinId', value);
   }
 
   /// True while AI is processing a response

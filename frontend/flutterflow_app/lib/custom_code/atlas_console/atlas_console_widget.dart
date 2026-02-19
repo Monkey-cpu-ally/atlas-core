@@ -23,6 +23,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   final _inputController = TextEditingController();
 
   String _mode = 'mentor';
+  late AtlasSkinId _skin;
 
   bool _loading = false;
   String? _error;
@@ -48,6 +49,8 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _baseUrlController = TextEditingController(
       text: saved.isNotEmpty ? saved : defaultBaseUrl,
     );
+
+    _skin = AtlasSkinIdX.fromId(FFAppState().skinId);
   }
 
   @override
@@ -144,6 +147,11 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     setState(() {});
   }
 
+  void _setSkin(AtlasSkinId skin) {
+    setState(() => _skin = skin);
+    FFAppState().skinId = skin.id;
+  }
+
   Future<void> _promptLanIp() async {
     final ipController = TextEditingController();
     final value = await showDialog<String>(
@@ -177,28 +185,33 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _setBaseUrl('http://$ip:8000');
   }
 
-  Widget _panel({
+  Widget _panel(
+    BuildContext context, {
     required String title,
     required Widget child,
   }) {
+    final scheme = Theme.of(context).colorScheme;
+    final titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+        );
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF12121A),
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF222235)),
+        border: Border.all(color: scheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Color(0xFFE6E6F2),
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
-            ),
+            style: titleStyle ??
+                const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 8),
           child,
@@ -209,6 +222,12 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final skinTokens = AtlasSkins.tokens(_skin);
+    final skinTheme = AtlasSkins.themeData(
+      _skin,
+      base: Theme.of(context),
+    );
+
     final suggestionSummary =
         (_last?['ajani']?['summary'] ?? _last?['ajani']?['goal'] ?? '')
             .toString();
@@ -219,23 +238,39 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     final intent = (_last?['intent'] ?? '').toString();
     final version = (_last?['version'] ?? '').toString();
 
-    return AnimatedBuilder(
-      animation: _voiceCore,
-      builder: (context, _) {
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+    return AnimatedTheme(
+      data: skinTheme,
+      duration: AtlasSkins.transitionDuration,
+      curve: Curves.easeInOut,
+      child: AnimatedContainer(
+        duration: AtlasSkins.transitionDuration,
+        curve: Curves.easeInOut,
+        color: skinTokens.background,
+        child: AnimatedBuilder(
+          animation: _voiceCore,
+          builder: (context, _) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
             // Voice core visual layer (Unity placeholder for now).
             SizedBox(
               height: 280,
               child: VoiceCoreLayer(
                 state: _voiceCore.state,
-                coreWidget: const _PlaceholderCore(),
+                coreWidget: _PlaceholderCore(
+                  surface: skinTokens.surface,
+                  border: skinTokens.border,
+                  text: skinTokens.textSecondary,
+                ),
                 timing: _voiceCore.timing,
+                ringColor: skinTokens.ringStroke,
+                ringOpacity: skinTokens.ringOpacity,
+                ringStrokeWidth: skinTokens.ringStrokeWidth,
               ),
             ),
             const SizedBox(height: 12),
             _panel(
+              context,
               title: 'Connection',
               child: Column(
                 children: [
@@ -273,6 +308,39 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                       OutlinedButton(
                         onPressed: _healthLoading ? null : _checkHealth,
                         child: Text(_healthLoading ? 'Checking…' : 'Check /health'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(
+                        'Skin:',
+                        style: TextStyle(color: skinTokens.textPrimary),
+                      ),
+                      const SizedBox(width: 10),
+                      DropdownButton<AtlasSkinId>(
+                        value: _skin,
+                        items: AtlasSkinId.values
+                            .map(
+                              (s) => DropdownMenuItem(
+                                value: s,
+                                child: Text(s.label),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          _setSkin(v);
+                        },
+                      ),
+                      const Spacer(),
+                      Text(
+                        'Manual only',
+                        style: TextStyle(
+                          color: skinTokens.textSecondary,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -350,6 +418,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
             ),
             const SizedBox(height: 12),
             _panel(
+              context,
               title: 'Input',
               child: TextField(
                 controller: _inputController,
@@ -362,6 +431,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
             ),
             const SizedBox(height: 12),
             _panel(
+              context,
               title: 'Council Visual Demo (local only)',
               child: Wrap(
                 spacing: 8,
@@ -411,6 +481,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
             const SizedBox(height: 12),
             if (_error != null)
               _panel(
+                context,
                 title: 'Error',
                 child: SelectableText(
                   _error!,
@@ -419,6 +490,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
               ),
             if (_last != null) ...[
               _panel(
+                context,
                 title: 'Status',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,69 +512,77 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
               ),
               const SizedBox(height: 12),
               _panel(
+                context,
                 title: 'Ajani',
                 child: SelectableText(
                   suggestionSummary,
-                  style: const TextStyle(color: Color(0xFFE6E6F2)),
+                  style: TextStyle(color: skinTokens.textPrimary),
                 ),
               ),
               const SizedBox(height: 12),
               _panel(
+                context,
                 title: 'Minerva',
                 child: SelectableText(
                   minervaSummary,
-                  style: const TextStyle(color: Color(0xFFE6E6F2)),
+                  style: TextStyle(color: skinTokens.textPrimary),
                 ),
               ),
               const SizedBox(height: 12),
               _panel(
+                context,
                 title: 'Hermes',
                 child: SelectableText(
                   hermesSummary,
-                  style: const TextStyle(color: Color(0xFFE6E6F2)),
+                  style: TextStyle(color: skinTokens.textPrimary),
                 ),
               ),
               const SizedBox(height: 12),
               _panel(
+                context,
                 title: 'Raw JSON',
                 child: SelectableText(
                   _last.toString(),
-                  style: const TextStyle(color: Color(0xFFB8B8C8)),
+                  style: TextStyle(color: skinTokens.textSecondary),
                 ),
               ),
             ],
           ],
         );
-      },
+          },
+        ),
+      ),
     );
   }
 }
 
 class _PlaceholderCore extends StatelessWidget {
-  const _PlaceholderCore();
+  const _PlaceholderCore({
+    required this.surface,
+    required this.border,
+    required this.text,
+  });
+
+  final Color surface;
+  final Color border;
+  final Color text;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const RadialGradient(
-          colors: [
-            Color(0xFF2C2C36),
-            Color(0xFF14141B),
-          ],
-          radius: 0.9,
-        ),
+        color: surface,
         border: Border.all(
-          color: const Color(0xFF2D2D3A),
+          color: border,
           width: 2,
         ),
       ),
-      child: const Center(
+      child: Center(
         child: Text(
           '3D Core',
           style: TextStyle(
-            color: Color(0xFFB8B8C8),
+            color: text,
             fontWeight: FontWeight.w600,
           ),
         ),
