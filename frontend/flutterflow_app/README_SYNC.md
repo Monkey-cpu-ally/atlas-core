@@ -1,33 +1,19 @@
-# FlutterFlow App (Imported into Monorepo)
+# FlutterFlow App (Monorepo Mirror)
 
-This folder is a **copy** of the FlutterFlow export that lives on the GitHub branch:
+This folder (`frontend/flutterflow_app/`) is a **mirror import** of the FlutterFlow export
+that lives on the GitHub branch:
+
 - `flutterflow`
 
-It exists here so the monorepo branch can keep:
-- backend (`atlas_core_new/`, `backend/`, etc.)
-- docs (`docs/`)
+We keep it here so the monorepo branch (`cursor/three-js-library-import-ed42`) can include:
+- the FastAPI backend (`atlas_core_new/`, `backend/`)
+- docs/specs (`docs/`)
 - shared contracts
-while still having the Flutter app code available for development.
+**and** the Flutter UI code in one place.
 
-## Why `lib/` may be missing
+## How this folder is updated
 
-If you do not see a `lib/` folder in the FlutterFlow export, it is almost always because the
-repository `.gitignore` included:
-
-```
-lib/
-```
-
-That line will cause Git to ignore the entire Flutter source directory.
-
-Fix:
-1. Update the `.gitignore` in the FlutterFlow-export branch to **not** ignore `lib/`.
-2. Re-run **Push to GitHub** from FlutterFlow.
-3. Then re-import the branch here.
-
-## Re-import procedure (maintainers)
-
-From the monorepo root:
+We re-import from the `flutterflow` branch using:
 
 ```bash
 git fetch origin flutterflow
@@ -36,10 +22,21 @@ mkdir -p frontend/flutterflow_app
 git archive origin/flutterflow | tar -x -C frontend/flutterflow_app
 ```
 
-Then commit the updated `frontend/flutterflow_app/` directory.
+## Why this exists (FlutterFlow limitation)
 
-## Notes
+FlutterFlow expects a Flutter project at the **repo root**.
+This repo is a monorepo, so the `flutterflow` branch stays Flutter-rooted, while the
+working branch stays monorepo-rooted.
 
-- FlutterFlow expects a Flutter project at repo root; this monorepo does not.
-  Keeping a dedicated `flutterflow` branch is the cleanest compromise.
-- This folder is intended to be buildable by Flutter tooling once `lib/` is present.
+## Local .gitignore
+
+The `.gitignore` inside this folder is Flutter/Dart-focused so we do not accidentally commit:
+- `.dart_tool/`
+- plugin registrants
+- build outputs
+
+## Next integration steps
+
+- Add a path dependency on `../flutter_atlas_scaffold`
+- Wire backend calls (`/suggest`, `/validate`, `/chat`) to the FastAPI service
+- Connect council state machine + Unity bridge events

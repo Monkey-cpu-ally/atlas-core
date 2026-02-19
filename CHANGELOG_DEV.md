@@ -184,3 +184,8 @@ Format:
 - Summary (fix): Replaced `frontend/flutterflow_app/.gitignore` with Flutter/Dart ignores to ensure `lib/` is tracked (FlutterFlow branch previously ignored `lib/`, causing missing Dart sources).
 - Risk: Medium (adds mobile/web platform folders and assets to repo; may increase repo size).
 - Rollback: Revert the commit that adds `frontend/flutterflow_app/`.
+
+### Area: FlutterFlow Integration (Monorepo Sync) — Source Added
+- Summary: Re-imported the latest FlutterFlow export after it pushed the missing Dart sources (`lib/` and `lib/main.dart`) and restored the monorepo sync notes file.
+- Risk: Medium (large import delta; requires Flutter tooling locally to validate build).
+- Rollback: Revert the commit that updates `frontend/flutterflow_app/` with the new export.
