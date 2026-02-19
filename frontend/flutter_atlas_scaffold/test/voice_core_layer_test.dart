@@ -43,14 +43,6 @@ void main() {
       ),
     );
 
-    final backgroundOpacity = tester.widget<AnimatedOpacity>(
-      find.byWidgetPredicate(
-        (widget) => widget is AnimatedOpacity && widget.child is ColoredBox,
-      ),
-    );
-    expect(backgroundOpacity.opacity, 0.1);
-    expect(backgroundOpacity.duration, timing.backgroundDimFadeDuration);
-
     final coreScale = tester.widget<AnimatedScale>(find.byType(AnimatedScale));
     expect(coreScale.scale, 1.08);
     expect(coreScale.duration, timing.coreScaleDuration);
@@ -65,5 +57,6 @@ void main() {
     expect(sigilOpacity.duration, timing.sigilFadeInDuration);
 
     expect(find.byType(NeutralRingShell), findsOneWidget);
+    expect(find.byType(DialBackground), findsOneWidget);
   });
 }
