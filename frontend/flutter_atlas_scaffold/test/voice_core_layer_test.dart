@@ -63,5 +63,7 @@ void main() {
       ),
     );
     expect(sigilOpacity.duration, timing.sigilFadeInDuration);
+
+    expect(find.byType(NeutralRingShell), findsOneWidget);
   });
 }

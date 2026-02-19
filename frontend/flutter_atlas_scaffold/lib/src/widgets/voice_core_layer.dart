@@ -13,6 +13,9 @@ class VoiceCoreLayer extends StatelessWidget {
     this.sigilSize = 260,
     this.coreSize = 220,
     this.timing = VoiceCoreTiming.spec,
+    this.ringColor = const Color(0xFF6A6A72),
+    this.ringOpacity = 0.36,
+    this.ringStrokeWidth = 1.2,
     super.key,
   });
 
@@ -22,6 +25,9 @@ class VoiceCoreLayer extends StatelessWidget {
   final double sigilSize;
   final double coreSize;
   final VoiceCoreTiming timing;
+  final Color ringColor;
+  final double ringOpacity;
+  final double ringStrokeWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +68,11 @@ class VoiceCoreLayer extends StatelessWidget {
             ),
           ),
         ),
-        const NeutralRingShell(),
+        NeutralRingShell(
+          color: ringColor,
+          opacity: ringOpacity,
+          strokeWidth: ringStrokeWidth,
+        ),
       ],
     );
   }
