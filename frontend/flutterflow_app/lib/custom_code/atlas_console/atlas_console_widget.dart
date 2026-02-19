@@ -112,6 +112,8 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     setState(() => _appearanceLabExiting = true);
     await Future<void>.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
+    // Exit auto-saves configuration (no save button in Appearance Lab).
+    _persistVisualPrefs();
     _voiceCore.exitAppearanceLab();
     setState(() {
       _appearanceLabActive = false;
@@ -122,6 +124,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   void _resetToSkinDefaults() {
     final defaults = AtlasSkins.visualDefaults(_skin);
     setState(() => _visualPrefs = defaults);
+    _persistVisualPrefs();
+  }
+
+  void _persistVisualPrefs() {
     FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
   }
 
@@ -171,6 +177,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
             borderColor: scheme.outline,
             borderRadius: BorderRadius.circular(12),
             dynamicTiltUnit: 0.0,
+            tiltBlendDuration: const Duration(milliseconds: 250),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -204,29 +211,43 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth >= 980;
-              final dial = SizedBox(
-                width: dialSize,
-                height: dialSize,
-                child: VoiceCoreLayer(
-                  state: _voiceCore.state,
-                  // Do not rely on the council dim toggle in Appearance Lab.
-                  visualPrefs:
-                      _visualPrefs.copyWith(councilDimOverlayEnabled: false),
-                  timing: _voiceCore.timing,
-                  ringColor: skinTokens.ringStroke,
-                  ringOpacity: ringOpacity,
-                  ringStrokeWidth: ringStrokeWidth,
-                  backgroundColor: skinTokens.background,
-                  microDetailColor: skinTokens.border,
-                  frameColor: skinTokens.border,
-                  coreWidget: _PlaceholderCore(
-                    surface: skinTokens.surface,
-                    border: skinTokens.border,
-                    text: skinTokens.textSecondary,
-                    rim: rimColor,
-                    rotationPeriod: coreRotationPeriod,
-                  ),
-                ),
+              final dial = TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
+                tween: Tween<double>(end: ringOpacity),
+                builder: (context, smoothedOpacity, _) {
+                  return TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    tween: Tween<double>(end: ringStrokeWidth),
+                    builder: (context, smoothedStroke, __) {
+                      return SizedBox(
+                        width: dialSize,
+                        height: dialSize,
+                        child: VoiceCoreLayer(
+                          state: _voiceCore.state,
+                          // Do not rely on the council dim toggle in Appearance Lab.
+                          visualPrefs:
+                              _visualPrefs.copyWith(councilDimOverlayEnabled: false),
+                          timing: _voiceCore.timing,
+                          ringColor: skinTokens.ringStroke,
+                          ringOpacity: smoothedOpacity,
+                          ringStrokeWidth: smoothedStroke,
+                          backgroundColor: skinTokens.background,
+                          microDetailColor: skinTokens.border,
+                          frameColor: skinTokens.border,
+                          coreWidget: _PlaceholderCore(
+                            surface: skinTokens.surface,
+                            border: skinTokens.border,
+                            text: skinTokens.textSecondary,
+                            rim: rimColor,
+                            rotationPeriod: coreRotationPeriod,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               );
 
                 final left = panel(
@@ -239,36 +260,19 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                         style:
                             TextStyle(color: skinTokens.textSecondary, fontSize: 12),
                       ),
+                      Text(
+                        '${_visualPrefs.panelTiltDegrees.toStringAsFixed(1)}°',
+                        style: TextStyle(
+                          color: skinTokens.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       Slider(
                         value: _visualPrefs.panelTiltDegrees,
                         min: 0,
                         max: 15,
-                        divisions: 15,
-                        label: '${_visualPrefs.panelTiltDegrees.toStringAsFixed(0)}°',
-                        onChanged: _setPanelTiltDegrees,
-                      ),
-                      Row(
-                        children: [
-                          const SizedBox(width: 6),
-                          Text(
-                            'Mode:',
-                            style: TextStyle(color: skinTokens.textSecondary),
-                          ),
-                          const SizedBox(width: 10),
-                          DropdownButton<PanelTiltMode>(
-                            value: _visualPrefs.panelTiltMode,
-                            items: PanelTiltMode.values
-                                .map((m) => DropdownMenuItem(
-                                      value: m,
-                                      child: Text(m.name),
-                                    ))
-                                .toList(),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              _setPanelTiltMode(v);
-                            },
-                          ),
-                        ],
+                        onChanged: (v) => _setPanelTiltDegrees(v, persist: false),
+                        onChangeEnd: (_) => _persistVisualPrefs(),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -334,27 +338,38 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                         style:
                             TextStyle(color: skinTokens.textSecondary, fontSize: 12),
                       ),
+                      Text(
+                        '${(_visualPrefs.ringTransparencyStrength * 100).toStringAsFixed(0)}%',
+                        style: TextStyle(
+                          color: skinTokens.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       Slider(
                         value: _visualPrefs.ringTransparencyStrength,
                         min: 0.0,
                         max: 0.60,
-                        divisions: 12,
-                        label:
-                            '${(_visualPrefs.ringTransparencyStrength * 100).round()}%',
-                        onChanged: _setRingTransparency,
+                        onChanged: (v) => _setRingTransparency(v, persist: false),
+                        onChangeEnd: (_) => _persistVisualPrefs(),
                       ),
                       Text(
                         'Line weight',
                         style:
                             TextStyle(color: skinTokens.textSecondary, fontSize: 12),
                       ),
+                      Text(
+                        _visualPrefs.ringLineWeight.toStringAsFixed(2),
+                        style: TextStyle(
+                          color: skinTokens.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       Slider(
                         value: _visualPrefs.ringLineWeight,
                         min: 0.6,
                         max: 2.2,
-                        divisions: 16,
-                        label: _visualPrefs.ringLineWeight.toStringAsFixed(2),
-                        onChanged: _setRingLineWeight,
+                        onChanged: (v) => _setRingLineWeight(v, persist: false),
+                        onChangeEnd: (_) => _persistVisualPrefs(),
                       ),
                     ],
                   ),
@@ -599,18 +614,18 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
 
   void _setBackgroundType(BackgroundType type) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(backgroundType: type));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
   void _setFrameType(FrameType type) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(frameType: type));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
   void _setDimOverlay(bool enabled) {
     setState(() => _visualPrefs =
         _visualPrefs.copyWith(councilDimOverlayEnabled: enabled));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
   void _setPanelTiltMode(PanelTiltMode mode) {
@@ -627,59 +642,73 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     }
     setState(() => _visualPrefs =
         _visualPrefs.copyWith(panelTiltMode: mode, panelTiltDegrees: degrees));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
-  void _setPanelTiltDegrees(double degrees) {
+  void _setPanelTiltDegrees(double degrees, {bool persist = true}) {
     final d = DialVisualMath.clampTiltDegrees(degrees);
-    final mode = d <= 0.0 ? PanelTiltMode.off : _visualPrefs.panelTiltMode;
-    setState(() =>
-        _visualPrefs = _visualPrefs.copyWith(panelTiltDegrees: d, panelTiltMode: mode));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    var mode = d <= 0.0 ? PanelTiltMode.off : _visualPrefs.panelTiltMode;
+    // If the user drags the degree slider above 0 from OFF, enable a static tilt.
+    if (d > 0.0 && mode == PanelTiltMode.off) {
+      mode = PanelTiltMode.subtle;
+    }
+    setState(
+      () => _visualPrefs = _visualPrefs.copyWith(
+        panelTiltDegrees: d,
+        panelTiltMode: mode,
+      ),
+    );
+    if (persist) {
+      _persistVisualPrefs();
+    }
   }
 
   void _setPanelShadowMode(PanelDepthShadowMode mode) {
     setState(
       () => _visualPrefs = _visualPrefs.copyWith(panelDepthShadowMode: mode),
     );
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
   void _setPanelMaterialMode(PanelMaterialMode mode) {
     setState(
       () => _visualPrefs = _visualPrefs.copyWith(panelMaterialMode: mode),
     );
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
   void _setFrameOpacity(FrameOpacityMode mode) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(frameOpacityMode: mode));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
   void _setRingMaterial(RingMaterialMode mode) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(ringMaterialMode: mode));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
-  void _setRingTransparency(double value) {
+  void _setRingTransparency(double value, {bool persist = true}) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(
           ringTransparencyStrength: DialVisualMath.clampRingTransparency(value),
         ));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    if (persist) {
+      _persistVisualPrefs();
+    }
   }
 
-  void _setRingLineWeight(double value) {
+  void _setRingLineWeight(double value, {bool persist = true}) {
     setState(() => _visualPrefs = _visualPrefs.copyWith(
           ringLineWeight: DialVisualMath.clampRingLineWeight(value),
         ));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    if (persist) {
+      _persistVisualPrefs();
+    }
   }
 
   void _setLabelAutoContrast(bool enabled) {
     setState(() => _visualPrefs =
         _visualPrefs.copyWith(labelContrastAutoAdjust: enabled));
-    FFAppState().dialVisualPrefsJson = DialVisualPrefsCodec.encode(_visualPrefs);
+    _persistVisualPrefs();
   }
 
   Future<void> _promptLanIp() async {
