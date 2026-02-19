@@ -250,6 +250,10 @@ Format:
   - council mode disabled while Appearance Lab is active (guarded in `VoiceCoreController`)
   - live controls for panel tilt degrees, frame type/opacity, ring material + transparency + line weight, background type
   - no save button; changes persist immediately; exit auto-saves; reset restores skin-provided defaults
+- Summary (refinement): Matched exit + layout details to spec:
+  - exit button is top-minimal on narrow and wide layouts
+  - exit sequence dissolves controls + fades dim overlay without fading the full dial
+  - core rim color animates (Ivory -> neutral) on exit
 - Summary (scaffold): Added skin-level visual defaults (`AtlasSkins.visualDefaults`) used by reset-to-default behavior.
 - Risk: Medium (UI layout changes; new persisted pref fields may require one-time migration for old JSON values).
 - Rollback: Revert the commit(s) introducing Appearance Lab + the new dial visual preference fields.
