@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_atlas_scaffold/atlas_voice_core.dart';
@@ -15,8 +16,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   final _client = AtlasBackendClient();
   final _voiceCore = VoiceCoreController();
 
-  final _baseUrlController =
-      TextEditingController(text: 'http://127.0.0.1:8000');
+  late final TextEditingController _baseUrlController;
   final _projectController =
       TextEditingController(text: 'atlas_core_hybrid_system');
   final _inputController = TextEditingController();
@@ -26,6 +26,21 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   bool _loading = false;
   String? _error;
   Map<String, dynamic>? _last;
+
+  @override
+  void initState() {
+    super.initState();
+    // Defaults:
+    // - Android emulator -> host machine: 10.0.2.2
+    // - iOS simulator -> host machine: 127.0.0.1
+    // - physical devices -> use your computer LAN IP (e.g. http://192.168.1.20:8000)
+    final defaultBaseUrl = kIsWeb
+        ? 'http://127.0.0.1:8000'
+        : (defaultTargetPlatform == TargetPlatform.android
+            ? 'http://10.0.2.2:8000'
+            : 'http://127.0.0.1:8000');
+    _baseUrlController = TextEditingController(text: defaultBaseUrl);
+  }
 
   @override
   void dispose() {
