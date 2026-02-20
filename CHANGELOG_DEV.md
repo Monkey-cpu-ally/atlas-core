@@ -289,3 +289,11 @@ Format:
 - Summary (compatibility): Added `hex_plate` -> `hexagonalPlate` alias mapping in `skin_resolver.dart` so frame type resolves correctly under the new schema variant.
 - Risk: Low (additive schema profile update + alias mapping).
 - Rollback: Restore prior `archive_grid.json` and remove the `hex_plate` alias mapping.
+
+### Area: Skin Schema Integration (Ajani v1) — Circuit Veil profile
+- Summary: Replaced `assets/skins/circuit_veil.json` with the full Ajani v1 schema payload provided by user.
+- Summary (compatibility): Added schema alias mappings:
+  - `frame.type: "angular_tech"` -> `angularTechFrame`
+  - `background.type: "texture"` -> gradient-backed textured presentation path
+- Risk: Low (additive profile and parser aliases only).
+- Rollback: Restore prior `circuit_veil.json` and remove newly added resolver aliases.

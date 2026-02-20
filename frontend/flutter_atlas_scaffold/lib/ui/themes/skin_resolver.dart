@@ -235,6 +235,7 @@ class SkinResolver {
       'circular_plate' => 'circularPlate',
       'hexagonal_plate' => 'hexagonalPlate',
       'hex_plate' => 'hexagonalPlate',
+      'angular_tech' => 'angularTechFrame',
       'angular_tech_frame' => 'angularTechFrame',
       'organic_soft_frame' => 'organicSoftFrame',
       _ => 'none',
@@ -265,6 +266,7 @@ class SkinResolver {
   static String _mapBackgroundType(String source) {
     return switch (source) {
       'gradient' => 'gradient',
+      'texture' => 'gradient',
       'deep_cosmic_space' => 'deepCosmicSpace',
       _ => 'solidColor',
     };

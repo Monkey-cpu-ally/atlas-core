@@ -1,20 +1,65 @@
 {
-  "id": "circuit_veil",
-  "label": "Circuit Veil",
-  "motionProfileId": "precision_soft",
-  "materialProfileId": "glass_light",
-  "tokens": {
-    "background": "#EDEFF5",
-    "surface": "#FFFFFF",
-    "frame": "#D4D9E4",
-    "ring": "#95A1B8",
-    "textPrimary": "#242938",
-    "textSecondary": "#58607A",
-    "accentEnergy": "#4A77C9",
-    "glassiness": 0.42,
-    "roughness": 0.35,
-    "noiseAmount": 0.06,
-    "grainEnabled": false
+  "$schema": "ajani.skin.schema.v1",
+  "meta": { "id": "circuit_veil", "name": "Circuit Veil", "version": 1, "author": "Frazier" },
+  "colors": {
+    "bgPrimary": "#F5F6FA",
+    "bgSecondary": "#ECEEF6",
+    "panelBase": "#FFFFFF",
+    "textPrimary": "#0E0F14",
+    "textSecondary": "#4B5163",
+    "stroke": "#C9CEDD",
+    "shadow": "#0B0C10",
+    "highlight": "#FFFFFF",
+    "accentDefault": "#FF3FA6",
+    "ghostPurpleCouncil": "#BFA7FF",
+    "aiAjaniCrimson": "#B21D2A",
+    "aiMinervaTeal": "#2BB9B0",
+    "aiHermesIvory": "#F2E9DA",
+    "dangerPulse": "#A61F2B"
+  },
+  "background": {
+    "type": "texture",
+    "solid": "#F5F6FA",
+    "texture": { "enabled": true, "asset": "assets/textures/frosted_glass.png", "opacity": 0.18 },
+    "noise": { "enabled": true, "asset": "assets/textures/noise.png", "opacity": 0.03 }
+  },
+  "panel": { "tiltPreset": "subtle", "tiltDegrees": 6, "depthShadow": "soft", "material": "glass", "cornerRadius": 26, "elevation": 9 },
+  "frame": { "enabled": true, "type": "angular_tech", "opacity": 0.18, "strokeWidth": 1.0, "material": "transparent_glass" },
+  "rings": {
+    "global": {
+      "snap": { "enabled": true, "inertia": 0.86, "snapStrength": 0.76, "bounce": 0.06 },
+      "labeling": { "mode": "partial", "activeLabelScale": 1.14, "inactiveOpacityNear": 0.55, "inactiveOpacityFar": 0.18, "keepLabelsUpright": true }
+    },
+    "commandRing": { "thickness": 16, "material": "solid_matte", "transparency": 0.0, "tickStyle": "clean", "alwaysShowLabels": true },
+    "domainRing": { "thickness": 12, "material": "frosted_glass", "transparency": 0.35, "tickStyle": "micro_ticks", "alwaysShowLabels": false },
+    "moduleRing": { "thickness": 11, "material": "transparent_glass", "transparency": 0.5, "tickStyle": "micro_ticks", "alwaysShowLabels": false },
+    "utilityRing": { "thickness": 9, "material": "line_only", "transparency": 0.6, "tickStyle": "minimal", "alwaysShowLabels": false }
+  },
+  "typography": { "family": "Inter", "tracking": 0.1, "commandRingWeight": 650, "defaultWeight": 500, "labelCase": "uppercase" },
+  "motion": { "uiTransitionMs": 520, "resumeFadeMs": 200, "coldStartFadeMs": 560, "coreReturnMs": 300, "coreExpandScale": 1.07, "corePressTightenScale": 0.985 },
+  "core": {
+    "materialProfile": "etched_glass",
+    "idle": { "internalDriftSpeed": 0.2, "breathCycleSec": 4.3, "brightness": 0.95 },
+    "interaction": { "parallaxPxMax": 6, "microTiltDegMax": 4, "gyroParallaxPxMax": 3, "gyroTiltDegMax": 5 },
+    "ripple": { "enabled": true, "amplitude": 0.16, "frequency": 1.25, "speed": 0.6, "audioAmpToGlow": 0.32 }
+  },
+  "council": {
+    "dimOverlay": { "enabled": true, "strength": 0.07, "fadeInMs": 340, "fadeOutMs": 520 },
+    "sigil": { "enabled": true, "baseOpacity": 0.09, "strokeWeight": "auto_by_skin", "static": true }
+  },
+  "power": {
+    "extendedIdleMinutes": 10,
+    "extendedIdleBrightnessDrop": 0.18,
+    "lowPowerMode": { "enabledByDefault": false, "disables": { "particles": true, "backgroundNoise": true, "haloBreath": true } }
+  },
+  "audio": {
+    "tones": {
+      "ajani": "assets/audio/tone_ajani.wav",
+      "minerva": "assets/audio/tone_minerva.wav",
+      "hermes": "assets/audio/tone_hermes.wav",
+      "council": "assets/audio/tone_council.wav"
+    },
+    "hermesReadyTone": { "evolves": true, "maxHarmonicRichnessDelta": 0.1, "maxStereoWidthDelta": 0.05 }
   }
 }
 
