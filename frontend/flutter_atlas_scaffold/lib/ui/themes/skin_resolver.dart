@@ -235,6 +235,7 @@ class SkinResolver {
       'circular_plate' => 'circularPlate',
       'hexagonal_plate' => 'hexagonalPlate',
       'hex_plate' => 'hexagonalPlate',
+      'modular_plate' => 'angularTechFrame',
       'angular_tech' => 'angularTechFrame',
       'angular_tech_frame' => 'angularTechFrame',
       'organic_soft_frame' => 'organicSoftFrame',

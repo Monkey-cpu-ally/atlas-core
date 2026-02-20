@@ -297,3 +297,9 @@ Format:
   - `background.type: "texture"` -> gradient-backed textured presentation path
 - Risk: Low (additive profile and parser aliases only).
 - Rollback: Restore prior `circuit_veil.json` and remove newly added resolver aliases.
+
+### Area: Skin Schema Integration (Ajani v1) — Module Array profile
+- Summary: Replaced `assets/skins/module_array.json` with the full Ajani v1 schema payload provided by user.
+- Summary (compatibility): Added `frame.type: "modular_plate"` alias mapping to the existing runtime frame family (`angularTechFrame`) to preserve rendering without introducing a breaking enum change.
+- Risk: Low (profile replacement + additive alias mapping).
+- Rollback: Restore prior `module_array.json` and remove `modular_plate` resolver alias.
