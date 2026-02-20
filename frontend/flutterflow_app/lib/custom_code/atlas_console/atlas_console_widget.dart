@@ -946,6 +946,124 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     return result;
   }
 
+  String _suggestExportFileName(String baseName) {
+    final now = DateTime.now();
+    String two(int v) => v.toString().padLeft(2, '0');
+    final stamp =
+        '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}';
+    return '${baseName}_$stamp.json';
+  }
+
+  Future<void> _showJsonExportDialog({
+    required String title,
+    required String fileName,
+    required String jsonPayload,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: SizedBox(
+            width: 700,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Suggested filename: $fileName',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 320,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(12),
+                    child: SelectableText(
+                      jsonPayload,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: jsonPayload));
+                if (!mounted) return;
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Copied $fileName payload to clipboard.'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.copy),
+              label: const Text('Copy JSON'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _saveCustomRingsJson(String rawJson, {bool showError = true}) {
+    if (RingsResolver.parseRawJson(rawJson) == null) {
+      if (showError && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid rings schema JSON. Custom profile not saved.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return false;
+    }
+    setState(() {
+      _dialPreviewCustomRingsJson = rawJson;
+      _dialPreviewRingsProfilePath = _customRingsProfilePath;
+    });
+    FFAppState().dialPreviewCustomRingsJson = rawJson;
+    FFAppState().dialPreviewRingsProfilePath = _customRingsProfilePath;
+    return true;
+  }
+
+  bool _saveCustomUiPrefsJson(String rawJson, {bool showError = true}) {
+    if (UiPrefsResolver.parseRawJson(rawJson) == null) {
+      if (showError && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid UI prefs schema JSON. Custom profile not saved.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return false;
+    }
+    setState(() {
+      _dialPreviewCustomUiPrefsJson = rawJson;
+      _dialPreviewUiPrefsProfilePath = _customUiPrefsProfilePath;
+    });
+    FFAppState().dialPreviewCustomUiPrefsJson = rawJson;
+    FFAppState().dialPreviewUiPrefsProfilePath = _customUiPrefsProfilePath;
+    return true;
+  }
+
   Future<void> _editCustomRingsProfile() async {
     final seed = _dialPreviewCustomRingsJson.trim().isNotEmpty
         ? _dialPreviewCustomRingsJson
@@ -962,22 +1080,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     if (edited == null) {
       return;
     }
-    if (RingsResolver.parseRawJson(edited) == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid rings schema JSON. Custom profile not saved.'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-    setState(() {
-      _dialPreviewCustomRingsJson = edited;
-      _dialPreviewRingsProfilePath = _customRingsProfilePath;
-    });
-    FFAppState().dialPreviewCustomRingsJson = edited;
-    FFAppState().dialPreviewRingsProfilePath = _customRingsProfilePath;
+    _saveCustomRingsJson(edited);
   }
 
   Future<void> _editCustomUiPrefsProfile() async {
@@ -996,24 +1099,111 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     if (edited == null) {
       return;
     }
-    if (UiPrefsResolver.parseRawJson(edited) == null) {
-      if (!mounted) return;
+    _saveCustomUiPrefsJson(edited);
+  }
+
+  Future<void> _importCustomRingsProfile() async {
+    final imported = await _openJsonEditorDialog(
+      title: 'Import Rings JSON',
+      initialJson: _dialPreviewCustomRingsJson.trim().isNotEmpty
+          ? _dialPreviewCustomRingsJson
+          : '{\n  "$schema": "ajani.rings.schema.v1"\n}',
+      helperText:
+          'Paste JSON from an exported rings profile file. Must conform to ajani.rings.schema.v1.',
+    );
+    if (imported == null) {
+      return;
+    }
+    _saveCustomRingsJson(imported);
+  }
+
+  Future<void> _importCustomUiPrefsProfile() async {
+    final imported = await _openJsonEditorDialog(
+      title: 'Import UI Prefs JSON',
+      initialJson: _dialPreviewCustomUiPrefsJson.trim().isNotEmpty
+          ? _dialPreviewCustomUiPrefsJson
+          : '{\n  "$schema": "ajani.ui_prefs.schema.v1"\n}',
+      helperText:
+          'Paste JSON from an exported UI prefs profile file. Must conform to ajani.ui_prefs.schema.v1.',
+    );
+    if (imported == null) {
+      return;
+    }
+    _saveCustomUiPrefsJson(imported);
+  }
+
+  Future<void> _exportCustomRingsProfile() async {
+    if (RingsResolver.parseRawJson(_dialPreviewCustomRingsJson) == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Invalid UI prefs schema JSON. Custom profile not saved.',
-          ),
-          duration: Duration(seconds: 3),
+          content: Text('No valid custom Rings profile to export yet.'),
+          duration: Duration(seconds: 2),
         ),
       );
       return;
     }
+    await _showJsonExportDialog(
+      title: 'Export Rings JSON',
+      fileName: _suggestExportFileName('rings_custom_profile'),
+      jsonPayload: _dialPreviewCustomRingsJson,
+    );
+  }
+
+  Future<void> _exportCustomUiPrefsProfile() async {
+    if (UiPrefsResolver.parseRawJson(_dialPreviewCustomUiPrefsJson) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No valid custom UI prefs profile to export yet.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    await _showJsonExportDialog(
+      title: 'Export UI Prefs JSON',
+      fileName: _suggestExportFileName('ui_prefs_custom_profile'),
+      jsonPayload: _dialPreviewCustomUiPrefsJson,
+    );
+  }
+
+  void _resetCustomRingsProfile() {
+    final wasSelected = _dialPreviewRingsProfilePath == _customRingsProfilePath;
     setState(() {
-      _dialPreviewCustomUiPrefsJson = edited;
-      _dialPreviewUiPrefsProfilePath = _customUiPrefsProfilePath;
+      _dialPreviewCustomRingsJson = '';
+      if (wasSelected) {
+        _dialPreviewRingsProfilePath = _defaultRingsProfilePath;
+      }
     });
-    FFAppState().dialPreviewCustomUiPrefsJson = edited;
-    FFAppState().dialPreviewUiPrefsProfilePath = _customUiPrefsProfilePath;
+    FFAppState().dialPreviewCustomRingsJson = '';
+    if (wasSelected) {
+      FFAppState().dialPreviewRingsProfilePath = _defaultRingsProfilePath;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Custom Rings profile reset.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _resetCustomUiPrefsProfile() {
+    final wasSelected = _dialPreviewUiPrefsProfilePath == _customUiPrefsProfilePath;
+    setState(() {
+      _dialPreviewCustomUiPrefsJson = '';
+      if (wasSelected) {
+        _dialPreviewUiPrefsProfilePath = _defaultUiPrefsProfilePath;
+      }
+    });
+    FFAppState().dialPreviewCustomUiPrefsJson = '';
+    if (wasSelected) {
+      FFAppState().dialPreviewUiPrefsProfilePath = _defaultUiPrefsProfilePath;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Custom UI prefs profile reset.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _openDialPreviewWorkspace() {
@@ -1202,17 +1392,64 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                           },
                         ),
                         const SizedBox(height: 10),
+                        Text(
+                          'Rings custom profile',
+                          style: TextStyle(
+                            color: overlayTextColor.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: [
                             OutlinedButton(
                               onPressed: _editCustomRingsProfile,
-                              child: const Text('Edit/Save Custom Rings'),
+                              child: const Text('Edit/Save'),
                             ),
                             OutlinedButton(
+                              onPressed: _importCustomRingsProfile,
+                              child: const Text('Import'),
+                            ),
+                            OutlinedButton(
+                              onPressed: _exportCustomRingsProfile,
+                              child: const Text('Export'),
+                            ),
+                            OutlinedButton(
+                              onPressed: _resetCustomRingsProfile,
+                              child: const Text('Reset Custom'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'UI prefs custom profile',
+                          style: TextStyle(
+                            color: overlayTextColor.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            OutlinedButton(
                               onPressed: _editCustomUiPrefsProfile,
-                              child: const Text('Edit/Save Custom UI Prefs'),
+                              child: const Text('Edit/Save'),
+                            ),
+                            OutlinedButton(
+                              onPressed: _importCustomUiPrefsProfile,
+                              child: const Text('Import'),
+                            ),
+                            OutlinedButton(
+                              onPressed: _exportCustomUiPrefsProfile,
+                              child: const Text('Export'),
+                            ),
+                            OutlinedButton(
+                              onPressed: _resetCustomUiPrefsProfile,
+                              child: const Text('Reset Custom'),
                             ),
                           ],
                         ),

@@ -396,5 +396,9 @@ Format:
   - `dialPreviewCustomRingsJson`
   - `dialPreviewCustomUiPrefsJson`
   Saved profiles are restored on app restart and can be re-selected.
+- Summary (profile ops): Added import/export/reset controls for custom profiles:
+  - import: paste JSON payload from exported `.json` files for rings or UI prefs
+  - export: copy shareable JSON payload with suggested timestamped `.json` filename
+  - reset: clear saved custom rings/UI prefs and fall back to default profiles if custom was selected
 - Risk: Medium (invalid edits are blocked at save time; very large custom JSON payloads may increase local storage footprint).
 - Rollback: Revert the commit updating `atlas_console_widget.dart`, `app_state.dart`, `ui_prefs_resolver.dart`, `rings_resolver.dart`, and `dial_screen.dart`.
