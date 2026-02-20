@@ -12,22 +12,39 @@ class RingsResolver {
   static Future<RingsProfile> resolveDefaultProfile({
     String path = 'assets/rings/rings_default.json',
   }) async {
+    return resolveProfile(path: path);
+  }
+
+  static Future<RingsProfile> resolveProfile({
+    String path = 'assets/rings/rings_default.json',
+    String? rawJson,
+  }) async {
     try {
-      final raw = await rootBundle.loadString(path);
-      final decoded = jsonDecode(raw);
+      final source = (rawJson != null && rawJson.trim().isNotEmpty)
+          ? rawJson
+          : await rootBundle.loadString(path);
+      return parseRawJson(source) ?? RingsProfile.fallback;
+    } catch (_) {
+      return RingsProfile.fallback;
+    }
+  }
+
+  static RingsProfile? parseRawJson(String rawJson) {
+    try {
+      final decoded = jsonDecode(rawJson);
       if (decoded is! Map<String, Object?>) {
-        return RingsProfile.fallback;
+        return null;
       }
       final schema = decoded[r'$schema']?.toString() ?? '';
       if (schema != _ringsSchemaId) {
-        return RingsProfile.fallback;
+        return null;
       }
       if (!_isValidAjaniRingsV1(decoded)) {
-        return RingsProfile.fallback;
+        return null;
       }
       return _fromMap(decoded);
     } catch (_) {
-      return RingsProfile.fallback;
+      return null;
     }
   }
 

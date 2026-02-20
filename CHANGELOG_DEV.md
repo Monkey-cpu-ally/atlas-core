@@ -382,3 +382,19 @@ Format:
   - `frontend/flutter_atlas_scaffold/assets/prefs/ui_prefs_calm.json`
 - Risk: Medium (profile switching remounts the preview dial; malformed custom profile paths now fall back to known defaults).
 - Rollback: Revert the commit that updates `atlas_console_widget.dart`, `app_state.dart`, `dial_screen.dart`, and adds the new profile JSON files.
+
+### Area: FlutterFlow Custom Profile Save/Reload (User-Edited JSON)
+- Summary: Added custom profile authoring flow in `AtlasConsoleWidget` for Dial Preview:
+  - "Edit/Save Custom Rings" JSON dialog with schema validation via `RingsResolver.parseRawJson`
+  - "Edit/Save Custom UI Prefs" JSON dialog with schema validation via `UiPrefsResolver.parseRawJson`
+  - selecting custom profiles now requires a saved valid payload and displays guidance if missing
+- Summary (runtime loading): Extended scaffold resolvers + dial screen to support raw JSON profile overrides:
+  - `UiPrefsResolver.resolveProfile(path, rawJson)` and `parseRawJson`
+  - `RingsResolver.resolveProfile(path, rawJson)` and `parseRawJson`
+  - `DialScreen` now accepts optional `uiPrefsProfileJson` and `ringsProfileJson`
+- Summary (persistence): Added persisted custom payloads in FlutterFlow app state:
+  - `dialPreviewCustomRingsJson`
+  - `dialPreviewCustomUiPrefsJson`
+  Saved profiles are restored on app restart and can be re-selected.
+- Risk: Medium (invalid edits are blocked at save time; very large custom JSON payloads may increase local storage footprint).
+- Rollback: Revert the commit updating `atlas_console_widget.dart`, `app_state.dart`, `ui_prefs_resolver.dart`, `rings_resolver.dart`, and `dial_screen.dart`.

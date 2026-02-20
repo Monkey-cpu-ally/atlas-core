@@ -31,6 +31,8 @@ class AtlasConsoleWidget extends StatefulWidget {
 class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   static const _defaultRingsProfilePath = 'assets/rings/rings_default.json';
   static const _defaultUiPrefsProfilePath = 'assets/prefs/ui_prefs_default.json';
+  static const _customRingsProfilePath = '__custom_rings__';
+  static const _customUiPrefsProfilePath = '__custom_ui_prefs__';
   static const _ringsProfileOptions = <_DialAssetOption>[
     _DialAssetOption(
       label: 'Default Rings',
@@ -39,6 +41,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _DialAssetOption(
       label: 'Precision Rings',
       path: 'assets/rings/rings_precision.json',
+    ),
+    _DialAssetOption(
+      label: 'Custom Rings (saved)',
+      path: _customRingsProfilePath,
     ),
   ];
   static const _uiPrefsProfileOptions = <_DialAssetOption>[
@@ -49,6 +55,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _DialAssetOption(
       label: 'Calm UI Prefs',
       path: 'assets/prefs/ui_prefs_calm.json',
+    ),
+    _DialAssetOption(
+      label: 'Custom UI Prefs (saved)',
+      path: _customUiPrefsProfilePath,
     ),
   ];
 
@@ -73,6 +83,8 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   String _dialPreviewSkinId = AtlasSkinId.lumenCore.id;
   String _dialPreviewRingsProfilePath = _defaultRingsProfilePath;
   String _dialPreviewUiPrefsProfilePath = _defaultUiPrefsProfilePath;
+  String _dialPreviewCustomRingsJson = '';
+  String _dialPreviewCustomUiPrefsJson = '';
 
   bool _loading = false;
   String? _error;
@@ -101,6 +113,8 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
 
     _skin = AtlasSkinIdX.fromId(FFAppState().skinId);
     _dialPreviewSkinId = _skin.id;
+    _dialPreviewCustomRingsJson = FFAppState().dialPreviewCustomRingsJson;
+    _dialPreviewCustomUiPrefsJson = FFAppState().dialPreviewCustomUiPrefsJson;
 
     final savedRingsPath = FFAppState().dialPreviewRingsProfilePath.trim();
     _dialPreviewRingsProfilePath = _isKnownPath(
@@ -109,6 +123,14 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     )
         ? savedRingsPath
         : _defaultRingsProfilePath;
+    if (_dialPreviewRingsProfilePath == _customRingsProfilePath &&
+        _dialPreviewCustomRingsJson.trim().isEmpty) {
+      _dialPreviewRingsProfilePath = _defaultRingsProfilePath;
+    }
+    if (_dialPreviewRingsProfilePath == _customRingsProfilePath &&
+        RingsResolver.parseRawJson(_dialPreviewCustomRingsJson) == null) {
+      _dialPreviewRingsProfilePath = _defaultRingsProfilePath;
+    }
     if (_dialPreviewRingsProfilePath != savedRingsPath &&
         savedRingsPath.isNotEmpty) {
       FFAppState().dialPreviewRingsProfilePath = _dialPreviewRingsProfilePath;
@@ -121,6 +143,14 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     )
         ? savedUiPrefsPath
         : _defaultUiPrefsProfilePath;
+    if (_dialPreviewUiPrefsProfilePath == _customUiPrefsProfilePath &&
+        _dialPreviewCustomUiPrefsJson.trim().isEmpty) {
+      _dialPreviewUiPrefsProfilePath = _defaultUiPrefsProfilePath;
+    }
+    if (_dialPreviewUiPrefsProfilePath == _customUiPrefsProfilePath &&
+        UiPrefsResolver.parseRawJson(_dialPreviewCustomUiPrefsJson) == null) {
+      _dialPreviewUiPrefsProfilePath = _defaultUiPrefsProfilePath;
+    }
     if (_dialPreviewUiPrefsProfilePath != savedUiPrefsPath &&
         savedUiPrefsPath.isNotEmpty) {
       FFAppState().dialPreviewUiPrefsProfilePath = _dialPreviewUiPrefsProfilePath;
@@ -803,12 +833,34 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     if (!_isKnownPath(path, _ringsProfileOptions)) {
       return;
     }
+    if (path == _customRingsProfilePath &&
+        (_dialPreviewCustomRingsJson.trim().isEmpty ||
+            RingsResolver.parseRawJson(_dialPreviewCustomRingsJson) == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Save a valid custom Rings profile first.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
     setState(() => _dialPreviewRingsProfilePath = path);
     FFAppState().dialPreviewRingsProfilePath = path;
   }
 
   void _setDialPreviewUiPrefsProfile(String path) {
     if (!_isKnownPath(path, _uiPrefsProfileOptions)) {
+      return;
+    }
+    if (path == _customUiPrefsProfilePath &&
+        (_dialPreviewCustomUiPrefsJson.trim().isEmpty ||
+            UiPrefsResolver.parseRawJson(_dialPreviewCustomUiPrefsJson) == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Save a valid custom UI prefs profile first.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
       return;
     }
     setState(() => _dialPreviewUiPrefsProfilePath = path);
@@ -822,6 +874,146 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
       }
     }
     return path;
+  }
+
+  Future<String> _loadJsonTemplate({
+    required String selectedPath,
+    required String fallbackPath,
+  }) async {
+    final target = selectedPath.startsWith('__') ? fallbackPath : selectedPath;
+    try {
+      return await rootBundle.loadString(target);
+    } catch (_) {
+      return await rootBundle.loadString(fallbackPath);
+    }
+  }
+
+  Future<String?> _openJsonEditorDialog({
+    required String title,
+    required String initialJson,
+    required String helperText,
+  }) async {
+    final controller = TextEditingController(text: initialJson);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: SizedBox(
+            width: 700,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  helperText,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 320,
+                  child: TextField(
+                    controller: controller,
+                    maxLines: null,
+                    expands: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      alignLabelWithHint: true,
+                    ),
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(controller.text),
+              child: const Text('Save Custom'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    return result;
+  }
+
+  Future<void> _editCustomRingsProfile() async {
+    final seed = _dialPreviewCustomRingsJson.trim().isNotEmpty
+        ? _dialPreviewCustomRingsJson
+        : await _loadJsonTemplate(
+            selectedPath: _dialPreviewRingsProfilePath,
+            fallbackPath: _defaultRingsProfilePath,
+          );
+    final edited = await _openJsonEditorDialog(
+      title: 'Custom Rings Profile JSON',
+      initialJson: seed,
+      helperText:
+          'Must conform to ajani.rings.schema.v1. Saving sets Dial Preview to custom rings.',
+    );
+    if (edited == null) {
+      return;
+    }
+    if (RingsResolver.parseRawJson(edited) == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid rings schema JSON. Custom profile not saved.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _dialPreviewCustomRingsJson = edited;
+      _dialPreviewRingsProfilePath = _customRingsProfilePath;
+    });
+    FFAppState().dialPreviewCustomRingsJson = edited;
+    FFAppState().dialPreviewRingsProfilePath = _customRingsProfilePath;
+  }
+
+  Future<void> _editCustomUiPrefsProfile() async {
+    final seed = _dialPreviewCustomUiPrefsJson.trim().isNotEmpty
+        ? _dialPreviewCustomUiPrefsJson
+        : await _loadJsonTemplate(
+            selectedPath: _dialPreviewUiPrefsProfilePath,
+            fallbackPath: _defaultUiPrefsProfilePath,
+          );
+    final edited = await _openJsonEditorDialog(
+      title: 'Custom UI Prefs Profile JSON',
+      initialJson: seed,
+      helperText:
+          'Must conform to ajani.ui_prefs.schema.v1. Saving sets Dial Preview to custom UI prefs.',
+    );
+    if (edited == null) {
+      return;
+    }
+    if (UiPrefsResolver.parseRawJson(edited) == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Invalid UI prefs schema JSON. Custom profile not saved.',
+          ),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _dialPreviewCustomUiPrefsJson = edited;
+      _dialPreviewUiPrefsProfilePath = _customUiPrefsProfilePath;
+    });
+    FFAppState().dialPreviewCustomUiPrefsJson = edited;
+    FFAppState().dialPreviewUiPrefsProfilePath = _customUiPrefsProfilePath;
   }
 
   void _openDialPreviewWorkspace() {
@@ -881,17 +1073,39 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
 
   Widget _buildDialPreviewWorkspace() {
     final overlayTextColor = Theme.of(context).colorScheme.onSurface;
+    final ringsJsonOverride = _dialPreviewRingsProfilePath == _customRingsProfilePath
+        ? _dialPreviewCustomRingsJson
+        : null;
+    final uiPrefsJsonOverride =
+        _dialPreviewUiPrefsProfilePath == _customUiPrefsProfilePath
+            ? _dialPreviewCustomUiPrefsJson
+            : null;
+    final resolvedRingsPath =
+        ringsJsonOverride == null ? _dialPreviewRingsProfilePath : _defaultRingsProfilePath;
+    final resolvedUiPrefsPath = uiPrefsJsonOverride == null
+        ? _dialPreviewUiPrefsProfilePath
+        : _defaultUiPrefsProfilePath;
+    final ringsSignature =
+        ringsJsonOverride == null ? resolvedRingsPath : 'custom:${ringsJsonOverride.hashCode}';
+    final uiPrefsSignature = uiPrefsJsonOverride == null
+        ? resolvedUiPrefsPath
+        : 'custom:${uiPrefsJsonOverride.hashCode}';
+    final customRingsSaved =
+        RingsResolver.parseRawJson(_dialPreviewCustomRingsJson) != null;
+    final customUiPrefsSaved =
+        UiPrefsResolver.parseRawJson(_dialPreviewCustomUiPrefsJson) != null;
     return Stack(
       fit: StackFit.expand,
       children: [
         DialScreen(
           key: ValueKey(
-            'dial-preview|$_dialPreviewSkinId|$_dialPreviewRingsProfilePath|'
-            '$_dialPreviewUiPrefsProfilePath',
+            'dial-preview|$_dialPreviewSkinId|$ringsSignature|$uiPrefsSignature',
           ),
           initialSkinId: _dialPreviewSkinId,
-          uiPrefsProfilePath: _dialPreviewUiPrefsProfilePath,
-          ringsProfilePath: _dialPreviewRingsProfilePath,
+          uiPrefsProfilePath: resolvedUiPrefsPath,
+          ringsProfilePath: resolvedRingsPath,
+          uiPrefsProfileJson: uiPrefsJsonOverride,
+          ringsProfileJson: ringsJsonOverride,
         ),
         SafeArea(
           child: Align(
@@ -987,11 +1201,28 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                             _setDialPreviewUiPrefsProfile(value);
                           },
                         ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            OutlinedButton(
+                              onPressed: _editCustomRingsProfile,
+                              child: const Text('Edit/Save Custom Rings'),
+                            ),
+                            OutlinedButton(
+                              onPressed: _editCustomUiPrefsProfile,
+                              child: const Text('Edit/Save Custom UI Prefs'),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           'Active: ${AtlasSkinIdX.fromId(_dialPreviewSkinId).label}\n'
                           'Rings: ${_labelForPath(_dialPreviewRingsProfilePath, _ringsProfileOptions)}\n'
-                          'Prefs: ${_labelForPath(_dialPreviewUiPrefsProfilePath, _uiPrefsProfileOptions)}',
+                          'Prefs: ${_labelForPath(_dialPreviewUiPrefsProfilePath, _uiPrefsProfileOptions)}\n'
+                          'Custom Rings JSON: ${customRingsSaved ? 'saved' : 'not saved'}\n'
+                          'Custom UI Prefs JSON: ${customUiPrefsSaved ? 'saved' : 'not saved'}',
                           style: TextStyle(
                             color: overlayTextColor.withOpacity(0.72),
                             fontSize: 11,

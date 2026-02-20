@@ -30,6 +30,14 @@ class FFAppState extends ChangeNotifier {
             'ff_dialPreviewUiPrefsProfilePath',
           ) ??
           _dialPreviewUiPrefsProfilePath;
+      _dialPreviewCustomRingsJson = prefs.getString(
+            'ff_dialPreviewCustomRingsJson',
+          ) ??
+          _dialPreviewCustomRingsJson;
+      _dialPreviewCustomUiPrefsJson = prefs.getString(
+            'ff_dialPreviewCustomUiPrefsJson',
+          ) ??
+          _dialPreviewCustomUiPrefsJson;
     });
   }
 
@@ -86,6 +94,22 @@ class FFAppState extends ChangeNotifier {
   set dialPreviewUiPrefsProfilePath(String value) {
     _dialPreviewUiPrefsProfilePath = value;
     prefs.setString('ff_dialPreviewUiPrefsProfilePath', value);
+  }
+
+  /// Custom rings JSON payload used when custom profile is selected.
+  String _dialPreviewCustomRingsJson = '';
+  String get dialPreviewCustomRingsJson => _dialPreviewCustomRingsJson;
+  set dialPreviewCustomRingsJson(String value) {
+    _dialPreviewCustomRingsJson = value;
+    prefs.setString('ff_dialPreviewCustomRingsJson', value);
+  }
+
+  /// Custom UI prefs JSON payload used when custom profile is selected.
+  String _dialPreviewCustomUiPrefsJson = '';
+  String get dialPreviewCustomUiPrefsJson => _dialPreviewCustomUiPrefsJson;
+  set dialPreviewCustomUiPrefsJson(String value) {
+    _dialPreviewCustomUiPrefsJson = value;
+    prefs.setString('ff_dialPreviewCustomUiPrefsJson', value);
   }
 
   /// True while AI is processing a response

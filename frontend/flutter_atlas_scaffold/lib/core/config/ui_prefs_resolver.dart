@@ -9,22 +9,41 @@ import 'defaults.dart';
 class UiPrefsResolver {
   const UiPrefsResolver._();
 
+  static const _uiPrefsSchemaId = 'ajani.ui_prefs.schema.v1';
+
   static Future<UiPrefsProfile> resolveDefaultProfile({
     String path = 'assets/prefs/ui_prefs_default.json',
   }) async {
+    return resolveProfile(path: path);
+  }
+
+  static Future<UiPrefsProfile> resolveProfile({
+    String path = 'assets/prefs/ui_prefs_default.json',
+    String? rawJson,
+  }) async {
     try {
-      final raw = await rootBundle.loadString(path);
-      final decoded = jsonDecode(raw);
+      final source = (rawJson != null && rawJson.trim().isNotEmpty)
+          ? rawJson
+          : await rootBundle.loadString(path);
+      return parseRawJson(source) ?? _fallback();
+    } catch (_) {
+      return _fallback();
+    }
+  }
+
+  static UiPrefsProfile? parseRawJson(String rawJson) {
+    try {
+      final decoded = jsonDecode(rawJson);
       if (decoded is! Map<String, Object?>) {
-        return _fallback();
+        return null;
       }
       final schema = decoded[r'$schema']?.toString() ?? '';
-      if (schema != 'ajani.ui_prefs.schema.v1') {
-        return _fallback();
+      if (schema != _uiPrefsSchemaId) {
+        return null;
       }
       return _fromMap(decoded);
     } catch (_) {
-      return _fallback();
+      return null;
     }
   }
 
