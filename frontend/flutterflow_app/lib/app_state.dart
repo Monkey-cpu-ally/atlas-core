@@ -22,6 +22,14 @@ class FFAppState extends ChangeNotifier {
       _skinId = prefs.getString('ff_skinId') ?? _skinId;
       _dialVisualPrefsJson =
           prefs.getString('ff_dialVisualPrefsJson') ?? _dialVisualPrefsJson;
+      _dialPreviewRingsProfilePath = prefs.getString(
+            'ff_dialPreviewRingsProfilePath',
+          ) ??
+          _dialPreviewRingsProfilePath;
+      _dialPreviewUiPrefsProfilePath = prefs.getString(
+            'ff_dialPreviewUiPrefsProfilePath',
+          ) ??
+          _dialPreviewUiPrefsProfilePath;
     });
   }
 
@@ -62,6 +70,22 @@ class FFAppState extends ChangeNotifier {
   set dialVisualPrefsJson(String value) {
     _dialVisualPrefsJson = value;
     prefs.setString('ff_dialVisualPrefsJson', value);
+  }
+
+  /// Selected rings schema profile used by Dial Preview.
+  String _dialPreviewRingsProfilePath = 'assets/rings/rings_default.json';
+  String get dialPreviewRingsProfilePath => _dialPreviewRingsProfilePath;
+  set dialPreviewRingsProfilePath(String value) {
+    _dialPreviewRingsProfilePath = value;
+    prefs.setString('ff_dialPreviewRingsProfilePath', value);
+  }
+
+  /// Selected UI prefs schema profile used by Dial Preview.
+  String _dialPreviewUiPrefsProfilePath = 'assets/prefs/ui_prefs_default.json';
+  String get dialPreviewUiPrefsProfilePath => _dialPreviewUiPrefsProfilePath;
+  set dialPreviewUiPrefsProfilePath(String value) {
+    _dialPreviewUiPrefsProfilePath = value;
+    prefs.setString('ff_dialPreviewUiPrefsProfilePath', value);
   }
 
   /// True while AI is processing a response

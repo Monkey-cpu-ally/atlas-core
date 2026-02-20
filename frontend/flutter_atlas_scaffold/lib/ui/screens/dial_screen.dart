@@ -34,12 +34,16 @@ class DialScreen extends StatefulWidget {
   const DialScreen({
     this.initialSkinId = Defaults.defaultSkinId,
     this.initialPrefs = Defaults.uiPrefs,
+    this.uiPrefsProfilePath = 'assets/prefs/ui_prefs_default.json',
+    this.ringsProfilePath = 'assets/rings/rings_default.json',
     this.gyroService,
     super.key,
   });
 
   final String initialSkinId;
   final UiPrefs initialPrefs;
+  final String uiPrefsProfilePath;
+  final String ringsProfilePath;
   final GyroService? gyroService;
 
   @override
@@ -94,8 +98,12 @@ class _DialScreenState extends State<DialScreen> {
   }
 
   Future<void> _bootstrapDefaults() async {
-    final profile = await UiPrefsResolver.resolveDefaultProfile();
-    final ringsProfile = await RingsResolver.resolveDefaultProfile();
+    final profile = await UiPrefsResolver.resolveDefaultProfile(
+      path: widget.uiPrefsProfilePath,
+    );
+    final ringsProfile = await RingsResolver.resolveDefaultProfile(
+      path: widget.ringsProfilePath,
+    );
     if (!mounted) {
       return;
     }

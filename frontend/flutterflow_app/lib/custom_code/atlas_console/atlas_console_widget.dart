@@ -11,6 +11,16 @@ import 'dart:math' as math;
 
 enum _AtlasWorkspaceView { console, dialPreview }
 
+class _DialAssetOption {
+  const _DialAssetOption({
+    required this.label,
+    required this.path,
+  });
+
+  final String label;
+  final String path;
+}
+
 class AtlasConsoleWidget extends StatefulWidget {
   const AtlasConsoleWidget({super.key});
 
@@ -19,6 +29,29 @@ class AtlasConsoleWidget extends StatefulWidget {
 }
 
 class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
+  static const _defaultRingsProfilePath = 'assets/rings/rings_default.json';
+  static const _defaultUiPrefsProfilePath = 'assets/prefs/ui_prefs_default.json';
+  static const _ringsProfileOptions = <_DialAssetOption>[
+    _DialAssetOption(
+      label: 'Default Rings',
+      path: 'assets/rings/rings_default.json',
+    ),
+    _DialAssetOption(
+      label: 'Precision Rings',
+      path: 'assets/rings/rings_precision.json',
+    ),
+  ];
+  static const _uiPrefsProfileOptions = <_DialAssetOption>[
+    _DialAssetOption(
+      label: 'Default UI Prefs',
+      path: 'assets/prefs/ui_prefs_default.json',
+    ),
+    _DialAssetOption(
+      label: 'Calm UI Prefs',
+      path: 'assets/prefs/ui_prefs_calm.json',
+    ),
+  ];
+
   final _client = AtlasBackendClient();
   final _voiceCore = VoiceCoreController();
 
@@ -37,6 +70,9 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   bool _accentPreviewEnabled = false;
   String _accentPreviewId = 'hermes';
   _AtlasWorkspaceView _workspaceView = _AtlasWorkspaceView.console;
+  String _dialPreviewSkinId = AtlasSkinId.lumenCore.id;
+  String _dialPreviewRingsProfilePath = _defaultRingsProfilePath;
+  String _dialPreviewUiPrefsProfilePath = _defaultUiPrefsProfilePath;
 
   bool _loading = false;
   String? _error;
@@ -64,6 +100,32 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     );
 
     _skin = AtlasSkinIdX.fromId(FFAppState().skinId);
+    _dialPreviewSkinId = _skin.id;
+
+    final savedRingsPath = FFAppState().dialPreviewRingsProfilePath.trim();
+    _dialPreviewRingsProfilePath = _isKnownPath(
+      savedRingsPath,
+      _ringsProfileOptions,
+    )
+        ? savedRingsPath
+        : _defaultRingsProfilePath;
+    if (_dialPreviewRingsProfilePath != savedRingsPath &&
+        savedRingsPath.isNotEmpty) {
+      FFAppState().dialPreviewRingsProfilePath = _dialPreviewRingsProfilePath;
+    }
+
+    final savedUiPrefsPath = FFAppState().dialPreviewUiPrefsProfilePath.trim();
+    _dialPreviewUiPrefsProfilePath = _isKnownPath(
+      savedUiPrefsPath,
+      _uiPrefsProfileOptions,
+    )
+        ? savedUiPrefsPath
+        : _defaultUiPrefsProfilePath;
+    if (_dialPreviewUiPrefsProfilePath != savedUiPrefsPath &&
+        savedUiPrefsPath.isNotEmpty) {
+      FFAppState().dialPreviewUiPrefsProfilePath = _dialPreviewUiPrefsProfilePath;
+    }
+
     _visualPrefs = DialVisualPrefsCodec.decodeOrDefaults(
       FFAppState().dialVisualPrefsJson,
     );
@@ -611,7 +673,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   }
 
   void _setSkin(AtlasSkinId skin) {
-    setState(() => _skin = skin);
+    setState(() {
+      _skin = skin;
+      _dialPreviewSkinId = skin.id;
+    });
     FFAppState().skinId = skin.id;
   }
 
@@ -714,6 +779,51 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _persistVisualPrefs();
   }
 
+  static bool _isKnownPath(String path, List<_DialAssetOption> options) {
+    if (path.isEmpty) {
+      return false;
+    }
+    for (final option in options) {
+      if (option.path == path) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _setDialPreviewSkinId(String skinId) {
+    setState(() {
+      _dialPreviewSkinId = skinId;
+      _skin = AtlasSkinIdX.fromId(skinId);
+    });
+    FFAppState().skinId = skinId;
+  }
+
+  void _setDialPreviewRingsProfile(String path) {
+    if (!_isKnownPath(path, _ringsProfileOptions)) {
+      return;
+    }
+    setState(() => _dialPreviewRingsProfilePath = path);
+    FFAppState().dialPreviewRingsProfilePath = path;
+  }
+
+  void _setDialPreviewUiPrefsProfile(String path) {
+    if (!_isKnownPath(path, _uiPrefsProfileOptions)) {
+      return;
+    }
+    setState(() => _dialPreviewUiPrefsProfilePath = path);
+    FFAppState().dialPreviewUiPrefsProfilePath = path;
+  }
+
+  String _labelForPath(String path, List<_DialAssetOption> options) {
+    for (final option in options) {
+      if (option.path == path) {
+        return option.label;
+      }
+    }
+    return path;
+  }
+
   void _openDialPreviewWorkspace() {
     setState(() {
       // Leave calibration mode before mounting the new scaffold dial view.
@@ -770,10 +880,131 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   }
 
   Widget _buildDialPreviewWorkspace() {
+    final overlayTextColor = Theme.of(context).colorScheme.onSurface;
     return Stack(
       fit: StackFit.expand,
       children: [
-        const DialScreen(),
+        DialScreen(
+          key: ValueKey(
+            'dial-preview|$_dialPreviewSkinId|$_dialPreviewRingsProfilePath|'
+            '$_dialPreviewUiPrefsProfilePath',
+          ),
+          initialSkinId: _dialPreviewSkinId,
+          uiPrefsProfilePath: _dialPreviewUiPrefsProfilePath,
+          ringsProfilePath: _dialPreviewRingsProfilePath,
+        ),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 330),
+                child: Card(
+                  elevation: 6,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dial Preview Controls',
+                          style: TextStyle(
+                            color: overlayTextColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Skin',
+                          style: TextStyle(
+                            color: overlayTextColor.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                        DropdownButton<String>(
+                          isExpanded: true,
+                          value: _dialPreviewSkinId,
+                          items: AtlasSkinId.values
+                              .map(
+                                (skin) => DropdownMenuItem<String>(
+                                  value: skin.id,
+                                  child: Text(skin.label),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            _setDialPreviewSkinId(value);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Rings profile',
+                          style: TextStyle(
+                            color: overlayTextColor.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                        DropdownButton<String>(
+                          isExpanded: true,
+                          value: _dialPreviewRingsProfilePath,
+                          items: _ringsProfileOptions
+                              .map(
+                                (option) => DropdownMenuItem<String>(
+                                  value: option.path,
+                                  child: Text(option.label),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            _setDialPreviewRingsProfile(value);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'UI prefs profile',
+                          style: TextStyle(
+                            color: overlayTextColor.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                        DropdownButton<String>(
+                          isExpanded: true,
+                          value: _dialPreviewUiPrefsProfilePath,
+                          items: _uiPrefsProfileOptions
+                              .map(
+                                (option) => DropdownMenuItem<String>(
+                                  value: option.path,
+                                  child: Text(option.label),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) return;
+                            _setDialPreviewUiPrefsProfile(value);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Active: ${AtlasSkinIdX.fromId(_dialPreviewSkinId).label}\n'
+                          'Rings: ${_labelForPath(_dialPreviewRingsProfilePath, _ringsProfileOptions)}\n'
+                          'Prefs: ${_labelForPath(_dialPreviewUiPrefsProfilePath, _uiPrefsProfileOptions)}',
+                          style: TextStyle(
+                            color: overlayTextColor.withOpacity(0.72),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
         SafeArea(
           child: Align(
             alignment: Alignment.topRight,

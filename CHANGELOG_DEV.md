@@ -363,3 +363,22 @@ Format:
 - Summary (contract alignment): Updated `assets/rings/rings_default.json` command ring labeling to include `showFullLabelWhenCentered` for strict schema compliance.
 - Risk: Low to medium (stricter validation may reject malformed or partially specified ring profile payloads that were previously tolerated).
 - Rollback: Revert the commit adding the rings schema file and resolver validation guard.
+
+### Area: FlutterFlow Dial Preview Controls (Schema Profile Switching)
+- Summary: Added FlutterFlow-facing control panel for the new Dial Preview workspace in `AtlasConsoleWidget`:
+  - live skin selector for all 4 Ajani skin IDs
+  - rings profile selector (`rings_default.json`, `rings_precision.json`)
+  - UI prefs profile selector (`ui_prefs_default.json`, `ui_prefs_calm.json`)
+  - `DialScreen` now remounts with a key derived from selected skin/profile paths so changes apply immediately
+- Summary (persistence): Added new app-state fields persisted in `SharedPreferences`:
+  - `dialPreviewRingsProfilePath`
+  - `dialPreviewUiPrefsProfilePath`
+- Summary (scaffold wiring): Extended `DialScreen` constructor with:
+  - `uiPrefsProfilePath`
+  - `ringsProfilePath`
+  and wired both through bootstrap resolvers.
+- Summary (new profiles): Added additional schema-driven presets:
+  - `frontend/flutter_atlas_scaffold/assets/rings/rings_precision.json`
+  - `frontend/flutter_atlas_scaffold/assets/prefs/ui_prefs_calm.json`
+- Risk: Medium (profile switching remounts the preview dial; malformed custom profile paths now fall back to known defaults).
+- Rollback: Revert the commit that updates `atlas_console_widget.dart`, `app_state.dart`, `dial_screen.dart`, and adds the new profile JSON files.
