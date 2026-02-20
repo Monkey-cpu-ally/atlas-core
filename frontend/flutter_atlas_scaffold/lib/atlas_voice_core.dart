@@ -19,6 +19,7 @@ export 'app/routes.dart';
 
 export 'core/config/defaults.dart';
 export 'core/config/feature_flags.dart';
+export 'core/config/rings_resolver.dart';
 export 'core/config/ui_prefs_resolver.dart';
 export 'core/constants/ai_identities.dart';
 export 'core/constants/timings.dart';
@@ -50,6 +51,7 @@ export 'domain/controllers/ring_controller.dart';
 export 'domain/controllers/voice_controller.dart';
 export 'domain/models/ai_speaker.dart';
 export 'domain/models/ring_item.dart';
+export 'domain/models/rings_profile.dart';
 export 'domain/models/skin_config.dart';
 export 'domain/models/ui_prefs.dart';
 export 'domain/models/ui_prefs_profile.dart';

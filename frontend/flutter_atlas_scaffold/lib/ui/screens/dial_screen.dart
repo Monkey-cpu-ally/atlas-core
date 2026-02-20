@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../core/config/defaults.dart';
+import '../../core/config/rings_resolver.dart';
 import '../../core/config/ui_prefs_resolver.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/bluetooth_wake_service.dart';
@@ -15,6 +16,7 @@ import '../../domain/controllers/core_controller.dart';
 import '../../domain/controllers/council_controller.dart';
 import '../../domain/controllers/ring_controller.dart';
 import '../../domain/controllers/voice_controller.dart';
+import '../../domain/models/rings_profile.dart';
 import '../../domain/models/ui_prefs.dart';
 import '../themes/skin_resolver.dart';
 import '../themes/skin_tokens.dart';
@@ -57,6 +59,7 @@ class _DialScreenState extends State<DialScreen> {
   late UiPrefs _prefs;
   UiPrefs _skinDefaultPrefs = Defaults.uiPrefs;
   SkinTokens _skin = Skins.lumenCore;
+  RingsProfile _ringsProfile = RingsProfile.fallback;
   bool _showFirstLaunchHint = true;
   String _firstLaunchHintText =
       'Say "Hermes, system mode" to customize interface.';
@@ -92,6 +95,7 @@ class _DialScreenState extends State<DialScreen> {
 
   Future<void> _bootstrapDefaults() async {
     final profile = await UiPrefsResolver.resolveDefaultProfile();
+    final ringsProfile = await RingsResolver.resolveDefaultProfile();
     if (!mounted) {
       return;
     }
@@ -116,6 +120,7 @@ class _DialScreenState extends State<DialScreen> {
       expandScale: profile.prefs.coreExpandScale,
       pressTightenScale: profile.prefs.corePressTightenScale,
     );
+    _rings.configureSnapping(ringsProfile.snapping);
     final shouldShowFirstLaunchHint = profile.firstLaunchHintEnabled &&
         (!profile.firstLaunchHintShowOnce || !_firstLaunchHintShownInProcess);
     if (shouldShowFirstLaunchHint && profile.firstLaunchHintShowOnce) {
@@ -127,6 +132,7 @@ class _DialScreenState extends State<DialScreen> {
       _showFirstLaunchHint = shouldShowFirstLaunchHint;
       _skin = bundle.tokens;
       _skinDefaultPrefs = profile.prefs;
+      _ringsProfile = ringsProfile;
       if (_isDefaultPrefs(widget.initialPrefs)) {
         _prefs = profile.prefs;
       }
@@ -193,6 +199,7 @@ class _DialScreenState extends State<DialScreen> {
               controller: _rings,
               skin: _skin,
               prefs: _prefs,
+              profile: _ringsProfile,
             ),
             Center(
               child: CoreHybridWidget(

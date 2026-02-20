@@ -50,7 +50,6 @@ class UiPrefsResolver {
     final holdToActivate = _asMap(voice['holdToActivate']);
     final bluetoothWake = _asMap(voice['bluetoothWake']);
     final audio = _asMap(map['audio']);
-    final aiActivationTone = _asMap(audio['aiActivationTone']);
     final haptics = _asMap(map['haptics']);
     final council = _asMap(map['council']);
     final failureHandling = _asMap(map['failureHandling']);

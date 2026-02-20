@@ -1,0 +1,91 @@
+{
+  "$schema": "ajani.rings.schema.v1",
+  "meta": { "id": "rings_default", "version": 1, "author": "Frazier" },
+  "rings": [
+    {
+      "id": "command",
+      "label": "COMMAND",
+      "radius": 128,
+      "segmentCount": 5,
+      "segments": [
+        { "id": "blueprint", "label": "BLUEPRINT", "icon": "compass" },
+        { "id": "build", "label": "BUILD", "icon": "hammer" },
+        { "id": "modify", "label": "MODIFY", "icon": "sliders" },
+        { "id": "simulate", "label": "SIMULATE", "icon": "waveform" },
+        { "id": "log", "label": "LOG", "icon": "book" }
+      ],
+      "labeling": { "alwaysShowLabels": true }
+    },
+    {
+      "id": "domain",
+      "label": "DOMAINS",
+      "radius": 162,
+      "segmentCount": 10,
+      "segments": [
+        { "id": "robotics", "label": "ROBOTICS", "shortLabel": "ROBO", "icon": "bot" },
+        { "id": "aerospace", "label": "AEROSPACE", "shortLabel": "AERO", "icon": "rocket" },
+        { "id": "energy", "label": "ENERGY", "shortLabel": "ENRG", "icon": "bolt" },
+        { "id": "materials", "label": "MATERIALS", "shortLabel": "MATL", "icon": "layers" },
+        { "id": "ai", "label": "AI", "shortLabel": "AI", "icon": "brain" },
+        { "id": "biology", "label": "BIOLOGY", "shortLabel": "BIO", "icon": "dna" },
+        { "id": "chemistry", "label": "CHEMISTRY", "shortLabel": "CHEM", "icon": "flask" },
+        { "id": "architecture", "label": "ARCHITECTURE", "shortLabel": "ARCH", "icon": "columns" },
+        { "id": "security", "label": "SECURITY", "shortLabel": "SEC", "icon": "shield" },
+        { "id": "tools", "label": "TOOLS", "shortLabel": "TOOL", "icon": "wrench" }
+      ],
+      "labeling": { "alwaysShowLabels": false, "showFullLabelWhenCentered": true }
+    },
+    {
+      "id": "modules",
+      "label": "MODULES",
+      "radius": 195,
+      "segmentCount": 12,
+      "segments": [
+        { "id": "project_queue", "label": "PROJECTS", "shortLabel": "PROJ", "icon": "stack" },
+        { "id": "blueprints", "label": "BLUEPRINT LIB", "shortLabel": "BPL", "icon": "map" },
+        { "id": "sim_lab", "label": "SIM LAB", "shortLabel": "SIM", "icon": "pulse" },
+        { "id": "materials_db", "label": "MATERIAL DB", "shortLabel": "DB", "icon": "database" },
+        { "id": "parts", "label": "PARTS", "shortLabel": "PRTS", "icon": "cog" },
+        { "id": "tests", "label": "TESTS", "shortLabel": "TSTS", "icon": "beaker" },
+        { "id": "notes", "label": "NOTES", "shortLabel": "NOTE", "icon": "note" },
+        { "id": "voice", "label": "VOICE", "shortLabel": "VOX", "icon": "mic" },
+        { "id": "skins", "label": "SKINS", "shortLabel": "SKIN", "icon": "palette" },
+        { "id": "devices", "label": "DEVICES", "shortLabel": "DEV", "icon": "bluetooth" },
+        { "id": "ethics", "label": "ETHICS", "shortLabel": "ETH", "icon": "scale" },
+        { "id": "export", "label": "EXPORT", "shortLabel": "EXP", "icon": "download" }
+      ],
+      "labeling": { "alwaysShowLabels": false, "showFullLabelWhenCentered": true }
+    },
+    {
+      "id": "utility",
+      "label": "UTILITY",
+      "radius": 226,
+      "segmentCount": 8,
+      "segments": [
+        { "id": "search", "label": "SEARCH", "shortLabel": "SRCH", "icon": "search" },
+        { "id": "filters", "label": "FILTERS", "shortLabel": "FLTR", "icon": "filter" },
+        { "id": "status", "label": "STATUS", "shortLabel": "STAT", "icon": "activity" },
+        { "id": "alerts", "label": "ALERTS", "shortLabel": "ALRT", "icon": "bell" },
+        { "id": "privacy", "label": "PRIVACY", "shortLabel": "PRIV", "icon": "lock" },
+        { "id": "help", "label": "HELP", "shortLabel": "HELP", "icon": "help" },
+        { "id": "about", "label": "ABOUT", "shortLabel": "INFO", "icon": "info" },
+        { "id": "reset_ui", "label": "RESET UI", "shortLabel": "RSET", "icon": "rotate-ccw" }
+      ],
+      "labeling": { "alwaysShowLabels": false, "showFullLabelWhenCentered": true }
+    }
+  ],
+  "snapping": {
+    "enabled": true,
+    "inertia": 0.85,
+    "snapStrength": 0.75,
+    "bounce": 0.08
+  },
+  "labelingDefaults": {
+    "mode": "partial",
+    "activeLabelScale": 1.15,
+    "inactiveOpacityNear": 0.55,
+    "inactiveOpacityFar": 0.18,
+    "keepLabelsUpright": true
+  }
+}
+

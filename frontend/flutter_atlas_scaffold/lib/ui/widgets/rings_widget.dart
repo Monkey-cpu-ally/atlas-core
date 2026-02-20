@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../domain/controllers/ring_controller.dart';
+import '../../domain/models/rings_profile.dart';
 import '../../domain/models/ui_prefs.dart';
 import '../painters/ring_painter.dart';
 import '../themes/skin_tokens.dart';
@@ -13,6 +14,7 @@ class RingsWidget extends StatelessWidget {
     required this.controller,
     required this.skin,
     required this.prefs,
+    this.profile = RingsProfile.fallback,
     this.activeLayer = RingLayer.command,
     this.onSelectionCommitted,
     super.key,
@@ -21,23 +23,53 @@ class RingsWidget extends StatelessWidget {
   final RingController controller;
   final SkinTokens skin;
   final UiPrefs prefs;
+  final RingsProfile profile;
   final RingLayer activeLayer;
   final void Function(RingLayer layer, int index)? onSelectionCommitted;
 
   @override
   Widget build(BuildContext context) {
-    final layerTransparency = switch (activeLayer) {
-      RingLayer.command => prefs.commandRingTransparency,
-      RingLayer.domain => prefs.domainRingTransparency,
-      RingLayer.module => prefs.moduleRingTransparency,
-      RingLayer.utility => prefs.utilityRingTransparency,
-    };
-    final layerMaterial = switch (activeLayer) {
-      RingLayer.command => prefs.commandRingMaterial,
-      RingLayer.domain => prefs.domainRingMaterial,
-      RingLayer.module => prefs.moduleRingMaterial,
-      RingLayer.utility => prefs.utilityRingMaterial,
-    };
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final activeRing = profile.byLayer(activeLayer);
+        final activeSegmentCount = activeRing?.segmentCount ?? 6;
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onPanUpdate: (details) {
+            controller.rotate(
+              layer: activeLayer,
+              deltaDeg: details.delta.dx * 0.7,
+              segmentCount: activeSegmentCount,
+            );
+          },
+          onPanEnd: (_) {
+            controller.snapToNearest(
+              layer: activeLayer,
+              segmentCount: activeSegmentCount,
+            );
+            onSelectionCommitted?.call(
+              activeLayer,
+              controller.layerState(activeLayer).selectedIndex,
+            );
+          },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              for (final ring in profile.rings) _buildRingLayer(ring),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRingLayer(RingDefinition ring) {
+    final layer = ring.layer;
+    final layerState = controller.layerState(layer);
+    final layerTransparency = _layerTransparency(layer);
+    final layerMaterial = _layerMaterial(layer);
+
     final ringOpacity = (0.5 * (1 - layerTransparency)).clamp(0.06, 0.85);
     final baseStroke = switch (layerMaterial) {
       'solidMatte' => 1.9,
@@ -48,115 +80,101 @@ class RingsWidget extends StatelessWidget {
       _ => 1.3,
     };
     final ringStroke = (baseStroke * prefs.ringLineWeight).clamp(0.6, 3.6).toDouble();
+    final segments = (() {
+      final raw = ring.segmentCount <= 0 ? ring.segments.length : ring.segmentCount;
+      return raw <= 0 ? 1 : raw;
+    })();
+    final segmentDefs = ring.segments;
+    final stepDeg = 360 / segments;
+    final labelRadius = ring.radius + 18;
 
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        final layerState = switch (activeLayer) {
-          RingLayer.command => controller.state.command,
-          RingLayer.domain => controller.state.domain,
-          RingLayer.module => controller.state.module,
-          RingLayer.utility => controller.state.utility,
-        };
-        const segments = 6;
-        return GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onPanUpdate: (details) {
-            controller.rotate(
-              layer: activeLayer,
-              deltaDeg: details.delta.dx * 0.7,
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(
+          child: CustomPaint(
+            painter: RingPainter(
+              color: skin.ring,
+              opacity: ringOpacity,
+              strokeWidth: ringStroke,
               segmentCount: segments,
-            );
-          },
-          onPanEnd: (_) {
-            controller.snapToNearest(layer: activeLayer, segmentCount: segments);
-            onSelectionCommitted?.call(activeLayer, layerState.selectedIndex);
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: RingPainter(
-                    color: skin.ring,
-                    opacity: ringOpacity,
-                    strokeWidth: ringStroke,
-                    segmentCount: segments,
-                  ),
-                ),
-              ),
-              ...List<Widget>.generate(segments, (index) {
-                final distance = _ringDistance(
-                  index,
-                  layerState.selectedIndex,
-                  segments,
-                );
-                final opacity = distance == 0
-                    ? 1.0
-                    : (prefs.partialLabeling
-                        ? (distance <= 1
-                            ? prefs.inactiveOpacityNear
-                            : prefs.inactiveOpacityFar)
-                        : prefs.inactiveOpacityNear);
-                final scale =
-                    distance == 0 ? prefs.activeLabelScale : 1.0;
-                final angle =
-                    ((index * (360 / segments)) + layerState.angleDeg) * math.pi / 180;
-                final r = 155.0;
-                return Transform.translate(
-                  offset: Offset(math.cos(angle) * r, math.sin(angle) * r),
-                  child: RingSegmentLabel(
-                    text: _labelFor(activeLayer, index),
-                    active: index == layerState.selectedIndex,
-                    color: skin.textPrimary,
-                    opacity: opacity,
-                    scale: scale,
-                  ),
-                );
-              }),
-            ],
+              radius: ring.radius,
+            ),
           ),
-        );
-      },
+        ),
+        ...List<Widget>.generate(segments, (index) {
+          final distance = _ringDistance(index, layerState.selectedIndex, segments);
+          final showLabel = ring.labeling.alwaysShowLabels ||
+              (profile.labelingDefaults.mode == 'partial'
+                  ? distance <= 2
+                  : distance == 0);
+          if (!showLabel) {
+            return const SizedBox.shrink();
+          }
+
+          final opacity = distance == 0
+              ? 1.0
+              : (distance <= 1
+                  ? profile.labelingDefaults.inactiveOpacityNear
+                  : profile.labelingDefaults.inactiveOpacityFar);
+          final scale = distance == 0
+              ? profile.labelingDefaults.activeLabelScale
+              : 1.0;
+          final segment = segmentDefs.isEmpty
+              ? RingSegmentDefinition(id: 'segment_$index', label: 'SEG')
+              : segmentDefs[index % segmentDefs.length];
+          final useFull =
+              distance == 0 && ring.labeling.showFullLabelWhenCentered;
+          final text = useFull
+              ? segment.label
+              : (segment.shortLabel ?? segment.label);
+
+          final angle = ((index * stepDeg) + layerState.angleDeg) * math.pi / 180;
+          final offset = Offset(
+            math.cos(angle) * labelRadius,
+            math.sin(angle) * labelRadius,
+          );
+
+          Widget label = RingSegmentLabel(
+            text: text,
+            active: distance == 0,
+            color: skin.textPrimary,
+            opacity: opacity,
+            scale: scale,
+          );
+
+          if (!profile.labelingDefaults.keepLabelsUpright) {
+            label = Transform.rotate(
+              angle: angle + (math.pi / 2),
+              child: label,
+            );
+          }
+
+          return Transform.translate(
+            offset: offset,
+            child: label,
+          );
+        }),
+      ],
     );
   }
 
-  String _labelFor(RingLayer layer, int index) {
-    final labels = switch (layer) {
-      RingLayer.command => const <String>[
-          'Blueprint',
-          'Build',
-          'Modify',
-          'Simulate',
-          'Log',
-          'Reflect',
-        ],
-      RingLayer.domain => const <String>[
-          'AI',
-          'Robotics',
-          'Energy',
-          'Bio',
-          'Aero',
-          'Env',
-        ],
-      RingLayer.module => const <String>[
-          'Module A',
-          'Module B',
-          'Module C',
-          'Module D',
-          'Module E',
-          'Module F',
-        ],
-      RingLayer.utility => const <String>[
-          'Skins',
-          'Save',
-          'Network',
-          'Perf',
-          'Security',
-          'Lab',
-        ],
+  double _layerTransparency(RingLayer layer) {
+    return switch (layer) {
+      RingLayer.command => prefs.commandRingTransparency,
+      RingLayer.domain => prefs.domainRingTransparency,
+      RingLayer.module => prefs.moduleRingTransparency,
+      RingLayer.utility => prefs.utilityRingTransparency,
     };
-    return labels[index % labels.length];
+  }
+
+  String _layerMaterial(RingLayer layer) {
+    return switch (layer) {
+      RingLayer.command => prefs.commandRingMaterial,
+      RingLayer.domain => prefs.domainRingMaterial,
+      RingLayer.module => prefs.moduleRingMaterial,
+      RingLayer.utility => prefs.utilityRingMaterial,
+    };
   }
 
   static int _ringDistance(int index, int selected, int count) {

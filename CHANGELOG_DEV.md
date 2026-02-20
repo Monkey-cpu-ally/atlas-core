@@ -316,3 +316,14 @@ Format:
   - added `assets/prefs/` in pubspec and exported the new resolver/model in `atlas_voice_core.dart`
 - Risk: Medium (larger config surface; some advanced prefs are stored and partially applied while deeper runtime hooks remain TODO).
 - Rollback: Revert the UI-prefs schema integration commit and remove `assets/prefs/ui_prefs_default.json`.
+
+### Area: Rings Schema Integration (Ajani v1)
+- Summary: Added canonical rings profile support for `$schema: "ajani.rings.schema.v1"`:
+  - added `assets/rings/rings_default.json` with full ring hierarchy (command/domain/modules/utility), segment IDs/labels/icons, radii, and labeling rules
+  - added `RingsResolver` and `RingsProfile` model graph for runtime loading/validation
+  - wired `DialScreen` bootstrap to load ring schema defaults and configure `RingController` snapping behavior
+  - upgraded `RingsWidget` to render rings from schema data (dynamic segment counts, per-ring radii, schema-driven labels) instead of hardcoded label arrays
+  - upgraded `RingPainter` to support explicit radius per ring layer
+  - added `assets/rings/` pubspec wiring and exported new resolver/model from `atlas_voice_core.dart`
+- Risk: Medium (ring rendering surface changed from fixed prototype to schema-driven; interactive edge cases should be tuned on device).
+- Rollback: Revert rings schema integration commit and restore fixed ring widget behavior.

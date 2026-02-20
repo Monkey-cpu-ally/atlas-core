@@ -8,23 +8,25 @@ class RingPainter extends CustomPainter {
     required this.opacity,
     required this.strokeWidth,
     this.segmentCount = 12,
+    this.radius,
   });
 
   final Color color;
   final double opacity;
   final double strokeWidth;
   final int segmentCount;
+  final double? radius;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.shortestSide * 0.36;
+    final ringRadius = radius ?? size.shortestSide * 0.36;
     final paint = Paint()
       ..color = color.withOpacity(opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
 
-    canvas.drawCircle(center, radius, paint);
+    canvas.drawCircle(center, ringRadius, paint);
 
     final tickPaint = Paint()
       ..color = color.withOpacity(opacity * 0.72)
@@ -33,12 +35,12 @@ class RingPainter extends CustomPainter {
     for (var i = 0; i < segmentCount; i++) {
       final angle = (math.pi * 2 * i) / segmentCount;
       final p1 = Offset(
-        center.dx + math.cos(angle) * (radius - 8),
-        center.dy + math.sin(angle) * (radius - 8),
+        center.dx + math.cos(angle) * (ringRadius - 8),
+        center.dy + math.sin(angle) * (ringRadius - 8),
       );
       final p2 = Offset(
-        center.dx + math.cos(angle) * (radius + 8),
-        center.dy + math.sin(angle) * (radius + 8),
+        center.dx + math.cos(angle) * (ringRadius + 8),
+        center.dy + math.sin(angle) * (ringRadius + 8),
       );
       canvas.drawLine(p1, p2, tickPaint);
     }
@@ -49,7 +51,8 @@ class RingPainter extends CustomPainter {
     return color != oldDelegate.color ||
         opacity != oldDelegate.opacity ||
         strokeWidth != oldDelegate.strokeWidth ||
-        segmentCount != oldDelegate.segmentCount;
+        segmentCount != oldDelegate.segmentCount ||
+        radius != oldDelegate.radius;
   }
 }
 

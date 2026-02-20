@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../../core/state/ring_state.dart';
+import '../models/rings_profile.dart';
 
 enum RingLayer {
   command,
@@ -13,16 +14,27 @@ enum RingLayer {
 
 class RingController extends ChangeNotifier {
   RingState _state = const RingState();
+  RingSnappingConfig _snapping = const RingSnappingConfig();
 
   RingState get state => _state;
+  RingSnappingConfig get snapping => _snapping;
+
+  void configureSnapping(RingSnappingConfig config) {
+    _snapping = config;
+  }
 
   void rotate({
     required RingLayer layer,
     required double deltaDeg,
     required int segmentCount,
   }) {
+    if (!_snapping.enabled) {
+      return;
+    }
+    final scaledDelta =
+        deltaDeg * (0.55 + (_snapping.inertia.clamp(0.0, 1.5) * 0.45));
     final current = _selectLayer(layer);
-    final nextAngle = _normalizeDeg(current.angleDeg + deltaDeg);
+    final nextAngle = _normalizeDeg(current.angleDeg + scaledDelta);
     final selected = _nearestIndex(nextAngle, segmentCount);
     _setLayer(layer, current.copyWith(angleDeg: nextAngle, selectedIndex: selected));
   }
@@ -31,9 +43,16 @@ class RingController extends ChangeNotifier {
     required RingLayer layer,
     required int segmentCount,
   }) {
+    if (!_snapping.enabled) {
+      return;
+    }
     final current = _selectLayer(layer);
     final index = _nearestIndex(current.angleDeg, segmentCount);
-    final targetAngle = -(360 / segmentCount) * index;
+    final rawTargetAngle = -(360 / segmentCount) * index;
+    final targetAngle = (current.angleDeg +
+            ((rawTargetAngle - current.angleDeg) *
+                _snapping.snapStrength.clamp(0.0, 1.0)))
+        .toDouble();
     _setLayer(layer, current.copyWith(angleDeg: targetAngle, selectedIndex: index));
   }
 
@@ -45,6 +64,8 @@ class RingController extends ChangeNotifier {
       RingLayer.utility => _state.utility,
     };
   }
+
+  RingLayerState layerState(RingLayer layer) => _selectLayer(layer);
 
   void _setLayer(RingLayer layer, RingLayerState layerState) {
     _state = switch (layer) {
