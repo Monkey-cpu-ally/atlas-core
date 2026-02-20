@@ -234,6 +234,7 @@ class SkinResolver {
     return switch (source) {
       'circular_plate' => 'circularPlate',
       'hexagonal_plate' => 'hexagonalPlate',
+      'hex_plate' => 'hexagonalPlate',
       'angular_tech_frame' => 'angularTechFrame',
       'organic_soft_frame' => 'organicSoftFrame',
       _ => 'none',

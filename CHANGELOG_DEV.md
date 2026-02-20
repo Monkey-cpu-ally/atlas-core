@@ -283,3 +283,9 @@ Format:
   - panel shape/shadow and council dim strength now honor skin schema values
 - Risk: Medium (schema parsing is additive but now expects consistent field names for advanced overrides).
 - Rollback: Revert the schema-integration commit and restore legacy `lumen_core.json`.
+
+### Area: Skin Schema Integration (Ajani v1) — Archive Grid profile
+- Summary: Replaced `assets/skins/archive_grid.json` with the full Ajani v1 schema payload provided by user.
+- Summary (compatibility): Added `hex_plate` -> `hexagonalPlate` alias mapping in `skin_resolver.dart` so frame type resolves correctly under the new schema variant.
+- Risk: Low (additive schema profile update + alias mapping).
+- Rollback: Restore prior `archive_grid.json` and remove the `hex_plate` alias mapping.

@@ -1,20 +1,67 @@
 {
-  "id": "archive_grid",
-  "label": "Archive Grid",
-  "motionProfileId": "structured_console",
-  "materialProfileId": "matte_dense",
-  "tokens": {
-    "background": "#14161E",
-    "surface": "#202433",
-    "frame": "#39425A",
-    "ring": "#8D98B3",
-    "textPrimary": "#F2F5FF",
-    "textSecondary": "#B8C1D8",
-    "accentEnergy": "#9FC2FF",
-    "glassiness": 0.08,
-    "roughness": 0.78,
-    "noiseAmount": 0.15,
-    "grainEnabled": true
+  "$schema": "ajani.skin.schema.v1",
+  "meta": { "id": "archive_grid", "name": "Archive Grid", "version": 1, "author": "Frazier" },
+  "colors": {
+    "bgPrimary": "#07070A",
+    "bgSecondary": "#0D0E14",
+    "panelBase": "#0A0B10",
+    "textPrimary": "#F3F0E8",
+    "textSecondary": "#BDB6A7",
+    "stroke": "#2F2A24",
+    "shadow": "#000000",
+    "highlight": "#FFFFFF",
+    "accentDefault": "#D64A3A",
+    "support1": "#3BAA5A",
+    "support2": "#E6D5A8",
+    "ghostPurpleCouncil": "#BFA7FF",
+    "aiAjaniCrimson": "#B21D2A",
+    "aiMinervaTeal": "#2BB9B0",
+    "aiHermesIvory": "#F2E9DA",
+    "dangerPulse": "#8E1B24"
+  },
+  "background": {
+    "type": "solid",
+    "solid": "#07070A",
+    "texture": { "enabled": true, "asset": "assets/textures/subtle_grain.png", "opacity": 0.12 },
+    "noise": { "enabled": true, "asset": "assets/textures/noise.png", "opacity": 0.06 }
+  },
+  "panel": { "tiltPreset": "noticeable", "tiltDegrees": 12, "depthShadow": "soft", "material": "matte", "cornerRadius": 18, "elevation": 14 },
+  "frame": { "enabled": true, "type": "hex_plate", "opacity": 0.28, "strokeWidth": 1.2, "material": "matte" },
+  "rings": {
+    "global": {
+      "snap": { "enabled": true, "inertia": 0.82, "snapStrength": 0.8, "bounce": 0.06 },
+      "labeling": { "mode": "partial", "activeLabelScale": 1.18, "inactiveOpacityNear": 0.6, "inactiveOpacityFar": 0.16, "keepLabelsUpright": true }
+    },
+    "commandRing": { "thickness": 20, "material": "solid_matte", "transparency": 0.0, "tickStyle": "segmented_bold", "alwaysShowLabels": true },
+    "domainRing": { "thickness": 16, "material": "solid_matte", "transparency": 0.08, "tickStyle": "segmented", "alwaysShowLabels": false },
+    "moduleRing": { "thickness": 14, "material": "frosted_glass", "transparency": 0.22, "tickStyle": "minimal", "alwaysShowLabels": false },
+    "utilityRing": { "thickness": 11, "material": "line_only", "transparency": 0.5, "tickStyle": "minimal", "alwaysShowLabels": false }
+  },
+  "typography": { "family": "Inter", "tracking": 0.6, "commandRingWeight": 750, "defaultWeight": 600, "labelCase": "uppercase" },
+  "motion": { "uiTransitionMs": 560, "resumeFadeMs": 200, "coldStartFadeMs": 580, "coreReturnMs": 320, "coreExpandScale": 1.07, "corePressTightenScale": 0.985 },
+  "core": {
+    "materialProfile": "matte_alloy",
+    "idle": { "internalDriftSpeed": 0.16, "breathCycleSec": 4.8, "brightness": 0.9 },
+    "interaction": { "parallaxPxMax": 6, "microTiltDegMax": 4, "gyroParallaxPxMax": 3, "gyroTiltDegMax": 5 },
+    "ripple": { "enabled": true, "amplitude": 0.2, "frequency": 1.1, "speed": 0.55, "audioAmpToGlow": 0.33 }
+  },
+  "council": {
+    "dimOverlay": { "enabled": true, "strength": 0.09, "fadeInMs": 380, "fadeOutMs": 520 },
+    "sigil": { "enabled": true, "baseOpacity": 0.13, "strokeWeight": "auto_by_skin", "static": true }
+  },
+  "power": {
+    "extendedIdleMinutes": 10,
+    "extendedIdleBrightnessDrop": 0.18,
+    "lowPowerMode": { "enabledByDefault": false, "disables": { "particles": true, "backgroundNoise": true, "haloBreath": true } }
+  },
+  "audio": {
+    "tones": {
+      "ajani": "assets/audio/tone_ajani.wav",
+      "minerva": "assets/audio/tone_minerva.wav",
+      "hermes": "assets/audio/tone_hermes.wav",
+      "council": "assets/audio/tone_council.wav"
+    },
+    "hermesReadyTone": { "evolves": true, "maxHarmonicRichnessDelta": 0.1, "maxStereoWidthDelta": 0.05 }
   }
 }
 
