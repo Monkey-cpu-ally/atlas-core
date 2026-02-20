@@ -408,5 +408,10 @@ Format:
   - exports a single JSON bundle (`$schema: atlas.dial.profile.bundle.v1`) containing metadata, active selections, and valid custom profile payloads
   - bundle export reuses existing export dialog (copy + web download), with timestamped suggested filename
   - requires at least one valid custom profile (rings or UI prefs)
+- Summary (bundle import): Added matching "Import Profiles Bundle" action:
+  - accepts pasted bundle JSON and validates `$schema: atlas.dial.profile.bundle.v1`
+  - restores valid `profiles.customRings` and `profiles.customUiPrefs` payloads
+  - applies bundle `active` selections when compatible (skin/profile paths)
+  - supports partial imports and reports rejected invalid sections in a summary snackbar
 - Risk: Medium (invalid edits are blocked at save time; very large custom JSON payloads may increase local storage footprint).
 - Rollback: Revert the commit updating `atlas_console_widget.dart`, `app_state.dart`, `ui_prefs_resolver.dart`, `rings_resolver.dart`, and `dial_screen.dart`.

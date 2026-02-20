@@ -823,6 +823,18 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     return false;
   }
 
+  static bool _isKnownSkinId(String? skinId) {
+    if (skinId == null || skinId.isEmpty) {
+      return false;
+    }
+    for (final skin in AtlasSkinId.values) {
+      if (skin.id == skinId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void _setDialPreviewSkinId(String skinId) {
     setState(() {
       _dialPreviewSkinId = skinId;
@@ -876,6 +888,37 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
       }
     }
     return path;
+  }
+
+  Map<String, dynamic> _asDynamicMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      final mapped = <String, dynamic>{};
+      for (final entry in value.entries) {
+        mapped[entry.key.toString()] = entry.value;
+      }
+      return mapped;
+    }
+    return const <String, dynamic>{};
+  }
+
+  String? _bundleProfileRawJson(Object? entry) {
+    if (entry == null) {
+      return null;
+    }
+    if (entry is String) {
+      return entry;
+    }
+    if (entry is Map || entry is List) {
+      try {
+        return const JsonEncoder.withIndent('  ').convert(entry);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
   }
 
   Future<String> _loadJsonTemplate({
@@ -1260,6 +1303,122 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     );
   }
 
+  Future<void> _importProfilesBundle() async {
+    final imported = await _openJsonEditorDialog(
+      title: 'Import Dial Profiles Bundle',
+      initialJson: '{\n  "$schema": "atlas.dial.profile.bundle.v1"\n}',
+      helperText:
+          'Paste a bundle exported from "Export All Profiles Bundle". '
+          'Valid custom rings/UI prefs payloads will be restored.',
+    );
+    if (imported == null) {
+      return;
+    }
+    if (!mounted) return;
+
+    final bundle = _tryDecodeJsonObject(imported);
+    if (bundle == null ||
+        bundle[r'$schema']?.toString() != 'atlas.dial.profile.bundle.v1') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid bundle JSON schema. Import canceled.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    final profiles = _asDynamicMap(bundle['profiles']);
+    final ringsRaw = _bundleProfileRawJson(profiles['customRings']);
+    final uiPrefsRaw = _bundleProfileRawJson(profiles['customUiPrefs']);
+    final hasRingsPayload = (ringsRaw ?? '').trim().isNotEmpty;
+    final hasUiPrefsPayload = (uiPrefsRaw ?? '').trim().isNotEmpty;
+
+    if (!hasRingsPayload && !hasUiPrefsPayload) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bundle has no custom profiles to import.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    var importedRings = false;
+    var importedUiPrefs = false;
+    var ringsRejected = false;
+    var uiPrefsRejected = false;
+
+    if (hasRingsPayload) {
+      importedRings = _saveCustomRingsJson(ringsRaw!, showError: false);
+      ringsRejected = !importedRings;
+    }
+    if (hasUiPrefsPayload) {
+      importedUiPrefs = _saveCustomUiPrefsJson(uiPrefsRaw!, showError: false);
+      uiPrefsRejected = !importedUiPrefs;
+    }
+
+    final active = _asDynamicMap(bundle['active']);
+    if (active.isNotEmpty) {
+      final nextSkinId = active['skinId']?.toString();
+      final nextRingsPath = active['ringsProfilePath']?.toString();
+      final nextUiPrefsPath = active['uiPrefsProfilePath']?.toString();
+
+      setState(() {
+        if (_isKnownSkinId(nextSkinId)) {
+          _dialPreviewSkinId = nextSkinId!;
+          _skin = AtlasSkinIdX.fromId(nextSkinId);
+        }
+
+        if (nextRingsPath != null) {
+          if (nextRingsPath == _customRingsProfilePath &&
+              RingsResolver.parseRawJson(_dialPreviewCustomRingsJson) != null) {
+            _dialPreviewRingsProfilePath = _customRingsProfilePath;
+          } else if (_isKnownPath(nextRingsPath, _ringsProfileOptions)) {
+            _dialPreviewRingsProfilePath = nextRingsPath;
+          }
+        }
+
+        if (nextUiPrefsPath != null) {
+          if (nextUiPrefsPath == _customUiPrefsProfilePath &&
+              UiPrefsResolver.parseRawJson(_dialPreviewCustomUiPrefsJson) != null) {
+            _dialPreviewUiPrefsProfilePath = _customUiPrefsProfilePath;
+          } else if (_isKnownPath(nextUiPrefsPath, _uiPrefsProfileOptions)) {
+            _dialPreviewUiPrefsProfilePath = nextUiPrefsPath;
+          }
+        }
+      });
+
+      FFAppState().skinId = _dialPreviewSkinId;
+      FFAppState().dialPreviewRingsProfilePath = _dialPreviewRingsProfilePath;
+      FFAppState().dialPreviewUiPrefsProfilePath = _dialPreviewUiPrefsProfilePath;
+    }
+
+    final summaryParts = <String>[];
+    if (importedRings) {
+      summaryParts.add('Rings imported');
+    }
+    if (importedUiPrefs) {
+      summaryParts.add('UI prefs imported');
+    }
+    if (ringsRejected) {
+      summaryParts.add('Rings rejected (invalid)');
+    }
+    if (uiPrefsRejected) {
+      summaryParts.add('UI prefs rejected (invalid)');
+    }
+    if (summaryParts.isEmpty) {
+      summaryParts.add('No valid profiles imported');
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(summaryParts.join(' • ')),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _resetCustomRingsProfile() {
     final wasSelected = _dialPreviewRingsProfilePath == _customRingsProfilePath;
     setState(() {
@@ -1560,6 +1719,10 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
+                            OutlinedButton(
+                              onPressed: _importProfilesBundle,
+                              child: const Text('Import Profiles Bundle'),
+                            ),
                             OutlinedButton(
                               onPressed: _exportAllProfilesBundle,
                               child: const Text('Export All Profiles Bundle'),
