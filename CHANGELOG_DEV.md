@@ -327,3 +327,16 @@ Format:
   - added `assets/rings/` pubspec wiring and exported new resolver/model from `atlas_voice_core.dart`
 - Risk: Medium (ring rendering surface changed from fixed prototype to schema-driven; interactive edge cases should be tuned on device).
 - Rollback: Revert rings schema integration commit and restore fixed ring widget behavior.
+
+### Area: Skin Schema Contract (Draft 2020-12)
+- Summary: Added formal JSON Schema contract file for skin tokens:
+  - `frontend/flutter_atlas_scaffold/assets/schemas/ajani.skin.schema.v1.json`
+  - includes required fields, enum/range rules, and conditional background requirements (`solid` vs `gradient` vs `texture`)
+- Summary (runtime guard): Hardened `SkinResolver` with a lightweight schema guard for `ajani.skin.schema.v1` payloads:
+  - checks required top-level sections
+  - validates required color keys + hex format
+  - validates key enum families (background/panel/frame/rings)
+  - fails closed to fallback skin when shape is invalid
+- Summary (packaging): Added `assets/schemas/` to scaffold pubspec assets.
+- Risk: Low to medium (stricter validation may reject malformed skin JSON that was previously tolerated).
+- Rollback: Revert schema-contract commit and remove resolver guard path.

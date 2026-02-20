@@ -18,6 +18,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/skins/
+    - assets/schemas/
     - assets/rings/
     - assets/prefs/
     - assets/textures/

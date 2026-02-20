@@ -22,6 +22,9 @@ class SkinLoadResult {
 class SkinResolver {
   const SkinResolver._();
 
+  static const _skinSchemaId = 'ajani.skin.schema.v1';
+  static final _hexColorRegExp = RegExp(r'^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$');
+
   static Future<SkinLoadResult> resolveBundle(String skinId) async {
     final fallback = Skins.byId(skinId);
     try {
@@ -33,7 +36,10 @@ class SkinResolver {
       }
 
       final schema = decoded[r'$schema']?.toString() ?? '';
-      if (schema == 'ajani.skin.schema.v1') {
+      if (schema == _skinSchemaId) {
+        if (!_isValidAjaniSkinV1(decoded)) {
+          return SkinLoadResult(tokens: fallback, prefs: const UiPrefs());
+        }
         return _fromAjaniSchema(decoded, fallback: fallback);
       }
 
@@ -300,6 +306,188 @@ class SkinResolver {
       return Color(int.parse(hex, radix: 16));
     }
     return null;
+  }
+
+  static bool _isValidAjaniSkinV1(Map<String, Object?> map) {
+    const topRequired = <String>{
+      'meta',
+      'colors',
+      'background',
+      'panel',
+      'frame',
+      'rings',
+      'typography',
+      'motion',
+      'core',
+      'council',
+      'power',
+      'audio',
+    };
+    for (final key in topRequired) {
+      if (!map.containsKey(key)) {
+        return false;
+      }
+    }
+
+    final meta = _asMap(map['meta']);
+    if (!_hasKeys(meta, const ['id', 'name', 'version', 'author'])) {
+      return false;
+    }
+
+    final colors = _asMap(map['colors']);
+    const colorRequired = <String>[
+      'bgPrimary',
+      'bgSecondary',
+      'panelBase',
+      'textPrimary',
+      'textSecondary',
+      'stroke',
+      'shadow',
+      'highlight',
+      'accentDefault',
+      'ghostPurpleCouncil',
+      'aiAjaniCrimson',
+      'aiMinervaTeal',
+      'aiHermesIvory',
+      'dangerPulse',
+    ];
+    if (!_hasKeys(colors, colorRequired)) {
+      return false;
+    }
+    for (final key in colorRequired) {
+      if (!_isHexColor(colors[key])) {
+        return false;
+      }
+    }
+
+    final background = _asMap(map['background']);
+    final backgroundType = background['type']?.toString() ?? '';
+    if (!const {'solid', 'gradient', 'texture'}.contains(backgroundType)) {
+      return false;
+    }
+    if (backgroundType == 'solid' && !_isHexColor(background['solid'])) {
+      return false;
+    }
+    if (backgroundType == 'gradient') {
+      final gradient = _asMap(background['gradient']);
+      if (!_hasKeys(gradient, const ['from', 'to', 'angleDeg'])) {
+        return false;
+      }
+      if (!_isHexColor(gradient['from']) || !_isHexColor(gradient['to'])) {
+        return false;
+      }
+    }
+    if (backgroundType == 'texture') {
+      if (!_isHexColor(background['solid'])) {
+        return false;
+      }
+      final texture = _asMap(background['texture']);
+      if (!_hasKeys(texture, const ['enabled', 'asset', 'opacity'])) {
+        return false;
+      }
+    }
+
+    final panel = _asMap(map['panel']);
+    if (!_hasKeys(
+      panel,
+      const ['tiltPreset', 'tiltDegrees', 'depthShadow', 'material', 'cornerRadius', 'elevation'],
+    )) {
+      return false;
+    }
+    if (!const {'off', 'subtle', 'noticeable', 'dynamic'}
+        .contains(panel['tiltPreset']?.toString() ?? '')) {
+      return false;
+    }
+
+    final frame = _asMap(map['frame']);
+    if (!_hasKeys(frame, const ['enabled', 'type', 'opacity', 'strokeWidth', 'material'])) {
+      return false;
+    }
+    if (!const {
+      'none',
+      'hex_plate',
+      'circular_plate',
+      'angular_tech',
+      'organic_soft',
+      'modular_plate',
+    }.contains(frame['type']?.toString() ?? '')) {
+      return false;
+    }
+
+    final rings = _asMap(map['rings']);
+    if (!_hasKeys(
+      rings,
+      const ['global', 'commandRing', 'domainRing', 'moduleRing', 'utilityRing'],
+    )) {
+      return false;
+    }
+    final ringNames = const ['commandRing', 'domainRing', 'moduleRing', 'utilityRing'];
+    for (final ringName in ringNames) {
+      final spec = _asMap(rings[ringName]);
+      if (!_hasKeys(
+        spec,
+        const ['thickness', 'material', 'transparency', 'tickStyle', 'alwaysShowLabels'],
+      )) {
+        return false;
+      }
+      if (!const {
+        'solid_matte',
+        'frosted_glass',
+        'transparent_glass',
+        'line_only',
+        'mixed',
+        'mixed_inner_solid_outer_transparent',
+      }.contains(spec['material']?.toString() ?? '')) {
+        return false;
+      }
+    }
+
+    final motion = _asMap(map['motion']);
+    if (!_hasKeys(
+      motion,
+      const [
+        'uiTransitionMs',
+        'resumeFadeMs',
+        'coldStartFadeMs',
+        'coreReturnMs',
+        'coreExpandScale',
+        'corePressTightenScale',
+      ],
+    )) {
+      return false;
+    }
+
+    final core = _asMap(map['core']);
+    if (!_hasKeys(core, const ['materialProfile', 'idle', 'interaction', 'ripple'])) {
+      return false;
+    }
+    final council = _asMap(map['council']);
+    if (!_hasKeys(council, const ['dimOverlay', 'sigil'])) {
+      return false;
+    }
+    final power = _asMap(map['power']);
+    if (!_hasKeys(power, const ['extendedIdleMinutes', 'extendedIdleBrightnessDrop', 'lowPowerMode'])) {
+      return false;
+    }
+    final audio = _asMap(map['audio']);
+    if (!_hasKeys(audio, const ['tones', 'hermesReadyTone'])) {
+      return false;
+    }
+    return true;
+  }
+
+  static bool _hasKeys(Map<String, Object?> map, List<String> keys) {
+    for (final key in keys) {
+      if (!map.containsKey(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool _isHexColor(Object? value) {
+    final raw = value?.toString() ?? '';
+    return _hexColorRegExp.hasMatch(raw);
   }
 }
 
