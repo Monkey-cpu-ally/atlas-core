@@ -404,5 +404,9 @@ Format:
   - `Download .json` button is shown on web builds (`kIsWeb`)
   - uses conditional import helper (`json_download.dart`) with `dart:html` web implementation and non-web stub
   - keeps existing clipboard copy export path for all platforms
+- Summary (bundle export): Added one-click "Export All Profiles Bundle" action in Dial Preview controls:
+  - exports a single JSON bundle (`$schema: atlas.dial.profile.bundle.v1`) containing metadata, active selections, and valid custom profile payloads
+  - bundle export reuses existing export dialog (copy + web download), with timestamped suggested filename
+  - requires at least one valid custom profile (rings or UI prefs)
 - Risk: Medium (invalid edits are blocked at save time; very large custom JSON payloads may increase local storage footprint).
 - Rollback: Revert the commit updating `atlas_console_widget.dart`, `app_state.dart`, `ui_prefs_resolver.dart`, `rings_resolver.dart`, and `dial_screen.dart`.

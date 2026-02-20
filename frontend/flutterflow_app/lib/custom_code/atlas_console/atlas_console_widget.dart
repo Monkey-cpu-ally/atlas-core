@@ -8,6 +8,7 @@ import 'package:flutter_atlas_scaffold/atlas_voice_core.dart';
 import '/app_state.dart';
 import '../atlas_backend/atlas_backend_client.dart';
 import 'json_download.dart' as json_download;
+import 'dart:convert';
 import 'dart:math' as math;
 
 enum _AtlasWorkspaceView { console, dialPreview }
@@ -1194,6 +1195,71 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     );
   }
 
+  Map<String, dynamic>? _tryDecodeJsonObject(String rawJson) {
+    try {
+      final decoded = jsonDecode(rawJson);
+      if (decoded is Map) {
+        final mapped = <String, dynamic>{};
+        for (final entry in decoded.entries) {
+          mapped[entry.key.toString()] = entry.value;
+        }
+        return mapped;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _exportAllProfilesBundle() async {
+    final ringsValid = RingsResolver.parseRawJson(_dialPreviewCustomRingsJson) != null;
+    final uiPrefsValid =
+        UiPrefsResolver.parseRawJson(_dialPreviewCustomUiPrefsJson) != null;
+    if (!ringsValid && !uiPrefsValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No valid custom profiles to bundle yet.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final ringsObject = ringsValid
+        ? _tryDecodeJsonObject(_dialPreviewCustomRingsJson)
+        : null;
+    final uiPrefsObject = uiPrefsValid
+        ? _tryDecodeJsonObject(_dialPreviewCustomUiPrefsJson)
+        : null;
+    final bundle = <String, dynamic>{
+      r'$schema': 'atlas.dial.profile.bundle.v1',
+      'meta': <String, dynamic>{
+        'version': 1,
+        'exportedAtUtc': DateTime.now().toUtc().toIso8601String(),
+        'source': 'flutterflow_app',
+      },
+      'active': <String, dynamic>{
+        'skinId': _dialPreviewSkinId,
+        'ringsProfilePath': _dialPreviewRingsProfilePath,
+        'uiPrefsProfilePath': _dialPreviewUiPrefsProfilePath,
+      },
+      'profiles': <String, dynamic>{
+        'customRings': ringsObject,
+        'customUiPrefs': uiPrefsObject,
+      },
+      'status': <String, dynamic>{
+        'customRingsSaved': ringsObject != null,
+        'customUiPrefsSaved': uiPrefsObject != null,
+      },
+    };
+    final payload = const JsonEncoder.withIndent('  ').convert(bundle);
+    await _showJsonExportDialog(
+      title: 'Export Dial Profiles Bundle',
+      fileName: _suggestExportFileName('dial_profiles_bundle'),
+      jsonPayload: payload,
+    );
+  }
+
   void _resetCustomRingsProfile() {
     final wasSelected = _dialPreviewRingsProfilePath == _customRingsProfilePath;
     setState(() {
@@ -1478,6 +1544,25 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
                             OutlinedButton(
                               onPressed: _resetCustomUiPrefsProfile,
                               child: const Text('Reset Custom'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Bundle',
+                          style: TextStyle(
+                            color: overlayTextColor.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            OutlinedButton(
+                              onPressed: _exportAllProfilesBundle,
+                              child: const Text('Export All Profiles Bundle'),
                             ),
                           ],
                         ),
