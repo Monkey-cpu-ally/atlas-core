@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../core/config/defaults.dart';
+import '../../core/config/ui_prefs_resolver.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/bluetooth_wake_service.dart';
 import '../../core/services/gyro_service.dart';
@@ -44,6 +45,8 @@ class DialScreen extends StatefulWidget {
 }
 
 class _DialScreenState extends State<DialScreen> {
+  static bool _firstLaunchHintShownInProcess = false;
+
   late final CoreController _core;
   late final RingController _rings;
   late final CouncilController _council;
@@ -55,6 +58,9 @@ class _DialScreenState extends State<DialScreen> {
   UiPrefs _skinDefaultPrefs = Defaults.uiPrefs;
   SkinTokens _skin = Skins.lumenCore;
   bool _showFirstLaunchHint = true;
+  String _firstLaunchHintText =
+      'Say "Hermes, system mode" to customize interface.';
+  int _firstLaunchHintFadeOutMs = 300;
   StreamSubscription<Offset>? _gyroSub;
 
   @override
@@ -76,33 +82,68 @@ class _DialScreenState extends State<DialScreen> {
       appearanceLabController: _appearanceLab,
     );
 
-    SkinResolver.resolveBundle(widget.initialSkinId).then((bundle) {
-      if (!mounted) {
-        return;
-      }
-      _core.applyMotionProfile(
-        expandScale: bundle.prefs.coreExpandScale,
-        pressTightenScale: bundle.prefs.corePressTightenScale,
-      );
-      setState(() {
-        _skin = bundle.tokens;
-        _skinDefaultPrefs = bundle.prefs;
-        if (_isDefaultPrefs(widget.initialPrefs)) {
-          _prefs = bundle.prefs;
-        }
-      });
-    });
+    _bootstrapDefaults();
 
     _gyro.start();
     _gyroSub = _gyro.tiltStream.listen((offset) {
       _core.setParallax(offset);
     });
+  }
 
-    Future<void>.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() => _showFirstLaunchHint = false);
+  Future<void> _bootstrapDefaults() async {
+    final profile = await UiPrefsResolver.resolveDefaultProfile();
+    if (!mounted) {
+      return;
+    }
+
+    _voice.configureFromPrefs(
+      failureOverlayThreshold: profile.failureShowMicAssistAfterFails,
+      failureResetThreshold: profile.failureSilentResetAfterFails,
+      micAssistHintText: profile.failureHintText,
+      micAssistHintDurationMs: profile.failureHintDurationMs,
+    );
+
+    final initialSkinId = widget.initialSkinId == Defaults.defaultSkinId
+        ? profile.selectedSkinId
+        : widget.initialSkinId;
+
+    final bundle = await SkinResolver.resolveBundle(initialSkinId);
+    if (!mounted) {
+      return;
+    }
+
+    _core.applyMotionProfile(
+      expandScale: profile.prefs.coreExpandScale,
+      pressTightenScale: profile.prefs.corePressTightenScale,
+    );
+    final shouldShowFirstLaunchHint = profile.firstLaunchHintEnabled &&
+        (!profile.firstLaunchHintShowOnce || !_firstLaunchHintShownInProcess);
+    if (shouldShowFirstLaunchHint && profile.firstLaunchHintShowOnce) {
+      _firstLaunchHintShownInProcess = true;
+    }
+    setState(() {
+      _firstLaunchHintText = profile.firstLaunchHintText;
+      _firstLaunchHintFadeOutMs = profile.firstLaunchHintFadeOutMs;
+      _showFirstLaunchHint = shouldShowFirstLaunchHint;
+      _skin = bundle.tokens;
+      _skinDefaultPrefs = profile.prefs;
+      if (_isDefaultPrefs(widget.initialPrefs)) {
+        _prefs = profile.prefs;
       }
     });
+
+    if (shouldShowFirstLaunchHint) {
+      Future<void>.delayed(
+        Duration(milliseconds: profile.firstLaunchHintDisplayMs),
+        () {
+          if (mounted) {
+            setState(() => _showFirstLaunchHint = false);
+          }
+        },
+      );
+    } else {
+      setState(() => _showFirstLaunchHint = false);
+    }
   }
 
   @override
@@ -167,10 +208,14 @@ class _DialScreenState extends State<DialScreen> {
                 },
               ),
             ),
-            MicAssistOverlay(visible: _voice.micAssistVisible),
+            MicAssistOverlay(
+              visible: _voice.micAssistVisible,
+              text: _voice.micAssistHintText,
+            ),
             TooltipHint(
               visible: _showFirstLaunchHint,
-              text: 'Hold the core and say Ajani, Minerva, or Hermes.',
+              text: _firstLaunchHintText,
+              fadeOutMs: _firstLaunchHintFadeOutMs,
             ),
             AppearanceLabOverlay(
               visible: _appearanceLab.state.overlayVisible,
@@ -216,25 +261,7 @@ class _DialScreenState extends State<DialScreen> {
   }
 
   bool _isDefaultPrefs(UiPrefs prefs) {
-    const d = Defaults.uiPrefs;
-    return prefs.panelTiltDegrees == d.panelTiltDegrees &&
-        prefs.frameType == d.frameType &&
-        prefs.frameOpacity == d.frameOpacity &&
-        prefs.ringMaterial == d.ringMaterial &&
-        prefs.ringTransparency == d.ringTransparency &&
-        prefs.ringLineWeight == d.ringLineWeight &&
-        prefs.backgroundType == d.backgroundType &&
-        prefs.accentPreviewEnabled == d.accentPreviewEnabled &&
-        prefs.uiTransitionMs == d.uiTransitionMs &&
-        prefs.coreExpandScale == d.coreExpandScale &&
-        prefs.corePressTightenScale == d.corePressTightenScale &&
-        prefs.rippleAmplitude == d.rippleAmplitude &&
-        prefs.rippleFrequency == d.rippleFrequency &&
-        prefs.rippleSpeed == d.rippleSpeed &&
-        prefs.audioAmpToGlow == d.audioAmpToGlow &&
-        prefs.extendedIdleMinutes == d.extendedIdleMinutes &&
-        prefs.extendedIdleBrightnessDrop == d.extendedIdleBrightnessDrop &&
-        prefs.lowPowerEnabledByDefault == d.lowPowerEnabledByDefault;
+    return identical(prefs, Defaults.uiPrefs);
   }
 }
 

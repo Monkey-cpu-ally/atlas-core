@@ -1,0 +1,174 @@
+{
+  "$schema": "ajani.ui_prefs.schema.v1",
+  "meta": { "id": "ui_prefs_default", "version": 1, "author": "Frazier" },
+  "skins": {
+    "selectedSkinId": "lumen_core",
+    "freelySelectable": true
+  },
+  "panel": {
+    "tilt": {
+      "enabled": true,
+      "mode": "subtle",
+      "degrees": 7,
+      "dynamicResponse": {
+        "enabled": false,
+        "dragTiltDegMax": 6,
+        "smoothing": 0.85
+      }
+    },
+    "depthShadow": {
+      "enabled": true,
+      "style": "soft",
+      "strength": 0.65
+    }
+  },
+  "frame": {
+    "enabled": true,
+    "type": "circular_plate",
+    "opacity": 0.22,
+    "material": "frosted_glass"
+  },
+  "rings": {
+    "partialLabeling": true,
+    "keepLabelsUpright": true,
+    "activeLabelScale": 1.15,
+    "inactiveOpacityNear": 0.55,
+    "inactiveOpacityFar": 0.18,
+    "materials": {
+      "commandRing": { "material": "solid_matte", "transparency": 0.0 },
+      "domainRing": { "material": "frosted_glass", "transparency": 0.28 },
+      "moduleRing": { "material": "transparent_glass", "transparency": 0.42 },
+      "utilityRing": { "material": "line_only", "transparency": 0.55 }
+    }
+  },
+  "core": {
+    "hybrid2_5d": true,
+    "idle": {
+      "rotationEnabled": false,
+      "internalMotionEnabled": true,
+      "internalDriftSpeed": 0.18,
+      "breathCycleSec": 4.5,
+      "brightness": 0.92
+    },
+    "touch": {
+      "pressTightenScale": 0.985,
+      "expandScale": 1.07,
+      "returnMs": 320,
+      "parallaxPxMax": 6,
+      "microTiltDegMax": 4
+    },
+    "gyro": {
+      "enabled": true,
+      "coreOnly": true,
+      "gyroParallaxPxMax": 3,
+      "gyroTiltDegMax": 5,
+      "smoothing": 0.9
+    },
+    "ripple": {
+      "enabled": true,
+      "amplitude": 0.18,
+      "frequency": 1.2,
+      "speed": 0.55
+    }
+  },
+  "voice": {
+    "talkTabEnabled": false,
+    "holdToActivate": {
+      "enabled": true,
+      "longPressMs": 350
+    },
+    "bluetoothWake": {
+      "enabled": true,
+      "screenOnOnly": true,
+      "visualIndicator": "none",
+      "hermesReadyToneOnScreenOn": true
+    }
+  },
+  "audio": {
+    "idleAmbientEnabled": false,
+    "aiActivationTone": {
+      "enabled": true,
+      "volume": 0.35,
+      "durationMs": 220
+    },
+    "hermesReadyTone": {
+      "enabled": true,
+      "evolvesPermanently": true,
+      "maxHarmonicRichnessDelta": 0.1,
+      "maxStereoWidthDelta": 0.05,
+      "reset": {
+        "available": true,
+        "visibility": "deep_hidden",
+        "path": "Hermes > System Mode > Advanced > Core Resonance > Reset"
+      }
+    }
+  },
+  "haptics": {
+    "enabled": true,
+    "nameRecognizedPulseMs": 15,
+    "councilPulseMs": 22
+  },
+  "council": {
+    "enabled": true,
+    "color": "#BFA7FF",
+    "dimOverlay": {
+      "enabled": true,
+      "strength": 0.08,
+      "fadeInMs": 360,
+      "fadeOutMs": 520
+    },
+    "sigil": {
+      "enabled": true,
+      "adaptiveStrokeWeight": true,
+      "baseOpacity": 0.11,
+      "static": true
+    },
+    "stillness": {
+      "coreStill": true,
+      "disableGyro": true,
+      "disableParallax": true
+    },
+    "speakerOrder": ["AJANI", "MINERVA", "HERMES"],
+    "pauseBetweenSpeakersMs": 1000
+  },
+  "failureHandling": {
+    "useAiTintedPulse": true,
+    "escalation": {
+      "showMicAssistAfterFails": 3,
+      "hintText": "Try saying the AI’s name clearly.",
+      "hintDurationMs": 4000
+    },
+    "silentResetAfterFails": 6
+  },
+  "onboarding": {
+    "firstLaunchHint": {
+      "enabled": true,
+      "text": "Say “Hermes, system mode” to customize interface.",
+      "showOnce": true,
+      "fadeOutMs": 300,
+      "displayMs": 5000
+    }
+  },
+  "power": {
+    "extendedIdle": {
+      "enabled": true,
+      "minutes": 10,
+      "brightnessDrop": 0.18
+    },
+    "lowPowerVisualMode": {
+      "enabled": false,
+      "reductions": {
+        "disableParticles": true,
+        "disableBackgroundNoise": true,
+        "disableHaloBreath": true,
+        "simplifyRipple": true,
+        "reduceGlow": 0.2
+      }
+    }
+  },
+  "launch": {
+    "coldStartFadeMs": 560,
+    "resumeFadeMs": 200
+  }
+}
+

@@ -21,13 +21,22 @@ class VoiceController extends ChangeNotifier {
     required CoreController coreController,
     required CouncilController councilController,
     required AppearanceLabController appearanceLabController,
+    int failureOverlayThreshold = Thresholds.failureOverlayThreshold,
+    int failureResetThreshold = Thresholds.failureResetThreshold,
+    String micAssistHintText =
+        'Mic assist: hold center and say Ajani, Minerva, or Hermes.',
+    int micAssistHintDurationMs = 4000,
   })  : _voiceService = voiceService,
         _wakeService = wakeService,
         _audioService = audioService,
         _haptics = hapticsService,
         _core = coreController,
         _council = councilController,
-        _appearanceLab = appearanceLabController {
+        _appearanceLab = appearanceLabController,
+        _failureOverlayThreshold = failureOverlayThreshold,
+        _failureResetThreshold = failureResetThreshold,
+        _micAssistHintText = micAssistHintText,
+        _micAssistHintDurationMs = micAssistHintDurationMs {
     _voiceSub = _voiceService.events.listen(_onVoiceEvent);
     _wakeSub = _wakeService.wakeEvents.listen(_onWakeEvent);
     _audioAmpSub = _audioService.playbackAmplitude.listen(_core.setAudioAmplitude);
@@ -40,16 +49,36 @@ class VoiceController extends ChangeNotifier {
   final CoreController _core;
   final CouncilController _council;
   final AppearanceLabController _appearanceLab;
+  int _failureOverlayThreshold;
+  int _failureResetThreshold;
+  String _micAssistHintText;
+  int _micAssistHintDurationMs;
 
   StreamSubscription<VoiceEvent>? _voiceSub;
   StreamSubscription<WakeEvent>? _wakeSub;
   StreamSubscription<double>? _audioAmpSub;
+  Timer? _micAssistTimer;
 
   int _failureCount = 0;
   bool _micAssistVisible = false;
 
   int get failureCount => _failureCount;
   bool get micAssistVisible => _micAssistVisible;
+  String get micAssistHintText => _micAssistHintText;
+  int get micAssistHintDurationMs => _micAssistHintDurationMs;
+
+  void configureFromPrefs({
+    required int failureOverlayThreshold,
+    required int failureResetThreshold,
+    required String micAssistHintText,
+    required int micAssistHintDurationMs,
+  }) {
+    _failureOverlayThreshold = failureOverlayThreshold;
+    _failureResetThreshold = failureResetThreshold;
+    _micAssistHintText = micAssistHintText;
+    _micAssistHintDurationMs = micAssistHintDurationMs;
+    notifyListeners();
+  }
 
   Future<void> onLongPressStart() async {
     _core.onLongPressStart();
@@ -139,12 +168,19 @@ class VoiceController extends ChangeNotifier {
 
   void registerFailure() {
     _failureCount += 1;
-    if (_failureCount >= Thresholds.failureResetThreshold) {
+    if (_failureCount >= _failureResetThreshold) {
       _failureCount = 0;
       _micAssistVisible = false;
+      _micAssistTimer?.cancel();
       _core.resetIdle();
-    } else if (_failureCount >= Thresholds.failureOverlayThreshold) {
+    } else if (_failureCount >= _failureOverlayThreshold) {
       _micAssistVisible = true;
+      _micAssistTimer?.cancel();
+      _micAssistTimer =
+          Timer(Duration(milliseconds: _micAssistHintDurationMs), () {
+        _micAssistVisible = false;
+        notifyListeners();
+      });
     }
     notifyListeners();
   }
@@ -154,6 +190,7 @@ class VoiceController extends ChangeNotifier {
     _voiceSub?.cancel();
     _wakeSub?.cancel();
     _audioAmpSub?.cancel();
+    _micAssistTimer?.cancel();
     super.dispose();
   }
 }

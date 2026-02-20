@@ -303,3 +303,16 @@ Format:
 - Summary (compatibility): Added `frame.type: "modular_plate"` alias mapping to the existing runtime frame family (`angularTechFrame`) to preserve rendering without introducing a breaking enum change.
 - Risk: Low (profile replacement + additive alias mapping).
 - Rollback: Restore prior `module_array.json` and remove `modular_plate` resolver alias.
+
+### Area: UI Prefs Schema Integration (Ajani v1)
+- Summary: Added canonical UI prefs asset + resolver support for `$schema: "ajani.ui_prefs.schema.v1"`:
+  - added `assets/prefs/ui_prefs_default.json` (user-provided default profile)
+  - added `UiPrefsResolver` and `UiPrefsProfile` model for parsing selected skin, onboarding, failure, voice, haptics, council, and power defaults
+  - expanded `UiPrefs` model to carry panel/frame/ring/core/gyro/launch pref fields from schema
+  - wired `DialScreen` bootstrap to load UI prefs first, pick selected skin, and apply defaults
+  - wired onboarding hint text/timing/show-once (process-level) from schema
+  - wired failure thresholds + hint text/duration into `VoiceController` and `MicAssistOverlay`
+  - updated ring label rendering to respect partial-label opacity/scale preferences and per-ring material/transparency fields
+  - added `assets/prefs/` in pubspec and exported the new resolver/model in `atlas_voice_core.dart`
+- Risk: Medium (larger config surface; some advanced prefs are stored and partially applied while deeper runtime hooks remain TODO).
+- Rollback: Revert the UI-prefs schema integration commit and remove `assets/prefs/ui_prefs_default.json`.

@@ -19,6 +19,7 @@ export 'app/routes.dart';
 
 export 'core/config/defaults.dart';
 export 'core/config/feature_flags.dart';
+export 'core/config/ui_prefs_resolver.dart';
 export 'core/constants/ai_identities.dart';
 export 'core/constants/timings.dart';
 export 'core/constants/thresholds.dart';
@@ -51,6 +52,7 @@ export 'domain/models/ai_speaker.dart';
 export 'domain/models/ring_item.dart';
 export 'domain/models/skin_config.dart';
 export 'domain/models/ui_prefs.dart';
+export 'domain/models/ui_prefs_profile.dart';
 
 export 'ui/painters/frame_painter.dart';
 export 'ui/painters/ring_painter.dart';

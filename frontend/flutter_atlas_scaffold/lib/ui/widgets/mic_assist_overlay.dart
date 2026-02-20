@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class MicAssistOverlay extends StatelessWidget {
   const MicAssistOverlay({
     required this.visible,
+    required this.text,
     super.key,
   });
 
   final bool visible;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +26,9 @@ class MicAssistOverlay extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFF35406A)),
             ),
-            child: const Text(
-              'Mic assist: hold center and say Ajani, Minerva, or Hermes.',
-              style: TextStyle(
+            child: Text(
+              text,
+              style: const TextStyle(
                 color: Color(0xFFEAF0FF),
                 fontWeight: FontWeight.w600,
               ),

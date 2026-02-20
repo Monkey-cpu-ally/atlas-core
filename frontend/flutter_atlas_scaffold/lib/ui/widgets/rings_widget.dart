@@ -26,8 +26,28 @@ class RingsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ringOpacity = (0.5 * (1 - prefs.ringTransparency)).clamp(0.06, 0.85);
-    final ringStroke = (1.4 * prefs.ringLineWeight).clamp(0.6, 3.6).toDouble();
+    final layerTransparency = switch (activeLayer) {
+      RingLayer.command => prefs.commandRingTransparency,
+      RingLayer.domain => prefs.domainRingTransparency,
+      RingLayer.module => prefs.moduleRingTransparency,
+      RingLayer.utility => prefs.utilityRingTransparency,
+    };
+    final layerMaterial = switch (activeLayer) {
+      RingLayer.command => prefs.commandRingMaterial,
+      RingLayer.domain => prefs.domainRingMaterial,
+      RingLayer.module => prefs.moduleRingMaterial,
+      RingLayer.utility => prefs.utilityRingMaterial,
+    };
+    final ringOpacity = (0.5 * (1 - layerTransparency)).clamp(0.06, 0.85);
+    final baseStroke = switch (layerMaterial) {
+      'solidMatte' => 1.9,
+      'frostedGlass' => 1.6,
+      'transparentGlass' => 1.2,
+      'lineOnlyMinimal' => 1.0,
+      'mixedInnerSolidOuterTransparent' => 1.5,
+      _ => 1.3,
+    };
+    final ringStroke = (baseStroke * prefs.ringLineWeight).clamp(0.6, 3.6).toDouble();
 
     return AnimatedBuilder(
       animation: controller,
@@ -66,6 +86,20 @@ class RingsWidget extends StatelessWidget {
                 ),
               ),
               ...List<Widget>.generate(segments, (index) {
+                final distance = _ringDistance(
+                  index,
+                  layerState.selectedIndex,
+                  segments,
+                );
+                final opacity = distance == 0
+                    ? 1.0
+                    : (prefs.partialLabeling
+                        ? (distance <= 1
+                            ? prefs.inactiveOpacityNear
+                            : prefs.inactiveOpacityFar)
+                        : prefs.inactiveOpacityNear);
+                final scale =
+                    distance == 0 ? prefs.activeLabelScale : 1.0;
                 final angle =
                     ((index * (360 / segments)) + layerState.angleDeg) * math.pi / 180;
                 final r = 155.0;
@@ -75,6 +109,8 @@ class RingsWidget extends StatelessWidget {
                     text: _labelFor(activeLayer, index),
                     active: index == layerState.selectedIndex,
                     color: skin.textPrimary,
+                    opacity: opacity,
+                    scale: scale,
                   ),
                 );
               }),
@@ -121,6 +157,11 @@ class RingsWidget extends StatelessWidget {
         ],
     };
     return labels[index % labels.length];
+  }
+
+  static int _ringDistance(int index, int selected, int count) {
+    final delta = (index - selected).abs();
+    return math.min(delta, count - delta);
   }
 }
 
