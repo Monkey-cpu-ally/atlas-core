@@ -413,5 +413,11 @@ Format:
   - restores valid `profiles.customRings` and `profiles.customUiPrefs` payloads
   - applies bundle `active` selections when compatible (skin/profile paths)
   - supports partial imports and reports rejected invalid sections in a summary snackbar
+- Summary (bundle compatibility guard): Added explicit bundle version checks during import:
+  - requires integer `meta.version`
+  - accepts only current supported version (`1`)
+  - rejects newer versions with "update app to import" guidance
+  - rejects unsupported older versions with migration/export hint
+  - export now uses shared bundle constants for schema/version consistency
 - Risk: Medium (invalid edits are blocked at save time; very large custom JSON payloads may increase local storage footprint).
 - Rollback: Revert the commit updating `atlas_console_widget.dart`, `app_state.dart`, `ui_prefs_resolver.dart`, `rings_resolver.dart`, and `dial_screen.dart`.

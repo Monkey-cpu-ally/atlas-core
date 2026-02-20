@@ -31,6 +31,8 @@ class AtlasConsoleWidget extends StatefulWidget {
 }
 
 class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
+  static const _bundleSchemaId = 'atlas.dial.profile.bundle.v1';
+  static const _bundleVersion = 1;
   static const _defaultRingsProfilePath = 'assets/rings/rings_default.json';
   static const _defaultUiPrefsProfilePath = 'assets/prefs/ui_prefs_default.json';
   static const _customRingsProfilePath = '__custom_rings__';
@@ -1254,6 +1256,39 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     }
   }
 
+  int? _readBundleVersion(Map<String, dynamic> bundle) {
+    final meta = _asDynamicMap(bundle['meta']);
+    final raw = meta['version'];
+    if (raw is! num) {
+      return null;
+    }
+    final asInt = raw.toInt();
+    if (asInt.toDouble() != raw.toDouble()) {
+      return null;
+    }
+    return asInt;
+  }
+
+  String? _bundleCompatibilityError(Map<String, dynamic> bundle) {
+    final schema = bundle[r'$schema']?.toString() ?? '';
+    if (schema != _bundleSchemaId) {
+      return 'Invalid bundle schema. Expected $_bundleSchemaId.';
+    }
+    final version = _readBundleVersion(bundle);
+    if (version == null) {
+      return 'Bundle meta.version is missing or invalid.';
+    }
+    if (version == _bundleVersion) {
+      return null;
+    }
+    if (version > _bundleVersion) {
+      return 'Bundle version $version is newer than this app '
+          '(supports up to $_bundleVersion). Update app to import.';
+    }
+    return 'Bundle version $version is no longer supported in this build. '
+        'Please migrate/export from a newer app version.';
+  }
+
   Future<void> _exportAllProfilesBundle() async {
     final ringsValid = RingsResolver.parseRawJson(_dialPreviewCustomRingsJson) != null;
     final uiPrefsValid =
@@ -1275,9 +1310,9 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
         ? _tryDecodeJsonObject(_dialPreviewCustomUiPrefsJson)
         : null;
     final bundle = <String, dynamic>{
-      r'$schema': 'atlas.dial.profile.bundle.v1',
+      r'$schema': _bundleSchemaId,
       'meta': <String, dynamic>{
-        'version': 1,
+        'version': _bundleVersion,
         'exportedAtUtc': DateTime.now().toUtc().toIso8601String(),
         'source': 'flutterflow_app',
       },
@@ -1306,7 +1341,8 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   Future<void> _importProfilesBundle() async {
     final imported = await _openJsonEditorDialog(
       title: 'Import Dial Profiles Bundle',
-      initialJson: '{\n  "$schema": "atlas.dial.profile.bundle.v1"\n}',
+      initialJson:
+          '{\n  "$schema": "$_bundleSchemaId",\n  "meta": { "version": $_bundleVersion }\n}',
       helperText:
           'Paste a bundle exported from "Export All Profiles Bundle". '
           'Valid custom rings/UI prefs payloads will be restored.',
@@ -1317,12 +1353,21 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     if (!mounted) return;
 
     final bundle = _tryDecodeJsonObject(imported);
-    if (bundle == null ||
-        bundle[r'$schema']?.toString() != 'atlas.dial.profile.bundle.v1') {
+    if (bundle == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Invalid bundle JSON schema. Import canceled.'),
+          content: Text('Invalid bundle JSON. Import canceled.'),
           duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    final compatibilityError = _bundleCompatibilityError(bundle);
+    if (compatibilityError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(compatibilityError),
+          duration: const Duration(seconds: 4),
         ),
       );
       return;
