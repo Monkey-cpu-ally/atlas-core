@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/utils/math.dart';
 import '../../domain/controllers/core_controller.dart';
+import '../../domain/models/ui_prefs.dart';
 import '../painters/waveform_painter.dart';
 import '../themes/skin_tokens.dart';
 
@@ -11,6 +12,7 @@ class CoreHybridWidget extends StatelessWidget {
   const CoreHybridWidget({
     required this.coreState,
     required this.skin,
+    required this.prefs,
     this.onTouchDown,
     this.onLongPressStart,
     this.onLongPressEnd,
@@ -19,6 +21,7 @@ class CoreHybridWidget extends StatelessWidget {
 
   final CoreVisualState coreState;
   final SkinTokens skin;
+  final UiPrefs prefs;
   final VoidCallback? onTouchDown;
   final VoidCallback? onLongPressStart;
   final VoidCallback? onLongPressEnd;
@@ -90,7 +93,7 @@ class CoreHybridWidget extends StatelessWidget {
                     painter: _RipplePainter(
                       color: coreState.accent,
                       amp: AppMath.clamp(
-                        0.08 + (coreState.audioAmp * 0.22),
+                        prefs.rippleAmplitude + (coreState.audioAmp * prefs.audioAmpToGlow),
                         0.08,
                         0.30,
                       ),

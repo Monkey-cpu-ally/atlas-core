@@ -74,13 +74,23 @@ class CoreVisualState {
 
 class CoreController extends ChangeNotifier {
   CoreVisualState _state = const CoreVisualState();
+  double _expandScale = 1.05;
+  double _pressTightenScale = 1.02;
 
   CoreVisualState get state => _state;
+
+  void applyMotionProfile({
+    required double expandScale,
+    required double pressTightenScale,
+  }) {
+    _expandScale = expandScale.clamp(1.02, 1.10).toDouble();
+    _pressTightenScale = pressTightenScale.clamp(0.96, 1.02).toDouble();
+  }
 
   void onTouchDown() {
     _state = _state.copyWith(
       interactionState: InteractionState.touchFocus,
-      coreScale: 1.02,
+      coreScale: _pressTightenScale,
       energyLevel: 0.28,
     );
     notifyListeners();
@@ -89,7 +99,7 @@ class CoreController extends ChangeNotifier {
   void onLongPressStart() {
     _state = _state.copyWith(
       interactionState: InteractionState.listenPendingName,
-      coreScale: 1.05,
+      coreScale: _expandScale,
       energyLevel: 0.35,
       rippleEnabled: false,
       accentMix: 0,

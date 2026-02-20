@@ -52,6 +52,7 @@ class _DialScreenState extends State<DialScreen> {
   late final GyroService _gyro;
 
   late UiPrefs _prefs;
+  UiPrefs _skinDefaultPrefs = Defaults.uiPrefs;
   SkinTokens _skin = Skins.lumenCore;
   bool _showFirstLaunchHint = true;
   StreamSubscription<Offset>? _gyroSub;
@@ -75,11 +76,21 @@ class _DialScreenState extends State<DialScreen> {
       appearanceLabController: _appearanceLab,
     );
 
-    SkinResolver.resolve(widget.initialSkinId).then((tokens) {
+    SkinResolver.resolveBundle(widget.initialSkinId).then((bundle) {
       if (!mounted) {
         return;
       }
-      setState(() => _skin = tokens);
+      _core.applyMotionProfile(
+        expandScale: bundle.prefs.coreExpandScale,
+        pressTightenScale: bundle.prefs.corePressTightenScale,
+      );
+      setState(() {
+        _skin = bundle.tokens;
+        _skinDefaultPrefs = bundle.prefs;
+        if (_isDefaultPrefs(widget.initialPrefs)) {
+          _prefs = bundle.prefs;
+        }
+      });
     });
 
     _gyro.start();
@@ -116,8 +127,9 @@ class _DialScreenState extends State<DialScreen> {
         _voice,
       ]),
       builder: (context, _) {
+        final councilDimPct = (_skin.councilDimStrength.clamp(0.05, 0.10) * 100);
         final dimPercent = _council.state.active
-            ? 8.0
+            ? councilDimPct
             : (_appearanceLab.state.active ? 7.0 : 0.0);
         return Stack(
           fit: StackFit.expand,
@@ -145,6 +157,7 @@ class _DialScreenState extends State<DialScreen> {
               child: CoreHybridWidget(
                 coreState: _core.state,
                 skin: _skin,
+                prefs: _prefs,
                 onTouchDown: _core.onTouchDown,
                 onLongPressStart: () {
                   _voice.onLongPressStart();
@@ -195,7 +208,33 @@ class _DialScreenState extends State<DialScreen> {
   }
 
   void _appearanceReset() {
-    setState(() => _prefs = Defaults.uiPrefs);
+    _core.applyMotionProfile(
+      expandScale: _skinDefaultPrefs.coreExpandScale,
+      pressTightenScale: _skinDefaultPrefs.corePressTightenScale,
+    );
+    setState(() => _prefs = _skinDefaultPrefs);
+  }
+
+  bool _isDefaultPrefs(UiPrefs prefs) {
+    const d = Defaults.uiPrefs;
+    return prefs.panelTiltDegrees == d.panelTiltDegrees &&
+        prefs.frameType == d.frameType &&
+        prefs.frameOpacity == d.frameOpacity &&
+        prefs.ringMaterial == d.ringMaterial &&
+        prefs.ringTransparency == d.ringTransparency &&
+        prefs.ringLineWeight == d.ringLineWeight &&
+        prefs.backgroundType == d.backgroundType &&
+        prefs.accentPreviewEnabled == d.accentPreviewEnabled &&
+        prefs.uiTransitionMs == d.uiTransitionMs &&
+        prefs.coreExpandScale == d.coreExpandScale &&
+        prefs.corePressTightenScale == d.corePressTightenScale &&
+        prefs.rippleAmplitude == d.rippleAmplitude &&
+        prefs.rippleFrequency == d.rippleFrequency &&
+        prefs.rippleSpeed == d.rippleSpeed &&
+        prefs.audioAmpToGlow == d.audioAmpToGlow &&
+        prefs.extendedIdleMinutes == d.extendedIdleMinutes &&
+        prefs.extendedIdleBrightnessDrop == d.extendedIdleBrightnessDrop &&
+        prefs.lowPowerEnabledByDefault == d.lowPowerEnabledByDefault;
   }
 }
 

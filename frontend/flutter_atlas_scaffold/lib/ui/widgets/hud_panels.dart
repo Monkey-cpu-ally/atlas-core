@@ -23,13 +23,13 @@ class HudPanel extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: skin.surface.withOpacity(0.88),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(skin.panelCornerRadius),
           border: Border.all(color: skin.frame.withOpacity(0.85)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
+              color: skin.shadow.withOpacity(0.2),
+              blurRadius: 8 + skin.panelElevation,
+              offset: Offset(0, skin.panelElevation),
             ),
           ],
         ),

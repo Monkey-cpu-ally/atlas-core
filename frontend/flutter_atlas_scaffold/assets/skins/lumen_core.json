@@ -1,20 +1,179 @@
 {
-  "id": "lumen_core",
-  "label": "Lumen Core",
-  "motionProfileId": "smooth_standard",
-  "materialProfileId": "matte_clean",
-  "tokens": {
-    "background": "#0F1117",
-    "surface": "#1A1D27",
-    "frame": "#2B3044",
-    "ring": "#6B738A",
-    "textPrimary": "#E7EBF8",
-    "textSecondary": "#A7AEC4",
-    "accentEnergy": "#7DB4FF",
-    "glassiness": 0.18,
-    "roughness": 0.65,
-    "noiseAmount": 0.08,
-    "grainEnabled": false
+  "$schema": "ajani.skin.schema.v1",
+  "meta": {
+    "id": "lumen_core",
+    "name": "Lumen Core",
+    "version": 1,
+    "author": "Frazier"
+  },
+  "colors": {
+    "bgPrimary": "#0B0C10",
+    "bgSecondary": "#11131A",
+    "panelBase": "#0E1016",
+    "textPrimary": "#EDEFF5",
+    "textSecondary": "#A9AFC0",
+    "stroke": "#2A2F3A",
+    "shadow": "#000000",
+    "highlight": "#FFFFFF",
+    "accentDefault": "#B8FF2C",
+    "ghostPurpleCouncil": "#BFA7FF",
+    "aiAjaniCrimson": "#B21D2A",
+    "aiMinervaTeal": "#2BB9B0",
+    "aiHermesIvory": "#F2E9DA",
+    "dangerPulse": "#B21D2A"
+  },
+  "background": {
+    "type": "gradient",
+    "gradient": {
+      "from": "#0A0B10",
+      "to": "#141824",
+      "angleDeg": 90
+    },
+    "texture": {
+      "enabled": true,
+      "asset": "assets/textures/subtle_grain.png",
+      "opacity": 0.08
+    },
+    "noise": {
+      "enabled": true,
+      "asset": "assets/textures/noise.png",
+      "opacity": 0.05
+    }
+  },
+  "panel": {
+    "tiltPreset": "subtle",
+    "tiltDegrees": 7,
+    "depthShadow": "soft",
+    "material": "matte",
+    "cornerRadius": 24,
+    "elevation": 10
+  },
+  "frame": {
+    "enabled": true,
+    "type": "circular_plate",
+    "opacity": 0.22,
+    "strokeWidth": 1.0,
+    "material": "frosted_glass"
+  },
+  "rings": {
+    "global": {
+      "snap": {
+        "enabled": true,
+        "inertia": 0.85,
+        "snapStrength": 0.75,
+        "bounce": 0.08
+      },
+      "labeling": {
+        "mode": "partial",
+        "activeLabelScale": 1.15,
+        "inactiveOpacityNear": 0.55,
+        "inactiveOpacityFar": 0.18,
+        "keepLabelsUpright": true
+      }
+    },
+    "commandRing": {
+      "thickness": 18,
+      "material": "solid_matte",
+      "transparency": 0.0,
+      "tickStyle": "clean",
+      "alwaysShowLabels": true
+    },
+    "domainRing": {
+      "thickness": 14,
+      "material": "frosted_glass",
+      "transparency": 0.28,
+      "tickStyle": "segmented",
+      "alwaysShowLabels": false
+    },
+    "moduleRing": {
+      "thickness": 12,
+      "material": "transparent_glass",
+      "transparency": 0.42,
+      "tickStyle": "minimal",
+      "alwaysShowLabels": false
+    },
+    "utilityRing": {
+      "thickness": 10,
+      "material": "line_only",
+      "transparency": 0.55,
+      "tickStyle": "minimal",
+      "alwaysShowLabels": false
+    }
+  },
+  "typography": {
+    "family": "Inter",
+    "tracking": 0.2,
+    "commandRingWeight": 650,
+    "defaultWeight": 500,
+    "labelCase": "uppercase"
+  },
+  "motion": {
+    "uiTransitionMs": 520,
+    "resumeFadeMs": 200,
+    "coldStartFadeMs": 560,
+    "coreReturnMs": 320,
+    "coreExpandScale": 1.07,
+    "corePressTightenScale": 0.985
+  },
+  "core": {
+    "materialProfile": "ceramic_glass",
+    "idle": {
+      "internalDriftSpeed": 0.18,
+      "breathCycleSec": 4.5,
+      "brightness": 0.92
+    },
+    "interaction": {
+      "parallaxPxMax": 6,
+      "microTiltDegMax": 4,
+      "gyroParallaxPxMax": 3,
+      "gyroTiltDegMax": 5
+    },
+    "ripple": {
+      "enabled": true,
+      "amplitude": 0.18,
+      "frequency": 1.2,
+      "speed": 0.55,
+      "audioAmpToGlow": 0.35
+    }
+  },
+  "council": {
+    "dimOverlay": {
+      "enabled": true,
+      "strength": 0.08,
+      "fadeInMs": 360,
+      "fadeOutMs": 520
+    },
+    "sigil": {
+      "enabled": true,
+      "baseOpacity": 0.11,
+      "strokeWeight": "auto_by_skin",
+      "static": true
+    }
+  },
+  "power": {
+    "extendedIdleMinutes": 10,
+    "extendedIdleBrightnessDrop": 0.18,
+    "lowPowerMode": {
+      "enabledByDefault": false,
+      "disables": {
+        "particles": true,
+        "backgroundNoise": true,
+        "haloBreath": true
+      }
+    }
+  },
+  "audio": {
+    "tones": {
+      "ajani": "assets/audio/tone_ajani.wav",
+      "minerva": "assets/audio/tone_minerva.wav",
+      "hermes": "assets/audio/tone_hermes.wav",
+      "council": "assets/audio/tone_council.wav"
+    },
+    "hermesReadyTone": {
+      "evolves": true,
+      "maxHarmonicRichnessDelta": 0.1,
+      "maxStereoWidthDelta": 0.05
+    }
   }
 }
 

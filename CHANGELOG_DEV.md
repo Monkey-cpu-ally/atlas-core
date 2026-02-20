@@ -272,3 +272,14 @@ Format:
   - package exports updated in `atlas_voice_core.dart` for the new architecture surface
 - Risk: Medium to high (large additive scaffold; real sensor/audio/ASR implementations are still mocked and placeholder media files must be replaced before production use).
 - Rollback: Revert commits that introduce the `lib/app|core|domain|ui` architecture pack and `assets/*` scaffold additions.
+
+### Area: Skin Schema Integration (Ajani v1)
+- Summary: Integrated support for `$schema: "ajani.skin.schema.v1"` in the Flutter scaffold skin resolver and made the provided Lumen Core schema file canonical:
+  - replaced `assets/skins/lumen_core.json` with the full Ajani v1 schema payload
+  - added resolver support to parse `meta/colors/background/panel/frame/rings/motion/core/council/power/audio` sections
+  - mapped schema fields into runtime `SkinTokens` and `UiPrefs` defaults
+  - added `SkinLoadResult` (`tokens + prefs`) and wired `DialScreen` to load both
+  - reset-to-default now restores skin-derived defaults, not hardcoded generic defaults
+  - panel shape/shadow and council dim strength now honor skin schema values
+- Risk: Medium (schema parsing is additive but now expects consistent field names for advanced overrides).
+- Rollback: Revert the schema-integration commit and restore legacy `lumen_core.json`.
