@@ -1,0 +1,10 @@
+{
+  "id": "base_sigil",
+  "style": "encoded_spiritual_circuit",
+  "rings": [0.26, 0.33, 0.40],
+  "radialMarkers": 12,
+  "defaultOpacity": 0.12,
+  "rotationMode": "static",
+  "notes": "Speaker-invariant during council phases; Ghost Purple tint only."
+}
+

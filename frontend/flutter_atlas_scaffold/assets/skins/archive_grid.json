@@ -1,0 +1,20 @@
+{
+  "id": "archive_grid",
+  "label": "Archive Grid",
+  "motionProfileId": "structured_console",
+  "materialProfileId": "matte_dense",
+  "tokens": {
+    "background": "#14161E",
+    "surface": "#202433",
+    "frame": "#39425A",
+    "ring": "#8D98B3",
+    "textPrimary": "#F2F5FF",
+    "textSecondary": "#B8C1D8",
+    "accentEnergy": "#9FC2FF",
+    "glassiness": 0.08,
+    "roughness": 0.78,
+    "noiseAmount": 0.15,
+    "grainEnabled": true
+  }
+}
+

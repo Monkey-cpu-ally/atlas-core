@@ -1,0 +1,20 @@
+{
+  "id": "circuit_veil",
+  "label": "Circuit Veil",
+  "motionProfileId": "precision_soft",
+  "materialProfileId": "glass_light",
+  "tokens": {
+    "background": "#EDEFF5",
+    "surface": "#FFFFFF",
+    "frame": "#D4D9E4",
+    "ring": "#95A1B8",
+    "textPrimary": "#242938",
+    "textSecondary": "#58607A",
+    "accentEnergy": "#4A77C9",
+    "glassiness": 0.42,
+    "roughness": 0.35,
+    "noiseAmount": 0.06,
+    "grainEnabled": false
+  }
+}
+

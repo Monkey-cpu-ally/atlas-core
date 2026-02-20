@@ -261,3 +261,14 @@ Format:
 - Summary (scaffold): Added skin-level visual defaults (`AtlasSkins.visualDefaults`) used by reset-to-default behavior.
 - Risk: Medium (UI layout changes; new persisted pref fields may require one-time migration for old JSON values).
 - Rollback: Revert the commit(s) introducing Appearance Lab + the new dial visual preference fields.
+
+### Area: Dial Core UI Implementation Pack (Flutter-first architecture)
+- Summary: Added a full implementation scaffold under `frontend/flutter_atlas_scaffold/` matching the requested folder map:
+  - `lib/app`, `lib/core`, `lib/domain`, `lib/ui` trees with explicit state slices, services, controllers, themes, painters, and screen/widget composition
+  - new interaction/state controllers (`CoreController`, `VoiceController`, `CouncilController`, `RingController`, `AppearanceLabController`) covering idle/hold/listen/process/speaking/council/appearance-lab flows
+  - new `DialScreen` stack composition with background/frame/sigil/rings/core + overlays (tooltip, mic assist, appearance lab)
+  - skin token resolver + built-in skins + asset-backed skin JSON contracts
+  - asset structure for skins/textures/audio/sigil recipes plus pubspec asset wiring
+  - package exports updated in `atlas_voice_core.dart` for the new architecture surface
+- Risk: Medium to high (large additive scaffold; real sensor/audio/ASR implementations are still mocked and placeholder media files must be replaced before production use).
+- Rollback: Revert commits that introduce the `lib/app|core|domain|ui` architecture pack and `assets/*` scaffold additions.

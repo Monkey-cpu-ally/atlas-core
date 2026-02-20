@@ -5,6 +5,7 @@ Starter implementation scaffold for:
 - council mode sequencing,
 - ethereal sigil ring behavior,
 - Flutter-to-Unity bridge payload contracts.
+- dial-core architecture pack (`app/core/domain/ui`) with Appearance Lab overlays.
 
 This is intentionally a focused scaffold, not a full app.
 
@@ -49,3 +50,4 @@ This is intentionally a focused scaffold, not a full app.
 - TODO: Wire voice parser and wake-word engine to call controller transitions.
 - TODO: Bind haptic and audio cue services at accent activation sync points.
 - TODO: Replace placeholder ring shell with your production HUD implementation.
+- TODO: Replace placeholder `.wav` and `.png` assets in `assets/audio` and `assets/textures`.

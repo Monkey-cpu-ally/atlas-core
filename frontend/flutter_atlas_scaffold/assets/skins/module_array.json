@@ -1,0 +1,20 @@
+{
+  "id": "module_array",
+  "label": "Module Array",
+  "motionProfileId": "modular_engineering",
+  "materialProfileId": "mixed_panel",
+  "tokens": {
+    "background": "#10131E",
+    "surface": "#1A2133",
+    "frame": "#2A3954",
+    "ring": "#7689B2",
+    "textPrimary": "#E9EEFF",
+    "textSecondary": "#ACB7D5",
+    "accentEnergy": "#7CA6FF",
+    "glassiness": 0.24,
+    "roughness": 0.58,
+    "noiseAmount": 0.12,
+    "grainEnabled": true
+  }
+}
+

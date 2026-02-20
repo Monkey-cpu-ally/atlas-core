@@ -1,0 +1,20 @@
+{
+  "id": "lumen_core",
+  "label": "Lumen Core",
+  "motionProfileId": "smooth_standard",
+  "materialProfileId": "matte_clean",
+  "tokens": {
+    "background": "#0F1117",
+    "surface": "#1A1D27",
+    "frame": "#2B3044",
+    "ring": "#6B738A",
+    "textPrimary": "#E7EBF8",
+    "textSecondary": "#A7AEC4",
+    "accentEnergy": "#7DB4FF",
+    "glassiness": 0.18,
+    "roughness": 0.65,
+    "noiseAmount": 0.08,
+    "grainEnabled": false
+  }
+}
+
