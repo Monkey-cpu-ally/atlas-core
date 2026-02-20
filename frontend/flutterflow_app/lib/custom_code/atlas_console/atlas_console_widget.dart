@@ -9,6 +9,8 @@ import '/app_state.dart';
 import '../atlas_backend/atlas_backend_client.dart';
 import 'dart:math' as math;
 
+enum _AtlasWorkspaceView { console, dialPreview }
+
 class AtlasConsoleWidget extends StatefulWidget {
   const AtlasConsoleWidget({super.key});
 
@@ -34,6 +36,7 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
   bool _appearanceLabExiting = false;
   bool _accentPreviewEnabled = false;
   String _accentPreviewId = 'hermes';
+  _AtlasWorkspaceView _workspaceView = _AtlasWorkspaceView.console;
 
   bool _loading = false;
   String? _error;
@@ -711,6 +714,83 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     _persistVisualPrefs();
   }
 
+  void _openDialPreviewWorkspace() {
+    setState(() {
+      // Leave calibration mode before mounting the new scaffold dial view.
+      if (_appearanceLabActive || _appearanceLabExiting) {
+        _voiceCore.exitAppearanceLab();
+        _appearanceLabActive = false;
+        _appearanceLabExiting = false;
+      }
+      _workspaceView = _AtlasWorkspaceView.dialPreview;
+    });
+  }
+
+  void _openConsoleWorkspace() {
+    if (_workspaceView == _AtlasWorkspaceView.console) {
+      return;
+    }
+    setState(() => _workspaceView = _AtlasWorkspaceView.console);
+  }
+
+  Widget _workspaceSwitcher(SkinTokens skinTokens) {
+    Widget chip({
+      required String label,
+      required bool selected,
+      required VoidCallback onSelected,
+    }) {
+      return ChoiceChip(
+        selected: selected,
+        label: Text(label),
+        onSelected: (_) => onSelected(),
+        selectedColor: skinTokens.accentEnergy.withOpacity(0.18),
+        labelStyle: TextStyle(
+          color: selected ? skinTokens.textPrimary : skinTokens.textSecondary,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        chip(
+          label: 'Console',
+          selected: _workspaceView == _AtlasWorkspaceView.console,
+          onSelected: _openConsoleWorkspace,
+        ),
+        chip(
+          label: 'Dial Preview',
+          selected: _workspaceView == _AtlasWorkspaceView.dialPreview,
+          onSelected: _openDialPreviewWorkspace,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDialPreviewWorkspace() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const DialScreen(),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: OutlinedButton.icon(
+                onPressed: _openConsoleWorkspace,
+                icon: const Icon(Icons.tune),
+                label: const Text('Open Console'),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _promptLanIp() async {
     final ipController = TextEditingController();
     final value = await showDialog<String>(
@@ -821,6 +901,11 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
     final intent = (_last?['intent'] ?? '').toString();
     final version = (_last?['version'] ?? '').toString();
 
+    if (_workspaceView == _AtlasWorkspaceView.dialPreview &&
+        !_appearanceLabActive) {
+      return _buildDialPreviewWorkspace();
+    }
+
     if (_appearanceLabActive) {
       return AnimatedTheme(
         data: skinTheme,
@@ -881,6 +966,11 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
               title: 'Connection',
               child: Column(
                 children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _workspaceSwitcher(skinTokens),
+                  ),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _baseUrlController,
                     onChanged: (v) => FFAppState().atlasBaseUrl = v,

@@ -14,7 +14,7 @@
         { "id": "simulate", "label": "SIMULATE", "icon": "waveform" },
         { "id": "log", "label": "LOG", "icon": "book" }
       ],
-      "labeling": { "alwaysShowLabels": true }
+      "labeling": { "alwaysShowLabels": true, "showFullLabelWhenCentered": false }
     },
     {
       "id": "domain",

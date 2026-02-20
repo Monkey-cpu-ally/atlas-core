@@ -7,6 +7,8 @@ import '../../domain/models/rings_profile.dart';
 class RingsResolver {
   const RingsResolver._();
 
+  static const _ringsSchemaId = 'ajani.rings.schema.v1';
+
   static Future<RingsProfile> resolveDefaultProfile({
     String path = 'assets/rings/rings_default.json',
   }) async {
@@ -17,7 +19,10 @@ class RingsResolver {
         return RingsProfile.fallback;
       }
       final schema = decoded[r'$schema']?.toString() ?? '';
-      if (schema != 'ajani.rings.schema.v1') {
+      if (schema != _ringsSchemaId) {
+        return RingsProfile.fallback;
+      }
+      if (!_isValidAjaniRingsV1(decoded)) {
         return RingsProfile.fallback;
       }
       return _fromMap(decoded);
@@ -121,6 +126,133 @@ class RingsResolver {
 
   static bool _asBool(Object? value, bool fallback) {
     return value is bool ? value : fallback;
+  }
+
+  static bool _isValidAjaniRingsV1(Map<String, Object?> map) {
+    if (!_hasKeys(map, const [r'$schema', 'meta', 'rings', 'snapping', 'labelingDefaults'])) {
+      return false;
+    }
+
+    final meta = _asMap(map['meta']);
+    if (!_hasKeys(meta, const ['id', 'version', 'author'])) {
+      return false;
+    }
+    if (!_isNonEmptyString(meta['id']) ||
+        !_isIntInRange(meta['version'], 1, 999) ||
+        !_isNonEmptyString(meta['author'])) {
+      return false;
+    }
+
+    final rings = _asList(map['rings']);
+    if (rings.isEmpty) {
+      return false;
+    }
+    for (final ringValue in rings) {
+      final ring = _asMap(ringValue);
+      if (!_hasKeys(
+        ring,
+        const ['id', 'label', 'radius', 'segmentCount', 'segments', 'labeling'],
+      )) {
+        return false;
+      }
+      if (!_isNonEmptyString(ring['id']) ||
+          !_isNonEmptyString(ring['label']) ||
+          !_isNumInRange(ring['radius'], 0, 300) ||
+          !_isIntInRange(ring['segmentCount'], 1, 20)) {
+        return false;
+      }
+
+      final segments = _asList(ring['segments']);
+      if (segments.isEmpty || segments.length > 20) {
+        return false;
+      }
+      for (final segmentValue in segments) {
+        final segment = _asMap(segmentValue);
+        if (!_hasKeys(segment, const ['id', 'label'])) {
+          return false;
+        }
+        if (!_isNonEmptyString(segment['id']) || !_isNonEmptyString(segment['label'])) {
+          return false;
+        }
+        final shortLabel = segment['shortLabel'];
+        if (shortLabel != null && !_isNonEmptyString(shortLabel)) {
+          return false;
+        }
+        final icon = segment['icon'];
+        if (icon != null && !_isNonEmptyString(icon)) {
+          return false;
+        }
+      }
+
+      final labeling = _asMap(ring['labeling']);
+      if (!_hasKeys(labeling, const ['alwaysShowLabels', 'showFullLabelWhenCentered'])) {
+        return false;
+      }
+      if (labeling['alwaysShowLabels'] is! bool ||
+          labeling['showFullLabelWhenCentered'] is! bool) {
+        return false;
+      }
+    }
+
+    final snapping = _asMap(map['snapping']);
+    if (!_hasKeys(snapping, const ['enabled', 'inertia', 'snapStrength', 'bounce'])) {
+      return false;
+    }
+    if (snapping['enabled'] is! bool ||
+        !_isNumInRange(snapping['inertia'], 0, 1) ||
+        !_isNumInRange(snapping['snapStrength'], 0, 1) ||
+        !_isNumInRange(snapping['bounce'], 0, 1)) {
+      return false;
+    }
+
+    final labelingDefaults = _asMap(map['labelingDefaults']);
+    if (!_hasKeys(
+      labelingDefaults,
+      const ['mode', 'activeLabelScale', 'inactiveOpacityNear', 'inactiveOpacityFar', 'keepLabelsUpright'],
+    )) {
+      return false;
+    }
+    if (!const {'partial', 'full'}.contains(labelingDefaults['mode']?.toString()) ||
+        !_isNumInRange(labelingDefaults['activeLabelScale'], 1, 2) ||
+        !_isNumInRange(labelingDefaults['inactiveOpacityNear'], 0, 1) ||
+        !_isNumInRange(labelingDefaults['inactiveOpacityFar'], 0, 1) ||
+        labelingDefaults['keepLabelsUpright'] is! bool) {
+      return false;
+    }
+
+    return true;
+  }
+
+  static bool _hasKeys(Map<String, Object?> map, List<String> keys) {
+    for (final key in keys) {
+      if (!map.containsKey(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool _isNonEmptyString(Object? value) {
+    return value is String && value.trim().isNotEmpty;
+  }
+
+  static bool _isNumInRange(Object? value, double min, double max) {
+    if (value is! num) {
+      return false;
+    }
+    final asDouble = value.toDouble();
+    return asDouble >= min && asDouble <= max;
+  }
+
+  static bool _isIntInRange(Object? value, int min, int max) {
+    if (value is! num) {
+      return false;
+    }
+    final asInt = value.toInt();
+    if (asInt.toDouble() != value.toDouble()) {
+      return false;
+    }
+    return asInt >= min && asInt <= max;
   }
 }
 

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ajani.rings.schema.v1",
+  "title": "Ajani Rings Schema v1",
+  "type": "object",
+  "required": ["$schema", "meta", "rings", "snapping", "labelingDefaults"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "required": ["id", "version", "author"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "version": { "type": "integer", "minimum": 1 },
+        "author": { "type": "string", "minLength": 1 }
+      }
+    },
+    "rings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ringDefinition" }
+    },
+    "snapping": {
+      "type": "object",
+      "required": ["enabled", "inertia", "snapStrength", "bounce"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "inertia": { "type": "number", "minimum": 0, "maximum": 1 },
+        "snapStrength": { "type": "number", "minimum": 0, "maximum": 1 },
+        "bounce": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "labelingDefaults": {
+      "type": "object",
+      "required": [
+        "mode",
+        "activeLabelScale",
+        "inactiveOpacityNear",
+        "inactiveOpacityFar",
+        "keepLabelsUpright"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "type": "string", "enum": ["partial", "full"] },
+        "activeLabelScale": { "type": "number", "minimum": 1, "maximum": 2 },
+        "inactiveOpacityNear": { "type": "number", "minimum": 0, "maximum": 1 },
+        "inactiveOpacityFar": { "type": "number", "minimum": 0, "maximum": 1 },
+        "keepLabelsUpright": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "ringDefinition": {
+      "type": "object",
+      "required": ["id", "label", "radius", "segmentCount", "segments", "labeling"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "radius": { "type": "number", "minimum": 0, "maximum": 300 },
+        "segmentCount": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "segments": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ringSegmentDefinition" }
+        },
+        "labeling": {
+          "type": "object",
+          "required": ["alwaysShowLabels", "showFullLabelWhenCentered"],
+          "additionalProperties": false,
+          "properties": {
+            "alwaysShowLabels": { "type": "boolean" },
+            "showFullLabelWhenCentered": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "ringSegmentDefinition": {
+      "type": "object",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "shortLabel": { "type": "string", "minLength": 1 },
+        "icon": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

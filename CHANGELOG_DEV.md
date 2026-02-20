@@ -340,3 +340,26 @@ Format:
 - Summary (packaging): Added `assets/schemas/` to scaffold pubspec assets.
 - Risk: Low to medium (stricter validation may reject malformed skin JSON that was previously tolerated).
 - Rollback: Revert schema-contract commit and remove resolver guard path.
+
+## 2026-02-20
+
+### Area: FlutterFlow App (Dial Preview Workspace Entry)
+- Summary: Began FlutterFlow-first integration of the new scaffold dial stack by extending `AtlasConsoleWidget` with a workspace switcher:
+  - added `Console` vs `Dial Preview` mode chips
+  - mounted `DialScreen` directly as a full-screen preview workspace
+  - added a top-right "Open Console" return control from the dial workspace
+  - ensured Appearance Lab exits cleanly before switching into Dial Preview
+- Risk: Medium (switching between two large stateful workspaces may surface lifecycle edge cases on lower-memory devices).
+- Rollback: Revert the commit that updates `frontend/flutterflow_app/lib/custom_code/atlas_console/atlas_console_widget.dart`.
+
+### Area: Rings Schema Contract (Draft 2020-12)
+- Summary: Added formal JSON Schema contract file for rings:
+  - `frontend/flutter_atlas_scaffold/assets/schemas/ajani.rings.schema.v1.json`
+- Summary (runtime guard): Hardened `RingsResolver` with lightweight schema validation for `ajani.rings.schema.v1`:
+  - checks required top-level sections (`meta`, `rings`, `snapping`, `labelingDefaults`)
+  - validates ring definitions, segment definitions, and labeling contract keys
+  - validates range constraints for radius, segment counts, snap params, and labeling defaults
+  - fails closed to `RingsProfile.fallback` when payload shape is invalid
+- Summary (contract alignment): Updated `assets/rings/rings_default.json` command ring labeling to include `showFullLabelWhenCentered` for strict schema compliance.
+- Risk: Low to medium (stricter validation may reject malformed or partially specified ring profile payloads that were previously tolerated).
+- Rollback: Revert the commit adding the rings schema file and resolver validation guard.
