@@ -7,6 +7,7 @@ import 'package:flutter_atlas_scaffold/atlas_voice_core.dart';
 
 import '/app_state.dart';
 import '../atlas_backend/atlas_backend_client.dart';
+import 'json_download.dart' as json_download;
 import 'dart:math' as math;
 
 enum _AtlasWorkspaceView { console, dialPreview }
@@ -1001,6 +1002,33 @@ class _AtlasConsoleWidgetState extends State<AtlasConsoleWidget> {
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Close'),
             ),
+            if (kIsWeb)
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final ok = await json_download.downloadJsonFile(
+                    fileName: fileName,
+                    jsonPayload: jsonPayload,
+                  );
+                  if (!mounted) return;
+                  if (ok) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Download started for $fileName.'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Download not available on this platform.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.download),
+                label: const Text('Download .json'),
+              ),
             ElevatedButton.icon(
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: jsonPayload));

@@ -400,5 +400,9 @@ Format:
   - import: paste JSON payload from exported `.json` files for rings or UI prefs
   - export: copy shareable JSON payload with suggested timestamped `.json` filename
   - reset: clear saved custom rings/UI prefs and fall back to default profiles if custom was selected
+- Summary (web export UX): Added web-only file download action in export dialog:
+  - `Download .json` button is shown on web builds (`kIsWeb`)
+  - uses conditional import helper (`json_download.dart`) with `dart:html` web implementation and non-web stub
+  - keeps existing clipboard copy export path for all platforms
 - Risk: Medium (invalid edits are blocked at save time; very large custom JSON payloads may increase local storage footprint).
 - Rollback: Revert the commit updating `atlas_console_widget.dart`, `app_state.dart`, `ui_prefs_resolver.dart`, `rings_resolver.dart`, and `dial_screen.dart`.
