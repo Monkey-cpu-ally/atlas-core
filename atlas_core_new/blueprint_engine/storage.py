@@ -14,10 +14,16 @@ from fastapi.responses import FileResponse
 from .schemas import BlueprintPacket
 from .validation import validate_packet
 
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.units import inch
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.units import inch
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.utils import ImageReader
+except (ModuleNotFoundError, ImportError):
+    letter = None
+    inch = None
+    canvas = None
+    ImageReader = None
 
 router = APIRouter(prefix="/atlas", tags=["Atlas Storage"])
 
@@ -97,6 +103,11 @@ def draw_wrapped_text(c_obj: canvas.Canvas, text: str, x: float, y: float, max_w
 
 
 def generate_manual_pdf(packet: BlueprintPacket, ppaths: Dict[str, str]) -> str:
+    if canvas is None or letter is None or inch is None:
+        raise HTTPException(
+            status_code=503,
+            detail="PDF generation is unavailable because 'reportlab' is not installed.",
+        )
     renders_dir = ppaths["renders"]
     manual_dir = ppaths["manual"]
     step_images = list_steps_images(renders_dir)
@@ -319,6 +330,12 @@ def build_manual(project_slug: str, version: str):
     pdir = project_dir(project_slug, version)
     paths = ensure_project_folders(pdir)
 
+    if canvas is None:
+        raise HTTPException(
+            status_code=503,
+            detail="PDF generation is unavailable because 'reportlab' is not installed.",
+        )
+
     project_json = os.path.join(paths["root"], "project.json")
     if not os.path.exists(project_json):
         raise HTTPException(status_code=404, detail="project.json not found. Create project first.")
@@ -376,7 +393,10 @@ def list_all_projects():
             if os.path.isdir(vpath):
                 pjson = os.path.join(vpath, "project.json")
                 has_renders = len(list_steps_images(os.path.join(vpath, "renders"))) > 0
-                has_manual = any(f.endswith(".pdf") for f in os.listdir(os.path.join(vpath, "manual")) if os.path.exists(os.path.join(vpath, "manual")))
+                manual_dir = os.path.join(vpath, "manual")
+                has_manual = False
+                if os.path.exists(manual_dir):
+                    has_manual = any(f.lower().endswith(".pdf") for f in os.listdir(manual_dir))
                 meta = {}
                 if os.path.exists(pjson):
                     try:
