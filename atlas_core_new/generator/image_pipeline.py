@@ -36,10 +36,30 @@ class ImagePipeline:
     """
 
     def __init__(self):
-        self.client = OpenAI(
-            api_key=os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY"),
-            base_url=os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL"),
-        )
+        self._api_key = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        self._base_url = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
+        self.client: OpenAI | None = None
+
+    def _ensure_client(self) -> OpenAI:
+        if self.client is not None:
+            return self.client
+
+        api_key = self._api_key or os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        base_url = self._base_url or os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
+
+        if not api_key:
+            from atlas_core_new.utils.error_handling import AtlasError
+            raise AtlasError(
+                "AI services are currently offline. Please configure an API key to use image generation.",
+                status_code=503,
+                detail="Missing OPENAI_API_KEY / AI_INTEGRATIONS_OPENAI_API_KEY",
+            )
+
+        kwargs: dict[str, object] = {"api_key": api_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        self.client = OpenAI(**kwargs)
+        return self.client
 
     def generate(self, prompt: str, style: str | None = None, persona: str | None = None) -> str:
         """
@@ -60,8 +80,9 @@ class ImagePipeline:
         if accent:
             full_prompt += f", {accent}"
 
+        client = self._ensure_client()
         try:
-            response = self.client.images.generate(
+            response = client.images.generate(
                 model="dall-e-3",
                 prompt=full_prompt,
                 size="1024x1024",

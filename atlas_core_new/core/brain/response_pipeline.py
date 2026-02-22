@@ -24,10 +24,30 @@ class ResponsePipeline:
         self.memory = memory
         self.guardrails = Guardrails()
         self.extractor = MemoryExtractor()
-        self.client = OpenAI(
-            api_key=os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY"),
-            base_url=os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL"),
-        )
+        self._api_key = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        self._base_url = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
+        self.client: OpenAI | None = None
+
+    def _ensure_client(self) -> OpenAI:
+        if self.client is not None:
+            return self.client
+
+        api_key = self._api_key or os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        base_url = self._base_url or os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
+
+        if not api_key:
+            from atlas_core_new.utils.error_handling import AtlasError
+            raise AtlasError(
+                "AI services are currently offline. Please configure an API key to use this endpoint.",
+                status_code=503,
+                detail="Missing OPENAI_API_KEY / AI_INTEGRATIONS_OPENAI_API_KEY",
+            )
+
+        kwargs: dict[str, object] = {"api_key": api_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        self.client = OpenAI(**kwargs)
+        return self.client
 
     def run(
         self,
@@ -56,7 +76,8 @@ class ResponsePipeline:
         # do not change this unless explicitly requested by the user
         model = "gpt-4o-mini"
 
-        resp = self.client.chat.completions.create(
+        client = self._ensure_client()
+        resp = client.chat.completions.create(
             model=model,
             messages=input_payload,
             max_tokens=2048,
