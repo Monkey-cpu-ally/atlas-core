@@ -81,14 +81,42 @@ import json
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from umojaforge.simulator_api import router as simulator_router
-from umojaforge.spcm_api import router as spcm_router
+
+# Optional external modules (not vendored in this repo). These are nice-to-have
+# integrations; the core app should still boot without them.
+simulator_router = None
+spcm_router = None
+doctrine_router = None
+chameleon_router = None
+uws_router = None
+pre_reality_router = None
+
+try:
+    from umojaforge.simulator_api import router as simulator_router
+    from umojaforge.spcm_api import router as spcm_router
+except (ModuleNotFoundError, ImportError):
+    simulator_router = None
+    spcm_router = None
+
+try:
+    from doctrine.api import router as doctrine_router
+    from doctrine.chameleon_api import router as chameleon_router
+except (ModuleNotFoundError, ImportError):
+    doctrine_router = None
+    chameleon_router = None
+
+try:
+    from uws_workshop.uws.api import router as uws_router
+except (ModuleNotFoundError, ImportError):
+    uws_router = None
+
+try:
+    from pre_reality_engine.api import router as pre_reality_router
+except (ModuleNotFoundError, ImportError):
+    pre_reality_router = None
+
 from atlas_core_new.core.agents.api import router as agents_router
 from atlas_core_new.core.runtime.hermes_router_api import router as hermes_api_router
-from doctrine.api import router as doctrine_router
-from doctrine.chameleon_api import router as chameleon_router
-from uws_workshop.uws.api import router as uws_router
-from pre_reality_engine.api import router as pre_reality_router
 from atlas_core_new.research.research_tracker_api import router as research_tracker_router
 from atlas_core_new.engineering.api import router as engineering_router
 from atlas_core_new.research.supervisor_api import router as supervisor_router
@@ -103,14 +131,12 @@ from atlas_core_new.blueprint_engine.storage import router as atlas_storage_rout
 app = FastAPI(title="Atlas Core", version="0.3.3")
 register_error_handlers(app)
 
-app.include_router(simulator_router)
-app.include_router(spcm_router)
+for _router in (simulator_router, spcm_router, doctrine_router, chameleon_router, uws_router, pre_reality_router):
+    if _router is not None:
+        app.include_router(_router)
+
 app.include_router(agents_router)
 app.include_router(hermes_api_router)
-app.include_router(doctrine_router)
-app.include_router(chameleon_router)
-app.include_router(uws_router)
-app.include_router(pre_reality_router)
 app.include_router(research_tracker_router)
 app.include_router(engineering_router)
 app.include_router(supervisor_router)
