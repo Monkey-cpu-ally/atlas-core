@@ -1,0 +1,443 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ajani.skin.schema.v1",
+  "title": "Ajani Skin Tokens Schema v1",
+  "type": "object",
+  "required": [
+    "$schema",
+    "meta",
+    "colors",
+    "background",
+    "panel",
+    "frame",
+    "rings",
+    "typography",
+    "motion",
+    "core",
+    "council",
+    "power",
+    "audio"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "required": ["id", "name", "version", "author"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "integer", "minimum": 1 },
+        "author": { "type": "string", "minLength": 1 }
+      }
+    },
+    "colors": {
+      "type": "object",
+      "required": [
+        "bgPrimary",
+        "bgSecondary",
+        "panelBase",
+        "textPrimary",
+        "textSecondary",
+        "stroke",
+        "shadow",
+        "highlight",
+        "accentDefault",
+        "ghostPurpleCouncil",
+        "aiAjaniCrimson",
+        "aiMinervaTeal",
+        "aiHermesIvory",
+        "dangerPulse"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "bgPrimary": { "$ref": "#/$defs/hexColor" },
+        "bgSecondary": { "$ref": "#/$defs/hexColor" },
+        "panelBase": { "$ref": "#/$defs/hexColor" },
+        "textPrimary": { "$ref": "#/$defs/hexColor" },
+        "textSecondary": { "$ref": "#/$defs/hexColor" },
+        "stroke": { "$ref": "#/$defs/hexColor" },
+        "shadow": { "$ref": "#/$defs/hexColor" },
+        "highlight": { "$ref": "#/$defs/hexColor" },
+        "accentDefault": { "$ref": "#/$defs/hexColor" },
+        "ghostPurpleCouncil": { "$ref": "#/$defs/hexColor" },
+        "aiAjaniCrimson": { "$ref": "#/$defs/hexColor" },
+        "aiMinervaTeal": { "$ref": "#/$defs/hexColor" },
+        "aiHermesIvory": { "$ref": "#/$defs/hexColor" },
+        "dangerPulse": { "$ref": "#/$defs/hexColor" }
+      }
+    },
+    "background": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["solid", "gradient", "texture"] },
+        "solid": { "$ref": "#/$defs/hexColor" },
+        "gradient": {
+          "type": "object",
+          "required": ["from", "to", "angleDeg"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "$ref": "#/$defs/hexColor" },
+            "to": { "$ref": "#/$defs/hexColor" },
+            "angleDeg": { "type": "number", "minimum": 0, "maximum": 360 }
+          }
+        },
+        "texture": {
+          "type": "object",
+          "required": ["enabled", "asset", "opacity"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "asset": { "type": "string", "minLength": 1 },
+            "opacity": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "noise": {
+          "type": "object",
+          "required": ["enabled", "asset", "opacity"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "asset": { "type": "string", "minLength": 1 },
+            "opacity": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "solid" } },
+            "required": ["type"]
+          },
+          "then": { "required": ["solid"] }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "gradient" } },
+            "required": ["type"]
+          },
+          "then": { "required": ["gradient"] }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "texture" } },
+            "required": ["type"]
+          },
+          "then": { "required": ["solid", "texture"] }
+        }
+      ]
+    },
+    "panel": {
+      "type": "object",
+      "required": [
+        "tiltPreset",
+        "tiltDegrees",
+        "depthShadow",
+        "material",
+        "cornerRadius",
+        "elevation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tiltPreset": {
+          "type": "string",
+          "enum": ["off", "subtle", "noticeable", "dynamic"]
+        },
+        "tiltDegrees": { "type": "number", "minimum": 0, "maximum": 20 },
+        "depthShadow": { "type": "string", "enum": ["off", "soft"] },
+        "material": {
+          "type": "string",
+          "enum": ["matte", "glass", "brushed_metal", "transparent"]
+        },
+        "cornerRadius": { "type": "number", "minimum": 0, "maximum": 64 },
+        "elevation": { "type": "number", "minimum": 0, "maximum": 50 }
+      }
+    },
+    "frame": {
+      "type": "object",
+      "required": ["enabled", "type", "opacity", "strokeWidth", "material"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "none",
+            "hex_plate",
+            "circular_plate",
+            "angular_tech",
+            "organic_soft",
+            "modular_plate"
+          ]
+        },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "strokeWidth": { "type": "number", "minimum": 0, "maximum": 6 },
+        "material": {
+          "type": "string",
+          "enum": ["matte", "frosted_glass", "transparent_glass", "line_only"]
+        }
+      }
+    },
+    "rings": {
+      "type": "object",
+      "required": [
+        "global",
+        "commandRing",
+        "domainRing",
+        "moduleRing",
+        "utilityRing"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "global": {
+          "type": "object",
+          "required": ["snap", "labeling"],
+          "additionalProperties": false,
+          "properties": {
+            "snap": {
+              "type": "object",
+              "required": ["enabled", "inertia", "snapStrength", "bounce"],
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "inertia": { "type": "number", "minimum": 0, "maximum": 1 },
+                "snapStrength": { "type": "number", "minimum": 0, "maximum": 1 },
+                "bounce": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            },
+            "labeling": {
+              "type": "object",
+              "required": [
+                "mode",
+                "activeLabelScale",
+                "inactiveOpacityNear",
+                "inactiveOpacityFar",
+                "keepLabelsUpright"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "mode": { "type": "string", "enum": ["partial", "full"] },
+                "activeLabelScale": { "type": "number", "minimum": 1, "maximum": 2 },
+                "inactiveOpacityNear": { "type": "number", "minimum": 0, "maximum": 1 },
+                "inactiveOpacityFar": { "type": "number", "minimum": 0, "maximum": 1 },
+                "keepLabelsUpright": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "commandRing": { "$ref": "#/$defs/ringSpec" },
+        "domainRing": { "$ref": "#/$defs/ringSpec" },
+        "moduleRing": { "$ref": "#/$defs/ringSpec" },
+        "utilityRing": { "$ref": "#/$defs/ringSpec" }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "required": [
+        "family",
+        "tracking",
+        "commandRingWeight",
+        "defaultWeight",
+        "labelCase"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "family": { "type": "string", "minLength": 1 },
+        "tracking": { "type": "number", "minimum": -1, "maximum": 5 },
+        "commandRingWeight": { "type": "integer", "minimum": 100, "maximum": 900 },
+        "defaultWeight": { "type": "integer", "minimum": 100, "maximum": 900 },
+        "labelCase": {
+          "type": "string",
+          "enum": ["uppercase", "titlecase", "sentencecase"]
+        }
+      }
+    },
+    "motion": {
+      "type": "object",
+      "required": [
+        "uiTransitionMs",
+        "resumeFadeMs",
+        "coldStartFadeMs",
+        "coreReturnMs",
+        "coreExpandScale",
+        "corePressTightenScale"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "uiTransitionMs": { "type": "integer", "minimum": 100, "maximum": 2000 },
+        "resumeFadeMs": { "type": "integer", "minimum": 0, "maximum": 800 },
+        "coldStartFadeMs": { "type": "integer", "minimum": 200, "maximum": 2000 },
+        "coreReturnMs": { "type": "integer", "minimum": 100, "maximum": 1000 },
+        "coreExpandScale": { "type": "number", "minimum": 1, "maximum": 1.3 },
+        "corePressTightenScale": { "type": "number", "minimum": 0.9, "maximum": 1 }
+      }
+    },
+    "core": {
+      "type": "object",
+      "required": ["materialProfile", "idle", "interaction", "ripple"],
+      "additionalProperties": false,
+      "properties": {
+        "materialProfile": { "type": "string", "minLength": 1 },
+        "idle": {
+          "type": "object",
+          "required": ["internalDriftSpeed", "breathCycleSec", "brightness"],
+          "additionalProperties": false,
+          "properties": {
+            "internalDriftSpeed": { "type": "number", "minimum": 0, "maximum": 2 },
+            "breathCycleSec": { "type": "number", "minimum": 1, "maximum": 20 },
+            "brightness": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "interaction": {
+          "type": "object",
+          "required": [
+            "parallaxPxMax",
+            "microTiltDegMax",
+            "gyroParallaxPxMax",
+            "gyroTiltDegMax"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "parallaxPxMax": { "type": "number", "minimum": 0, "maximum": 20 },
+            "microTiltDegMax": { "type": "number", "minimum": 0, "maximum": 10 },
+            "gyroParallaxPxMax": { "type": "number", "minimum": 0, "maximum": 20 },
+            "gyroTiltDegMax": { "type": "number", "minimum": 0, "maximum": 10 }
+          }
+        },
+        "ripple": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "amplitude",
+            "frequency",
+            "speed",
+            "audioAmpToGlow"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "amplitude": { "type": "number", "minimum": 0, "maximum": 1 },
+            "frequency": { "type": "number", "minimum": 0.1, "maximum": 5 },
+            "speed": { "type": "number", "minimum": 0, "maximum": 5 },
+            "audioAmpToGlow": { "type": "number", "minimum": 0, "maximum": 2 }
+          }
+        }
+      }
+    },
+    "council": {
+      "type": "object",
+      "required": ["dimOverlay", "sigil"],
+      "additionalProperties": false,
+      "properties": {
+        "dimOverlay": {
+          "type": "object",
+          "required": ["enabled", "strength", "fadeInMs", "fadeOutMs"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "strength": { "type": "number", "minimum": 0, "maximum": 0.2 },
+            "fadeInMs": { "type": "integer", "minimum": 0, "maximum": 2000 },
+            "fadeOutMs": { "type": "integer", "minimum": 0, "maximum": 2000 }
+          }
+        },
+        "sigil": {
+          "type": "object",
+          "required": ["enabled", "baseOpacity", "strokeWeight", "static"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "baseOpacity": { "type": "number", "minimum": 0, "maximum": 1 },
+            "strokeWeight": {
+              "type": "string",
+              "enum": ["auto_by_skin", "thin", "medium", "bold"]
+            },
+            "static": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "power": {
+      "type": "object",
+      "required": ["extendedIdleMinutes", "extendedIdleBrightnessDrop", "lowPowerMode"],
+      "additionalProperties": false,
+      "properties": {
+        "extendedIdleMinutes": { "type": "integer", "minimum": 1, "maximum": 120 },
+        "extendedIdleBrightnessDrop": { "type": "number", "minimum": 0, "maximum": 0.6 },
+        "lowPowerMode": {
+          "type": "object",
+          "required": ["enabledByDefault", "disables"],
+          "additionalProperties": false,
+          "properties": {
+            "enabledByDefault": { "type": "boolean" },
+            "disables": {
+              "type": "object",
+              "required": ["particles", "backgroundNoise", "haloBreath"],
+              "additionalProperties": false,
+              "properties": {
+                "particles": { "type": "boolean" },
+                "backgroundNoise": { "type": "boolean" },
+                "haloBreath": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "required": ["tones", "hermesReadyTone"],
+      "additionalProperties": false,
+      "properties": {
+        "tones": {
+          "type": "object",
+          "required": ["ajani", "minerva", "hermes", "council"],
+          "additionalProperties": false,
+          "properties": {
+            "ajani": { "type": "string", "minLength": 1 },
+            "minerva": { "type": "string", "minLength": 1 },
+            "hermes": { "type": "string", "minLength": 1 },
+            "council": { "type": "string", "minLength": 1 }
+          }
+        },
+        "hermesReadyTone": {
+          "type": "object",
+          "required": ["evolves", "maxHarmonicRichnessDelta", "maxStereoWidthDelta"],
+          "additionalProperties": false,
+          "properties": {
+            "evolves": { "type": "boolean" },
+            "maxHarmonicRichnessDelta": { "type": "number", "minimum": 0, "maximum": 1 },
+            "maxStereoWidthDelta": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+    },
+    "ringSpec": {
+      "type": "object",
+      "required": ["thickness", "material", "transparency", "tickStyle", "alwaysShowLabels"],
+      "additionalProperties": false,
+      "properties": {
+        "thickness": { "type": "integer", "minimum": 4, "maximum": 40 },
+        "material": {
+          "type": "string",
+          "enum": ["solid_matte", "frosted_glass", "transparent_glass", "line_only", "mixed"]
+        },
+        "transparency": { "type": "number", "minimum": 0, "maximum": 0.9 },
+        "tickStyle": {
+          "type": "string",
+          "enum": ["clean", "segmented", "segmented_bold", "micro_ticks", "minimal"]
+        },
+        "alwaysShowLabels": { "type": "boolean" }
+      }
+    }
+  }
+}
+

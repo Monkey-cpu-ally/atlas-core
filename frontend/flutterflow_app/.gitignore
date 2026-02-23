@@ -1,0 +1,31 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Web generated registrant
+lib/generated_plugin_registrant.dart
+
+# Android Studio captures
+captures/
+
+# Symbolication/obfuscation outputs
+app.*.symbols
+app.*.map.json
