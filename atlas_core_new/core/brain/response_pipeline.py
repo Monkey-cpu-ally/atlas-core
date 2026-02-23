@@ -24,10 +24,19 @@ class ResponsePipeline:
         self.memory = memory
         self.guardrails = Guardrails()
         self.extractor = MemoryExtractor()
-        self.client = OpenAI(
-            api_key=os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY"),
-            base_url=os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL"),
-        )
+        self._client: OpenAI | None = None
+
+    def _get_client(self) -> OpenAI | None:
+        if self._client is not None:
+            return self._client
+
+        api_key = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            return None
+
+        base_url = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL") or os.environ.get("OPENAI_BASE_URL")
+        self._client = OpenAI(api_key=api_key, base_url=base_url)
+        return self._client
 
     def run(
         self,
@@ -56,7 +65,15 @@ class ResponsePipeline:
         # do not change this unless explicitly requested by the user
         model = "gpt-4o-mini"
 
-        resp = self.client.chat.completions.create(
+        client = self._get_client()
+        if client is None:
+            return {
+                "persona": persona,
+                "text": "AI not configured. Set OPENAI_API_KEY (or AI_INTEGRATIONS_OPENAI_API_KEY) to enable responses.",
+                "severity": "config",
+            }
+
+        resp = client.chat.completions.create(
             model=model,
             messages=input_payload,
             max_tokens=2048,

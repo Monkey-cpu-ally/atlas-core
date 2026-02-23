@@ -10,8 +10,19 @@ dependencies = [
     "psycopg2-binary>=2.9.0",
     "pydantic",
     "openai",
+    "requests",
+    "reportlab",
     "python-multipart",
     "pydantic-settings",
     "feedparser",
     "httpx",
 ]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["atlas_core_new*"]
+exclude = ["frontend*", "docs*", "scripts*", ".github*"]

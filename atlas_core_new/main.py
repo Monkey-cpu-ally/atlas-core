@@ -81,14 +81,34 @@ import json
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from umojaforge.simulator_api import router as simulator_router
-from umojaforge.spcm_api import router as spcm_router
+import importlib
+
+
+def _optional_router(module_path: str, attr: str = "router"):
+    """Import a router from an optional dependency.
+
+    Atlas Core can run with a reduced feature set when some monorepo modules
+    are not present in this checkout.
+    """
+    try:
+        mod = importlib.import_module(module_path)
+        return getattr(mod, attr)
+    except Exception as e:
+        print(
+            f"[atlas_core] Optional module not available: {module_path}.{attr} ({e})",
+            file=sys.stderr,
+        )
+        return None
+
+
+simulator_router = _optional_router("umojaforge.simulator_api")
+spcm_router = _optional_router("umojaforge.spcm_api")
 from atlas_core_new.core.agents.api import router as agents_router
 from atlas_core_new.core.runtime.hermes_router_api import router as hermes_api_router
-from doctrine.api import router as doctrine_router
-from doctrine.chameleon_api import router as chameleon_router
-from uws_workshop.uws.api import router as uws_router
-from pre_reality_engine.api import router as pre_reality_router
+doctrine_router = _optional_router("doctrine.api")
+chameleon_router = _optional_router("doctrine.chameleon_api")
+uws_router = _optional_router("uws_workshop.uws.api")
+pre_reality_router = _optional_router("pre_reality_engine.api")
 from atlas_core_new.research.research_tracker_api import router as research_tracker_router
 from atlas_core_new.engineering.api import router as engineering_router
 from atlas_core_new.research.supervisor_api import router as supervisor_router
@@ -103,14 +123,20 @@ from atlas_core_new.blueprint_engine.storage import router as atlas_storage_rout
 app = FastAPI(title="Atlas Core", version="0.3.3")
 register_error_handlers(app)
 
-app.include_router(simulator_router)
-app.include_router(spcm_router)
+if simulator_router is not None:
+    app.include_router(simulator_router)
+if spcm_router is not None:
+    app.include_router(spcm_router)
 app.include_router(agents_router)
 app.include_router(hermes_api_router)
-app.include_router(doctrine_router)
-app.include_router(chameleon_router)
-app.include_router(uws_router)
-app.include_router(pre_reality_router)
+if doctrine_router is not None:
+    app.include_router(doctrine_router)
+if chameleon_router is not None:
+    app.include_router(chameleon_router)
+if uws_router is not None:
+    app.include_router(uws_router)
+if pre_reality_router is not None:
+    app.include_router(pre_reality_router)
 app.include_router(research_tracker_router)
 app.include_router(engineering_router)
 app.include_router(supervisor_router)
