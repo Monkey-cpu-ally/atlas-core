@@ -38,7 +38,8 @@ git rev-parse --verify "${HEAD_REF}" >/dev/null 2>&1 || {
 CHANGED_FILES="$(git diff --name-only "${BASE_REF}...${HEAD_REF}" || true)"
 
 # Protected HUD paths.
-PROTECTED_REGEX='^(docs/architecture/|frontend/flutter_atlas_scaffold/|frontend/flutterflow_app/lib/custom_code/atlas_console/atlas_console_widget\.dart$)'
+# (These are design-frozen; changes require an explicit [HUD-CHANGE] marker.)
+PROTECTED_REGEX='^(docs/architecture/|flutter_atlas_scaffold/|lib/custom_code/atlas_console/atlas_console_widget\.dart$)'
 PROTECTED_CHANGED="$(printf "%s\n" "${CHANGED_FILES}" | grep -E "${PROTECTED_REGEX}" || true)"
 
 if [[ -z "${PROTECTED_CHANGED}" ]]; then

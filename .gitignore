@@ -1,6 +1,16 @@
 # Atlas Blueprint Storage (generated project files)
 atlas_core_new/blueprint_engine/atlas_storage/
 
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+captures/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

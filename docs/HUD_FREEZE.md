@@ -6,8 +6,8 @@ This repo contains a **design-frozen HUD** (dial + rings + voice/council visuals
 
 These paths are treated as **HUD-frozen**:
 - `docs/architecture/**`
-- `frontend/flutter_atlas_scaffold/**`
-- `frontend/flutterflow_app/lib/custom_code/atlas_console/atlas_console_widget.dart`
+- `flutter_atlas_scaffold/**`
+- `lib/custom_code/atlas_console/atlas_console_widget.dart`
 
 ## Why
 

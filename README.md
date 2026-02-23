@@ -5,8 +5,8 @@ Safety-first environmental robotics framework with an AI persona-based assistant
 
 - **Backend (FastAPI)**: `atlas_core_new/`
 - **PWA UI (served by backend)**: `atlas_core_new/static/`
-- **Flutter app (FlutterFlow export)**: `frontend/flutterflow_app/`
-- **HUD dial + rings + voice/council scaffold**: `frontend/flutter_atlas_scaffold/`
+- **Flutter app (FlutterFlow export)**: repo root (`pubspec.yaml`, `lib/`, `android/`, etc.)
+- **HUD dial + rings + voice/council scaffold**: `flutter_atlas_scaffold/`
 - **HUD specs (design-frozen)**: `docs/architecture/`
 
 ## Run the backend (local dev)
@@ -29,7 +29,6 @@ Optional config:
 Prerequisite: install Flutter on your machine.
 
 ```bash
-cd frontend/flutterflow_app
 flutter pub get
 flutter run
 ```

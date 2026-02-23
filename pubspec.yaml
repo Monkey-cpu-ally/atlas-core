@@ -68,7 +68,7 @@ dependencies:
   url_launcher_windows: 3.1.4
   http: 1.4.0
   flutter_atlas_scaffold:
-    path: ../flutter_atlas_scaffold
+    path: ./flutter_atlas_scaffold
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -104,6 +104,14 @@ flutter:
     - assets/rive_animations/
     - assets/pdfs/
     - assets/jsons/
+    # HUD dial scaffold assets (vendored into app for FlutterFlow compatibility)
+    - assets/audio/
+    - assets/prefs/
+    - assets/rings/
+    - assets/schemas/
+    - assets/sigils/
+    - assets/skins/
+    - assets/textures/
 
 
 
