@@ -1,0 +1,21 @@
+## Cursor rules for this repository
+## Goal: prevent accidental HUD redesigns.
+
+### HUD FREEZE (DO NOT CHANGE)
+- The HUD dial design is **locked**. Do not redesign, refactor for style, or "improve UI" in these areas unless the user explicitly asks.
+- Treat the following paths as **design-frozen**:
+  - `docs/architecture/**`
+  - `frontend/flutter_atlas_scaffold/**`
+  - `frontend/flutterflow_app/lib/custom_code/atlas_console/atlas_console_widget.dart`
+
+### What is allowed without explicit approval
+- Bug fixes that do **not** change visuals/interaction behavior (e.g., null checks, build fixes).
+- Security fixes that are strictly non-visual.
+- Adding tests/CI checks that do not change runtime UI.
+
+### What is NOT allowed without explicit approval
+- Any change to colors, spacing, typography, animation timing, ring behavior, voice/council visuals, skins/tokens, or layout.
+- Any "cleanup", "polish", or "modernize" changes in the frozen paths.
+
+### Approval signal
+- Only edit frozen HUD paths when the user message includes **"[HUD-CHANGE]"**.

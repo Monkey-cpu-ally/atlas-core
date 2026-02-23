@@ -1,0 +1,27 @@
+name: HUD Freeze
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  hud-freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: HUD freeze check (pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          HUD_FREEZE_PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          bash scripts/hud_freeze_check.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+      - name: HUD freeze check (push)
+        if: github.event_name == 'push'
+        run: |
+          bash scripts/hud_freeze_check.sh "${{ github.event.before }}" "${{ github.sha }}"
+
