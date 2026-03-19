@@ -22,9 +22,56 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/icon-512.png">
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/upgrade.css">
+    <link rel="stylesheet" href="/static/css/hud-layout.css">
 </head>
 <body>
     <script src="/static/js/upgrade.js"></script>
+
+    <!-- HUD HOME SCREEN -->
+    <div id="hudHome">
+        <div class="hud-home-wrapper">
+            <div class="hud-home-title">
+                <h1>Atlas Core</h1>
+                <div class="hud-home-sub">ATLAS-PRIME · Paradox-Responsive Intelligence</div>
+            </div>
+            <div class="hud-home-svg-container">
+                <svg id="hudHomeSvg" viewBox="0 0 580 580" class="hud-home-svg"></svg>
+                <div id="hudHomeLabels" style="position:absolute;inset:0;pointer-events:none;"></div>
+            </div>
+            <div class="hud-home-status" id="hudHomeStatus">ATLAS-PRIME · STANDING BY</div>
+        </div>
+        <button class="hud-classic-toggle" onclick="window.HudLayout.switchToClassic()">CLASSIC VIEW</button>
+    </div>
+
+    <!-- Content Panel (slides from right) -->
+    <div id="hudContentPanel">
+        <div class="panel-header">
+            <h2 id="hudCPTitle"></h2>
+            <button class="panel-close" onclick="window.HudLayout.closePanel()">ESC</button>
+        </div>
+        <div class="panel-body" id="hudCPBody"></div>
+    </div>
+
+    <!-- Chat Panel (slides from left) -->
+    <div id="hudChatPanel">
+        <div class="chat-panel-header">
+            <h2 id="hudChatPersonaLabel">CHAT · AJANI</h2>
+            <button class="panel-close" onclick="window.HudLayout.closeChat()">ESC</button>
+        </div>
+        <div class="chat-panel-body">
+            <div class="chat-panel-messages" id="hudChatMessages"></div>
+            <div class="chat-panel-input">
+                <input type="text" id="hudChatInput" placeholder="Speak to the council..." autocomplete="off" />
+                <button onclick="window.HudLayout.sendChat()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to HUD button (visible in classic mode) -->
+    <button id="classicToHudBtn" onclick="window.HudLayout.switchToHUD()">⬡ HUD VIEW</button>
+
+    <script src="/static/js/hud-layout.js"></script>
+
     <div class="container">
         <header>
             <h1 class="logo">Atlas Core</h1>
