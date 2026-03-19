@@ -16765,9 +16765,767 @@ body {
         if (typeof originalSelectPersona === 'function') {
             window.selectPersona = function(persona) {
                 updateAIPresence(persona);
+                if (window.HUDRing) window.HUDRing.setPersona(persona);
                 return originalSelectPersona(persona);
             };
         }
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- HUD RING ANIMATION SYSTEM                                    -->
+    <!-- ============================================================ -->
+    <style>
+    .hud-toggle-btn {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9998;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.15);
+        background: radial-gradient(circle, rgba(30,30,50,0.95) 0%, rgba(12,12,20,0.98) 100%);
+        color: #aab;
+        font-size: 22px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(255,255,255,0.03);
+    }
+    .hud-toggle-btn:hover {
+        border-color: rgba(0, 212, 170, 0.5);
+        box-shadow: 0 0 30px rgba(0, 212, 170, 0.2);
+        transform: translateX(-50%) scale(1.08);
+    }
+    .hud-toggle-btn.active {
+        border-color: rgba(0, 212, 170, 0.6);
+        box-shadow: 0 0 25px rgba(0, 212, 170, 0.3);
+    }
+
+    .hud-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(ellipse at center, rgba(5,5,15,0.92) 0%, rgba(0,0,0,0.97) 100%);
+        backdrop-filter: blur(8px);
+        opacity: 0;
+        transition: opacity 0.35s ease;
+    }
+    .hud-overlay.visible {
+        display: flex;
+        opacity: 1;
+    }
+    .hud-overlay.fading-in {
+        display: flex;
+    }
+
+    .hud-wrapper {
+        position: relative;
+        width: 520px;
+        height: 520px;
+        perspective: 900px;
+    }
+    .hud-svg-container {
+        width: 100%;
+        height: 100%;
+        transform: rotateX(12deg);
+        transform-style: preserve-3d;
+    }
+    .hud-svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 0 2px rgba(255,255,255,0.05));
+    }
+
+    /* Core */
+    .hud-core-glow {
+        transition: fill 0.3s ease, opacity 0.3s ease;
+    }
+    .hud-core-ring {
+        transition: stroke 0.3s ease;
+    }
+
+    /* Ring segments */
+    .hud-segment {
+        cursor: pointer;
+        transition: opacity 0.2s ease, filter 0.25s ease;
+        opacity: 0.55;
+    }
+    .hud-segment:hover {
+        opacity: 0.85;
+        filter: brightness(1.3);
+    }
+    .hud-segment.active {
+        opacity: 1;
+    }
+    .hud-segment.dim {
+        opacity: 0.3;
+    }
+
+    /* Ring group rotation */
+    .hud-ring-group {
+        transform-origin: 260px 260px;
+        transition: transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .hud-ring-group.ring2 {
+        transition: transform 0.2s cubic-bezier(0.33, 0.1, 0.27, 1);
+    }
+    .hud-ring-group.ring3 {
+        transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    /* Segment labels */
+    .hud-label {
+        position: absolute;
+        font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: rgba(200, 200, 220, 0.5);
+        pointer-events: none;
+        transition: color 0.25s ease, text-shadow 0.25s ease;
+        white-space: nowrap;
+        transform: translate(-50%, -50%);
+    }
+    .hud-label.active {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    .hud-label.ring1-label.active-ajani { color: #e84040; text-shadow: 0 0 12px rgba(232,64,64,0.5); }
+    .hud-label.ring1-label.active-minerva { color: #00d4aa; text-shadow: 0 0 12px rgba(0,212,170,0.5); }
+    .hud-label.ring1-label.active-hermes { color: #d4d0c8; text-shadow: 0 0 12px rgba(212,208,200,0.5); }
+    .hud-label.ring1-label.active-counsel { color: #9b7edb; text-shadow: 0 0 12px rgba(155,126,219,0.5); }
+
+    /* Breathing glow animation */
+    @keyframes breathe-ajani {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+    }
+    @keyframes breathe-minerva {
+        0%, 100% { opacity: 0.55; }
+        40% { opacity: 0.95; }
+        60% { opacity: 0.85; }
+    }
+    @keyframes breathe-hermes {
+        0%, 100% { opacity: 0.5; }
+        25% { opacity: 1; }
+        50% { opacity: 0.7; }
+        75% { opacity: 0.95; }
+    }
+    @keyframes breathe-council {
+        0% { opacity: 0.4; }
+        33% { opacity: 0.9; }
+        66% { opacity: 0.5; }
+        100% { opacity: 0.4; }
+    }
+    .breathing-ajani { animation: breathe-ajani 2.8s ease-in-out infinite; }
+    .breathing-minerva { animation: breathe-minerva 3.4s ease-in-out infinite; }
+    .breathing-hermes { animation: breathe-hermes 1.8s ease-in-out infinite; }
+    .breathing-council { animation: breathe-council 4s ease-in-out infinite; }
+
+    /* Pulse for speaking state */
+    @keyframes segment-pulse {
+        0%, 100% { filter: brightness(1) drop-shadow(0 0 3px currentColor); }
+        50% { filter: brightness(1.4) drop-shadow(0 0 10px currentColor); }
+    }
+    .hud-segment.speaking {
+        animation: segment-pulse 1.2s ease-in-out infinite;
+    }
+
+    /* Scan line for Ring 2 idle */
+    @keyframes scan-tick {
+        0%, 95%, 100% { opacity: 0; }
+        50% { opacity: 0.3; }
+    }
+
+    /* HUD close button */
+    .hud-close {
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        background: none;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(200,200,220,0.6);
+        font-size: 14px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: inherit;
+        letter-spacing: 1px;
+        transition: border-color 0.2s, color 0.2s;
+    }
+    .hud-close:hover {
+        border-color: rgba(255,255,255,0.3);
+        color: rgba(255,255,255,0.9);
+    }
+
+    /* Side panel */
+    .hud-panel {
+        position: absolute;
+        right: -280px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 250px;
+        background: rgba(15,15,25,0.95);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.28s ease, right 0.28s ease;
+        pointer-events: none;
+    }
+    .hud-panel.open {
+        right: -270px;
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .hud-panel-title {
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(200,200,220,0.7);
+        margin-bottom: 12px;
+    }
+    .hud-panel-content {
+        font-size: 13px;
+        color: rgba(200,200,220,0.5);
+        line-height: 1.6;
+    }
+
+    /* Status line at bottom */
+    .hud-status {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'SF Mono', 'Fira Code', monospace;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: rgba(200,200,220,0.3);
+        text-transform: uppercase;
+        white-space: nowrap;
+        transition: color 0.3s;
+    }
+    </style>
+
+    <button id="hudToggle" class="hud-toggle-btn" onclick="window.HUDRing.toggle()" title="Open HUD">⬡</button>
+
+    <div id="hudOverlay" class="hud-overlay">
+        <button class="hud-close" onclick="window.HUDRing.toggle()">ESC</button>
+        <div class="hud-wrapper">
+            <div class="hud-svg-container">
+                <svg id="hudSvg" viewBox="0 0 520 520" class="hud-svg"></svg>
+                <div id="hudLabels" class="hud-labels" style="position:absolute;inset:0;pointer-events:none;"></div>
+            </div>
+            <div id="hudPanel" class="hud-panel">
+                <div id="hudPanelTitle" class="hud-panel-title"></div>
+                <div id="hudPanelContent" class="hud-panel-content"></div>
+            </div>
+            <div id="hudStatus" class="hud-status">ATLAS-PRIME · STANDING BY</div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+        const CX = 260, CY = 260;
+        const DEG = Math.PI / 180;
+
+        // ── Color palette ──
+        const COLORS = {
+            ajani:   { primary: '#e84040', glow: 'rgba(232,64,64,', dim: '#4a1818' },
+            minerva: { primary: '#00d4aa', glow: 'rgba(0,212,170,', dim: '#0a3a2e' },
+            hermes:  { primary: '#d4d0c8', glow: 'rgba(212,208,200,', dim: '#3a3832' },
+            counsel: { primary: '#9b7edb', glow: 'rgba(155,126,219,', dim: '#2a2040' },
+        };
+        const RING2_COLOR = 'rgba(100,140,180,';
+        const RING3_COLOR = 'rgba(120,180,140,';
+
+        // ── Ring definitions ──
+        const RING1 = {
+            segments: ['ajani', 'minerva', 'hermes', 'counsel'],
+            labels:   ['AJANI', 'MINERVA', 'HERMES', 'COUNCIL'],
+            innerR: 58, outerR: 92, gap: 5
+        };
+        const RING2 = {
+            segments: ['manual', 'encyclopedia', 'memory', 'sysmon', 'customize', 'explore'],
+            labels:   ['MANUAL', 'ENCYCLOPEDIA', 'MEMORY', 'SYS MONITOR', 'CUSTOMIZE', 'EXPLORE'],
+            innerR: 104, outerR: 135, gap: 3
+        };
+        const RING3 = {
+            segments: ['subjects', 'lab', 'projects', 'blueprints', 'systems', 'archive'],
+            labels:   ['SUBJECTS', 'LAB', 'PROJECTS', 'BLUEPRINTS', 'SYSTEMS', 'ARCHIVE'],
+            innerR: 148, outerR: 185, gap: 3
+        };
+
+        // ── State ──
+        let state = {
+            open: false,
+            activePersona: 'ajani',
+            ring1Angle: 0,
+            ring2Angle: 0,
+            ring3Angle: 0,
+            ring2Selected: null,
+            ring3Selected: null,
+            speaking: false,
+        };
+
+        // ── SVG helpers ──
+        function polarToCart(cx, cy, r, angleDeg) {
+            const rad = (angleDeg - 90) * DEG;
+            return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+        }
+        function arcSegmentPath(innerR, outerR, startDeg, endDeg) {
+            const s1 = polarToCart(CX, CY, outerR, startDeg);
+            const e1 = polarToCart(CX, CY, outerR, endDeg);
+            const s2 = polarToCart(CX, CY, innerR, endDeg);
+            const e2 = polarToCart(CX, CY, innerR, startDeg);
+            const large = (endDeg - startDeg) > 180 ? 1 : 0;
+            return [
+                `M ${s1.x} ${s1.y}`,
+                `A ${outerR} ${outerR} 0 ${large} 1 ${e1.x} ${e1.y}`,
+                `L ${s2.x} ${s2.y}`,
+                `A ${innerR} ${innerR} 0 ${large} 0 ${e2.x} ${e2.y}`,
+                'Z'
+            ].join(' ');
+        }
+        function segmentMidpoint(innerR, outerR, startDeg, endDeg) {
+            const midAngle = (startDeg + endDeg) / 2;
+            const midR = (innerR + outerR) / 2;
+            return polarToCart(CX, CY, midR, midAngle);
+        }
+        function labelPoint(outerR, startDeg, endDeg) {
+            const midAngle = (startDeg + endDeg) / 2;
+            return polarToCart(CX, CY, outerR + 18, midAngle);
+        }
+
+        // ── Build SVG ──
+        function buildHUD() {
+            const svg = document.getElementById('hudSvg');
+            const labelsDiv = document.getElementById('hudLabels');
+            let svgContent = '';
+            let labelsHTML = '';
+
+            // Defs: filters and gradients
+            svgContent += `<defs>
+                <filter id="hudGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="4" result="blur"/>
+                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+                <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="8" result="blur"/>
+                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+                <radialGradient id="coreBg" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="${COLORS.ajani.primary}" stop-opacity="0.15" class="core-grad-inner"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+            </defs>`;
+
+            // Core glow
+            svgContent += `<circle cx="${CX}" cy="${CY}" r="44" fill="url(#coreBg)" class="hud-core-glow" id="coreGlow" filter="url(#coreGlow)"/>`;
+            // Core circle
+            svgContent += `<circle cx="${CX}" cy="${CY}" r="36" fill="rgba(10,10,18,0.9)" stroke="${COLORS.ajani.primary}" stroke-width="1.5" class="hud-core-ring" id="coreRing" opacity="0.8"/>`;
+            // Core icon
+            svgContent += `<text x="${CX}" y="${CY}" text-anchor="middle" dominant-baseline="central" font-size="16" fill="${COLORS.ajani.primary}" id="coreIcon" style="transition: fill 0.3s">⬡</text>`;
+
+            // Fine concentric guide rings
+            [50, 100, 142].forEach(r => {
+                svgContent += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>`;
+            });
+
+            // Ring 1 (AI Identity)
+            svgContent += `<g class="hud-ring-group ring1" id="ring1Group">`;
+            const seg1 = 360 / RING1.segments.length;
+            RING1.segments.forEach((id, i) => {
+                const start = i * seg1 + RING1.gap / 2;
+                const end = (i + 1) * seg1 - RING1.gap / 2;
+                const color = COLORS[id].primary;
+                const cls = i === 0 ? 'hud-segment active' : 'hud-segment';
+                svgContent += `<path d="${arcSegmentPath(RING1.innerR, RING1.outerR, start, end)}"
+                    fill="${color}" opacity="0.15" class="${cls}" id="r1-${id}"
+                    data-ring="1" data-id="${id}" data-index="${i}"
+                    stroke="${color}" stroke-width="0.8" stroke-opacity="0.4"
+                    onclick="window.HUDRing.selectRing1('${id}')" filter="url(#hudGlow)"/>`;
+                const lp = labelPoint(RING1.outerR, start, end);
+                labelsHTML += `<div class="hud-label ring1-label" id="label-r1-${id}" style="left:${lp.x}px;top:${lp.y}px">${RING1.labels[i]}</div>`;
+            });
+            svgContent += `</g>`;
+
+            // Ring 2 (Operations)
+            svgContent += `<g class="hud-ring-group ring2" id="ring2Group">`;
+            const seg2 = 360 / RING2.segments.length;
+            RING2.segments.forEach((id, i) => {
+                const start = i * seg2 + RING2.gap / 2;
+                const end = (i + 1) * seg2 - RING2.gap / 2;
+                svgContent += `<path d="${arcSegmentPath(RING2.innerR, RING2.outerR, start, end)}"
+                    fill="${RING2_COLOR}0.12)" class="hud-segment" id="r2-${id}"
+                    data-ring="2" data-id="${id}" data-index="${i}"
+                    stroke="${RING2_COLOR}0.3)" stroke-width="0.6"
+                    onclick="window.HUDRing.selectRing2('${id}')" />`;
+                // Tick marks on inner edge
+                for (let t = start + 2; t < end; t += 4) {
+                    const tp = polarToCart(CX, CY, RING2.innerR - 1, t);
+                    const tp2 = polarToCart(CX, CY, RING2.innerR + 4, t);
+                    svgContent += `<line x1="${tp.x}" y1="${tp.y}" x2="${tp2.x}" y2="${tp2.y}" stroke="${RING2_COLOR}0.12)" stroke-width="0.5"/>`;
+                }
+                const lp = labelPoint(RING2.outerR, start, end);
+                labelsHTML += `<div class="hud-label ring2-label" id="label-r2-${id}" style="left:${lp.x}px;top:${lp.y}px">${RING2.labels[i]}</div>`;
+            });
+            svgContent += `</g>`;
+
+            // Ring 3 (Knowledge & Creation)
+            svgContent += `<g class="hud-ring-group ring3" id="ring3Group">`;
+            const seg3 = 360 / RING3.segments.length;
+            RING3.segments.forEach((id, i) => {
+                const start = i * seg3 + RING3.gap / 2;
+                const end = (i + 1) * seg3 - RING3.gap / 2;
+                svgContent += `<path d="${arcSegmentPath(RING3.innerR, RING3.outerR, start, end)}"
+                    fill="${RING3_COLOR}0.1)" class="hud-segment" id="r3-${id}"
+                    data-ring="3" data-id="${id}" data-index="${i}"
+                    stroke="${RING3_COLOR}0.25)" stroke-width="0.6"
+                    onclick="window.HUDRing.selectRing3('${id}')" />`;
+                const lp = labelPoint(RING3.outerR, start, end);
+                labelsHTML += `<div class="hud-label ring3-label" id="label-r3-${id}" style="left:${lp.x}px;top:${lp.y}px">${RING3.labels[i]}</div>`;
+            });
+            svgContent += `</g>`;
+
+            svg.innerHTML = svgContent;
+            labelsDiv.innerHTML = labelsHTML;
+        }
+
+        // ── Ring 1: AI Identity ──
+        function selectRing1(persona) {
+            const idx = RING1.segments.indexOf(persona);
+            if (idx < 0) return;
+
+            state.activePersona = persona;
+            const segAngle = 360 / RING1.segments.length;
+            const targetAngle = -(idx * segAngle);
+            state.ring1Angle = targetAngle;
+
+            const group = document.getElementById('ring1Group');
+            group.style.transform = `rotate(${targetAngle}deg)`;
+
+            // Update core color
+            const col = COLORS[persona];
+            const coreRing = document.getElementById('coreRing');
+            const coreIcon = document.getElementById('coreIcon');
+            const coreGlow = document.getElementById('coreGlow');
+            coreRing.setAttribute('stroke', col.primary);
+            coreIcon.setAttribute('fill', col.primary);
+
+            // Update gradient
+            const gradInner = document.querySelector('.core-grad-inner');
+            if (gradInner) gradInner.setAttribute('stop-color', col.primary);
+
+            // Update segments
+            RING1.segments.forEach((id, i) => {
+                const seg = document.getElementById(`r1-${id}`);
+                const label = document.getElementById(`label-r1-${id}`);
+                if (id === persona) {
+                    seg.classList.add('active');
+                    seg.classList.remove('dim');
+                    seg.setAttribute('opacity', '0.85');
+                    seg.classList.add(`breathing-${persona}`);
+                    label.classList.add('active');
+                    label.className = `hud-label ring1-label active active-${persona}`;
+                } else {
+                    seg.classList.remove('active');
+                    seg.classList.add('dim');
+                    seg.setAttribute('opacity', '0.12');
+                    seg.className = seg.className.replace(/breathing-\w+/g, '').trim();
+                    seg.classList.add('hud-segment', 'dim');
+                    label.className = 'hud-label ring1-label';
+                }
+            });
+
+            // Update status line
+            const statusEl = document.getElementById('hudStatus');
+            const names = { ajani: 'AJANI · TACTICAL', minerva: 'MINERVA · CULTURAL', hermes: 'HERMES · SYSTEMS', counsel: 'COUNCIL · TRI-CORE' };
+            statusEl.textContent = `ATLAS-PRIME · ${names[persona] || persona.toUpperCase()} · ACTIVE`;
+            statusEl.style.color = col.glow + '0.6)';
+
+            // Trigger existing selectPersona if not already triggered
+            if (typeof window.selectPersona === 'function') {
+                const personaMap = { counsel: 'counsel' };
+                window.selectPersona(personaMap[persona] || persona);
+            }
+        }
+
+        // ── Ring 2: Operations ──
+        function selectRing2(id) {
+            const idx = RING2.segments.indexOf(id);
+            if (idx < 0) return;
+
+            state.ring2Selected = id;
+            const segAngle = 360 / RING2.segments.length;
+            const targetAngle = -(idx * segAngle);
+            state.ring2Angle = targetAngle;
+
+            const group = document.getElementById('ring2Group');
+            group.style.transform = `rotate(${targetAngle}deg)`;
+
+            // Update segments
+            RING2.segments.forEach(sid => {
+                const seg = document.getElementById(`r2-${sid}`);
+                const label = document.getElementById(`label-r2-${sid}`);
+                if (sid === id) {
+                    seg.setAttribute('fill', `${RING2_COLOR}0.3)`);
+                    seg.setAttribute('stroke-opacity', '0.7');
+                    label.classList.add('active');
+                    label.style.color = 'rgba(140,180,220,0.9)';
+                    label.style.textShadow = '0 0 8px rgba(100,140,180,0.4)';
+                } else {
+                    seg.setAttribute('fill', `${RING2_COLOR}0.08)`);
+                    seg.setAttribute('stroke-opacity', '0.2');
+                    label.classList.remove('active');
+                    label.style.color = '';
+                    label.style.textShadow = '';
+                }
+            });
+
+            showPanel(RING2.labels[idx], getR2Content(id));
+        }
+
+        // ── Ring 3: Knowledge & Creation ──
+        function selectRing3(id) {
+            const idx = RING3.segments.indexOf(id);
+            if (idx < 0) return;
+
+            state.ring3Selected = id;
+            const segAngle = 360 / RING3.segments.length;
+            const targetAngle = -(idx * segAngle);
+            state.ring3Angle = targetAngle;
+
+            const group = document.getElementById('ring3Group');
+            group.style.transform = `rotate(${targetAngle}deg)`;
+
+            RING3.segments.forEach(sid => {
+                const seg = document.getElementById(`r3-${sid}`);
+                const label = document.getElementById(`label-r3-${sid}`);
+                if (sid === id) {
+                    seg.setAttribute('fill', `${RING3_COLOR}0.28)`);
+                    seg.setAttribute('stroke-opacity', '0.6');
+                    label.classList.add('active');
+                    label.style.color = 'rgba(120,220,160,0.9)';
+                    label.style.textShadow = '0 0 8px rgba(120,180,140,0.4)';
+                } else {
+                    seg.setAttribute('fill', `${RING3_COLOR}0.06)`);
+                    seg.setAttribute('stroke-opacity', '0.15');
+                    label.classList.remove('active');
+                    label.style.color = '';
+                    label.style.textShadow = '';
+                }
+            });
+
+            showPanel(RING3.labels[idx], getR3Content(id));
+        }
+
+        // ── Side panel ──
+        function showPanel(title, content) {
+            const panel = document.getElementById('hudPanel');
+            const titleEl = document.getElementById('hudPanelTitle');
+            const contentEl = document.getElementById('hudPanelContent');
+            titleEl.textContent = title;
+            contentEl.innerHTML = content;
+            panel.classList.add('open');
+        }
+        function hidePanel() {
+            document.getElementById('hudPanel').classList.remove('open');
+        }
+
+        function getR2Content(id) {
+            const map = {
+                manual: 'Build manuals and step-by-step assembly guides for all projects.',
+                encyclopedia: 'Search the knowledge base across all domains and personas.',
+                memory: 'View conversation history, saved insights, and learning progress.',
+                sysmon: 'System health, API status, and real-time performance metrics.',
+                customize: 'Theme settings, persona preferences, and UI configuration.',
+                explore: 'Free exploration mode — discover new fields and hidden content.',
+            };
+            return `<p>${map[id] || ''}</p>`;
+        }
+        function getR3Content(id) {
+            const map = {
+                subjects: 'Browse study fields: Strategy, Biology, Physics, Culture, and more.',
+                lab: 'Interactive experiments and simulations with real-time feedback.',
+                projects: 'Your personal project tracker with LEGO-style build steps.',
+                blueprints: 'Engineering blueprints with 3D viewer and assembly instructions.',
+                systems: 'System architecture diagrams and technical specifications.',
+                archive: 'Past research, completed lessons, and exported materials.',
+            };
+            return `<p>${map[id] || ''}</p>`;
+        }
+
+        // ── Ring 2 drag interaction ──
+        let dragging = false;
+        let dragStartAngle = 0;
+        let dragRing2Start = 0;
+
+        function getAngleFromCenter(e, rect) {
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            return Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+        }
+
+        function initDrag() {
+            const svgEl = document.getElementById('hudSvg');
+            svgEl.addEventListener('pointerdown', function(e) {
+                const target = e.target.closest('[data-ring="2"]');
+                if (!target) return;
+                dragging = true;
+                const rect = svgEl.getBoundingClientRect();
+                dragStartAngle = getAngleFromCenter(e, rect);
+                dragRing2Start = state.ring2Angle;
+                svgEl.setPointerCapture(e.pointerId);
+                e.preventDefault();
+            });
+            svgEl.addEventListener('pointermove', function(e) {
+                if (!dragging) return;
+                const rect = svgEl.getBoundingClientRect();
+                const currentAngle = getAngleFromCenter(e, rect);
+                const delta = currentAngle - dragStartAngle;
+                const group = document.getElementById('ring2Group');
+                group.style.transition = 'none';
+                group.style.transform = `rotate(${dragRing2Start + delta}deg)`;
+            });
+            svgEl.addEventListener('pointerup', function(e) {
+                if (!dragging) return;
+                dragging = false;
+                const group = document.getElementById('ring2Group');
+                group.style.transition = '';
+                // Snap to nearest segment
+                const rect = svgEl.getBoundingClientRect();
+                const currentAngle = getAngleFromCenter(e, rect);
+                const delta = currentAngle - dragStartAngle;
+                const rawAngle = dragRing2Start + delta;
+                const segAngle = 360 / RING2.segments.length;
+                const snapped = Math.round(rawAngle / segAngle) * segAngle;
+                state.ring2Angle = snapped;
+                group.style.transform = `rotate(${snapped}deg)`;
+                // Determine which segment is at top
+                const idx = ((-snapped % 360 + 360) % 360) / segAngle;
+                const snapIdx = Math.round(idx) % RING2.segments.length;
+                if (RING2.segments[snapIdx]) {
+                    selectRing2(RING2.segments[snapIdx]);
+                }
+            });
+        }
+
+        // ── Toggle HUD ──
+        function toggleHUD() {
+            const overlay = document.getElementById('hudOverlay');
+            const btn = document.getElementById('hudToggle');
+            if (state.open) {
+                overlay.classList.remove('visible');
+                btn.classList.remove('active');
+                state.open = false;
+                hidePanel();
+            } else {
+                overlay.classList.add('fading-in');
+                requestAnimationFrame(() => {
+                    overlay.classList.add('visible');
+                    overlay.classList.remove('fading-in');
+                });
+                btn.classList.add('active');
+                state.open = true;
+            }
+        }
+
+        // ── Keyboard ──
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && state.open) {
+                toggleHUD();
+            }
+        });
+
+        // ── Voice integration ──
+        function handleVoiceCommand(text) {
+            if (!state.open) return;
+            const lower = text.toLowerCase();
+            // Check for persona names
+            for (const p of RING1.segments) {
+                if (lower.includes(p)) {
+                    selectRing1(p);
+                    break;
+                }
+            }
+            // Check for Ring 3 tabs
+            for (const t of RING3.segments) {
+                if (lower.includes(t)) {
+                    selectRing3(t);
+                    break;
+                }
+            }
+        }
+
+        // ── Public API ──
+        window.HUDRing = {
+            toggle: toggleHUD,
+            setPersona: function(persona) {
+                if (persona === 'counsel') persona = 'counsel';
+                if (RING1.segments.includes(persona) && state.open) {
+                    const idx = RING1.segments.indexOf(persona);
+                    const segAngle = 360 / RING1.segments.length;
+                    state.ring1Angle = -(idx * segAngle);
+                    state.activePersona = persona;
+                    const group = document.getElementById('ring1Group');
+                    if (group) group.style.transform = `rotate(${state.ring1Angle}deg)`;
+                    // Update visuals without re-triggering selectPersona
+                    RING1.segments.forEach((id) => {
+                        const seg = document.getElementById(`r1-${id}`);
+                        const label = document.getElementById(`label-r1-${id}`);
+                        if (!seg || !label) return;
+                        if (id === persona) {
+                            seg.classList.add('active');
+                            seg.classList.remove('dim');
+                            seg.setAttribute('opacity', '0.85');
+                            label.className = `hud-label ring1-label active active-${persona}`;
+                        } else {
+                            seg.classList.remove('active');
+                            seg.classList.add('dim');
+                            seg.setAttribute('opacity', '0.12');
+                            label.className = 'hud-label ring1-label';
+                        }
+                    });
+                    // Update core
+                    const col = COLORS[persona];
+                    if (col) {
+                        const cr = document.getElementById('coreRing');
+                        const ci = document.getElementById('coreIcon');
+                        if (cr) cr.setAttribute('stroke', col.primary);
+                        if (ci) ci.setAttribute('fill', col.primary);
+                        const gi = document.querySelector('.core-grad-inner');
+                        if (gi) gi.setAttribute('stop-color', col.primary);
+                        const st = document.getElementById('hudStatus');
+                        const names = { ajani: 'AJANI · TACTICAL', minerva: 'MINERVA · CULTURAL', hermes: 'HERMES · SYSTEMS', counsel: 'COUNCIL · TRI-CORE' };
+                        if (st) {
+                            st.textContent = `ATLAS-PRIME · ${names[persona]} · ACTIVE`;
+                            st.style.color = col.glow + '0.6)';
+                        }
+                    }
+                }
+            },
+            selectRing1: selectRing1,
+            selectRing2: selectRing2,
+            selectRing3: selectRing3,
+            voiceCommand: handleVoiceCommand,
+        };
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', function() {
+            buildHUD();
+            initDrag();
+            // Set initial state
+            selectRing1('ajani');
+        });
+    })();
     </script>
 </body>
 </html>
