@@ -6,13 +6,11 @@ API endpoints for the Hephaestus-lite Discovery Pipeline.
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List
-from datetime import datetime
+from typing import Optional
 from sqlalchemy import select, desc
 from atlas_core_new.db.models import ExperimentRun, FailureMode, ConstraintSet, IterationLog
 from atlas_core_new.research.hephaestus_engine import (
-    PIPELINE_PHASES, PHASE_LABELS, PHASE_PERSONA, PHASE_DESCRIPTIONS,
-    INNOVATION_LEVELS, SCIENTIFIC_DOMAINS, DOMAIN_LABELS,
+    PIPELINE_PHASES, PHASE_LABELS, PHASE_PERSONA, INNOVATION_LEVELS, SCIENTIFIC_DOMAINS, DOMAIN_LABELS,
     generate_run_id, get_domain_intersection, get_all_intersections_for_domain,
     get_default_constraints, score_innovation_level, get_pipeline_status, next_phase
 )

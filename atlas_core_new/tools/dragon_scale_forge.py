@@ -19,7 +19,6 @@ import base64
 import io
 import json
 import os
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -27,7 +26,10 @@ from typing import Any, Dict, List, Optional, Literal, Tuple
 from uuid import uuid4
 
 import numpy as np
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse

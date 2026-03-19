@@ -7,8 +7,8 @@ Thread-safe with automatic cleanup of expired entries.
 
 import time
 import threading
-from typing import Dict, List, Callable, Any
-from fastapi import Request, HTTPException, Depends
+from typing import Dict, List, Callable
+from fastapi import Request, HTTPException
 
 
 class RateLimiter:

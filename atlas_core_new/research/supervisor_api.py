@@ -34,8 +34,7 @@ GUARDRAILS: Must document every step, must run safety checks,
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List
-from datetime import datetime
+from typing import Optional
 
 router = APIRouter(prefix="/supervisor", tags=["supervisor"])
 
@@ -367,7 +366,6 @@ def get_review_stats():
         raise HTTPException(status_code=503, detail="Database not available")
     try:
         from atlas_core_new.db.models import ResearchTracker, SupervisorReview
-        from sqlalchemy import func
 
         total_projects = db.query(ResearchTracker).count()
         pending = db.query(ResearchTracker).filter(ResearchTracker.supervisor_status == "pending_review").count()

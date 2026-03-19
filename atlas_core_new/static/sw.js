@@ -2,11 +2,7 @@ const CACHE_NAME = 'atlas-core-v1.6.0';
 const STATIC_ASSETS = [
   '/',
   '/static/index.html',
-  '/static/manifest.json',
-  '/static/images/ajani_bg.png',
-  '/static/images/counsel_bg.png',
-  '/static/images/icon-192.png',
-  '/static/images/icon-512.png'
+  '/static/manifest.json'
 ];
 
 const API_CACHE_NAME = 'atlas-api-v1';

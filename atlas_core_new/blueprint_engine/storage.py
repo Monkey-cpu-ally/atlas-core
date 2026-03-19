@@ -6,7 +6,7 @@ import re
 import uuid
 import zipfile
 from datetime import datetime
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
@@ -376,7 +376,8 @@ def list_all_projects():
             if os.path.isdir(vpath):
                 pjson = os.path.join(vpath, "project.json")
                 has_renders = len(list_steps_images(os.path.join(vpath, "renders"))) > 0
-                has_manual = any(f.endswith(".pdf") for f in os.listdir(os.path.join(vpath, "manual")) if os.path.exists(os.path.join(vpath, "manual")))
+                manual_path = os.path.join(vpath, "manual")
+                has_manual = os.path.isdir(manual_path) and any(f.endswith(".pdf") for f in os.listdir(manual_path))
                 meta = {}
                 if os.path.exists(pjson):
                     try:

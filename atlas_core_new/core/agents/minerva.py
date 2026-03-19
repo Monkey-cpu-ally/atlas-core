@@ -15,7 +15,7 @@ Specialty: Risk assessment, ethics, writing, cultural meaning
 CRITICAL: Minerva's veto power is absolute for safety concerns.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import json
 
 from .base_agent import BaseAgent, AgentRole, AgentCapability, AgentResponse

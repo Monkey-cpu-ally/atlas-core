@@ -10,11 +10,9 @@ Provides controlled file access with:
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 from pathlib import Path
 from datetime import datetime
-import os
-import hashlib
 
 
 @dataclass

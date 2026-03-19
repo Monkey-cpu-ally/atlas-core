@@ -5,15 +5,12 @@ FastAPI entry point.
 """
 
 import os
-import base64
 from pathlib import Path
-from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response, StreamingResponse
-from .utils.error_handling import register_error_handlers, AtlasError, not_found, bad_request, service_unavailable, ai_not_configured, sanitize_error
-from .utils.rate_limiter import rate_limit_ai, rate_limit_strict
-from typing import Optional
+from fastapi.responses import FileResponse
+from .utils.error_handling import register_error_handlers, not_found, sanitize_error
 from pydantic import BaseModel
 
 from .core.agent.agent_state import AgentLoop, AgentState
@@ -35,7 +32,6 @@ from .research.research_docs import (
     get_research_document, get_all_documents_for_persona, get_test_ready_projects,
     get_projects_by_phase, format_document_summary, format_document_full, ProjectPhase
 )
-import os
 from .forge import (
     SafetyKernel, RefusalEngine, HumanGate, CauldronLiteFactory,
     AjaniStrategist, MinervaEthics, HermesFabrication,
@@ -45,11 +41,11 @@ from .forge.templates import (
     blueprint_ant_cleaner, blueprint_crab_water_sampler, blueprint_octopus_pipe_repair,
 )
 from .forge.parts_library import STANDARD_PARTS, JOINT_FAMILIES, ORGAN_PACKS
-from .curriculum import get_all_fields, get_field_lessons, get_lesson, get_next_lesson, ALL_CURRICULA
+from .curriculum import get_all_fields, get_field_lessons, get_lesson, get_next_lesson
 from .projects.registry import project_registry
 from .knowledge import (
     KNOWLEDGE_PHILOSOPHY, KNOWLEDGE_SOURCES, KNOWLEDGE_BOUNDARIES,
-    get_sources_for_persona, knowledge_pack_registry, get_context_from_packs
+    get_sources_for_persona, knowledge_pack_registry
 )
 from .specs import (
     CORE_ARCHITECTURE, TRI_CORE_COUNCIL,
@@ -76,8 +72,6 @@ from .research.simulation_data import (
     get_all_projects_summary, get_project_theoretical_data,
     get_project_models, get_model_detail, SYSTEM_DISCLAIMER
 )
-from sqlalchemy.orm import Session
-import json
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -1554,7 +1548,7 @@ class ProjectStepCreate(BaseModel):
 
 
 @app.get("/progress")
-def get_user_progress(user_id: str = "default_user"):
+def get_overall_user_progress(user_id: str = "default_user"):
     """Get user's overall learning progress"""
     if SessionLocal is None:
         return {"error": "Database not configured", "fallback": True, "user_id": user_id}
@@ -1648,7 +1642,7 @@ def update_lesson_progress(update: ProgressUpdate, user_id: str = "default_user"
 
 
 @app.get("/knowledge-packs")
-def list_knowledge_packs(user_id: str = "default_user"):
+def list_user_knowledge_packs(user_id: str = "default_user"):
     """List all custom knowledge packs"""
     if SessionLocal is None:
         return {"packs": [], "fallback": True}
@@ -1675,7 +1669,7 @@ def list_knowledge_packs(user_id: str = "default_user"):
 
 
 @app.post("/knowledge-packs")
-def create_knowledge_pack(pack: KnowledgePackCreate, user_id: str = "default_user"):
+def create_user_knowledge_pack(pack: KnowledgePackCreate, user_id: str = "default_user"):
     """Create a new custom knowledge pack"""
     if SessionLocal is None:
         return {"error": "Database not configured"}
@@ -1734,7 +1728,7 @@ async def upload_knowledge_pack(
 
 
 @app.delete("/knowledge-packs/{pack_id}")
-def delete_knowledge_pack(pack_id: int, user_id: str = "default_user"):
+def delete_user_knowledge_pack(pack_id: int, user_id: str = "default_user"):
     """Delete a knowledge pack"""
     if SessionLocal is None:
         return {"error": "Database not configured"}

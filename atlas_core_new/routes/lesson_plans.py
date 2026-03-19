@@ -1,11 +1,11 @@
 import json
 from datetime import datetime, date, timedelta
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from pydantic import BaseModel
 from atlas_core_new.db import SessionLocal
 from atlas_core_new.core.curriculum.lesson_plans import (
-    CURRICULUM, get_all_fields as get_curriculum_fields, get_field,
-    get_subfield, get_chapter, calculate_field_total_time, estimate_completion_days
+    get_all_fields as get_curriculum_fields, get_field,
+    get_chapter, calculate_field_total_time, estimate_completion_days
 )
 from atlas_core_new.routes._shared import openai_client, PERSONA_PROMPTS
 
@@ -529,7 +529,7 @@ def get_ai_nudge(field_id: str, user_id: str = "default_user"):
     if db is None:
         return {"error": "Service temporarily unavailable. Please try again."}
     try:
-        from atlas_core_new.db import StudySession, FieldProgress, StudySchedule
+        from atlas_core_new.db import StudySession, FieldProgress
 
         field = get_field(field_id)
         if not field:

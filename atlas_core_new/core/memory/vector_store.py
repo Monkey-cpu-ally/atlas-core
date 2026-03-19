@@ -13,11 +13,10 @@ Stores embeddings of:
 - User preferences and context
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 import hashlib
-import json
 
 
 @dataclass

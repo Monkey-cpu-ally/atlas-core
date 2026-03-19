@@ -16,8 +16,6 @@ from enum import Enum
 import subprocess
 import tempfile
 import os
-import signal
-import json
 
 
 class ExecutionStatus(Enum):

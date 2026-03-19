@@ -14,7 +14,7 @@ Runs passively in background and feeds summaries to Ajani.
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from enum import Enum
 from collections import deque
 import statistics

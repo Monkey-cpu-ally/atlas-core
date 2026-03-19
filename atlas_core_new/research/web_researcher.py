@@ -11,15 +11,13 @@ Uses trafilatura for web content extraction (web_scraper integration).
 Sources: arXiv, Semantic Scholar, Wikipedia, PubMed, gaming/comic/anime wikis.
 """
 
-import os
 import re
-import json
 import logging
 import time
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote_plus
 
 import trafilatura
 import httpx

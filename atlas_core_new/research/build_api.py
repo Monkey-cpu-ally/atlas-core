@@ -280,7 +280,7 @@ def list_all_build_plans(persona: Optional[str] = None):
     if not db:
         raise HTTPException(status_code=503, detail="Database not available")
     try:
-        from atlas_core_new.db.models import BuildPlan, BuildPart, BuildStep
+        from atlas_core_new.db.models import BuildPlan, BuildPart
 
         query = db.query(BuildPlan)
         if persona:
@@ -616,7 +616,6 @@ def build_system_summary():
         raise HTTPException(status_code=503, detail="Database not available")
     try:
         from atlas_core_new.db.models import BuildPlan, DailyResearchLog, ResearchTracker
-        from sqlalchemy import func
 
         total_plans = db.query(BuildPlan).count()
         active_plans = db.query(BuildPlan).filter(BuildPlan.status != "completed").count()
@@ -981,7 +980,7 @@ def build_status_summary(persona: str = None):
     if not db:
         raise HTTPException(status_code=503, detail="Database not available")
     try:
-        from atlas_core_new.db.models import BuildPlan, BuildPart, ResearchTracker
+        from atlas_core_new.db.models import BuildPlan, ResearchTracker
         import os
         from pathlib import Path
 

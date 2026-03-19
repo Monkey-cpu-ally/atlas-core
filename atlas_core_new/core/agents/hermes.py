@@ -14,7 +14,7 @@ Specialty: Code generation, tool execution, system integration
 CRITICAL: Hermes CANNOT run dangerous actions without Ajani + Minerva sign-off.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import json
 
 from .base_agent import BaseAgent, AgentRole, AgentCapability, AgentResponse

@@ -11,7 +11,6 @@ API Base: https://api.figma.com/v1
 import os
 import requests
 from typing import Optional
-from datetime import datetime
 
 FIGMA_API_BASE = "https://api.figma.com/v1"
 

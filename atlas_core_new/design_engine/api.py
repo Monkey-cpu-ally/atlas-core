@@ -15,7 +15,6 @@ Endpoints:
 """
 
 import os
-import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
@@ -35,7 +34,6 @@ def _get_conn():
     global _pool
     if not DATABASE_URL:
         return None
-    import psycopg2
     if _pool is None:
         from psycopg2 import pool
         _pool = pool.SimpleConnectionPool(1, 5, DATABASE_URL)

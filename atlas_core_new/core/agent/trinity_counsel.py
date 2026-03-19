@@ -4,7 +4,7 @@ atlas_core_new/core/agent/trinity_counsel.py
 Trinity Counsel Mode: All three personas collaborate on a problem.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 import os
 from openai import OpenAI

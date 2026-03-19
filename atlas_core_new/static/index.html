@@ -1655,7 +1655,7 @@
             syncToUI() {
                 if (typeof updateSystemMetrics === 'function') {
                     const m = this.getMetrics();
-                    updateSystemMetrics(m.stability, m.memoryLoad, m.logicFlow, m.riskLevel);
+                    updateSystemMetrics({ stability: m.stability, memory: m.memoryLoad, logic: m.logicFlow, risk: m.riskLevel });
                 }
             }
         };
@@ -2471,14 +2471,18 @@
 
                 recognition.onstart = function() {
                     isListening = true;
-                    document.getElementById('voiceBtn').classList.add('listening');
-                    document.getElementById('voiceIcon').textContent = '🔴';
+                    const btn = document.getElementById('voiceCommandToggle');
+                    if (btn) btn.classList.add('listening');
+                    const label = document.getElementById('voiceCommandLabel');
+                    if (label) label.textContent = '🔴';
                 };
 
                 recognition.onend = function() {
                     isListening = false;
-                    document.getElementById('voiceBtn').classList.remove('listening');
-                    document.getElementById('voiceIcon').textContent = '🎤';
+                    const btn = document.getElementById('voiceCommandToggle');
+                    if (btn) btn.classList.remove('listening');
+                    const label = document.getElementById('voiceCommandLabel');
+                    if (label) label.textContent = 'Voice';
                 };
 
                 recognition.onresult = function(event) {
@@ -2497,8 +2501,10 @@
                 recognition.onerror = function(event) {
                     console.error('Speech recognition error:', event.error);
                     isListening = false;
-                    document.getElementById('voiceBtn').classList.remove('listening');
-                    document.getElementById('voiceIcon').textContent = '🎤';
+                    const btn = document.getElementById('voiceCommandToggle');
+                    if (btn) btn.classList.remove('listening');
+                    const label = document.getElementById('voiceCommandLabel');
+                    if (label) label.textContent = 'Voice';
                 };
             }
         }
@@ -2580,9 +2586,9 @@
             if (typeof resetStreakItems === 'function') resetStreakItems();
             
             const step = currentLessonData.steps[currentLessonStep];
-            document.getElementById('lessonTitle').textContent = currentLessonData.title;
+            document.getElementById('lessonViewerTitle').textContent = currentLessonData.title;
             
-            const content = document.getElementById('lessonContent');
+            const content = document.getElementById('lessonText');
             content.innerHTML = `
                 <div style="margin-bottom: 1rem; color: var(--text-secondary);">
                     Step ${step.step} of ${currentLessonData.steps.length}
@@ -2597,7 +2603,7 @@
                 </div>
             `;
             
-            const nextBtn = document.getElementById('lessonNextBtn');
+            const nextBtn = document.getElementById('nextChapterBtn');
             if (currentLessonStep >= currentLessonData.steps.length - 1) {
                 nextBtn.textContent = 'Complete Lesson';
             } else {
@@ -3488,7 +3494,7 @@
                 const response = await fetch(`/conversations/${id}`);
                 const data = await response.json();
                 
-                switchPersona(persona.charAt(0).toUpperCase() + persona.slice(1), persona);
+                selectPersona(persona);
                 
                 const chatBox = document.getElementById('chatMessages');
                 chatBox.innerHTML = '';
@@ -3657,7 +3663,7 @@
                 setTimeout(() => {
                     const tabName = personaParam === 'trinity' ? 'Trinity Counsel' : 
                                    personaParam.charAt(0).toUpperCase() + personaParam.slice(1);
-                    switchPersona(tabName, personaParam.toLowerCase());
+                    selectPersona(personaParam.toLowerCase());
                 }, 500);
             }
         }
@@ -5047,10 +5053,6 @@
             }
         }
 
-        function showNotification(message, type = 'info') {
-            console.log(`[${type}] ${message}`);
-        }
-
         // Text-to-Speech for audio learning mode
         let currentAudio = null;
         
@@ -5567,7 +5569,7 @@ Be concise. No fluff. Just the key concepts.`,
             }
         }
 
-        function showNotification(title, body, icon = null) {
+        function showBrowserNotification(title, body, icon = null) {
             if (!notificationsEnabled || Notification.permission !== 'granted') return;
             
             const options = {
@@ -5596,7 +5598,7 @@ Be concise. No fluff. Just the key concepts.`,
                 counsel: 'Trinity Council'
             };
             const preview = message.length > 100 ? message.substring(0, 100) + '...' : message;
-            showNotification(personaNames[persona] || 'Atlas Core', preview);
+            showBrowserNotification(personaNames[persona] || 'Atlas Core', preview);
         }
 
         // ===== DESIGN FORGE =====
@@ -16759,11 +16761,11 @@ body {
         }
 
         // Hook into persona switch
-        const originalSwitchPersona = window.switchPersona;
-        if (typeof originalSwitchPersona === 'function') {
-            window.switchPersona = function(persona) {
+        const originalSelectPersona = window.selectPersona;
+        if (typeof originalSelectPersona === 'function') {
+            window.selectPersona = function(persona) {
                 updateAIPresence(persona);
-                return originalSwitchPersona(persona);
+                return originalSelectPersona(persona);
             };
         }
     </script>
