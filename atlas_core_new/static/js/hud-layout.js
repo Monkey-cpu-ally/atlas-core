@@ -66,6 +66,12 @@
         s += `<defs>
             <filter id="hGlow"><feGaussianBlur stdDeviation="4"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
             <filter id="hCoreGlow"><feGaussianBlur stdDeviation="8"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
+            <filter id="hRing2Shadow" x="-10%" y="-10%" width="120%" height="130%">
+                <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="rgba(0,0,0,0.3)" flood-opacity="0.3"/>
+            </filter>
+            <filter id="hRing3Shadow" x="-10%" y="-10%" width="120%" height="130%">
+                <feDropShadow dx="0" dy="5" stdDeviation="3" flood-color="rgba(0,0,0,0.35)" flood-opacity="0.35"/>
+            </filter>
             <radialGradient id="hCoreBg"><stop offset="0%" stop-color="${COLORS.ajani.primary}" stop-opacity="0.12" class="h-core-grad"/><stop offset="100%" stop-color="transparent"/></radialGradient>
         </defs>`;
 
@@ -94,8 +100,8 @@
         });
         s += `</g>`;
 
-        // Ring 2
-        s += `<g id="hRing2">`;
+        // Ring 2 — slightly elevated
+        s += `<g id="hRing2" filter="url(#hRing2Shadow)">`;
         const s2 = 360 / RING2.segments.length;
         RING2.segments.forEach((id, i) => {
             const start = i * s2 + RING2.gap / 2;
@@ -111,8 +117,8 @@
         });
         s += `</g>`;
 
-        // Ring 3
-        s += `<g id="hRing3">`;
+        // Ring 3 — highest elevation in 2.5D
+        s += `<g id="hRing3" filter="url(#hRing3Shadow)">`;
         const s3 = 360 / RING3.segments.length;
         RING3.segments.forEach((id, i) => {
             const start = i * s3 + RING3.gap / 2;

@@ -23,70 +23,98 @@ body:not(.hud-mode) #hudHome {
     display: none;
 }
 
-/* Subtle grid behind rings */
+/* Perspective grid on the tilted plane */
 #hudHome::before {
     content: '';
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
-    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(ellipse 60% 40% at 50% 55%, black 0%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 40% at 50% 55%, black 0%, transparent 100%);
     pointer-events: none;
+    perspective: 700px;
+    transform: rotateX(52deg);
+    transform-origin: 50% 55%;
+    opacity: 0.6;
 }
 
-/* Ambient glow behind the rings */
+/* Ambient glow — elliptical to match tilted plane */
 #hudHome::after {
     content: '';
     position: absolute;
-    width: 500px;
-    height: 500px;
-    top: 50%;
+    width: 650px;
+    height: 300px;
+    top: 52%;
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(90,154,138,0.04) 0%, transparent 60%);
+    background: radial-gradient(ellipse, rgba(90,154,138,0.05) 0%, rgba(90,154,138,0.02) 40%, transparent 70%);
     pointer-events: none;
     transition: background 0.5s ease;
 }
 
-/* ── Ring wrapper in home mode ── */
+/* ── Ring wrapper in home mode — 2.5D perspective ── */
 #hudHome .hud-home-wrapper {
     position: relative;
-    width: 580px;
-    height: 580px;
-    perspective: 900px;
+    width: 620px;
+    height: 520px;
+    perspective: 700px;
+    perspective-origin: 50% 35%;
 }
 #hudHome .hud-home-svg-container {
     width: 100%;
     height: 100%;
-    transform: rotateX(10deg);
+    transform: rotateX(52deg) rotateZ(-2deg);
     transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
+
+/* Depth shadow under the entire ring assembly */
+#hudHome .hud-home-svg-container::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: 10%;
+    width: 80%;
+    height: 60px;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, transparent 70%);
+    filter: blur(15px);
+    transform: translateZ(-40px);
+    pointer-events: none;
+}
+
 #hudHome .hud-home-svg {
     width: 100%;
     height: 100%;
-    filter: drop-shadow(0 0 3px rgba(255,255,255,0.03));
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4)) drop-shadow(0 2px 6px rgba(0,0,0,0.3));
 }
 
-/* ── Title above rings ── */
+/* Slight tilt reduction when panel open for focus effect */
+body.panel-open #hudHome .hud-home-svg-container {
+    transform: rotateX(52deg) rotateZ(-2deg) scale(0.92);
+}
+
+/* ── Title above rings — floating above the tilted plane ── */
 #hudHome .hud-home-title {
     position: absolute;
-    top: -60px;
+    top: -90px;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
     pointer-events: none;
+    z-index: 5;
 }
 #hudHome .hud-home-title h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    letter-spacing: 8px;
-    color: rgba(242,242,247,0.8);
+    letter-spacing: 10px;
+    color: rgba(242,242,247,0.85);
     margin: 0;
     text-transform: uppercase;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 #hudHome .hud-home-title .hud-home-sub {
     font-family: 'SF Mono', 'Fira Code', monospace;
@@ -94,13 +122,13 @@ body:not(.hud-mode) #hudHome {
     letter-spacing: 3px;
     color: rgba(90,154,138,0.4);
     text-transform: uppercase;
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 /* ── Status below rings ── */
 #hudHome .hud-home-status {
     position: absolute;
-    bottom: -50px;
+    bottom: -20px;
     left: 50%;
     transform: translateX(-50%);
     font-family: 'SF Mono', 'Fira Code', monospace;
@@ -110,6 +138,18 @@ body:not(.hud-mode) #hudHome {
     text-transform: uppercase;
     white-space: nowrap;
     transition: color 0.3s;
+    z-index: 5;
+}
+
+/* ── Labels overlay (not tilted — stays readable) ── */
+#hudHome .hud-home-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+}
+#hudHome .hud-home-labels .hud-label {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
 /* ── Classic view toggle ── */
@@ -364,8 +404,11 @@ body:not(.hud-mode) #classicToHudBtn {
 /* ── Responsive ── */
 @media (max-width: 768px) {
     #hudHome .hud-home-wrapper {
-        width: 360px;
-        height: 360px;
+        width: 380px;
+        height: 320px;
+    }
+    #hudHome .hud-home-svg-container {
+        transform: rotateX(45deg) rotateZ(-2deg);
     }
     #hudContentPanel, #hudChatPanel {
         width: 90%;
