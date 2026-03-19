@@ -17239,7 +17239,7 @@ body {
                     seg.classList.remove('active');
                     seg.classList.add('dim');
                     seg.setAttribute('opacity', '0.12');
-                    seg.className = seg.className.replace(/breathing-\w+/g, '').trim();
+                    ['breathing-ajani','breathing-minerva','breathing-hermes','breathing-council'].forEach(c => seg.classList.remove(c));
                     seg.classList.add('hud-segment', 'dim');
                     label.className = 'hud-label ring1-label';
                 }
