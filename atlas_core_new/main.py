@@ -93,6 +93,7 @@ from atlas_core_new.hermes_reality.api.reality_routes import router as reality_r
 from atlas_core_new.design_engine.api import router as design_engine_router
 from atlas_core_new.blueprint_engine.api import router as blueprint_engine_router
 from atlas_core_new.blueprint_engine.storage import router as atlas_storage_router
+from atlas_core_new.prism7.api import router as prism7_router
 
 app = FastAPI(title="Atlas Core", version="0.3.3")
 register_error_handlers(app)
@@ -115,6 +116,7 @@ app.include_router(reality_router)
 app.include_router(design_engine_router)
 app.include_router(blueprint_engine_router)
 app.include_router(atlas_storage_router)
+app.include_router(prism7_router)
 
 def get_db():
     if SessionLocal is None:
