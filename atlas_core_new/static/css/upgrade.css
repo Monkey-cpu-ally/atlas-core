@@ -1,0 +1,488 @@
+/* ============================================================
+   ATLAS CORE — CINEMATIC UPGRADE LAYER
+   Visual overhaul: glassmorphism, depth, micro-animations
+   ============================================================ */
+
+/* ── Boot Sequence ── */
+#bootOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #030308;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+    overflow: hidden;
+}
+#bootOverlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.008) 2px,
+        rgba(255,255,255,0.008) 4px
+    );
+    pointer-events: none;
+    animation: scanDrift 8s linear infinite;
+}
+@keyframes scanDrift {
+    from { transform: translateY(0); }
+    to { transform: translateY(4px); }
+}
+#bootOverlay .boot-logo {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 12px;
+    color: transparent;
+    background: linear-gradient(135deg, #5a9a8a, #8a5a9a, #a04048);
+    background-clip: text;
+    -webkit-background-clip: text;
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    margin-bottom: 32px;
+}
+#bootOverlay .boot-logo.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+#bootOverlay .boot-sub {
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: rgba(90, 154, 138, 0.4);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.3s;
+}
+#bootOverlay .boot-sub.visible { opacity: 1; }
+
+#bootOverlay .boot-terminal {
+    width: 380px;
+    max-width: 90vw;
+    font-size: 0.6rem;
+    line-height: 1.8;
+    color: rgba(160, 180, 170, 0.5);
+    text-align: left;
+    min-height: 120px;
+}
+#bootOverlay .boot-line {
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#bootOverlay .boot-line.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+#bootOverlay .boot-line .ok { color: rgba(90, 154, 138, 0.7); }
+#bootOverlay .boot-line .warn { color: rgba(160, 140, 80, 0.6); }
+
+#bootOverlay .boot-bar {
+    width: 200px;
+    height: 2px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 1px;
+    margin-top: 32px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.4s ease 0.5s;
+}
+#bootOverlay .boot-bar.visible { opacity: 1; }
+#bootOverlay .boot-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 1px;
+    transition: width 0.3s ease;
+}
+
+#bootOverlay.fade-out {
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+}
+
+/* ── Noise Grain Overlay ── */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9990;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+}
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(90, 154, 138, 0.15);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(90, 154, 138, 0.3);
+}
+
+/* ── Glassmorphism Card Upgrade ── */
+.card,
+.dashboard-card,
+.chat-container,
+.persona-card,
+.field-card,
+.lesson-item,
+.project-item,
+.knowledge-item {
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    box-shadow:
+        0 8px 32px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.03);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
+}
+.card:hover,
+.dashboard-card:hover,
+.persona-card:hover,
+.field-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 12px 40px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* ── Animated Gradient Border for Persona Cards ── */
+.persona-card {
+    position: relative;
+    overflow: hidden;
+}
+.persona-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, transparent 30%, rgba(90,154,138,0.15) 50%, transparent 70%);
+    background-size: 300% 300%;
+    animation: borderShimmer 6s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+@keyframes borderShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* ── Persona-Specific Card Hover Glows ── */
+.persona-card[data-persona="ajani"]:hover,
+.persona-btn-styled.active-ajani {
+    box-shadow: 0 0 30px rgba(160, 64, 72, 0.12), 0 8px 32px rgba(0,0,0,0.3);
+}
+.persona-card[data-persona="minerva"]:hover {
+    box-shadow: 0 0 30px rgba(42, 138, 138, 0.12), 0 8px 32px rgba(0,0,0,0.3);
+}
+.persona-card[data-persona="hermes"]:hover {
+    box-shadow: 0 0 30px rgba(232, 228, 224, 0.08), 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* ── Chat Message Upgrade ── */
+.message {
+    border-radius: 16px !important;
+    padding: 14px 18px !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: msgSlideIn 0.35s ease-out;
+}
+@keyframes msgSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.message-user {
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.message-ajani {
+    border-left: 2px solid rgba(160, 64, 72, 0.3) !important;
+    box-shadow: 0 4px 20px rgba(160, 64, 72, 0.06);
+}
+.message-minerva {
+    border-left: 2px solid rgba(42, 138, 138, 0.3) !important;
+    box-shadow: 0 4px 20px rgba(42, 138, 138, 0.06);
+}
+.message-hermes {
+    border-left: 2px solid rgba(232, 228, 224, 0.15) !important;
+    box-shadow: 0 4px 20px rgba(232, 228, 224, 0.04);
+}
+
+/* ── Chat Input Upgrade ── */
+.chat-input-wrapper input,
+.chat-input-wrapper textarea,
+#chatInput {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+#chatInput:focus {
+    border-color: rgba(90, 154, 138, 0.3) !important;
+    box-shadow: 0 0 20px rgba(90, 154, 138, 0.08);
+    outline: none;
+}
+
+/* ── Persona Button Upgrade ── */
+.persona-btn-styled {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease !important;
+}
+.persona-btn-styled::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.06), transparent 70%);
+}
+.persona-btn-styled:hover::after {
+    opacity: 1;
+}
+
+/* ── Header Upgrade ── */
+.hero-section,
+.header,
+[class*="hero"] {
+    position: relative;
+}
+.hero-section h1,
+h1:first-of-type {
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 50%, var(--text-primary) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: titleShimmer 8s ease-in-out infinite;
+}
+@keyframes titleShimmer {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 200% center; }
+}
+
+/* ── Status Bar Upgrade ── */
+.status-bar,
+.system-status {
+    position: relative;
+    overflow: hidden;
+}
+.status-bar::after,
+.system-status::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(90,154,138,0.04), transparent);
+    animation: statusScan 4s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes statusScan {
+    0% { left: -60%; }
+    100% { left: 100%; }
+}
+
+/* ── Control Toggle Buttons Upgrade ── */
+.control-toggle {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+}
+.control-toggle:hover {
+    background: rgba(255,255,255,0.06);
+    transform: scale(1.05);
+}
+.control-toggle:active {
+    transform: scale(0.96);
+}
+
+/* ── Section Headers ── */
+h2, h3, .section-title {
+    position: relative;
+}
+
+/* ── Learning Dashboard Cards ── */
+.dashboard-card {
+    position: relative;
+    overflow: hidden;
+}
+.dashboard-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(90,154,138,0.03), transparent 50%);
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    opacity: 0;
+}
+.dashboard-card:hover::after {
+    opacity: 1;
+}
+
+/* ── Field Cards (Study fields) ── */
+.field-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+.field-card:hover {
+    transform: translateY(-3px) scale(1.01);
+}
+.field-card:active {
+    transform: translateY(0) scale(0.99);
+}
+
+/* ── Buttons Global Upgrade ── */
+.action-btn,
+button[class*="btn-primary"],
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+.action-btn::before,
+button[class*="btn-primary"]::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+}
+.action-btn:hover::before,
+button[class*="btn-primary"]:hover::before {
+    width: 200%;
+    height: 200%;
+}
+.action-btn:active,
+button[class*="btn-primary"]:active {
+    transform: scale(0.97);
+}
+
+/* ── Scroll Reveal ── */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-on-scroll.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── Modal Overlay Upgrade ── */
+.modal-overlay {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Typing Indicator Upgrade ── */
+.chat-typing-indicator {
+    animation: fadeInUp 0.3s ease;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.chat-typing-indicator .dot {
+    animation: typingBounce 1.4s ease-in-out infinite;
+}
+.chat-typing-indicator .dot:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing-indicator .dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+
+/* ── Edge Panel Upgrade ── */
+.edge-panel {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: -8px 0 32px rgba(0,0,0,0.3);
+}
+
+/* ── Lesson Viewer Upgrade ── */
+.lesson-viewer-overlay {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* ── Focus Mode Upgrade ── */
+.focus-overlay {
+    backdrop-filter: blur(12px) saturate(1.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.3);
+}
+
+/* ── API Endpoint Tags ── */
+.endpoint-tag,
+.api-tag {
+    transition: all 0.2s ease;
+}
+.endpoint-tag:hover,
+.api-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ── Tooltip-style accent line under active nav ── */
+.persona-btn-styled[class*="active-"]::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 25%;
+    width: 50%;
+    height: 2px;
+    border-radius: 1px;
+    opacity: 0.6;
+}
+.persona-btn-styled.active-ajani::after { background: var(--ajani); }
+.persona-btn-styled.active-minerva::after { background: var(--minerva); }
+.persona-btn-styled.active-hermes::after { background: var(--hermes); }
+.persona-btn-styled.active-counsel::after { background: var(--trinity); }
+
+/* ── Reduce motion for accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
