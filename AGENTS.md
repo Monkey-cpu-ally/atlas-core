@@ -27,10 +27,9 @@ uvicorn atlas_core_new.main:app --host 0.0.0.0 --port 8000 --reload
 - **PostgreSQL startup**: Run `sudo pg_ctlcluster 16 main start` before starting the app.
 - **PATH**: `pip install --user` puts binaries in `~/.local/bin`, which may not be on PATH. Export it: `export PATH="$HOME/.local/bin:$PATH"`.
 
-### Known endpoint bugs
+### Known limitations
 
-- **`GET /atlas/projects` returns 500**: `FileNotFoundError` because `list_all_projects()` in `blueprint_engine/storage.py` line 379 calls `os.listdir()` on a `manual` subdirectory that may not exist for all stored projects (e.g. `medusa_arms.../v0_1/manual`). The `os.path.exists()` guard is inside the generator expression, not before `os.listdir()`.
-- **`POST /generate` returns 500 with placeholder API key**: Expected — the endpoint calls OpenAI and the placeholder key `sk-placeholder-for-dev` gets a 401 from the API. A real key is required for AI endpoints.
+- **`POST /generate` returns 401 with placeholder API key**: Expected — the endpoint calls OpenAI and the placeholder key `sk-placeholder-for-dev` gets a 401 from the API. A real `OPENAI_API_KEY` is required for AI chat, counsel, and content generation endpoints.
 
 ### Endpoints for quick verification
 
