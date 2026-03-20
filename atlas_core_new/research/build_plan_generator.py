@@ -1,9 +1,9 @@
-import os
 import json
 import logging
 import re
 import time
 from typing import Optional
+from atlas_core_new.utils.openai_client import create_openai_client
 
 logger = logging.getLogger("atlas.build_plan_generator")
 
@@ -31,12 +31,7 @@ def get_db_session():
 
 
 def get_openai_client():
-    from openai import OpenAI
-    api_key = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
-    base_url = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
-    if not api_key or not base_url:
-        return None
-    return OpenAI(api_key=api_key, base_url=base_url)
+    return create_openai_client()
 
 
 def build_plan_prompt(project, persona: str) -> str:
