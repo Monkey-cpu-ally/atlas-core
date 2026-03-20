@@ -2637,6 +2637,35 @@
             background: rgba(40, 40, 60, 0.8);
         }
 
+        .hudbg-grid {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hudbg-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 2px solid var(--border-glass);
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f4efe6;
+        }
+
+        .hudbg-btn[data-hudbg="offwhite"] { background: linear-gradient(135deg, #fcfaf5, #e9e1d2); }
+        .hudbg-btn[data-hudbg="slate"] { background: linear-gradient(135deg, #f4f7fb, #c7d2de); }
+        .hudbg-btn[data-hudbg="graphite"] { background: linear-gradient(135deg, #2b3340, #171d25); }
+        .hudbg-btn[data-hudbg="deep-space"] { background: linear-gradient(135deg, #151f33, #080d16); }
+        .hudbg-btn[data-hudbg="teal-lab"] { background: linear-gradient(135deg, #f4fffd, #cce3df); }
+
+        .hudbg-btn:hover,
+        .hudbg-btn.active {
+            border-color: var(--accent-primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset;
+        }
+
         /* Art Style Grid */
         .artstyle-category {
             margin-bottom: 0.75rem;
@@ -3124,6 +3153,10 @@
 
         .design-preview-wrapper.rotate-enabled .design-preview {
             transition: transform 0.1s ease-out;
+        }
+
+        #designRuntimeMount {
+            width: 100%;
         }
 
         .rotation-controls {
