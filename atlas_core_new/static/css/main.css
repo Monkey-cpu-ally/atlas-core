@@ -1392,6 +1392,53 @@
             font-size: var(--font-base);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .global-hud-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            display: grid;
+            place-items: center;
+            pointer-events: none;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 22% 18%, rgba(255,255,255,0.52) 0%, transparent 42%),
+                radial-gradient(circle at 80% 82%, rgba(110, 170, 220, 0.24) 0%, transparent 50%),
+                linear-gradient(145deg, #f4efe6 0%, #dcd6ca 100%);
+        }
+
+        .global-hud-backdrop::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent 0 33px, rgba(255,255,255,0.055) 33px 34px),
+                repeating-linear-gradient(90deg, transparent 0 33px, rgba(255,255,255,0.04) 33px 34px);
+            mix-blend-mode: soft-light;
+            opacity: 0.8;
+        }
+
+        #globalHudMount {
+            width: min(88vmin, 920px);
+            max-width: 920px;
+            filter: drop-shadow(0 30px 60px rgba(0,0,0,0.28));
+            transform: translateY(1vh) scale(1.03);
+        }
+
+        #globalHudMount .atlas-hud-root {
+            width: 100%;
+            max-width: none;
+            opacity: 0.97;
+        }
+
+        @media (max-width: 768px) {
+            #globalHudMount {
+                width: min(120vmin, 820px);
+                transform: translateY(2vh) scale(1.1);
+            }
         }
 
         /* Poster background image for themed skins */
