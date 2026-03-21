@@ -2696,6 +2696,36 @@
             accent-color: var(--accent-primary);
         }
 
+        .hud-preset-row {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .hud-preset-btn {
+            border: 1px solid var(--border-glass);
+            border-radius: 999px;
+            background: rgba(24, 24, 36, 0.85);
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            padding: 0.28rem 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hud-preset-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .hud-preset-btn.active {
+            background: color-mix(in srgb, var(--accent-primary), transparent 82%);
+            border-color: color-mix(in srgb, var(--accent-primary), transparent 30%);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-primary), transparent 55%) inset;
+        }
+
         /* Art Style Grid */
         .artstyle-category {
             margin-bottom: 0.75rem;

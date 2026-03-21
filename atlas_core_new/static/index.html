@@ -320,20 +320,38 @@
                         </div>
                         <div class="forge-dropdown-content" id="hudmotion-content">
                             <div class="hud-motion-row">
+                                <label>Motion Presets</label>
+                                <div class="hud-preset-row">
+                                    <button class="hud-preset-btn active" data-motion-preset="balanced" onclick="applyHudMotionPreset('balanced')">Balanced</button>
+                                    <button class="hud-preset-btn" data-motion-preset="subtle" onclick="applyHudMotionPreset('subtle')">Subtle</button>
+                                    <button class="hud-preset-btn" data-motion-preset="cinematic" onclick="applyHudMotionPreset('cinematic')">Cinematic</button>
+                                    <button class="hud-preset-btn" data-motion-preset="hyper" onclick="applyHudMotionPreset('hyper')">Hyper</button>
+                                </div>
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Style Presets</label>
+                                <div class="hud-preset-row">
+                                    <button class="hud-preset-btn" data-style-preset="atlas" onclick="applyHudStylePreset('atlas')">Atlas</button>
+                                    <button class="hud-preset-btn" data-style-preset="lacerta" onclick="applyHudStylePreset('lacerta')">Lacerta</button>
+                                    <button class="hud-preset-btn" data-style-preset="oblivion" onclick="applyHudStylePreset('oblivion')">Oblivion</button>
+                                    <button class="hud-preset-btn" data-style-preset="xeno" onclick="applyHudStylePreset('xeno')">Xeno</button>
+                                </div>
+                            </div>
+                            <div class="hud-motion-row">
                                 <label>Ring Snap <span id="hudSnapVal">7.5°</span></label>
-                                <input type="range" min="1" max="20" step="0.5" value="7.5" oninput="updateHudMotion('snapDeg', this.value)">
+                                <input id="hudSnapRange" type="range" min="1" max="20" step="0.5" value="7.5" oninput="updateHudMotion('snapDeg', this.value)">
                             </div>
                             <div class="hud-motion-row">
                                 <label>Ring Speed <span id="hudRingSpeedVal">1.0×</span></label>
-                                <input type="range" min="0" max="2.5" step="0.1" value="1" oninput="updateHudMotion('ringSpeed', this.value)">
+                                <input id="hudRingSpeedRange" type="range" min="0" max="2.5" step="0.1" value="1" oninput="updateHudMotion('ringSpeed', this.value)">
                             </div>
                             <div class="hud-motion-row">
                                 <label>Center Float <span id="hudCenterAmpVal">7px</span></label>
-                                <input type="range" min="0" max="18" step="1" value="7" oninput="updateHudMotion('centerAmp', this.value)">
+                                <input id="hudCenterAmpRange" type="range" min="0" max="18" step="1" value="7" oninput="updateHudMotion('centerAmp', this.value)">
                             </div>
                             <div class="hud-motion-row">
                                 <label>Center Speed <span id="hudCenterSpeedVal">1.0×</span></label>
-                                <input type="range" min="0.4" max="2.4" step="0.1" value="1" oninput="updateHudMotion('centerSpeed', this.value)">
+                                <input id="hudCenterSpeedRange" type="range" min="0.4" max="2.4" step="0.1" value="1" oninput="updateHudMotion('centerSpeed', this.value)">
                             </div>
                         </div>
                     </div>
@@ -5665,6 +5683,18 @@ Be concise. No fluff. Just the key concepts.`,
             centerAmp: 7,
             centerSpeed: 1.0
         };
+        const HUD_MOTION_PRESETS = {
+            subtle: { snapDeg: 12, ringSpeed: 0.55, centerAmp: 3, centerSpeed: 0.7 },
+            balanced: { snapDeg: 7.5, ringSpeed: 1.0, centerAmp: 7, centerSpeed: 1.0 },
+            cinematic: { snapDeg: 5, ringSpeed: 1.4, centerAmp: 11, centerSpeed: 1.25 },
+            hyper: { snapDeg: 3, ringSpeed: 2.1, centerAmp: 15, centerSpeed: 1.9 }
+        };
+        const HUD_STYLE_PRESETS = {
+            atlas: { shape: 'sharp', scheme: 'ice', background: 'offwhite', skin: 'scifi' },
+            lacerta: { shape: 'rounded', scheme: 'sunset', background: 'offwhite', skin: 'biomimetic' },
+            oblivion: { shape: 'hexagon', scheme: 'teal', background: 'slate', skin: 'scifi' },
+            xeno: { shape: 'organic', scheme: 'purple', background: 'deep-space', skin: 'biomimetic' }
+        };
         let hudAnimationFrame = null;
         let hudCleanup = null;
 
@@ -5737,6 +5767,65 @@ Be concise. No fluff. Just the key concepts.`,
             if (ringEl) ringEl.textContent = `${hudMotionSettings.ringSpeed.toFixed(1)}×`;
             if (ampEl) ampEl.textContent = `${Math.round(hudMotionSettings.centerAmp)}px`;
             if (speedEl) speedEl.textContent = `${hudMotionSettings.centerSpeed.toFixed(1)}×`;
+        }
+
+        function syncHudMotionSliders() {
+            const ranges = {
+                snapDeg: document.getElementById('hudSnapRange'),
+                ringSpeed: document.getElementById('hudRingSpeedRange'),
+                centerAmp: document.getElementById('hudCenterAmpRange'),
+                centerSpeed: document.getElementById('hudCenterSpeedRange')
+            };
+            Object.entries(ranges).forEach(([key, input]) => {
+                if (input) input.value = hudMotionSettings[key];
+            });
+            updateHudMotion('snapDeg', hudMotionSettings.snapDeg);
+        }
+
+        function applyHudMotionPreset(name) {
+            const preset = HUD_MOTION_PRESETS[name];
+            if (!preset) return;
+            Object.assign(hudMotionSettings, preset);
+            syncHudMotionSliders();
+            document.querySelectorAll('[data-motion-preset]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.motionPreset === name);
+            });
+        }
+
+        function applyHudStylePreset(name) {
+            const preset = HUD_STYLE_PRESETS[name];
+            if (!preset) return;
+
+            selectedSkin = preset.skin;
+            selectShape(preset.shape);
+            selectColorScheme(preset.scheme);
+            selectHudBackground(preset.background);
+            const templateSelect = document.getElementById('designTemplate');
+            if (templateSelect) templateSelect.value = 'ai-hud';
+            document.querySelectorAll('.skin-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.skin === preset.skin);
+            });
+            document.querySelectorAll('[data-style-preset]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.stylePreset === name);
+            });
+            rerenderCurrentHud();
+        }
+
+        function rerenderCurrentHud() {
+            const runtimeMount = document.getElementById('designRuntimeMount');
+            const liveHud = runtimeMount ? runtimeMount.querySelector('[data-atlas-hud="true"]') : null;
+            if (!liveHud) return;
+
+            const persona = document.getElementById('designPersona')?.value || 'hermes';
+            const userPrompt = document.getElementById('designPrompt')?.value?.trim() || DESIGN_TEMPLATES['ai-hud'];
+            const hudCode = buildHudDesignCode({
+                prompt: userPrompt,
+                persona,
+                scheme: selectedColorScheme,
+                shape: selectedShape,
+                background: selectedHudBackground
+            });
+            displayHudDesign(hudCode);
         }
 
         // Art Style Selection
@@ -8569,7 +8658,7 @@ body {
 
         document.addEventListener('DOMContentLoaded', () => {
             renderSavedDesigns();
-            updateHudMotion('snapDeg', hudMotionSettings.snapDeg);
+            applyHudMotionPreset('balanced');
         });
 
         // ===== INCOGNITO MODE =====
