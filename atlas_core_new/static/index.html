@@ -312,6 +312,32 @@
                         </div>
                     </div>
 
+                    <!-- HUD Motion Tuning -->
+                    <div class="forge-dropdown">
+                        <div class="forge-dropdown-header" onclick="toggleForgeDropdown('hudmotion')">
+                            <span>🌀 HUD Motion</span>
+                            <span class="forge-dropdown-arrow" id="hudmotion-arrow">▼</span>
+                        </div>
+                        <div class="forge-dropdown-content" id="hudmotion-content">
+                            <div class="hud-motion-row">
+                                <label>Ring Snap <span id="hudSnapVal">7.5°</span></label>
+                                <input type="range" min="1" max="20" step="0.5" value="7.5" oninput="updateHudMotion('snapDeg', this.value)">
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Ring Speed <span id="hudRingSpeedVal">1.0×</span></label>
+                                <input type="range" min="0" max="2.5" step="0.1" value="1" oninput="updateHudMotion('ringSpeed', this.value)">
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Center Float <span id="hudCenterAmpVal">7px</span></label>
+                                <input type="range" min="0" max="18" step="1" value="7" oninput="updateHudMotion('centerAmp', this.value)">
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Center Speed <span id="hudCenterSpeedVal">1.0×</span></label>
+                                <input type="range" min="0.4" max="2.4" step="0.1" value="1" oninput="updateHudMotion('centerSpeed', this.value)">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Art Style Dropdown (Biomimetic Sci-Fi Sub-styles) -->
                     <div class="forge-dropdown">
                         <div class="forge-dropdown-header" onclick="toggleForgeDropdown('artstyle')">
@@ -5633,6 +5659,12 @@ Be concise. No fluff. Just the key concepts.`,
         let selectedArtStyle = 'none';
         let hdQuality = false;
         let is3DEnabled = false;
+        const hudMotionSettings = {
+            snapDeg: 7.5,
+            ringSpeed: 1.0,
+            centerAmp: 7,
+            centerSpeed: 1.0
+        };
         let hudAnimationFrame = null;
         let hudCleanup = null;
 
@@ -5691,6 +5723,20 @@ Be concise. No fluff. Just the key concepts.`,
             document.querySelectorAll('.hudbg-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.hudbg === background);
             });
+        }
+
+        function updateHudMotion(key, value) {
+            const numeric = parseFloat(value);
+            hudMotionSettings[key] = Number.isFinite(numeric) ? numeric : hudMotionSettings[key];
+
+            const snapEl = document.getElementById('hudSnapVal');
+            const ringEl = document.getElementById('hudRingSpeedVal');
+            const ampEl = document.getElementById('hudCenterAmpVal');
+            const speedEl = document.getElementById('hudCenterSpeedVal');
+            if (snapEl) snapEl.textContent = `${hudMotionSettings.snapDeg.toFixed(1)}°`;
+            if (ringEl) ringEl.textContent = `${hudMotionSettings.ringSpeed.toFixed(1)}×`;
+            if (ampEl) ampEl.textContent = `${Math.round(hudMotionSettings.centerAmp)}px`;
+            if (speedEl) speedEl.textContent = `${hudMotionSettings.centerSpeed.toFixed(1)}×`;
         }
 
         // Art Style Selection
@@ -7570,9 +7616,8 @@ Be concise. No fluff. Just the key concepts.`,
                 drag: null,
                 lastTs: performance.now()
             };
-            const ringSnap = 7.5;
-
             const setRing = (name, angle) => {
+                const ringSnap = Math.max(0.5, hudMotionSettings.snapDeg || 7.5);
                 const snapped = Math.round(angle / ringSnap) * ringSnap;
                 state[name] = snapped;
                 if (rings[name]) {
@@ -7619,18 +7664,22 @@ Be concise. No fluff. Just the key concepts.`,
             const animateHud = (ts) => {
                 const dt = Math.min((ts - state.lastTs) / 16.67, 3);
                 state.lastTs = ts;
+                const ringSpeed = Math.max(0, hudMotionSettings.ringSpeed || 1);
 
                 if (!state.drag) {
-                    setRing('outer', state.outer + 0.14 * dt);
-                    setRing('mid', state.mid - 0.22 * dt);
-                    setRing('inner', state.inner + 0.32 * dt);
+                    setRing('outer', state.outer + 0.14 * ringSpeed * dt);
+                    setRing('mid', state.mid - 0.22 * ringSpeed * dt);
+                    setRing('inner', state.inner + 0.32 * ringSpeed * dt);
                 }
 
                 if (centerCore) {
-                    const x = Math.sin(ts * 0.0012) * 7;
-                    const y = Math.cos(ts * 0.0015) * 5;
-                    const tiltX = Math.sin(ts * 0.0017) * 8;
-                    const tiltY = Math.cos(ts * 0.0011) * 10;
+                    const centerAmp = Math.max(0, hudMotionSettings.centerAmp || 7);
+                    const centerSpeed = Math.max(0.2, hudMotionSettings.centerSpeed || 1);
+                    const t = ts * 0.001 * centerSpeed;
+                    const x = Math.sin(t * 1.2) * centerAmp;
+                    const y = Math.cos(t * 1.5) * Math.max(0, centerAmp - 2);
+                    const tiltX = Math.sin(t * 1.7) * (5 + centerAmp * 0.4);
+                    const tiltY = Math.cos(t * 1.1) * (7 + centerAmp * 0.4);
                     centerCore.style.transform = `translate3d(${x}px, ${y}px, 16px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
                 }
                 hudAnimationFrame = requestAnimationFrame(animateHud);
@@ -8520,6 +8569,7 @@ body {
 
         document.addEventListener('DOMContentLoaded', () => {
             renderSavedDesigns();
+            updateHudMotion('snapDeg', hudMotionSettings.snapDeg);
         });
 
         // ===== INCOGNITO MODE =====

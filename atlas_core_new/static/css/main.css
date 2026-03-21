@@ -2666,6 +2666,36 @@
             box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset;
         }
 
+        .hud-motion-row {
+            margin-top: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .hud-motion-row:first-child {
+            margin-top: 0;
+        }
+
+        .hud-motion-row label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hud-motion-row label span {
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hud-motion-row input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-primary);
+        }
+
         /* Art Style Grid */
         .artstyle-category {
             margin-bottom: 0.75rem;
