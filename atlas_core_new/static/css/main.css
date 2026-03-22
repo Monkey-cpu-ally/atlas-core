@@ -7656,6 +7656,314 @@
             40% { transform: scale(1); opacity: 1; }
         }
 
+        /* =====================================================
+           PREMIUM SCI-FI HUD APP THEME (off-white + soft cyan)
+           ===================================================== */
+        body.hud-premium-app {
+            --surface-0: #edf2f1;
+            --surface-1: rgba(255, 255, 255, 0.68);
+            --surface-2: rgba(255, 255, 255, 0.54);
+            --surface-3: rgba(236, 248, 250, 0.72);
+            --surface-4: rgba(210, 235, 239, 0.78);
+            --bg-primary: var(--surface-0);
+            --bg-secondary: var(--surface-1);
+            --bg-card: var(--surface-2);
+            --bg-card-solid: #e7f2f3;
+            --bg-glass: rgba(255, 255, 255, 0.58);
+            --bg-glass-hover: rgba(255, 255, 255, 0.72);
+            --text-primary: #14303b;
+            --text-secondary: #496976;
+            --text-muted: #6f8f99;
+            --text-inverse: #0e2730;
+            --accent-primary: #72cddd;
+            --accent-primary-dim: rgba(114, 205, 221, 0.2);
+            --accent-secondary: #6ab3c7;
+            --border-subtle: rgba(19, 60, 74, 0.1);
+            --border-default: rgba(32, 91, 108, 0.18);
+            --border-strong: rgba(27, 88, 105, 0.28);
+            --border-glass: rgba(58, 130, 150, 0.24);
+            --border-color: var(--border-default);
+            --border-accent: rgba(114, 205, 221, 0.48);
+            --shadow-sm: 0 8px 18px rgba(54, 96, 108, 0.08);
+            --shadow-md: 0 16px 32px rgba(38, 82, 95, 0.14);
+            --shadow-lg: 0 30px 60px rgba(30, 68, 80, 0.18);
+            --shadow-xl: 0 40px 80px rgba(21, 58, 71, 0.22);
+            --shadow-soft: var(--shadow-md);
+            --shadow-glow: 0 0 0 1px rgba(143, 222, 235, 0.26), 0 18px 45px rgba(59, 136, 154, 0.2);
+            --ajani: #368ea0;
+            --minerva: #56afbf;
+            --hermes: #1f5f71;
+            --trinity: #6faec1;
+            --accent-ajani: #368ea0;
+            --accent-minerva: #56afbf;
+            --accent-hermes: #1f5f71;
+            --asset-image-ajani-bg:
+                radial-gradient(circle at 20% 20%, rgba(77, 190, 211, 0.34), transparent 48%),
+                linear-gradient(140deg, rgba(228, 248, 251, 0.9), rgba(205, 232, 238, 0.76));
+            --asset-image-minerva-bg:
+                radial-gradient(circle at 75% 22%, rgba(121, 213, 226, 0.36), transparent 50%),
+                linear-gradient(155deg, rgba(230, 249, 252, 0.94), rgba(208, 235, 241, 0.72));
+            --asset-image-hermes-bg:
+                radial-gradient(circle at 30% 75%, rgba(93, 176, 195, 0.32), transparent 52%),
+                linear-gradient(155deg, rgba(232, 247, 250, 0.9), rgba(198, 226, 232, 0.74));
+            --asset-image-counsel-bg:
+                radial-gradient(circle at 50% 50%, rgba(112, 201, 219, 0.32), transparent 54%),
+                linear-gradient(140deg, rgba(235, 249, 251, 0.92), rgba(206, 233, 239, 0.76));
+            --asset-image-poster-chainsaw:
+                radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.88), transparent 45%),
+                linear-gradient(145deg, #f5f7f4, #dceff1 52%, #d0e4e8);
+            --asset-image-poster-sengoku:
+                radial-gradient(circle at 78% 18%, rgba(190, 236, 244, 0.54), transparent 45%),
+                linear-gradient(145deg, #f5f7f4, #d8e9ee 50%, #cde0e6);
+            background:
+                radial-gradient(circle at 8% -6%, rgba(255, 255, 255, 0.84), transparent 38%),
+                radial-gradient(circle at 92% 0%, rgba(157, 224, 235, 0.26), transparent 34%),
+                linear-gradient(150deg, #f7f8f5 0%, #e6f1f1 48%, #d6e8eb 100%);
+            color: var(--text-primary);
+        }
+
+        body.hud-premium-app::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(58, 132, 152, 0.032) 0 1px,
+                    transparent 1px 30px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(58, 132, 152, 0.024) 0 1px,
+                    transparent 1px 30px
+                );
+            mask-image: radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 0.9), transparent 88%);
+        }
+
+        body.hud-premium-app .global-hud-backdrop {
+            background:
+                radial-gradient(circle at 24% 12%, rgba(255, 255, 255, 0.75), transparent 44%),
+                radial-gradient(circle at 78% 80%, rgba(134, 214, 227, 0.28), transparent 48%),
+                linear-gradient(152deg, rgba(248, 249, 246, 0.9) 0%, rgba(225, 240, 242, 0.84) 100%);
+            opacity: 0.96;
+        }
+
+        body.hud-premium-app #globalHudMount {
+            filter: drop-shadow(0 28px 48px rgba(57, 119, 135, 0.28));
+        }
+
+        body.hud-premium-app .container {
+            max-width: min(1320px, 96vw);
+            padding: clamp(0.85rem, 2.1vw, 1.5rem);
+            display: grid;
+            gap: 0.95rem;
+        }
+
+        body.hud-premium-app header {
+            position: relative;
+            border-radius: 24px;
+            margin-top: 0.35rem;
+            margin-bottom: 0.1rem;
+            background: linear-gradient(140deg, rgba(255, 255, 255, 0.78), rgba(230, 246, 249, 0.62));
+            border: 1px solid rgba(74, 146, 165, 0.23);
+            box-shadow: 0 16px 36px rgba(72, 128, 142, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+        }
+
+        body.hud-premium-app .logo {
+            color: #113340;
+            letter-spacing: -0.03em;
+            text-shadow: 0 2px 10px rgba(118, 203, 219, 0.25);
+        }
+
+        body.hud-premium-app .codename {
+            color: #3c7e90;
+        }
+
+        body.hud-premium-app .version-badge {
+            background: rgba(246, 254, 255, 0.85);
+            border-color: rgba(72, 136, 152, 0.24);
+            color: #3e6a79;
+        }
+
+        body.hud-premium-app .fingerprint {
+            color: #62818d;
+        }
+
+        body.hud-premium-app .status-indicator,
+        body.hud-premium-app .chat-container,
+        body.hud-premium-app .dashboard-section,
+        body.hud-premium-app .api-section,
+        body.hud-premium-app .card,
+        body.hud-premium-app footer {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.62), rgba(232, 247, 250, 0.48));
+            border: 1px solid rgba(70, 141, 160, 0.2);
+            box-shadow: 0 14px 36px rgba(73, 126, 141, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.74);
+            backdrop-filter: blur(14px) saturate(125%);
+            -webkit-backdrop-filter: blur(14px) saturate(125%);
+        }
+
+        body.hud-premium-app .api-section {
+            margin: 0;
+            border-radius: 22px;
+        }
+
+        body.hud-premium-app .section-title {
+            color: #1a4653;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 10px rgba(120, 206, 221, 0.2);
+        }
+
+        body.hud-premium-app .description,
+        body.hud-premium-app .endpoint-description,
+        body.hud-premium-app .item-description {
+            color: var(--text-secondary);
+        }
+
+        body.hud-premium-app .chat-header {
+            border-bottom: 1px solid rgba(60, 127, 144, 0.18);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(236, 248, 250, 0.58));
+        }
+
+        body.hud-premium-app .persona-btn,
+        body.hud-premium-app .persona-btn-styled {
+            border-color: rgba(66, 133, 149, 0.28);
+            background: rgba(255, 255, 255, 0.52);
+            color: #2e6070;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        }
+
+        body.hud-premium-app .persona-btn-styled:hover {
+            border-color: rgba(74, 163, 181, 0.55);
+            box-shadow: 0 10px 24px rgba(70, 145, 162, 0.2);
+        }
+
+        body.hud-premium-app .chat-messages {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(227, 244, 247, 0.46));
+            border-top: 1px solid rgba(75, 144, 161, 0.14);
+            border-bottom: 1px solid rgba(75, 144, 161, 0.14);
+        }
+
+        body.hud-premium-app .message {
+            border: 1px solid rgba(81, 149, 167, 0.22);
+            box-shadow: 0 6px 16px rgba(75, 131, 146, 0.12);
+            color: #123440;
+        }
+
+        body.hud-premium-app .message-user {
+            background: linear-gradient(140deg, rgba(231, 247, 250, 0.95), rgba(207, 236, 242, 0.88));
+            border-color: rgba(80, 156, 176, 0.35);
+        }
+
+        body.hud-premium-app .message-ajani,
+        body.hud-premium-app .message-minerva,
+        body.hud-premium-app .message-hermes,
+        body.hud-premium-app .message-counsel {
+            background: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(231, 246, 249, 0.82));
+        }
+
+        body.hud-premium-app .chat-input-area {
+            border-top: 1px solid rgba(71, 141, 160, 0.2);
+            background: linear-gradient(180deg, rgba(252, 255, 255, 0.75), rgba(236, 249, 251, 0.66));
+        }
+
+        body.hud-premium-app .chat-input {
+            border-color: rgba(70, 139, 156, 0.28);
+            background: rgba(255, 255, 255, 0.74);
+            color: #143844;
+        }
+
+        body.hud-premium-app .chat-input::placeholder {
+            color: #6b8b96;
+        }
+
+        body.hud-premium-app .chat-input:focus {
+            border-color: rgba(85, 188, 209, 0.62);
+            box-shadow: 0 0 0 3px rgba(114, 205, 221, 0.24), 0 0 24px rgba(124, 215, 231, 0.2);
+        }
+
+        body.hud-premium-app .hex-icon {
+            background: linear-gradient(145deg, rgba(223, 244, 248, 0.94), rgba(190, 228, 236, 0.9));
+            color: #1e5363;
+            border: 1px solid rgba(71, 152, 172, 0.34);
+        }
+
+        body.hud-premium-app .hex-icon:hover {
+            background: linear-gradient(145deg, #86d7e6, #6bc7d8);
+            color: #102b34;
+            box-shadow: 0 10px 24px rgba(87, 181, 200, 0.32);
+        }
+
+        body.hud-premium-app .control-toggle {
+            background: rgba(248, 254, 255, 0.72);
+            border-color: rgba(70, 140, 158, 0.24);
+            color: #3b6876;
+        }
+
+        body.hud-premium-app .control-toggle.active {
+            background: rgba(112, 202, 220, 0.2);
+            border-color: rgba(83, 180, 200, 0.55);
+            color: #1f5362;
+        }
+
+        body.hud-premium-app .calendar-widget {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(70, 138, 156, 0.22);
+        }
+
+        body.hud-premium-app .status-dot {
+            background: #62bed2;
+            box-shadow: 0 0 14px rgba(98, 190, 210, 0.6);
+        }
+
+        body.hud-premium-app .card:hover {
+            border-color: rgba(86, 176, 196, 0.5);
+            box-shadow: 0 18px 40px rgba(69, 134, 150, 0.2);
+        }
+
+        body.hud-premium-app .endpoint-link {
+            background: rgba(242, 252, 255, 0.9);
+            border-color: rgba(70, 141, 158, 0.24);
+            color: #2f6777;
+        }
+
+        body.hud-premium-app .endpoint-link:hover {
+            border-color: rgba(87, 175, 194, 0.58);
+            background: rgba(224, 247, 252, 0.95);
+        }
+
+        body.hud-premium-app .atlas-hud-root {
+            border: 1px solid rgba(88, 170, 188, 0.33);
+            box-shadow: 0 20px 42px rgba(62, 125, 142, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        body.hud-premium-app .atlas-hud-root .hud-shell {
+            background: linear-gradient(160deg, rgba(249, 252, 252, 0.82), rgba(213, 239, 244, 0.62));
+            border-color: rgba(82, 158, 176, 0.34);
+        }
+
+        body.hud-premium-app .atlas-hud-root .hud-ring {
+            border-color: color-mix(in srgb, var(--hud-accent), #ffffff 38%);
+            box-shadow: 0 0 18px rgba(113, 194, 211, 0.24);
+        }
+
+        body.hud-premium-app .atlas-hud-root .hud-center-core {
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.62),
+                0 0 22px rgba(118, 204, 221, 0.42),
+                inset 0 2px 4px rgba(255, 255, 255, 0.5);
+        }
+
+        body.hud-premium-app .atlas-hud-root .hud-center-label,
+        body.hud-premium-app .atlas-hud-root .hud-readout,
+        body.hud-premium-app .atlas-hud-root .hud-tag {
+            color: #1b4d5d;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.36);
+        }
+
         /* Responsive layout polish */
         @media (max-width: 980px) {
             .container {
