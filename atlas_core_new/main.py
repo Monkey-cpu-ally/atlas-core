@@ -147,6 +147,7 @@ STATIC_DIR = Path(__file__).parent / "static"
 VIEWER_DIR = STATIC_DIR / "viewer"
 app.mount("/viewer/assets", StaticFiles(directory=str(VIEWER_DIR)), name="viewer_assets")
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+app.mount("/css", StaticFiles(directory=str(STATIC_DIR / "css")), name="css")
 
 simple_memory = SimpleMemoryStore()
 persistent_memory = PersistentMemoryStore(db_session_factory=SessionLocal)
