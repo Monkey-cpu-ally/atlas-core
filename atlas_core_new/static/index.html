@@ -20,7 +20,35 @@
     <link rel="apple-touch-icon" href="/static/images/icon-192.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/static/images/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/icon-512.png">
-    <link rel="stylesheet" href="css/main.css">
+    <script>
+        (function bootstrapAtlasAssetVersioning() {
+            const host = window.location.hostname || '';
+            const params = new URLSearchParams(window.location.search);
+            const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0';
+            const isDevTunnel = host.endsWith('.loca.lt') || host.endsWith('.localhost.run') || host.endsWith('.pinggy.link') || host.endsWith('.a.pinggy.io');
+            let storedDevMode = false;
+            try {
+                storedDevMode = window.localStorage.getItem('atlas-dev-mode') === '1';
+            } catch (err) {
+                storedDevMode = false;
+            }
+            const forcedDevMode = params.get('dev') === '1';
+            const isDevelopment = forcedDevMode || storedDevMode || isLocalHost || isDevTunnel;
+            const assetVersion = isDevelopment ? String(Date.now()) : '2026.03.22.3';
+
+            window.__ATLAS_DEV_MODE__ = isDevelopment;
+            window.__ATLAS_ASSET_VERSION__ = assetVersion;
+
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = 'css/main.css?v=' + encodeURIComponent(assetVersion);
+            cssLink.setAttribute('data-atlas-css', 'true');
+            document.head.appendChild(cssLink);
+        })();
+    </script>
+    <noscript>
+        <link rel="stylesheet" href="css/main.css?v=2026.03.22.3">
+    </noscript>
 </head>
 <body class="hud-premium-app">
     <div id="globalHudBackdrop" class="global-hud-backdrop" aria-hidden="true">
@@ -3628,13 +3656,36 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    const registration = await navigator.serviceWorker.register('/sw.js', {
-                        scope: '/'
+                    const isDevelopment = Boolean(window.__ATLAS_DEV_MODE__);
+                    const assetVersion = String(window.__ATLAS_ASSET_VERSION__ || Date.now());
+
+                    if (isDevelopment) {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        await Promise.all(registrations.map((reg) => reg.unregister()));
+
+                        if ('caches' in window) {
+                            const cacheKeys = await caches.keys();
+                            await Promise.all(
+                                cacheKeys
+                                    .filter((name) => name.startsWith('atlas-core-') || name.startsWith('atlas-api-'))
+                                    .map((name) => caches.delete(name))
+                            );
+                        }
+
+                        console.log('[Atlas] Dev mode detected: service worker disabled and Atlas caches cleared');
+                        return;
+                    }
+
+                    const swUrl = '/sw.js?mode=prod&v=' + encodeURIComponent(assetVersion);
+                    const registration = await navigator.serviceWorker.register(swUrl, {
+                        scope: '/',
+                        updateViaCache: 'none'
                     });
-                    console.log('[Atlas] Service Worker registered:', registration.scope);
-                    
+                    console.log('[Atlas] Service Worker registered:', registration.scope, 'version:', assetVersion);
+
                     registration.addEventListener('updatefound', () => {
                         const newWorker = registration.installing;
+                        if (!newWorker) return;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 showUpdateBanner();
