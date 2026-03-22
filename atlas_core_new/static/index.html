@@ -25,18 +25,33 @@
             const host = window.location.hostname || '';
             const params = new URLSearchParams(window.location.search);
             const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0';
-            const isDevTunnel = host.endsWith('.loca.lt') || host.endsWith('.localhost.run') || host.endsWith('.pinggy.link') || host.endsWith('.a.pinggy.io');
+            const isDevTunnel =
+                host.endsWith('.loca.lt') ||
+                host.endsWith('.localhost.run') ||
+                host.endsWith('.pinggy.link') ||
+                host.endsWith('.a.pinggy.io') ||
+                host.endsWith('.ngrok-free.app') ||
+                host.endsWith('.ngrok.io');
+            const isPrivateIpHost = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(host);
             let storedDevMode = false;
+            let storedProdMode = false;
             try {
                 storedDevMode = window.localStorage.getItem('atlas-dev-mode') === '1';
+                storedProdMode = window.localStorage.getItem('atlas-prod-mode') === '1';
             } catch (err) {
                 storedDevMode = false;
+                storedProdMode = false;
             }
             const forcedDevMode = params.get('dev') === '1';
-            const isDevelopment = forcedDevMode || storedDevMode || isLocalHost || isDevTunnel;
+            const forcedProdMode = params.get('prod') === '1';
+            const inferredDevelopment = isLocalHost || isPrivateIpHost || isDevTunnel;
+            const inferredProduction = window.location.protocol === 'https:' && !inferredDevelopment;
+            const isProduction = (forcedProdMode || storedProdMode || inferredProduction) && !forcedDevMode && !storedDevMode;
+            const isDevelopment = !isProduction || forcedDevMode || storedDevMode || inferredDevelopment;
             const assetVersion = isDevelopment ? String(Date.now()) : '2026.03.22.3';
 
             window.__ATLAS_DEV_MODE__ = isDevelopment;
+            window.__ATLAS_PRODUCTION_MODE__ = isProduction;
             window.__ATLAS_ASSET_VERSION__ = assetVersion;
 
             const cssLink = document.createElement('link');
@@ -3656,10 +3671,10 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    const isDevelopment = Boolean(window.__ATLAS_DEV_MODE__);
+                    const isProduction = Boolean(window.__ATLAS_PRODUCTION_MODE__);
                     const assetVersion = String(window.__ATLAS_ASSET_VERSION__ || Date.now());
 
-                    if (isDevelopment) {
+                    if (!isProduction) {
                         const registrations = await navigator.serviceWorker.getRegistrations();
                         await Promise.all(registrations.map((reg) => reg.unregister()));
 
@@ -3672,7 +3687,7 @@
                             );
                         }
 
-                        console.log('[Atlas] Dev mode detected: service worker disabled and Atlas caches cleared');
+                        console.log('[Atlas] Non-production mode detected: service worker disabled and Atlas caches cleared');
                         return;
                     }
 
