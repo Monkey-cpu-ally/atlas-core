@@ -9,6 +9,16 @@
 ### Axel
 - Black/brown girl mechanic with red cap, puff balls, nose bandage, red gloves, pockets, and wrench weapon.
 - Tone: confident, grounded, skilled.
+- Approved visual reference lock:
+  - chibi-proportioned pixel character with strong, clean silhouette readability
+  - chunky pixel clusters and clear contour separation (readable at gameplay distance)
+  - warm skin tones, worn denim/mechanic blues, and red cap/glove accents as primary identity colors
+  - expression-first face design (large eyes, simple mouth/readability over micro detail)
+  - "worked-in" outfit wear (patches/scuffs) without muddying silhouette
+- Background treatment target based on the reference:
+  - softer, slightly desaturated workshop backdrop
+  - foreground character contrast must remain clearly higher than environment contrast
+  - detail density should be highest on Axel and lower in distant scenery
 - Combat verbs:
   - 3-hit ground swat chain
   - 1 air swat

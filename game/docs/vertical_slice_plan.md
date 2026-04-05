@@ -11,6 +11,23 @@
   - Breakable wall/floor interactions (Buffalo + smash gate examples).
   - Scrap-themed HUD + Flight Log feed with practical cryptic entries.
 
+## Art Direction Lock (Axel Reference Approved)
+- Axel visual lock is now based on the provided pixel reference:
+  - black/brown skin tone
+  - red cap with worn marks
+  - twin puff hairstyle silhouette
+  - mechanic jumpsuit with grime/wear decals
+  - red gloves + tool-belt utility shapes
+  - compact, readable chibi-proportioned body language
+- Pixel style lock:
+  - soft, warm palette with grounded neutrals
+  - clean silhouette readability at gameplay scale
+  - high-contrast face readability (eyes/brows/mouth) for expression clarity
+  - subtle texture/noise for wear without muddying forms
+- Environment consistency:
+  - workshop-mechanical backdrop motifs should stay lower-contrast than Axel
+  - hero and interactable props must remain color-priority anchors.
+
 ## Modular Architecture
 - `scripts/systems/`
   - `game_state.gd`: stickers, coins, scrap parts, scrap meter, pickup text events.
