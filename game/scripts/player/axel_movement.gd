@@ -22,6 +22,7 @@ var is_smashing := false
 var combo_step := 0
 var attack_queued := false
 var _hit_targets: Dictionary = {}
+var is_buffalo_mode := false
 var max_stickers := 4
 var hits_per_sticker := 3
 var current_stickers := 0
