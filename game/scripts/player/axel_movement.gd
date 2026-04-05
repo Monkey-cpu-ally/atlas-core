@@ -82,6 +82,8 @@ func _physics_process(delta: float) -> void:
 	sprite.flip_h = facing < 0
 
 	_handle_attack_input()
+	if is_buffalo_mode:
+		_handle_buffalo_breaks()
 
 	move_and_slide()
 
@@ -304,6 +306,20 @@ func _apply_power_mode_flags() -> void:
 	match current_power_mode:
 		PowerMode.BURNING_BUFFALO:
 			is_buffalo_mode = true
+
+
+func _handle_buffalo_breaks() -> void:
+	var breakables := get_tree().get_nodes_in_group("breakable")
+	for node in breakables:
+		if not (node is Node2D):
+			continue
+		var node2d := node as Node2D
+		if global_position.distance_to(node2d.global_position) > 34.0:
+			continue
+		if node.has_method("take_structure_hit"):
+			node.take_structure_hit("buffalo")
+		elif bool(node.get_meta("is_breakable_wall", false)):
+			node.queue_free()
 
 
 func add_coin(value: int) -> void:
