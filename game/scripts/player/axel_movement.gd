@@ -16,9 +16,11 @@ var is_air_attacking := false
 var is_smashing := false
 var combo_step := 0
 var attack_queued := false
+var _hit_targets: Dictionary = {}
 
 func _ready() -> void:
 	attack_hitbox.monitoring = false
+	attack_hitbox.area_entered.connect(_on_attack_hitbox_area_entered)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -138,7 +140,37 @@ func do_smash_impact() -> void:
 func _enable_attack_hitbox(mode: String) -> void:
 	attack_hitbox.monitoring = true
 	attack_hitbox.set_meta("attack_mode", mode)
+	_hit_targets.clear()
 
 func _disable_attack_hitbox() -> void:
 	attack_hitbox.monitoring = false
 	attack_hitbox.set_meta("attack_mode", "")
+	_hit_targets.clear()
+
+
+func _on_attack_hitbox_area_entered(area: Area2D) -> void:
+	if not attack_hitbox.monitoring:
+		return
+	if not area.has_method("take_hit"):
+		return
+	var id := area.get_instance_id()
+	if _hit_targets.has(id):
+		return
+	_hit_targets[id] = true
+
+	var mode := str(attack_hitbox.get_meta("attack_mode", "ground_1"))
+	var damage := 1
+
+	match mode:
+		"ground_1":
+			damage = 1
+		"ground_2":
+			damage = 1
+		"ground_3":
+			damage = 2
+		"air":
+			damage = 1
+		"smash":
+			damage = 2
+
+	area.take_hit(damage, global_position)
