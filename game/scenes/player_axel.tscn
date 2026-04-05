@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/player/axel_movement.gd" id="1"]
 
 [node name="Axel" type="CharacterBody2D"]
 script = ExtResource("1")
@@ -24,12 +24,3 @@ default_color = Color(0.819608, 0.839216, 0.870588, 1)
 width = 3.0
 points = PackedVector2Array(12, -8, 22, -2, 19, 5)
 
-[node name="AttackArea" type="Area2D" parent="."]
-monitoring = false
-collision_layer = 8
-collision_mask = 4
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(36, 28)
-position = Vector2(22, -6)

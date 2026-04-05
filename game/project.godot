@@ -5,7 +5,7 @@ config_version=5
 
 [application]
 config/name="Axel: Wrenchbound"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/step_01_axel_movement.tscn"
 config/features=PackedStringArray("4.2")
 config/icon="res://icon.svg"
 
