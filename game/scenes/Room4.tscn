@@ -1,0 +1,124 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
+[ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/entities/power_pickup.gd" id="3_power_pickup"]
+[ext_resource type="PackedScene" path="res://world/BreakableWall.tscn" id="4_breakable_wall"]
+[ext_resource type="PackedScene" path="res://world/Coin.tscn" id="5_coin"]
+[ext_resource type="PackedScene" path="res://world/ScrapPickup.tscn" id="6_scrap"]
+
+[node name="Room4" type="Node2D"]
+
+[node name="Room3ExitMarker" type="Marker2D" parent="."]
+position = Vector2(-900, 238)
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(3600, 48)
+position = Vector2(0, 312)
+
+[node name="GroundVisual" type="ColorRect" parent="Ground"]
+offset_left = -1800.0
+offset_top = 288.0
+offset_right = 1800.0
+offset_bottom = 336.0
+color = Color(0.37, 0.31, 0.23, 1)
+
+[node name="SafeAreaBackdrop" type="ColorRect" parent="."]
+offset_left = -900.0
+offset_top = 180.0
+offset_right = -420.0
+offset_bottom = 300.0
+color = Color(0.2, 0.28, 0.2, 0.2)
+
+[node name="BuffaloPowerPickup" type="Area2D" parent="."]
+script = ExtResource("3_power_pickup")
+position = Vector2(-510, 220)
+monitoring = true
+monitorable = true
+collision_layer = 16
+collision_mask = 2
+power_id = "burning_buffalo"
+duration = 15.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BuffaloPowerPickup"]
+shape = CircleShape2D.new()
+"shape:radius" = 12.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BuffaloPowerPickup"]
+
+[node name="RunUpZoneBackdrop" type="ColorRect" parent="."]
+offset_left = -360.0
+offset_top = 210.0
+offset_right = 40.0
+offset_bottom = 300.0
+color = Color(0.2, 0.24, 0.3, 0.18)
+
+[node name="BuffaloWall" parent="." instance=ExtResource("4_breakable_wall")]
+position = Vector2(110, 190)
+
+[node name="RewardAreaFloor" type="StaticBody2D" parent="."]
+position = Vector2(430, 286)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RewardAreaFloor"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(420, 36)
+
+[node name="RewardAreaVisual" type="ColorRect" parent="RewardAreaFloor"]
+offset_left = -210.0
+offset_top = -18.0
+offset_right = 210.0
+offset_bottom = 18.0
+color = Color(0.34, 0.28, 0.2, 1)
+
+[node name="RewardCoinA" parent="." instance=ExtResource("5_coin")]
+position = Vector2(300, 232)
+
+[node name="RewardCoinB" parent="." instance=ExtResource("5_coin")]
+position = Vector2(360, 232)
+
+[node name="RewardCoinC" parent="." instance=ExtResource("5_coin")]
+position = Vector2(420, 232)
+
+[node name="RewardScrap" parent="." instance=ExtResource("6_scrap")]
+position = Vector2(500, 232)
+
+[node name="ExitRunway" type="StaticBody2D" parent="."]
+position = Vector2(820, 280)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitRunway"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(380, 28)
+
+[node name="ExitRunwayVisual" type="ColorRect" parent="ExitRunway"]
+offset_left = -190.0
+offset_top = -14.0
+offset_right = 190.0
+offset_bottom = 14.0
+color = Color(0.36, 0.29, 0.22, 1)
+
+[node name="Axel" parent="." instance=ExtResource("1_axel")]
+position = Vector2(-780, 210)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-420, 110)
+enabled = true
+limit_left = -1200
+limit_top = -280
+limit_right = 1400
+limit_bottom = 620
+smoothing_enabled = true
+smoothing_speed = 8.0
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="ExitMarker" type="Marker2D" parent="."]
+position = Vector2(1040, 248)
