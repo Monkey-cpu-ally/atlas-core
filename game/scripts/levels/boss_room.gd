@@ -36,6 +36,7 @@ func start_boss_intro() -> void:
 		boss.start_fight()
 	if axel_node:
 		axel_node.set_physics_process(true)
+	GameState.announce_pickup("I understand what to do", Color(0.9, 0.86, 0.58, 1.0))
 
 
 func on_boss_defeated() -> void:
