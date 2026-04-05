@@ -42,3 +42,19 @@ shape = RectangleShape2D.new()
 "shape:size" = Vector2(34, 24)
 position = Vector2(22, -8)
 
+[node name="DamageFlash" type="ColorRect" parent="."]
+offset_left = -14.0
+offset_top = -30.0
+offset_right = 14.0
+offset_bottom = 26.0
+color = Color(1, 0.4, 0.4, 0.25)
+visible = false
+
+[node name="CoyoteTimer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
+[node name="JumpBufferTimer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
