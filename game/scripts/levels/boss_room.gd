@@ -4,6 +4,7 @@ extends Node2D
 @onready var exit_blocker = $ExitBlocker
 @onready var axel_spawn: Marker2D = $AxelSpawn
 @onready var axel: CharacterBody2D = $Axel
+@onready var fox = $FoxSpirit
 @onready var fox_glow: Node2D = $FoxGlow
 @onready var follow_marker: Marker2D = $FollowMarker
 @onready var discovery_marker: Marker2D = $DiscoveryMarker

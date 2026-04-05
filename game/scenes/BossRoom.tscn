@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/boss_room.gd" id="1_boss_room"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/rootbound_siege_tank.tscn" id="4_boss"]
 [ext_resource type="Script" path="res://scripts/entities/boss_start_trigger.gd" id="5_trigger_script"]
+[ext_resource type="PackedScene" path="res://scenes/FoxSpirit.tscn" id="6_fox_spirit"]
 
 [node name="BossRoom" type="Node2D"]
 script = ExtResource("1_boss_room")
@@ -107,16 +108,8 @@ color = Color(0.44, 0.35, 0.24, 0.85)
 position = Vector2(340, 236)
 visible = false
 
-[node name="FoxGlow" type="Node2D" parent="."]
+[node name="FoxSpirit" parent="." instance=ExtResource("6_fox_spirit")]
 position = Vector2(560, 220)
-visible = false
-
-[node name="GlowVisual" type="ColorRect" parent="FoxGlow"]
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
-color = Color(0.66, 0.88, 1, 0.0)
 
 [node name="FollowMarker" type="Marker2D" parent="."]
 position = Vector2(760, 220)
