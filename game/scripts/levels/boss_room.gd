@@ -57,14 +57,16 @@ func on_boss_defeated() -> void:
 	spawn_fox()
 
 
-func spawn_fox() -> void:
-	if fox == null:
+func spawn_fox():
+	if not fox:
 		return
+
 	fox.visible = true
-	if follow_marker:
-		fox.global_position = follow_marker.global_position
-	if fox.has_method("start_guiding"):
-		fox.start_guiding()
+	fox.global_position = boss.global_position + Vector2(0, -16)
+
+	await get_tree().create_timer(0.6).timeout
+
+	fox.start_guiding()
 	if not post_boss_sequence_started:
 		post_boss_sequence_started = true
 		_run_post_boss_sequence()
