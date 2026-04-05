@@ -46,8 +46,25 @@ func start_boss_intro() -> void:
 
 func on_boss_defeated() -> void:
 	print("Boss defeated!")
-	_set_exit_blocker_state(false)
-	GameState.announce_pickup("Arena unlocked -> next event", Color(0.74, 0.88, 0.64, 1.0))
+	exit_blocker.visible = false
+	if exit_blocker and exit_blocker.has_node("CollisionShape2D"):
+		var exit_shape := exit_blocker.get_node("CollisionShape2D") as CollisionShape2D
+		if exit_shape:
+			exit_shape.disabled = true
+
+	await get_tree().create_timer(0.5).timeout
+
+	spawn_fox()
+
+
+func spawn_fox() -> void:
+	if fox == null:
+		return
+	fox.visible = true
+	if follow_marker:
+		fox.global_position = follow_marker.global_position
+	if fox.has_method("start_guiding"):
+		fox.start_guiding()
 	if not post_boss_sequence_started:
 		post_boss_sequence_started = true
 		_run_post_boss_sequence()
