@@ -5700,13 +5700,47 @@
             border-color: rgba(128, 0, 255, 0.3);
         }
 
+        .puzzle-item.selected {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 1px var(--accent-primary);
+            background: rgba(0, 212, 170, 0.12);
+        }
+
+        .puzzle-item.matched {
+            opacity: 0.7;
+            background: rgba(0, 212, 170, 0.2);
+            border-color: rgba(0, 212, 170, 0.6);
+            cursor: default;
+        }
+
         .puzzle-target {
             color: var(--text-secondary);
+        }
+
+        .puzzle-target.highlight {
+            border-color: rgba(90, 154, 138, 0.7);
+            box-shadow: 0 0 0 1px rgba(90, 154, 138, 0.5);
+        }
+
+        .puzzle-target.incorrect {
+            border-color: #ff6464 !important;
+            background: rgba(255, 100, 100, 0.1);
         }
 
         .puzzle-target.matched {
             background: rgba(0, 212, 170, 0.2);
             border-color: var(--accent-primary);
+        }
+
+        .puzzle-feedback {
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .puzzle-feedback.success {
+            color: var(--accent-primary);
+            font-weight: 600;
         }
 
         /* ===== FULLSCREEN EXERCISE MODAL ===== */

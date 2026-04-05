@@ -9721,23 +9721,101 @@ body {
         }
 
         function renderPuzzleExercise(exercise) {
-            if (exercise.pairs) {
+            const pairs = getPuzzlePairs(exercise);
+            if (pairs.length > 0) {
+                const shuffledPairs = [...pairs].sort(() => Math.random() - 0.5);
                 return `
                     <div class="match-puzzle">
                         <div class="puzzle-items">
-                            ${exercise.pairs.map((p, i) => `
-                                <div class="puzzle-item" draggable="true" data-index="${i}">${p.item}</div>
+                            ${pairs.map((p, i) => `
+                                <div class="puzzle-item" data-index="${i}" data-item="${p.item}">${p.item}</div>
                             `).join('')}
                         </div>
                         <div class="puzzle-targets">
-                            ${exercise.pairs.sort(() => Math.random() - 0.5).map((p, i) => `
-                                <div class="puzzle-target" data-match="${p.item}">${p.match}</div>
+                            ${shuffledPairs.map((p, i) => `
+                                <div class="puzzle-target" data-match="${p.item}" data-index="${i}">${p.match}</div>
                             `).join('')}
                         </div>
                     </div>
+                    <div class="puzzle-feedback">Select an item, then click its matching description.</div>
                 `;
             }
-            return `<p>Puzzle exercise coming soon...</p>`;
+            return `<p class="puzzle-feedback">No puzzle data found for this chapter yet. Try another chapter.</p>`;
+        }
+
+        function getPuzzlePairs(exercise) {
+            if (Array.isArray(exercise.pairs) && exercise.pairs.length > 0) {
+                return exercise.pairs.filter(p => p && p.item && p.match);
+            }
+
+            if (Array.isArray(exercise.elements) && exercise.elements.length > 0) {
+                const atomicNumbers = {
+                    H: 1, He: 2, Li: 3, Be: 4, B: 5, C: 6, N: 7, O: 8
+                };
+                return exercise.elements.map(el => ({
+                    item: el,
+                    match: `Atomic number ${atomicNumbers[el] ?? "?"}`
+                }));
+            }
+
+            if (Array.isArray(exercise.commands) && exercise.commands.length > 0) {
+                const commandHints = {
+                    forward: "Move one tile ahead",
+                    turn_left: "Rotate 90° counter-clockwise",
+                    turn_right: "Rotate 90° clockwise",
+                    stop: "End the movement sequence"
+                };
+                return exercise.commands.map(cmd => ({
+                    item: cmd.replace(/_/g, " "),
+                    match: commandHints[cmd] || "Execution command"
+                }));
+            }
+
+            if (Array.isArray(exercise.blocks) && exercise.blocks.length > 0) {
+                const blockHints = {
+                    function: "Defines reusable behavior",
+                    variable: "Stores changing data",
+                    if: "Checks a condition",
+                    loop: "Repeats a set of steps",
+                    return: "Outputs a final value"
+                };
+                return exercise.blocks.map(block => ({
+                    item: block,
+                    match: blockHints[block] || "Code structure block"
+                }));
+            }
+
+            if (Array.isArray(exercise.traits) && exercise.traits.length > 0) {
+                const traitHints = {
+                    dominant: "Expressed with one allele",
+                    recessive: "Requires two matching alleles"
+                };
+                return exercise.traits.map(trait => ({
+                    item: trait,
+                    match: traitHints[trait] || "Genetic trait classification"
+                }));
+            }
+
+            return getFallbackPuzzlePairs(exercise);
+        }
+
+        function getFallbackPuzzlePairs(exercise) {
+            const title = (exercise.title || 'Concept');
+            const description = (exercise.description || 'Match terms to meanings');
+            return [
+                {
+                    item: title,
+                    match: `Core focus of this chapter exercise`
+                },
+                {
+                    item: 'Goal',
+                    match: description
+                },
+                {
+                    item: 'Apply',
+                    match: 'Use this concept in a concrete project scenario'
+                }
+            ];
         }
 
         function renderBuildExercise(exercise) {
@@ -9858,6 +9936,71 @@ body {
                     partEl.style.left = (e.offsetX - 40) + 'px';
                     partEl.style.top = (e.offsetY - 15) + 'px';
                     this.appendChild(partEl);
+                });
+            }
+
+            // Puzzle matching handling
+            const puzzleRoot = container.querySelector('.match-puzzle');
+            if (puzzleRoot) {
+                const puzzleFeedback = container.querySelector('.puzzle-feedback');
+                const puzzleItems = Array.from(puzzleRoot.querySelectorAll('.puzzle-item'));
+                const puzzleTargets = Array.from(puzzleRoot.querySelectorAll('.puzzle-target'));
+                let selectedPuzzleItem = null;
+                let matchedCount = 0;
+
+                puzzleItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        if (this.classList.contains('matched')) return;
+
+                        puzzleItems.forEach(i => i.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedPuzzleItem = this.dataset.item;
+
+                        puzzleTargets.forEach(target => {
+                            if (!target.classList.contains('matched')) {
+                                target.classList.add('highlight');
+                            }
+                        });
+                    });
+                });
+
+                puzzleTargets.forEach(target => {
+                    target.addEventListener('click', function() {
+                        if (!selectedPuzzleItem || this.classList.contains('matched')) return;
+
+                        const isMatch = this.dataset.match === selectedPuzzleItem;
+                        if (isMatch) {
+                            const selectedItemEl = puzzleRoot.querySelector(`.puzzle-item[data-item="${selectedPuzzleItem}"]`);
+                            this.classList.add('matched');
+                            this.classList.remove('highlight');
+                            if (selectedItemEl) {
+                                selectedItemEl.classList.add('matched');
+                                selectedItemEl.classList.remove('selected');
+                            }
+
+                            matchedCount += 1;
+                            selectedPuzzleItem = null;
+                            puzzleTargets.forEach(t => t.classList.remove('highlight'));
+
+                            if (matchedCount === puzzleItems.length) {
+                                if (puzzleFeedback) {
+                                    puzzleFeedback.textContent = '✓ Perfect match! Puzzle complete.';
+                                    puzzleFeedback.classList.add('success');
+                                }
+                                showNotification('Puzzle complete!', 'success');
+                            } else if (puzzleFeedback) {
+                                puzzleFeedback.textContent = `Great! ${matchedCount}/${puzzleItems.length} matched.`;
+                                puzzleFeedback.classList.remove('success');
+                            }
+                        } else {
+                            this.classList.add('incorrect');
+                            if (puzzleFeedback) {
+                                puzzleFeedback.textContent = 'Not a match. Try another target.';
+                                puzzleFeedback.classList.remove('success');
+                            }
+                            setTimeout(() => this.classList.remove('incorrect'), 450);
+                        }
+                    });
                 });
             }
         }
