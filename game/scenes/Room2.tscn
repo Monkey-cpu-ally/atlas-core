@@ -8,9 +8,6 @@
 
 [node name="Room2" type="Node2D"]
 
-[node name="Room1ExitMarker" type="Marker2D" parent="."]
-position = Vector2(-860, 238)
-
 [node name="Ground" type="StaticBody2D" parent="."]
 collision_layer = 1
 collision_mask = 0
@@ -27,111 +24,85 @@ offset_right = 1700.0
 offset_bottom = 336.0
 color = Color(0.37, 0.31, 0.23, 1)
 
-[node name="ClimbPlatformA" type="StaticBody2D" parent="."]
+[node name="Platforms" type="Node2D" parent="."]
+
+[node name="ClimbPlatformA" type="StaticBody2D" parent="Platforms"]
 position = Vector2(-520, 250)
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbPlatformA"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/ClimbPlatformA"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(120, 20)
 
-[node name="PlatformVisual" type="Polygon2D" parent="ClimbPlatformA"]
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformA"]
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
 color = Color(0.478431, 0.384314, 0.278431, 1)
 
-[node name="ClimbPlatformB" type="StaticBody2D" parent="."]
+[node name="ClimbPlatformB" type="StaticBody2D" parent="Platforms"]
 position = Vector2(-350, 200)
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbPlatformB"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/ClimbPlatformB"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(120, 20)
 
-[node name="PlatformVisual" type="Polygon2D" parent="ClimbPlatformB"]
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformB"]
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
 color = Color(0.478431, 0.384314, 0.278431, 1)
 
-[node name="ClimbPlatformC" type="StaticBody2D" parent="."]
+[node name="ClimbPlatformC" type="StaticBody2D" parent="Platforms"]
 position = Vector2(-170, 150)
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbPlatformC"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/ClimbPlatformC"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(140, 20)
 
-[node name="PlatformVisual" type="Polygon2D" parent="ClimbPlatformC"]
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformC"]
 polygon = PackedVector2Array(-70, -10, 70, -10, 70, 10, -70, 10)
 color = Color(0.478431, 0.384314, 0.278431, 1)
 
-[node name="PlatformEnemy" parent="." instance=ExtResource("3_root_crawler")]
-position = Vector2(-170, 110)
-
-[node name="DropAreaBack" type="ColorRect" parent="."]
-offset_left = 80.0
-offset_top = 120.0
-offset_right = 560.0
-offset_bottom = 288.0
-color = Color(0.2, 0.23, 0.29, 0.45)
-
-[node name="DropEnemyA" parent="." instance=ExtResource("3_root_crawler")]
-position = Vector2(220, 246)
-
-[node name="DropEnemyB" parent="." instance=ExtResource("3_root_crawler")]
-position = Vector2(420, 246)
-
-[node name="RewardCoinA" parent="." instance=ExtResource("4_coin")]
-position = Vector2(560, 220)
-
-[node name="RewardCoinB" parent="." instance=ExtResource("4_coin")]
-position = Vector2(620, 220)
-
-[node name="RewardScrap" parent="." instance=ExtResource("5_scrap")]
-position = Vector2(680, 220)
-
-[node name="NarrowPlatformA" type="StaticBody2D" parent="."]
+[node name="NarrowPlatformA" type="StaticBody2D" parent="Platforms"]
 position = Vector2(860, 220)
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="NarrowPlatformA"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/NarrowPlatformA"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(80, 20)
 
-[node name="PlatformVisual" type="Polygon2D" parent="NarrowPlatformA"]
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformA"]
 polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
 color = Color(0.478431, 0.384314, 0.278431, 1)
 
-[node name="NarrowPlatformB" type="StaticBody2D" parent="."]
+[node name="NarrowPlatformB" type="StaticBody2D" parent="Platforms"]
 position = Vector2(1010, 180)
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="NarrowPlatformB"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/NarrowPlatformB"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(80, 20)
 
-[node name="PlatformVisual" type="Polygon2D" parent="NarrowPlatformB"]
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformB"]
 polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
 color = Color(0.478431, 0.384314, 0.278431, 1)
 
-[node name="NarrowPlatformC" type="StaticBody2D" parent="."]
+[node name="NarrowPlatformC" type="StaticBody2D" parent="Platforms"]
 position = Vector2(1160, 140)
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="NarrowPlatformC"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/NarrowPlatformC"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(80, 20)
 
-[node name="PlatformVisual" type="Polygon2D" parent="NarrowPlatformC"]
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformC"]
 polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
 color = Color(0.478431, 0.384314, 0.278431, 1)
-
-[node name="Room3ExitMarker" type="Marker2D" parent="."]
-position = Vector2(1360, 130)
 
 [node name="Axel" parent="." instance=ExtResource("1_axel")]
 position = Vector2(-760, 210)
@@ -147,3 +118,28 @@ smoothing_enabled = true
 smoothing_speed = 8.0
 
 [node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="PlatformEnemy" parent="Enemies" instance=ExtResource("3_root_crawler")]
+position = Vector2(-170, 110)
+
+[node name="DropEnemyA" parent="Enemies" instance=ExtResource("3_root_crawler")]
+position = Vector2(220, 246)
+
+[node name="DropEnemyB" parent="Enemies" instance=ExtResource("3_root_crawler")]
+position = Vector2(420, 246)
+
+[node name="Coins" type="Node2D" parent="."]
+
+[node name="CoinA" parent="Coins" instance=ExtResource("4_coin")]
+position = Vector2(560, 220)
+
+[node name="CoinB" parent="Coins" instance=ExtResource("4_coin")]
+position = Vector2(620, 220)
+
+[node name="ScrapPickup" parent="." instance=ExtResource("5_scrap")]
+position = Vector2(680, 220)
+
+[node name="ExitMarker" type="Marker2D" parent="."]
+position = Vector2(1360, 130)
