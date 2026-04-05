@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="2_enemy"]
-[ext_resource type="PackedScene" path="res://scenes/coin.tscn" id="3_coin"]
+[ext_resource type="PackedScene" path="res://world/Coin.tscn" id="3_coin"]
 
 [node name="Step01AxelMovement" type="Node2D"]
 
