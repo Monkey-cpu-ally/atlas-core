@@ -333,3 +333,7 @@ func add_scrap(value: int) -> void:
 func add_food(value: int) -> void:
 	GameState.restore_health(max(1, value))
 	GameState.announce_pickup("Repair snack +%d chips" % max(1, value), Color(0.9, 0.58, 0.44, 1.0))
+
+
+func activate_power(power_id: String) -> void:
+	PowerManager.activate_power(power_id)
