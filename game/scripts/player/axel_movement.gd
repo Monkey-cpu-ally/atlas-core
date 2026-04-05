@@ -5,6 +5,9 @@ extends CharacterBody2D
 @export var friction := 800.0
 @export var jump_force := -350.0
 @export var gravity := 900.0
+@export var invuln_time: float = 0.6
+@export var knockback_x: float = 160.0
+@export var knockback_y: float = -120.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_pivot: Node2D = $AttackPivot
@@ -23,6 +26,8 @@ var max_stickers := 4
 var hits_per_sticker := 3
 var current_stickers := 0
 var current_sticker_hits_remaining := 0
+var is_hurt := false
+var is_invulnerable := false
 
 func _ready() -> void:
 	attack_hitbox.monitoring = false
@@ -32,6 +37,9 @@ func _ready() -> void:
 	if sticker_health:
 		max_stickers = sticker_health.max_stickers
 		hits_per_sticker = sticker_health.hits_per_sticker
+		invuln_time = sticker_health.invuln_time
+		knockback_x = sticker_health.knockback_x
+		knockback_y = sticker_health.knockback_y
 		current_stickers = max_stickers
 		current_sticker_hits_remaining = hits_per_sticker
 		sticker_health.died.connect(_on_sticker_health_depleted)
@@ -46,7 +54,7 @@ func _physics_process(delta: float) -> void:
 
 	var dir := Input.get_axis("move_left", "move_right")
 
-	if not is_attacking and not is_smashing:
+	if not is_attacking and not is_smashing and not is_hurt:
 		if dir != 0:
 			velocity.x = move_toward(velocity.x, dir * speed, acceleration * delta)
 		else:
@@ -68,6 +76,8 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func _handle_attack_input() -> void:
+	if is_hurt:
+		return
 	if Input.is_action_just_pressed("attack"):
 		if not is_on_floor():
 			if Input.is_action_pressed("duck") or Input.is_action_pressed("down"):
@@ -167,6 +177,8 @@ func _disable_attack_hitbox() -> void:
 
 
 func _on_attack_hitbox_area_entered(area: Area2D) -> void:
+	if not attack_hitbox.monitoring:
+		return
 	if not area.has_method("take_hit"):
 		return
 
@@ -187,13 +199,72 @@ func _on_attack_hitbox_area_entered(area: Area2D) -> void:
 
 
 func receive_contact_hit(chips_damage: int, heavy_hit: bool, from_position: Vector2) -> void:
-	if sticker_health == null:
+	take_damage(chips_damage, heavy_hit, from_position)
+
+
+func take_damage(light_hits: int = 1, is_heavy: bool = false, from_position: Vector2 = Vector2.ZERO) -> void:
+	if is_invulnerable:
 		return
-	if heavy_hit:
-		sticker_health.apply_heavy_hit(from_position)
+
+	is_hurt = true
+	is_invulnerable = true
+	if hurtbox:
+		hurtbox.is_invulnerable = true
+	is_attacking = false
+	is_air_attacking = false
+	is_smashing = false
+	attack_queued = false
+	_disable_attack_hitbox()
+
+	if is_heavy:
+		current_stickers -= 1
+		current_sticker_hits_remaining = hits_per_sticker
 	else:
-		sticker_health.apply_light_hit(from_position, chips_damage)
+		current_sticker_hits_remaining -= light_hits
+
+	while current_sticker_hits_remaining <= 0 and current_stickers > 0:
+		current_stickers -= 1
+		if current_stickers > 0:
+			current_sticker_hits_remaining += hits_per_sticker
+
+	_hurt_feedback(from_position)
+
+	if sticker_health:
+		sticker_health.current_stickers = max(current_stickers, 0)
+		sticker_health.current_sticker_hits_remaining = max(current_sticker_hits_remaining, 0)
+		sticker_health.is_hurt = is_hurt
+		sticker_health.is_invulnerable = is_invulnerable
+
+	if current_stickers <= 0:
+		_die()
+		return
+
+	await get_tree().create_timer(invuln_time).timeout
+	is_hurt = false
+	is_invulnerable = false
+	if sticker_health:
+		sticker_health.is_hurt = false
+		sticker_health.is_invulnerable = false
+	if hurtbox:
+		hurtbox.is_invulnerable = false
+
+
+func _hurt_feedback(from_position: Vector2) -> void:
+	var dir := sign(global_position.x - from_position.x)
+	if is_zero_approx(dir):
+		dir = 1.0
+	velocity.x = dir * knockback_x
+	velocity.y = knockback_y
+	if has_node("DamageFlash"):
+		$DamageFlash.visible = true
+		var tween := create_tween()
+		tween.tween_interval(0.08)
+		tween.tween_callback(func(): $DamageFlash.visible = false)
+
+
+func _die() -> void:
+	queue_free()
 
 
 func _on_sticker_health_depleted() -> void:
-	queue_free()
+	_die()
