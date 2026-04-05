@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/fox_alcove.gd" id="1_alcove_script"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://world/FoxStatue.tscn" id="4_fox_statue"]
 
 [node name="FoxAlcove" type="Node2D"]
 script = ExtResource("1_alcove_script")
@@ -41,21 +42,8 @@ smoothing_speed = 8.0
 
 [node name="HUD" parent="." instance=ExtResource("3_hud")]
 
-[node name="FoxStatue" type="StaticBody2D" parent="."]
+[node name="FoxStatue" parent="." instance=ExtResource("4_fox_statue")]
 position = Vector2(220, 220)
-collision_layer = 1
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FoxStatue"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(72, 124)
-
-[node name="StatueVisual" type="ColorRect" parent="FoxStatue"]
-offset_left = -36.0
-offset_top = -62.0
-offset_right = 36.0
-offset_bottom = 62.0
-color = Color(0.58, 0.56, 0.5, 1)
 
 [node name="EndText" type="Label" parent="."]
 offset_left = -120.0
