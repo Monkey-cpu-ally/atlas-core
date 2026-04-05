@@ -49,6 +49,7 @@ var is_hurt := false
 var is_invulnerable := false
 
 func _ready() -> void:
+	add_to_group("player")
 	attack_hitbox.monitoring = false
 	attack_hitbox.area_entered.connect(_on_attack_hitbox_area_entered)
 	current_stickers = max_stickers
