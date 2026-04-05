@@ -1,5 +1,10 @@
 extends CharacterBody2D
 
+enum PowerMode {
+	NONE,
+	BURNING_BUFFALO
+}
+
 @export var speed := 200.0
 @export var acceleration := 900.0
 @export var friction := 800.0
@@ -23,6 +28,7 @@ var combo_step := 0
 var attack_queued := false
 var _hit_targets: Dictionary = {}
 var is_buffalo_mode := false
+var current_power_mode: PowerMode = PowerMode.NONE
 var max_stickers := 4
 var hits_per_sticker := 3
 var current_stickers := 0
@@ -46,6 +52,9 @@ func _ready() -> void:
 		sticker_health.died.connect(_on_sticker_health_depleted)
 	if hurtbox:
 		hurtbox.set_owner_axel(self)
+	if PowerManager.power_changed:
+		PowerManager.power_changed.connect(_on_power_changed)
+	_sync_power_mode_from_id(PowerManager.get_active_power())
 	if has_node("DamageFlash"):
 		$DamageFlash.visible = false
 
@@ -276,6 +285,25 @@ func _die() -> void:
 
 func _on_sticker_health_depleted() -> void:
 	_die()
+
+
+func _on_power_changed(power_id: String, _seconds_left: float) -> void:
+	_sync_power_mode_from_id(power_id)
+
+
+func _sync_power_mode_from_id(power_id: String) -> void:
+	if power_id == "burning_buffalo":
+		current_power_mode = PowerMode.BURNING_BUFFALO
+	else:
+		current_power_mode = PowerMode.NONE
+	_apply_power_mode_flags()
+
+
+func _apply_power_mode_flags() -> void:
+	is_buffalo_mode = false
+	match current_power_mode:
+		PowerMode.BURNING_BUFFALO:
+			is_buffalo_mode = true
 
 
 func add_coin(value: int) -> void:
