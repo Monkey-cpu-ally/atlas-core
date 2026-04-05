@@ -29,7 +29,9 @@ var _is_attacking := false
 var _facing_dir := 1
 var _attack_locked_velocity_scale := 0.4
 
-@onready var attack_hitbox: AxelAttackHitbox = $AttackHitbox
+@onready var attack_pivot: Node2D = $AttackPivot
+@onready var attack_hitbox: AxelAttackHitbox = $AttackPivot/AttackHitbox
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _physics_process(delta):
 	# Gravity
@@ -131,4 +133,7 @@ func _update_facing() -> void:
 		_facing_dir = 1
 	elif velocity.x < -5.0:
 		_facing_dir = -1
-	scale.x = float(_facing_dir)
+	if attack_pivot:
+		attack_pivot.scale.x = float(_facing_dir)
+	if animated_sprite:
+		animated_sprite.flip_h = _facing_dir < 0
