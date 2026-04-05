@@ -4,6 +4,12 @@
 - 80% soft, rounded, readable shape language (SMW2 influence).
 - 20% impact punctuation through hit reactions, color flashes, and timing snaps (Metal Slug influence).
 - Priorities in order: readability -> feel -> feedback -> complexity.
+- Environment/level background lock (approved second reference):
+  - overgrown urban-mechanical ruins with large rooted tree forms merging into concrete/metal architecture
+  - painterly pixel treatment for background masses with clear shape reads (no noisy over-detail in play-critical space)
+  - saturated greens/teals and warm concrete tones as primary world palette anchors
+  - signage/prop accents used as visual rhythm markers (supports navigation without cluttering gameplay layer)
+  - background depth should remain softer and less contrast-heavy than interactive foreground objects.
 
 ## Character Identity
 ### Axel
@@ -15,8 +21,9 @@
   - warm skin tones, worn denim/mechanic blues, and red cap/glove accents as primary identity colors
   - expression-first face design (large eyes, simple mouth/readability over micro detail)
   - "worked-in" outfit wear (patches/scuffs) without muddying silhouette
-- Background treatment target based on the reference:
-  - softer, slightly desaturated workshop backdrop
+- Background treatment target based on references:
+  - softer, slightly desaturated workshop zones for close character reads
+  - overgrown city ruins palette and composition for outdoor/world route spaces
   - foreground character contrast must remain clearly higher than environment contrast
   - detail density should be highest on Axel and lower in distant scenery
 - Combat verbs:

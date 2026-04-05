@@ -11,7 +11,7 @@
   - Breakable wall/floor interactions (Buffalo + smash gate examples).
   - Scrap-themed HUD + Flight Log feed with practical cryptic entries.
 
-## Art Direction Lock (Axel Reference Approved)
+## Art Direction Lock (Character + Background References Approved)
 - Axel visual lock is now based on the provided pixel reference:
   - black/brown skin tone
   - red cap with worn marks
@@ -27,6 +27,13 @@
 - Environment consistency:
   - workshop-mechanical backdrop motifs should stay lower-contrast than Axel
   - hero and interactable props must remain color-priority anchors.
+- Background reference lock (overgrown urban ruins):
+  - wide, readable lanes with hand-painted perspective depth
+  - rooted-overgrowth through cracked concrete and architecture (nature reclaiming city)
+  - chunky stylized forms over photoreal detail
+  - saturated accents in signage/props, but main path readability remains clear
+  - silhouettes of traversal surfaces must read quickly from gameplay camera distance
+  - avoid noisy micro-detail in collision-critical foreground edges.
 
 ## Modular Architecture
 - `scripts/systems/`
