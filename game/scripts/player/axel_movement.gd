@@ -280,3 +280,9 @@ func _on_sticker_health_depleted() -> void:
 func add_coin(value: int) -> void:
 	GameState.add_coins(value)
 	GameState.announce_pickup("Coins +%d" % value, Color(0.95, 0.86, 0.54, 1.0))
+
+
+func add_scrap(value: int) -> void:
+	GameState.add_scrap_parts(value)
+	GameState.add_scrap_meter(8.0 * float(value))
+	GameState.announce_pickup("Scrap +%d | Charge +%d" % [value, int(8 * value)], Color(0.73, 0.83, 0.91, 1.0))

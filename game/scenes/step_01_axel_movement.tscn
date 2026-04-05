@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="2_enemy"]
 [ext_resource type="PackedScene" path="res://world/Coin.tscn" id="3_coin"]
+[ext_resource type="PackedScene" path="res://world/ScrapPickup.tscn" id="4_scrap"]
 
 [node name="Step01AxelMovement" type="Node2D"]
 
@@ -74,6 +75,9 @@ position = Vector2(120, 246)
 
 [node name="Coin" parent="." instance=ExtResource("3_coin")]
 position = Vector2(-220, 140)
+
+[node name="ScrapPickup" parent="." instance=ExtResource("4_scrap")]
+position = Vector2(80, 80)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(-180, 90)
