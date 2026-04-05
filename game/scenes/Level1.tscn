@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/level1.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" path="res://world/BreakableFloor.tscn" id="3_breakable_floor"]
 
 [node name="Level1" type="Node2D"]
 script = ExtResource("1_level")
@@ -10,3 +11,6 @@ script = ExtResource("1_level")
 [node name="Axel" parent="." instance=ExtResource("1_axel")]
 
 [node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="BreakableFloor" parent="." instance=ExtResource("3_breakable_floor")]
+position = Vector2(120, 220)
