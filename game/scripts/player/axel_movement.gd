@@ -82,6 +82,7 @@ func _physics_process(delta: float) -> void:
 	sprite.flip_h = facing < 0
 
 	_handle_attack_input()
+	print(is_buffalo_mode)
 	if is_buffalo_mode:
 		_handle_buffalo_breaks()
 
