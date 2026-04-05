@@ -8,43 +8,33 @@
 
 [node name="Room3" type="Node2D"]
 
-[node name="Room2ExitMarker" type="Marker2D" parent="."]
-position = Vector2(-860, 238)
-
-[node name="FlatPath" type="StaticBody2D" parent="."]
+[node name="Ground" type="StaticBody2D" parent="."]
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FlatPath"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(3400, 48)
 position = Vector2(0, 312)
 
-[node name="GroundVisual" type="ColorRect" parent="FlatPath"]
+[node name="GroundVisual" type="ColorRect" parent="Ground"]
 offset_left = -1700.0
 offset_top = 288.0
 offset_right = 1700.0
 offset_bottom = 336.0
 color = Color(0.37, 0.31, 0.23, 1)
 
-[node name="WeakLookingFloor" parent="." instance=ExtResource("3_breakable_floor")]
+[node name="BreakableFloor" parent="." instance=ExtResource("3_breakable_floor")]
 position = Vector2(80, 290)
 hp = 1
 break_by_smash_only = true
 
-[node name="HintOverlay" type="ColorRect" parent="WeakLookingFloor"]
+[node name="HintOverlay" type="ColorRect" parent="BreakableFloor"]
 offset_left = -44.0
 offset_top = -9.0
 offset_right = 44.0
 offset_bottom = 9.0
 color = Color(0.96, 0.78, 0.52, 0.35)
-
-[node name="HiddenSmashDrop" type="ColorRect" parent="."]
-offset_left = -70.0
-offset_top = 340.0
-offset_right = 250.0
-offset_bottom = 560.0
-color = Color(0.17, 0.2, 0.25, 0.55)
 
 [node name="SecretArea" type="StaticBody2D" parent="."]
 position = Vector2(90, 560)
@@ -62,16 +52,25 @@ offset_right = 180.0
 offset_bottom = 16.0
 color = Color(0.33, 0.27, 0.2, 1)
 
-[node name="SecretCoinA" parent="." instance=ExtResource("4_coin")]
+[node name="DropVisualHint" type="ColorRect" parent="."]
+offset_left = -70.0
+offset_top = 340.0
+offset_right = 250.0
+offset_bottom = 560.0
+color = Color(0.17, 0.2, 0.25, 0.55)
+
+[node name="Coins" type="Node2D" parent="."]
+
+[node name="CoinA" parent="Coins" instance=ExtResource("4_coin")]
 position = Vector2(20, 520)
 
-[node name="SecretCoinB" parent="." instance=ExtResource("4_coin")]
+[node name="CoinB" parent="Coins" instance=ExtResource("4_coin")]
 position = Vector2(90, 500)
 
-[node name="SecretCoinC" parent="." instance=ExtResource("4_coin")]
+[node name="CoinC" parent="Coins" instance=ExtResource("4_coin")]
 position = Vector2(160, 520)
 
-[node name="SecretScrap" parent="." instance=ExtResource("5_scrap")]
+[node name="ScrapPickup" parent="." instance=ExtResource("5_scrap")]
 position = Vector2(230, 520)
 
 [node name="ReturnRampA" type="StaticBody2D" parent="."]
@@ -100,24 +99,21 @@ shape = RectangleShape2D.new()
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
 color = Color(0.478431, 0.384314, 0.278431, 1)
 
-[node name="BackToMainPath" type="StaticBody2D" parent="."]
+[node name="MainPathReturn" type="StaticBody2D" parent="."]
 position = Vector2(730, 300)
 collision_layer = 1
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BackToMainPath"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MainPathReturn"]
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(360, 24)
 
-[node name="MainPathResumeVisual" type="ColorRect" parent="BackToMainPath"]
+[node name="MainPathResumeVisual" type="ColorRect" parent="MainPathReturn"]
 offset_left = -180.0
 offset_top = -12.0
 offset_right = 180.0
 offset_bottom = 12.0
 color = Color(0.36, 0.29, 0.22, 1)
-
-[node name="ExitMarker" type="Marker2D" parent="."]
-position = Vector2(1080, 280)
 
 [node name="Axel" parent="." instance=ExtResource("1_axel")]
 position = Vector2(-760, 210)
@@ -133,3 +129,6 @@ smoothing_enabled = true
 smoothing_speed = 8.0
 
 [node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="ExitMarker" type="Marker2D" parent="."]
+position = Vector2(1080, 280)
