@@ -149,14 +149,8 @@ func _disable_attack_hitbox() -> void:
 
 
 func _on_attack_hitbox_area_entered(area: Area2D) -> void:
-	if not attack_hitbox.monitoring:
-		return
 	if not area.has_method("take_hit"):
 		return
-	var id := area.get_instance_id()
-	if _hit_targets.has(id):
-		return
-	_hit_targets[id] = true
 
 	var mode := str(attack_hitbox.get_meta("attack_mode", "ground_1"))
 	var damage := 1
@@ -170,7 +164,5 @@ func _on_attack_hitbox_area_entered(area: Area2D) -> void:
 			damage = 2
 		"air":
 			damage = 1
-		"smash":
-			damage = 2
 
 	area.take_hit(damage, global_position)
