@@ -76,3 +76,4 @@ position = Vector2(500, 232)
 
 [node name="ExitMarker" type="Marker2D" parent="."]
 position = Vector2(1040, 248)
+metadata/flow_note = "Power -> interaction -> reward"
