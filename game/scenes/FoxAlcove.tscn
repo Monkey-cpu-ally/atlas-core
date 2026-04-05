@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/fox_alcove.gd" id="1_alcove_script"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://world/FoxStatue.tscn" id="4_fox_statue"]
+[ext_resource type="Script" path="res://scripts/entities/alcove_trigger.gd" id="5_alcove_trigger_script"]
 
 [node name="FoxAlcove" type="Node2D"]
 script = ExtResource("1_alcove_script")
@@ -75,6 +76,7 @@ text = "Press USE"
 visible = false
 
 [node name="AlcoveTrigger" type="Area2D" parent="."]
+script = ExtResource("5_alcove_trigger_script")
 monitoring = true
 monitorable = true
 collision_layer = 0
