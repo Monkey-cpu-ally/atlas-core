@@ -16,10 +16,14 @@ enum BossPhase {
 	RECOVER
 }
 
+const ATTACK := BossPhase.ATTACK
+const VULNERABLE := BossPhase.VULNERABLE
+const RECOVER := BossPhase.RECOVER
+
 var hp: int
 var is_active := false
 var is_defeated := false
-var current_phase: BossPhase = BossPhase.ATTACK
+var state: BossPhase = ATTACK
 var _phase_timer_running := false
 
 
@@ -31,7 +35,7 @@ func start_fight() -> void:
 	if is_defeated:
 		return
 	is_active = true
-	_set_phase(BossPhase.ATTACK)
+	_set_phase(ATTACK)
 	if not _phase_timer_running:
 		_phase_cycle_loop()
 
@@ -39,13 +43,13 @@ func start_fight() -> void:
 func take_hit(damage: int, _from_position: Vector2) -> void:
 	if not is_active or is_defeated:
 		return
-	if current_phase != BossPhase.VULNERABLE:
+	if not (state == VULNERABLE):
 		return
 	hp -= max(1, damage)
 	if body_visual:
 		body_visual.modulate = Color(1.0, 0.68, 0.68, 1.0)
 		var t = create_tween()
-		t.tween_property(body_visual, "modulate", _phase_body_color(current_phase), 0.12)
+		t.tween_property(body_visual, "modulate", _phase_body_color(state), 0.12)
 	if hp <= 0:
 		_defeat()
 
@@ -66,21 +70,21 @@ func _defeat() -> void:
 func _phase_cycle_loop() -> void:
 	_phase_timer_running = true
 	while is_active and not is_defeated:
-		_set_phase(BossPhase.ATTACK)
+		_set_phase(ATTACK)
 		await get_tree().create_timer(attack_phase_time).timeout
 		if not is_active or is_defeated:
 			break
-		_set_phase(BossPhase.VULNERABLE)
+		_set_phase(VULNERABLE)
 		await get_tree().create_timer(vulnerable_phase_time).timeout
 		if not is_active or is_defeated:
 			break
-		_set_phase(BossPhase.RECOVER)
+		_set_phase(RECOVER)
 		await get_tree().create_timer(recover_phase_time).timeout
 	_phase_timer_running = false
 
 
 func _set_phase(phase: BossPhase) -> void:
-	current_phase = phase
+	state = phase
 	if body_visual:
 		body_visual.modulate = _phase_body_color(phase)
 	if weak_point:
