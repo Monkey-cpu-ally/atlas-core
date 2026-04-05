@@ -1,3 +1,106 @@
-[gd_scene format=3]
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/boss_room.gd" id="1_boss_room"]
+[ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
+[ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/rootbound_siege_tank.tscn" id="4_boss"]
 
 [node name="BossRoom" type="Node2D"]
+script = ExtResource("1_boss_room")
+
+[node name="Floor" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(2800, 48)
+position = Vector2(0, 312)
+
+[node name="FloorVisual" type="ColorRect" parent="Floor"]
+offset_left = -1400.0
+offset_top = 288.0
+offset_right = 1400.0
+offset_bottom = 336.0
+color = Color(0.35, 0.29, 0.22, 1)
+
+[node name="LeftWall" type="StaticBody2D" parent="."]
+position = Vector2(-980, 170)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(30, 320)
+
+[node name="WallVisual" type="ColorRect" parent="LeftWall"]
+offset_left = -15.0
+offset_top = -160.0
+offset_right = 15.0
+offset_bottom = 160.0
+color = Color(0.28, 0.24, 0.2, 1)
+
+[node name="RightWall" type="StaticBody2D" parent="."]
+position = Vector2(980, 170)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(30, 320)
+
+[node name="WallVisual" type="ColorRect" parent="RightWall"]
+offset_left = -15.0
+offset_top = -160.0
+offset_right = 15.0
+offset_bottom = 160.0
+color = Color(0.28, 0.24, 0.2, 1)
+
+[node name="AxelSpawn" type="Marker2D" parent="."]
+position = Vector2(-760, 210)
+
+[node name="Axel" parent="." instance=ExtResource("2_axel")]
+position = Vector2(-760, 210)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-420, 110)
+enabled = true
+limit_left = -1100
+limit_top = -320
+limit_right = 1100
+limit_bottom = 620
+smoothing_enabled = true
+smoothing_speed = 8.0
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+
+[node name="BossStartTrigger" type="Area2D" parent="."]
+position = Vector2(-340, 236)
+monitoring = true
+monitorable = true
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BossStartTrigger"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(100, 120)
+
+[node name="ExitBlocker" type="StaticBody2D" parent="."]
+position = Vector2(840, 240)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitBlocker"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(24, 144)
+
+[node name="GateVisual" type="ColorRect" parent="ExitBlocker"]
+offset_left = -12.0
+offset_top = -72.0
+offset_right = 12.0
+offset_bottom = 72.0
+color = Color(0.44, 0.35, 0.24, 0.85)
+
+[node name="RootboundSiegeTank" parent="." instance=ExtResource("4_boss")]
+position = Vector2(340, 236)
+visible = false
