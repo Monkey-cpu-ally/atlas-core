@@ -52,3 +52,11 @@ func activate_statue() -> void:
 	var room = get_parent()
 	if room and room.has_method("on_statue_activated"):
 		room.on_statue_activated()
+
+
+func play_sfx(path: String) -> void:
+	if not has_node("SFX"):
+		return
+	var player = $SFX
+	player.stream = load(path)
+	player.play()

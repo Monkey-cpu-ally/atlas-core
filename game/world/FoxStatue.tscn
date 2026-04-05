@@ -38,3 +38,5 @@ offset_bottom = -72.0
 horizontal_alignment = 1
 text = "Press USE"
 visible = false
+
+[node name="SFX" type="AudioStreamPlayer" parent="."]
