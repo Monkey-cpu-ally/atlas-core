@@ -5,6 +5,9 @@ enum PowerMode {
 	BURNING_BUFFALO
 }
 
+signal pickup_feedback_requested(text: String, color: Color)
+signal power_mode_changed(power_name: String, time_left: float, total_time: float, color: Color)
+
 @export var speed := 200.0
 @export var acceleration := 900.0
 @export var friction := 800.0
@@ -13,6 +16,7 @@ enum PowerMode {
 @export var invuln_time: float = 0.6
 @export var knockback_x: float = 160.0
 @export var knockback_y: float = -120.0
+@export var power_duration: float = 15.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_pivot: Node2D = $AttackPivot
@@ -29,6 +33,14 @@ var attack_queued := false
 var _hit_targets: Dictionary = {}
 var is_buffalo_mode := false
 var current_power_mode: PowerMode = PowerMode.NONE
+var current_power: int = 0
+var power_time_left: float = 0.0
+var power_warning_triggered := false
+var is_shadow_tag := false
+var is_golden_gloves := false
+var is_super_mode := false
+var is_specter_mode := false
+var is_plane_mode := false
 var max_stickers := 4
 var hits_per_sticker := 3
 var current_stickers := 0
@@ -295,10 +307,15 @@ func _on_power_changed(power_id: String, _seconds_left: float) -> void:
 
 
 func _sync_power_mode_from_id(power_id: String) -> void:
-	if power_id == "burning_buffalo":
+	var mode := _power_id_to_mode(power_id)
+	if mode == 1:
 		current_power_mode = PowerMode.BURNING_BUFFALO
 	else:
 		current_power_mode = PowerMode.NONE
+	if mode == 0:
+		end_power_mode()
+		return
+	activate_power_mode(mode)
 	_apply_power_mode_flags()
 
 
@@ -307,6 +324,117 @@ func _apply_power_mode_flags() -> void:
 	match current_power_mode:
 		PowerMode.BURNING_BUFFALO:
 			is_buffalo_mode = true
+
+
+func activate_power_mode(mode: int) -> void:
+	if current_power != 0:
+		end_power_mode()
+
+	current_power = mode
+	power_time_left = power_duration
+	power_warning_triggered = false
+
+	is_buffalo_mode = false
+	is_shadow_tag = false
+	is_golden_gloves = false
+	is_super_mode = false
+	is_specter_mode = false
+	is_plane_mode = false
+
+	match current_power:
+		1:
+			is_buffalo_mode = true
+		2:
+			is_shadow_tag = true
+		3:
+			is_golden_gloves = true
+		4:
+			is_super_mode = true
+			is_invulnerable = true
+		5:
+			is_specter_mode = true
+			is_invulnerable = true
+			modulate.a = 0.55
+		6:
+			is_plane_mode = true
+
+	emit_signal("pickup_feedback_requested", _get_power_name(current_power) + "!", _get_power_color(current_power))
+
+	emit_signal(
+		"power_mode_changed",
+		_get_power_name(current_power),
+		power_time_left,
+		power_duration,
+		_get_power_color(current_power)
+	)
+
+
+func end_power_mode() -> void:
+	current_power = 0
+	power_time_left = 0.0
+	power_warning_triggered = false
+	is_buffalo_mode = false
+	is_shadow_tag = false
+	is_golden_gloves = false
+	is_super_mode = false
+	is_specter_mode = false
+	is_plane_mode = false
+	is_invulnerable = false
+	modulate.a = 1.0
+
+
+func _power_id_to_mode(power_id: String) -> int:
+	match power_id:
+		"burning_buffalo":
+			return 1
+		"shadow_tag":
+			return 2
+		"golden_gloves":
+			return 3
+		"super_mode":
+			return 4
+		"specter_mode":
+			return 5
+		"fighter_plane":
+			return 6
+		_:
+			return 0
+
+
+func _get_power_name(mode: int) -> String:
+	match mode:
+		1:
+			return "Burning Buffalo"
+		2:
+			return "Shadow Tag"
+		3:
+			return "Golden Gloves"
+		4:
+			return "Super Mode"
+		5:
+			return "Specter Mode"
+		6:
+			return "Fighter Plane"
+		_:
+			return "None"
+
+
+func _get_power_color(mode: int) -> Color:
+	match mode:
+		1:
+			return Color(0.96, 0.44, 0.28, 1.0)
+		2:
+			return Color(0.62, 0.47, 0.94, 1.0)
+		3:
+			return Color(0.94, 0.78, 0.35, 1.0)
+		4:
+			return Color(0.7, 0.8, 0.95, 1.0)
+		5:
+			return Color(0.76, 0.9, 0.98, 1.0)
+		6:
+			return Color(0.6, 0.84, 0.88, 1.0)
+		_:
+			return Color(0.82, 0.82, 0.82, 1.0)
 
 
 func _handle_buffalo_breaks() -> void:
