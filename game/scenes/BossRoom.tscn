@@ -110,6 +110,7 @@ visible = false
 
 [node name="FoxSpirit" parent="." instance=ExtResource("6_fox_spirit")]
 position = Vector2(560, 220)
+path_points = [Vector2(200, 0), Vector2(400, 0), Vector2(600, -40)]
 
 [node name="FollowMarker" type="Marker2D" parent="."]
 position = Vector2(760, 220)
