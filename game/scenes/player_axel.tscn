@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/axel_movement.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/player/axel_attack_hitbox.gd" id="2"]
 
 [node name="Axel" type="CharacterBody2D"]
 script = ExtResource("1")
@@ -23,4 +24,16 @@ polygon = PackedVector2Array(-12, -30, 12, -30, 10, -20, -10, -20)
 default_color = Color(0.819608, 0.839216, 0.870588, 1)
 width = 3.0
 points = PackedVector2Array(12, -8, 22, -2, 19, 5)
+
+[node name="AttackHitbox" type="Area2D" parent="."]
+script = ExtResource("2")
+monitoring = false
+monitorable = true
+collision_layer = 8
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackHitbox"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(34, 24)
+position = Vector2(22, -8)
 
