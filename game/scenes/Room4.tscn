@@ -47,6 +47,7 @@ monitoring = true
 monitorable = true
 collision_layer = 16
 collision_mask = 2
+power_type = 1
 power_id = "burning_buffalo"
 duration = 15.0
 
