@@ -1,3 +1,54 @@
-[gd_scene format=3]
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
+[ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="3_root_crawler"]
+[ext_resource type="PackedScene" path="res://world/Coin.tscn" id="4_coin"]
 
 [node name="Room1" type="Node2D"]
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(2400, 48)
+position = Vector2(0, 312)
+
+[node name="GroundVisual" type="ColorRect" parent="Ground"]
+offset_left = -1200.0
+offset_top = 288.0
+offset_right = 1200.0
+offset_bottom = 336.0
+color = Color(0.37, 0.31, 0.23, 1)
+
+[node name="Axel" parent="." instance=ExtResource("1_axel")]
+position = Vector2(-560, 210)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-320, 110)
+enabled = true
+limit_left = -1200
+limit_top = -280
+limit_right = 1200
+limit_bottom = 600
+smoothing_enabled = true
+smoothing_speed = 8.0
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="RootCrawler" parent="." instance=ExtResource("3_root_crawler")]
+position = Vector2(-120, 246)
+
+[node name="CoinA" parent="." instance=ExtResource("4_coin")]
+position = Vector2(60, 214)
+
+[node name="CoinB" parent="." instance=ExtResource("4_coin")]
+position = Vector2(120, 214)
+
+[node name="CoinC" parent="." instance=ExtResource("4_coin")]
+position = Vector2(180, 214)
+
+[node name="EndMarker" type="Marker2D" parent="."]
+position = Vector2(920, 238)
