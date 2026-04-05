@@ -171,11 +171,17 @@ func _handle_environment_interactions(delta: float) -> void:
 			continue
 		if PowerManager.get_active_power() == "burning_buffalo" and _buffalo_charge_time > 0.0:
 			GameState.announce_pickup("Buffalo charge shattered wall.", Color(0.96, 0.56, 0.33, 1.0))
-			node.queue_free()
+			if node.has_method("take_structure_hit"):
+				node.take_structure_hit("buffalo")
+			else:
+				node.queue_free()
 		elif _attack_area.monitoring and str(_attack_area.get_meta("attack_kind", "")) == "smash":
 			if bool(node.get_meta("is_breakable_floor", false)):
 				GameState.announce_pickup("Smash cracked weak floor.", Color(0.89, 0.71, 0.48, 1.0))
-				node.queue_free()
+				if node.has_method("take_structure_hit"):
+					node.take_structure_hit("smash")
+				else:
+					node.queue_free()
 
 
 func _start_attack(attack_name: String, active_time: float, damage_scale: float, attack_kind: String) -> void:
