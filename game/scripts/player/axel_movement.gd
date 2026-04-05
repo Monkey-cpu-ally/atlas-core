@@ -30,8 +30,8 @@ func _ready() -> void:
 	current_stickers = max_stickers
 	current_sticker_hits_remaining = hits_per_sticker
 	if sticker_health:
-		max_stickers = sticker_health.sticker_count
-		hits_per_sticker = sticker_health.chips_per_sticker
+		max_stickers = sticker_health.max_stickers
+		hits_per_sticker = sticker_health.hits_per_sticker
 		current_stickers = max_stickers
 		current_sticker_hits_remaining = hits_per_sticker
 		sticker_health.died.connect(_on_sticker_health_depleted)
