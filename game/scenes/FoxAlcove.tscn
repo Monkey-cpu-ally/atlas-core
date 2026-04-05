@@ -73,3 +73,13 @@ offset_bottom = -96.0
 horizontal_alignment = 1
 text = "Press USE"
 visible = false
+
+[node name="AlcoveTrigger" type="Area2D" parent="."]
+monitoring = true
+monitorable = true
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AlcoveTrigger"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(280, 180)
