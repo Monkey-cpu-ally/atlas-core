@@ -1,0 +1,67 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/fox_alcove.gd" id="1_alcove_script"]
+[ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
+[ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
+
+[node name="FoxAlcove" type="Node2D"]
+script = ExtResource("1_alcove_script")
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(1400, 48)
+position = Vector2(0, 312)
+
+[node name="GroundVisual" type="ColorRect" parent="Ground"]
+offset_left = -700.0
+offset_top = 288.0
+offset_right = 700.0
+offset_bottom = 336.0
+color = Color(0.34, 0.28, 0.21, 1)
+
+[node name="AxelSpawn" type="Marker2D" parent="."]
+position = Vector2(-520, 210)
+
+[node name="Axel" parent="." instance=ExtResource("2_axel")]
+position = Vector2(-520, 210)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-260, 110)
+enabled = true
+limit_left = -740
+limit_top = -300
+limit_right = 740
+limit_bottom = 620
+smoothing_enabled = true
+smoothing_speed = 8.0
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+
+[node name="FoxStatue" type="StaticBody2D" parent="."]
+position = Vector2(220, 220)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FoxStatue"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(72, 124)
+
+[node name="StatueVisual" type="ColorRect" parent="FoxStatue"]
+offset_left = -36.0
+offset_top = -62.0
+offset_right = 36.0
+offset_bottom = 62.0
+color = Color(0.58, 0.56, 0.5, 1)
+
+[node name="EndText" type="Label" parent="."]
+offset_left = -120.0
+offset_top = 40.0
+offset_right = 560.0
+offset_bottom = 108.0
+horizontal_alignment = 1
+autowrap_mode = 3
+text = "The fox waits in silence. Discovery settles here."
