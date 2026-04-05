@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/entities/basic_enemy.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/entities/enemy_hurtbox.gd" id="2_hurtbox"]
+
+[node name="BasicEnemy" type="CharacterBody2D"]
+script = ExtResource("1")
+collision_layer = 4
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(24, 30)
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.38, 0.56, 0.42, 1)
+polygon = PackedVector2Array(-12, -14, 8, -14, 12, -2, 8, 12, -12, 12)
+
+[node name="Hurtbox" type="Area2D" parent="."]
+script = ExtResource("2_hurtbox")
+collision_layer = 32
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(28, 32)
+
+[node name="LedgeDetector" type="RayCast2D" parent="."]
+position = Vector2(14, 0)
+target_position = Vector2(0, 24)
+enabled = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
