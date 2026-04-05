@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/boss_room.gd" id="1_boss_room"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/rootbound_siege_tank.tscn" id="4_boss"]
+[ext_resource type="Script" path="res://scripts/entities/boss_start_trigger.gd" id="5_trigger_script"]
 
 [node name="BossRoom" type="Node2D"]
 script = ExtResource("1_boss_room")
@@ -75,6 +76,7 @@ smoothing_speed = 8.0
 [node name="HUD" parent="." instance=ExtResource("3_hud")]
 
 [node name="BossStartTrigger" type="Area2D" parent="."]
+script = ExtResource("5_trigger_script")
 position = Vector2(-340, 236)
 monitoring = true
 monitorable = true

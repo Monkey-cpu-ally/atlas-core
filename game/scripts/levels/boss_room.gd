@@ -10,7 +10,6 @@ var fight_started := false
 
 
 func _ready() -> void:
-	start_trigger.body_entered.connect(_on_boss_start_trigger_body_entered)
 	if boss and boss.has_signal("defeated"):
 		boss.defeated.connect(_on_boss_defeated)
 	if axel and axel_spawn:
@@ -20,10 +19,8 @@ func _ready() -> void:
 		boss.visible = true
 
 
-func _on_boss_start_trigger_body_entered(body: Node) -> void:
+func start_boss_intro() -> void:
 	if fight_started:
-		return
-	if body == null or body.name != "Axel":
 		return
 	fight_started = true
 	if boss:
