@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/entities/root_crawler_simple.gd" id="1_root_script"]
 [ext_resource type="Script" path="res://scripts/entities/enemy_hurtbox.gd" id="2_hurtbox_script"]
+[ext_resource type="Script" path="res://scripts/entities/enemy_contact_hitbox.gd" id="3_hitbox_script"]
 
 [node name="RootCrawler" type="CharacterBody2D"]
 script = ExtResource("1_root_script")
@@ -24,6 +25,7 @@ shape = RectangleShape2D.new()
 "shape:size" = Vector2(28, 32)
 
 [node name="Hitbox" type="Area2D" parent="."]
+script = ExtResource("3_hitbox_script")
 collision_layer = 64
 collision_mask = 16
 metadata/contact_damage_type = "light"

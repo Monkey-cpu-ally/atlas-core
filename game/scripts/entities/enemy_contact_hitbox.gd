@@ -1,4 +1,5 @@
 extends Area2D
+class_name EnemyContactHitbox
 
 @export var light_hits: int = 1
 @export var is_heavy: bool = false
