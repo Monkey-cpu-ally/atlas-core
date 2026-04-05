@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="2_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/coin.tscn" id="3_coin"]
 
 [node name="Step01AxelMovement" type="Node2D"]
 
@@ -70,6 +71,9 @@ position = Vector2(-560, 210)
 
 [node name="RootCrawler" parent="." instance=ExtResource("2_enemy")]
 position = Vector2(120, 246)
+
+[node name="Coin" parent="." instance=ExtResource("3_coin")]
+position = Vector2(-220, 140)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(-180, 90)
