@@ -275,3 +275,8 @@ func _die() -> void:
 
 func _on_sticker_health_depleted() -> void:
 	_die()
+
+
+func add_coin(value: int) -> void:
+	GameState.add_coins(value)
+	GameState.announce_pickup("Coins +%d" % value, Color(0.95, 0.86, 0.54, 1.0))
