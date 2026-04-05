@@ -52,7 +52,7 @@ offset_right = 560.0
 offset_bottom = 108.0
 horizontal_alignment = 1
 autowrap_mode = 3
-text = "The fox waits in silence. Discovery settles here."
+text = "Demo Complete\nThe fox is waiting."
 
 [node name="InteractionArea" type="Area2D" parent="FoxStatue"]
 position = Vector2(0, -16)

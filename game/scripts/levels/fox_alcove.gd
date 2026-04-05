@@ -12,9 +12,9 @@ func _ready() -> void:
 	if camera and axel:
 		camera.global_position = axel.global_position + Vector2(220.0, -100.0)
 	if end_text:
-		end_text.text = "A quiet discovery settles in."
+		end_text.text = "Demo Complete\nThe fox is waiting."
 
 
 func on_statue_activated() -> void:
 	if end_text:
-		end_text.text = "The fox statue hums. Your path feels clearer."
+		end_text.text = "Demo Complete\nThe fox is waiting."
