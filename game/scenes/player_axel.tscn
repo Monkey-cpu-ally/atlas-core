@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/axel_movement.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player/axel_attack_hitbox.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/player/axel_hurtbox.gd" id="3_hurtbox"]
+[ext_resource type="Script" path="res://scripts/player/axel_sticker_health.gd" id="4_health"]
 
 [node name="Axel" type="CharacterBody2D"]
 script = ExtResource("1")
@@ -13,6 +15,18 @@ shape = RectangleShape2D.new()
 "shape:size" = Vector2(24, 56)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+
+[node name="StickerHealth" type="Node" parent="."]
+script = ExtResource("4_health")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+script = ExtResource("3_hurtbox")
+collision_layer = 64
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(24, 56)
 
 [node name="AttackPivot" type="Node2D" parent="."]
 

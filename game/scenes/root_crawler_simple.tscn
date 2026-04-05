@@ -23,6 +23,15 @@ collision_mask = 8
 shape = RectangleShape2D.new()
 "shape:size" = Vector2(28, 32)
 
+[node name="ContactHitbox" type="Area2D" parent="."]
+collision_layer = 64
+collision_mask = 16
+metadata/contact_damage_type = "light"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactHitbox"]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(24, 28)
+
 [node name="FloorRay" type="RayCast2D" parent="."]
 position = Vector2(14, 0)
 target_position = Vector2(0, 24)

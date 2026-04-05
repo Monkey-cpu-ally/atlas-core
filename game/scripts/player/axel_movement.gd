@@ -9,6 +9,8 @@ extends CharacterBody2D
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_pivot: Node2D = $AttackPivot
 @onready var attack_hitbox: Area2D = $AttackPivot/AttackHitbox
+@onready var sticker_health: AxelStickerHealth = $StickerHealth
+@onready var hurtbox: AxelHurtbox = $Hurtbox
 
 var facing := 1
 var is_attacking := false
@@ -21,6 +23,10 @@ var _hit_targets: Dictionary = {}
 func _ready() -> void:
 	attack_hitbox.monitoring = false
 	attack_hitbox.area_entered.connect(_on_attack_hitbox_area_entered)
+	if sticker_health:
+		sticker_health.died.connect(_on_sticker_health_depleted)
+	if hurtbox:
+		hurtbox.set_owner_axel(self)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -166,3 +172,16 @@ func _on_attack_hitbox_area_entered(area: Area2D) -> void:
 			damage = 1
 
 	area.take_hit(damage, global_position)
+
+
+func receive_contact_hit(chips_damage: int, heavy_hit: bool, from_position: Vector2) -> void:
+	if sticker_health == null:
+		return
+	if heavy_hit:
+		sticker_health.apply_heavy_hit(from_position)
+	else:
+		sticker_health.apply_light_hit(from_position, chips_damage)
+
+
+func _on_sticker_health_depleted() -> void:
+	queue_free()
