@@ -309,17 +309,14 @@ func _apply_power_mode_flags() -> void:
 
 
 func _handle_buffalo_breaks() -> void:
-	var breakables := get_tree().get_nodes_in_group("breakable")
-	for node in breakables:
-		if not (node is Node2D):
-			continue
-		var node2d := node as Node2D
-		if global_position.distance_to(node2d.global_position) > 34.0:
-			continue
-		if node.has_method("take_structure_hit"):
-			node.take_structure_hit("buffalo")
-		elif bool(node.get_meta("is_breakable_wall", false)):
-			node.queue_free()
+	if abs(velocity.x) < 140.0:
+		return
+
+	for body in get_tree().get_nodes_in_group("breakable"):
+		if body is Node2D:
+			if body.global_position.distance_to(global_position) <= 26.0:
+				if body.has_method("take_structure_hit"):
+					body.take_structure_hit("buffalo")
 
 
 func add_coin(value: int) -> void:
