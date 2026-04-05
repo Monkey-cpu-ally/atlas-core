@@ -77,28 +77,6 @@ func take_hit(damage: int, from_position: Vector2) -> void:
 	invulnerable = false
 
 
-func take_attack_hit(attack_mode: String) -> void:
-	var damage := _damage_from_mode(attack_mode)
-	var from_position := global_position + Vector2(float(-facing) * 12.0, 0.0)
-	take_hit(damage, from_position)
-
-
-func _damage_from_mode(mode: String) -> int:
-	match mode:
-		"ground_1":
-			return 1
-		"ground_2":
-			return 1
-		"ground_3":
-			return 2
-		"air":
-			return 1
-		"smash":
-			return 2
-		_:
-			return 1
-
-
 func die() -> void:
 	is_dead = true
 	queue_free()

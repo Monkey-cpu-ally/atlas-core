@@ -1,15 +1,7 @@
 extends Area2D
 class_name EnemyHurtbox
 
-var _enemy: Node
-
-
-func _ready() -> void:
-	monitoring = true
-	monitorable = true
-	set_meta("enemy_owner", get_parent())
-
-
-func set_enemy(enemy: Node) -> void:
-	_enemy = enemy
-	set_meta("enemy_owner", enemy)
+func take_hit(damage: int, from_position: Vector2) -> void:
+	var owner_enemy = get_parent()
+	if owner_enemy and owner_enemy.has_method("take_hit"):
+		owner_enemy.take_hit(damage, from_position)
