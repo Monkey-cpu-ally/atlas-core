@@ -12,7 +12,7 @@ func _ready() -> void:
 	max_health = 2
 	scrap_reward = 1
 	coin_reward = 1
-	base_color = Color(0.345, 0.486, 0.329, 1.0)
-	alert_color = Color(0.47, 0.64, 0.39, 1.0)
-	log_note = "Burrow tracks stay shallow. Slow march. Folded from above."
+	base_color = Color(0.31, 0.63, 0.34, 1.0)
+	alert_color = Color(0.45, 0.8, 0.39, 1.0)
+	log_note = "Moss-backed crawler. Tiny stride, big tell before turn."
 	super._ready()

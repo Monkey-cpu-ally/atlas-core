@@ -16,7 +16,9 @@ func _on_body_entered(body: Node) -> void:
 
 	collected = true
 
-	if body.has_method("add_scrap_pickup"):
+	if body.has_method("add_scrap"):
+		body.add_scrap(value)
+	elif body.has_method("add_scrap_pickup"):
 		body.add_scrap_pickup(value)
 
 	queue_free()

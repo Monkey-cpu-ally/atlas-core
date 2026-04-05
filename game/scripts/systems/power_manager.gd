@@ -132,10 +132,10 @@ func apply_shadow_tag_to_enemy(enemy: Node) -> void:
 	var roll := randi() % 3
 	if roll == 0:
 		GameState.add_scrap_meter(10.0)
-		GameState.announce_pickup("Shadow Tag stole charge +10", Color(0.72, 0.6, 0.95, 1.0))
+		GameState.announce_pickup("Shadow Tag siphon: charge +10", Color(0.72, 0.6, 0.95, 1.0))
 	elif roll == 1:
 		GameState.add_coins(3)
-		GameState.announce_pickup("Shadow Tag stole coins +3", Color(0.95, 0.86, 0.55, 1.0))
+		GameState.announce_pickup("Shadow Tag siphon: coins +3", Color(0.95, 0.86, 0.55, 1.0))
 	else:
 		GameState.add_scrap_parts(1)
-		GameState.announce_pickup("Shadow Tag stole scrap +1", Color(0.74, 0.82, 0.9, 1.0))
+		GameState.announce_pickup("Shadow Tag siphon: scrap +1", Color(0.74, 0.82, 0.9, 1.0))

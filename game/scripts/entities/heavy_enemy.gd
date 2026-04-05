@@ -12,7 +12,7 @@ func _ready() -> void:
 	max_health = 5
 	scrap_reward = 3
 	coin_reward = 2
-	base_color = Color(0.42, 0.42, 0.48, 1.0)
-	alert_color = Color(0.63, 0.57, 0.41, 1.0)
-	log_note = "Front plating drinks light hits. Needs empowered force."
+	base_color = Color(0.4, 0.51, 0.63, 1.0)
+	alert_color = Color(0.64, 0.78, 0.4, 1.0)
+	log_note = "Chunky shell shrugs weak taps. Empowered impact pops the seams."
 	super._ready()

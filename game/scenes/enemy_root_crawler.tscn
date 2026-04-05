@@ -8,8 +8,16 @@ collision_layer = 4
 collision_mask = 3
 
 [node name="Body" type="Polygon2D" parent="."]
-color = Color(0.345098, 0.486275, 0.329412, 1)
-polygon = PackedVector2Array(-20, -10, -6, -18, 12, -16, 22, -4, 10, 10, -12, 10)
+color = Color(0.31, 0.63, 0.34, 1)
+polygon = PackedVector2Array(-22, -8, -12, -17, 2, -19, 16, -13, 22, -2, 18, 10, 3, 14, -14, 12)
+
+[node name="Belly" type="Polygon2D" parent="."]
+color = Color(0.82, 0.92, 0.62, 0.95)
+polygon = PackedVector2Array(-10, -4, 10, -4, 12, 8, -8, 8)
+
+[node name="AccentEye" type="Polygon2D" parent="."]
+color = Color(0.98, 0.38, 0.29, 1)
+polygon = PackedVector2Array(6, -12, 13, -10, 10, -4, 4, -6)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = RectangleShape2D.new()

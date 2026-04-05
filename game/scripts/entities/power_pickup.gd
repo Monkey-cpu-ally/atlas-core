@@ -30,7 +30,7 @@ func _on_body_entered(body: Node) -> void:
 	collected = true
 	PowerManager.activate_power(power_id, duration)
 	var meta := PowerManager.get_power_meta(power_id)
-	GameState.announce_pickup("%s online (15s)" % str(meta.get("display", power_id)), meta.get("color", Color(0.82, 0.82, 0.82, 1.0)))
+	GameState.announce_pickup("%s spark active (15s)" % str(meta.get("display", power_id)), meta.get("color", Color(0.82, 0.82, 0.82, 1.0)))
 	queue_free()
 
 

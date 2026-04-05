@@ -22,7 +22,7 @@ offset_left = -1700.0
 offset_top = 288.0
 offset_right = 1700.0
 offset_bottom = 336.0
-color = Color(0.37, 0.31, 0.23, 1)
+color = Color(0.47, 0.43, 0.31, 1)
 
 [node name="Platforms" type="Node2D" parent="."]
 
@@ -37,7 +37,7 @@ shape = RectangleShape2D.new()
 
 [node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformA"]
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
-color = Color(0.478431, 0.384314, 0.278431, 1)
+color = Color(0.52, 0.45, 0.34, 1)
 
 [node name="ClimbPlatformB" type="StaticBody2D" parent="Platforms"]
 position = Vector2(-350, 200)
@@ -50,7 +50,7 @@ shape = RectangleShape2D.new()
 
 [node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformB"]
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
-color = Color(0.478431, 0.384314, 0.278431, 1)
+color = Color(0.52, 0.45, 0.34, 1)
 
 [node name="ClimbPlatformC" type="StaticBody2D" parent="Platforms"]
 position = Vector2(-170, 150)
@@ -63,7 +63,7 @@ shape = RectangleShape2D.new()
 
 [node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformC"]
 polygon = PackedVector2Array(-70, -10, 70, -10, 70, 10, -70, 10)
-color = Color(0.478431, 0.384314, 0.278431, 1)
+color = Color(0.52, 0.45, 0.34, 1)
 
 [node name="NarrowPlatformA" type="StaticBody2D" parent="Platforms"]
 position = Vector2(860, 220)
@@ -76,7 +76,7 @@ shape = RectangleShape2D.new()
 
 [node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformA"]
 polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
-color = Color(0.478431, 0.384314, 0.278431, 1)
+color = Color(0.52, 0.45, 0.34, 1)
 
 [node name="NarrowPlatformB" type="StaticBody2D" parent="Platforms"]
 position = Vector2(1010, 180)
@@ -89,7 +89,7 @@ shape = RectangleShape2D.new()
 
 [node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformB"]
 polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
-color = Color(0.478431, 0.384314, 0.278431, 1)
+color = Color(0.52, 0.45, 0.34, 1)
 
 [node name="NarrowPlatformC" type="StaticBody2D" parent="Platforms"]
 position = Vector2(1160, 140)
@@ -102,7 +102,7 @@ shape = RectangleShape2D.new()
 
 [node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformC"]
 polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
-color = Color(0.478431, 0.384314, 0.278431, 1)
+color = Color(0.52, 0.45, 0.34, 1)
 
 [node name="Axel" parent="." instance=ExtResource("1_axel")]
 position = Vector2(-760, 210)

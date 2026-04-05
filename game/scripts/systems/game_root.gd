@@ -15,45 +15,45 @@ func _seed_flight_log() -> void:
 	FlightLog.entries.clear()
 	FlightLog.add_enemy_note(
 		"Root Crawler",
-		"Burrow tracks stay shallow. Slow march. Folded from above."
+		"Round shell, moss trim. Slow march with a clear turn cue."
 	)
 	FlightLog.add_enemy_note(
 		"Gear Bug",
-		"Wheel-joint twitch before burst. Back seam takes the hit."
+		"Turquoise wheel-shell jitters before burst. Back seam is the weak read."
 	)
 	FlightLog.add_enemy_note(
 		"Flicker Unit",
-		"Short blink phase. Strike after glow dip."
+		"Violet blink loop. Strike right after the glow dip."
 	)
 	FlightLog.add_enemy_note(
 		"Heavy Chassis",
-		"Front plating drinks light hits. Needs empowered force."
+		"Chunky front shell shrugs weak taps. Use empowered force."
 	)
 	FlightLog.add_power_note(
 		"Burning Buffalo",
-		"Torque line spikes forward. Wall braces fail on contact."
+		"Torque surges forward in a clean line. Fragile braces fail on contact."
 	)
 	FlightLog.add_power_note(
 		"Shadow Tag",
-		"Contact steals random resource pulse. Most reliable on quick cycles."
+		"Contact siphons a random resource pulse. Best during quick cycles."
 	)
 	FlightLog.add_power_note(
 		"Golden Gloves",
-		"Impact grade rises. Some armor classes collapse in one chain."
+		"Impact grade rises sharply. Mid armor can collapse in one chain."
 	)
 	FlightLog.add_power_note(
 		"Super Mode",
-		"Hull ignores impact for short window. Keep pressure high."
+		"Hull ignores impact for a short window. Keep pressure steady."
 	)
 	FlightLog.add_power_note(
 		"Specter Mode",
-		"Body phases through contact lines. Reposition before timer burn."
+		"Body phases through contact lines. Reposition before timer burn-out."
 	)
 	FlightLog.add_power_note(
 		"Fighter Plane",
-		"Flight frame available while charge holds. Meter discipline required."
+		"Flight frame remains available while charge holds. Meter discipline required."
 	)
-	FlightLog.add_observation("Scrap UI ping cadence marks threat tempo.")
+	FlightLog.add_observation("Scrap ping cadence tracks threat rhythm across the lane.")
 
 
 func _connect_enemy_targets() -> void:

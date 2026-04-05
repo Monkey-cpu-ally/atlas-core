@@ -12,8 +12,8 @@ func _ready() -> void:
 	max_health = 2
 	scrap_reward = 2
 	coin_reward = 1
-	base_color = Color(0.53, 0.48, 0.68, 1.0)
-	alert_color = Color(0.68, 0.61, 0.87, 1.0)
-	log_note = "Short blink phase. Strike after glow dip."
+	base_color = Color(0.58, 0.44, 0.78, 1.0)
+	alert_color = Color(0.76, 0.62, 0.94, 1.0)
+	log_note = "Blink shell jitters violet. Hit right after the dim frame."
 	super._ready()
 

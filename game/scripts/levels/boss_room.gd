@@ -41,7 +41,7 @@ func start_boss_intro() -> void:
 		boss.start_fight()
 	if axel_node:
 		axel_node.set_physics_process(true)
-	GameState.announce_pickup("I understand what to do", Color(0.9, 0.86, 0.58, 1.0))
+	GameState.announce_pickup("Pattern read. Strike on vulnerable beat.", Color(0.9, 0.86, 0.58, 1.0))
 
 
 func on_boss_defeated() -> void:
@@ -88,8 +88,8 @@ func _set_exit_blocker_state(visible_state: bool) -> void:
 
 func _run_post_boss_sequence() -> void:
 	# Fight -> silence -> glow -> curiosity -> follow -> discovery
-	GameState.announce_pickup("Silence.", Color(0.74, 0.79, 0.85, 1.0))
-	FlightLog.add_observation("The arena falls silent after the impact.")
+	GameState.announce_pickup("Impact clears. Arena goes still.", Color(0.74, 0.79, 0.85, 1.0))
+	FlightLog.add_observation("Arena noise drops to zero after final impact.")
 	await get_tree().create_timer(0.65).timeout
 
 	if fox_glow and fox_glow.has_node("GlowVisual"):
@@ -100,17 +100,17 @@ func _run_post_boss_sequence() -> void:
 		t.tween_property(glow_visual, "modulate:a", 0.9, 0.5)
 		await t.finished
 
-	GameState.announce_pickup("A glow flickers in the chamber...", Color(0.72, 0.9, 1.0, 1.0))
+	GameState.announce_pickup("Signal glow wakes near the gate.", Color(0.72, 0.9, 1.0, 1.0))
 	await get_tree().create_timer(0.4).timeout
 
-	GameState.announce_pickup("Curiosity rises. Follow the signal.", Color(0.93, 0.88, 0.62, 1.0))
-	FlightLog.add_observation("A pale glow points beyond the arena gate.")
+	GameState.announce_pickup("Follow the glow line.", Color(0.93, 0.88, 0.62, 1.0))
+	FlightLog.add_observation("Pale signal points beyond arena gate.")
 	await get_tree().create_timer(0.45).timeout
 
 	if follow_marker:
-		GameState.announce_pickup("Follow -> (%d, %d)" % [int(follow_marker.global_position.x), int(follow_marker.global_position.y)], Color(0.74, 0.88, 0.64, 1.0))
+		GameState.announce_pickup("Signal marker -> (%d, %d)" % [int(follow_marker.global_position.x), int(follow_marker.global_position.y)], Color(0.74, 0.88, 0.64, 1.0))
 	await get_tree().create_timer(0.45).timeout
 
 	if discovery_marker:
-		GameState.announce_pickup("Discovery -> (%d, %d)" % [int(discovery_marker.global_position.x), int(discovery_marker.global_position.y)], Color(0.98, 0.84, 0.54, 1.0))
-	FlightLog.add_observation("Discovery waits where the glow settles.")
+		GameState.announce_pickup("Discovery marker -> (%d, %d)" % [int(discovery_marker.global_position.x), int(discovery_marker.global_position.y)], Color(0.98, 0.84, 0.54, 1.0))
+	FlightLog.add_observation("Discovery waits at final glow settle point.")

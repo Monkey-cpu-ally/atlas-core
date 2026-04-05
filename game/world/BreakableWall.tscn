@@ -14,7 +14,7 @@ groups = ["breakable"]
 break_by_smash_only = false
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.43, 0.35, 0.26, 1)
+modulate = Color(0.47, 0.4, 0.27, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_1")
@@ -24,4 +24,4 @@ offset_left = -20.0
 offset_top = -60.0
 offset_right = 20.0
 offset_bottom = 60.0
-color = Color(0.95, 0.87, 0.74, 0.22)
+color = Color(0.98, 0.72, 0.4, 0.26)

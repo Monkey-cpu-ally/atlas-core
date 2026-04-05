@@ -12,5 +12,5 @@ shape = RectangleShape2D.new()
 "shape:size" = Vector2(32, 24)
 
 [node name="Body" type="Polygon2D" parent="."]
-color = Color(0.53, 0.48, 0.68, 1)
-polygon = PackedVector2Array(-18, -11, -2, -17, 15, -8, 14, 10, -12, 11)
+color = Color(0.58, 0.44, 0.78, 1)
+polygon = PackedVector2Array(-20, -10, -8, -18, 8, -18, 20, -8, 18, 10, -14, 12)

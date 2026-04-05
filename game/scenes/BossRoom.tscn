@@ -24,7 +24,7 @@ offset_left = -1400.0
 offset_top = 288.0
 offset_right = 1400.0
 offset_bottom = 336.0
-color = Color(0.35, 0.29, 0.22, 1)
+color = Color(0.45, 0.38, 0.29, 1)
 
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(-980, 170)
@@ -40,7 +40,7 @@ offset_left = -15.0
 offset_top = -160.0
 offset_right = 15.0
 offset_bottom = 160.0
-color = Color(0.28, 0.24, 0.2, 1)
+color = Color(0.34, 0.44, 0.4, 1)
 
 [node name="RightWall" type="StaticBody2D" parent="."]
 position = Vector2(980, 170)
@@ -56,7 +56,7 @@ offset_left = -15.0
 offset_top = -160.0
 offset_right = 15.0
 offset_bottom = 160.0
-color = Color(0.28, 0.24, 0.2, 1)
+color = Color(0.34, 0.44, 0.4, 1)
 
 [node name="AxelSpawn" type="Marker2D" parent="."]
 position = Vector2(-760, 210)
@@ -102,7 +102,7 @@ offset_left = -12.0
 offset_top = -72.0
 offset_right = 12.0
 offset_bottom = 72.0
-color = Color(0.44, 0.35, 0.24, 0.85)
+color = Color(0.92, 0.45, 0.33, 0.85)
 
 [node name="RootboundSiegeTank" parent="." instance=ExtResource("4_boss")]
 position = Vector2(340, 236)

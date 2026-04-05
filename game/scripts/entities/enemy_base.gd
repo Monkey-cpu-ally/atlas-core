@@ -87,7 +87,7 @@ func receive_hit(damage_scale: float, attack_kind: String) -> Dictionary:
 	if hit_cooldown > 0.0:
 		return result
 	if enemy_category.to_lower() == "flicker enemies" and not flicker_open:
-		GameState.announce_pickup("Flicker phase closed.", Color(0.74, 0.66, 0.94, 1.0))
+		GameState.announce_pickup("Flicker shell sealed. Wait for the blink dip.", Color(0.74, 0.66, 0.94, 1.0))
 		result["shadow_tag_eligible"] = false
 		return result
 
@@ -97,7 +97,7 @@ func receive_hit(damage_scale: float, attack_kind: String) -> Dictionary:
 			or PowerManager.get_active_power() == "burning_buffalo"
 		)
 		if not empowered:
-			GameState.announce_pickup("Heavy plating resisted. Need empowered force.", Color(0.85, 0.77, 0.55, 1.0))
+			GameState.announce_pickup("Heavy shell shrugged it off. Bring empowered force.", Color(0.85, 0.77, 0.55, 1.0))
 			result["shadow_tag_eligible"] = false
 			return result
 
@@ -140,7 +140,7 @@ func _die() -> void:
 	GameState.add_coins(coin_reward)
 	GameState.add_scrap_meter(9.0)
 	FlightLog.add_enemy_note(enemy_display_name, log_note)
-	GameState.announce_pickup("%s dismantled (+%d scrap)" % [enemy_display_name, scrap_reward], Color(0.74, 0.83, 0.91, 1.0))
+	GameState.announce_pickup("%s cracked open (+%d scrap)" % [enemy_display_name, scrap_reward], Color(0.74, 0.83, 0.91, 1.0))
 	queue_free()
 
 

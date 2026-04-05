@@ -34,16 +34,16 @@ func _on_body_entered(body: Node) -> void:
 	match pickup_type:
 		"coin":
 			GameState.add_coins(amount)
-			GameState.announce_pickup("Coins +%d" % amount, Color(0.95, 0.86, 0.54, 1.0))
+			GameState.announce_pickup("Sun Coin +%d" % amount, Color(0.95, 0.86, 0.54, 1.0))
 		"scrap":
 			GameState.add_scrap_parts(amount)
 			GameState.add_scrap_meter(8.0 * amount)
-			GameState.announce_pickup("Scrap +%d | Charge +%d" % [amount, int(8 * amount)], Color(0.73, 0.83, 0.91, 1.0))
+			GameState.announce_pickup("Scrap Bits +%d | Meter +%d" % [amount, int(8 * amount)], Color(0.73, 0.83, 0.91, 1.0))
 		"food":
 			GameState.restore_health(amount * 2)
-			GameState.announce_pickup("Repair snack +%d chips" % (amount * 2), Color(0.9, 0.58, 0.44, 1.0))
+			GameState.announce_pickup("Patch Snack +%d chips" % (amount * 2), Color(0.9, 0.58, 0.44, 1.0))
 		"power":
 			PowerManager.activate_power(power_name)
 			var pmeta := PowerManager.get_power_meta(power_name)
-			GameState.announce_pickup("%s online (15s)" % pmeta.get("display", power_name), pmeta.get("color", Color(0.82, 0.82, 0.82, 1.0)))
+			GameState.announce_pickup("%s synced (15s)" % pmeta.get("display", power_name), pmeta.get("color", Color(0.82, 0.82, 0.82, 1.0)))
 	queue_free()

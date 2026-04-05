@@ -23,7 +23,7 @@ offset_left = -1800.0
 offset_top = 288.0
 offset_right = 1800.0
 offset_bottom = 336.0
-color = Color(0.37, 0.31, 0.23, 1)
+color = Color(0.43, 0.53, 0.4, 1)
 
 [node name="Axel" parent="." instance=ExtResource("1_axel")]
 position = Vector2(-780, 210)
@@ -56,6 +56,7 @@ shape = CircleShape2D.new()
 "shape:radius" = 12.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="PowerPickup"]
+modulate = Color(0.99, 0.55, 0.35, 1)
 
 [node name="BreakableWall" parent="." instance=ExtResource("4_breakable_wall")]
 position = Vector2(110, 190)

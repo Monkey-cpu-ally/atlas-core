@@ -12,7 +12,7 @@ func _ready() -> void:
 	max_health = 2
 	scrap_reward = 2
 	coin_reward = 2
-	base_color = Color(0.42, 0.49, 0.56, 1.0)
-	alert_color = Color(0.58, 0.66, 0.75, 1.0)
-	log_note = "Wheel-joint twitch before burst. Back seam takes the hit."
+	base_color = Color(0.29, 0.66, 0.69, 1.0)
+	alert_color = Color(0.46, 0.84, 0.89, 1.0)
+	log_note = "Turquoise casing, fast jitter. Back seam pops first."
 	super._ready()
