@@ -8,7 +8,7 @@ extends CharacterBody2D
 @onready var floor_ray: RayCast2D = $FloorRay
 @onready var wall_ray: RayCast2D = $WallRay
 @onready var hurtbox: EnemyHurtbox = $Hurtbox
-@onready var contact_hitbox: EnemyContactHitbox = $ContactHitbox
+@onready var hitbox: EnemyContactHitbox = $Hitbox
 
 var hp: int
 var facing := -1
@@ -21,9 +21,9 @@ func _ready() -> void:
 	add_to_group("enemies")
 	if hurtbox:
 		hurtbox.set_enemy(self)
-	if contact_hitbox:
-		contact_hitbox.chip_damage = 1
-		contact_hitbox.heavy_hit = false
+	if hitbox:
+		hitbox.chip_damage = 1
+		hitbox.heavy_hit = false
 
 
 func _physics_process(delta: float) -> void:
