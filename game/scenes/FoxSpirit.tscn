@@ -4,6 +4,7 @@
 
 [node name="FoxSpirit" type="Node2D"]
 script = ExtResource("1_fox_spirit")
+visible = false
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 
