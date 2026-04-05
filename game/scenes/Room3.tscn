@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="2_hud"]
 [ext_resource type="PackedScene" path="res://world/BreakableFloor.tscn" id="3_breakable_floor"]
 [ext_resource type="PackedScene" path="res://world/Coin.tscn" id="4_coin"]
 [ext_resource type="PackedScene" path="res://world/ScrapPickup.tscn" id="5_scrap"]
+[ext_resource type="Script" path="res://scripts/entities/hint_prompt_trigger.gd" id="6_hint_trigger"]
 
 [node name="Room3" type="Node2D"]
 
@@ -35,6 +36,18 @@ offset_top = -9.0
 offset_right = 44.0
 offset_bottom = 9.0
 color = Color(0.96, 0.78, 0.52, 0.35)
+
+[node name="SecretHintTrigger" type="Area2D" parent="."]
+script = ExtResource("6_hint_trigger")
+position = Vector2(72, 262)
+monitoring = true
+monitorable = true
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SecretHintTrigger"]
+shape = CircleShape2D.new()
+"shape:radius" = 44.0
 
 [node name="SecretArea" type="StaticBody2D" parent="."]
 position = Vector2(90, 560)
