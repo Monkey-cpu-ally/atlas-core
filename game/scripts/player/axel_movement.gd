@@ -208,8 +208,6 @@ func take_damage(light_hits: int = 1, is_heavy: bool = false, from_position: Vec
 
 	is_hurt = true
 	is_invulnerable = true
-	if hurtbox:
-		hurtbox.is_invulnerable = true
 	is_attacking = false
 	is_air_attacking = false
 	is_smashing = false
@@ -229,12 +227,6 @@ func take_damage(light_hits: int = 1, is_heavy: bool = false, from_position: Vec
 
 	_hurt_feedback(from_position)
 
-	if sticker_health:
-		sticker_health.current_stickers = max(current_stickers, 0)
-		sticker_health.current_sticker_hits_remaining = max(current_sticker_hits_remaining, 0)
-		sticker_health.is_hurt = is_hurt
-		sticker_health.is_invulnerable = is_invulnerable
-
 	if current_stickers <= 0:
 		_die()
 		return
@@ -242,11 +234,6 @@ func take_damage(light_hits: int = 1, is_heavy: bool = false, from_position: Vec
 	await get_tree().create_timer(invuln_time).timeout
 	is_hurt = false
 	is_invulnerable = false
-	if sticker_health:
-		sticker_health.is_hurt = false
-		sticker_health.is_invulnerable = false
-	if hurtbox:
-		hurtbox.is_invulnerable = false
 
 
 func _hurt_feedback(from_position: Vector2) -> void:
