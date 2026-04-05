@@ -1,5 +1,10 @@
 extends CharacterBody2D
 
+enum State {
+	PATROL,
+	DEAD
+}
+
 @export var move_speed: float = 30.0
 @export var gravity: float = 900.0
 @export var max_hp: int = 2
@@ -12,7 +17,7 @@ extends CharacterBody2D
 
 var hp: int
 var facing := -1
-var is_dead := false
+var state: State = State.PATROL
 var invulnerable := false
 
 
@@ -27,7 +32,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if is_dead:
+	if state == State.DEAD:
 		return
 
 	if not is_on_floor():
@@ -55,7 +60,7 @@ func turn_around() -> void:
 
 
 func take_hit(damage: int, from_position: Vector2) -> void:
-	if is_dead or invulnerable:
+	if state == State.DEAD or invulnerable:
 		return
 
 	hp -= damage
@@ -82,8 +87,19 @@ func take_hit(damage: int, from_position: Vector2) -> void:
 
 
 func die() -> void:
-	is_dead = true
+	if state == State.DEAD:
+		return
+
+	state = State.DEAD
+	_drop_coin()
 	queue_free()
+
+
+func _drop_coin() -> void:
+	var coin_scene = preload("res://world/Coin.tscn")
+	var coin = coin_scene.instantiate()
+	get_parent().add_child(coin)
+	coin.global_position = global_position
 
 
 func _update_anim() -> void:
