@@ -19,14 +19,26 @@ var is_smashing := false
 var combo_step := 0
 var attack_queued := false
 var _hit_targets: Dictionary = {}
+var max_stickers := 4
+var hits_per_sticker := 3
+var current_stickers := 0
+var current_sticker_hits_remaining := 0
 
 func _ready() -> void:
 	attack_hitbox.monitoring = false
 	attack_hitbox.area_entered.connect(_on_attack_hitbox_area_entered)
+	current_stickers = max_stickers
+	current_sticker_hits_remaining = hits_per_sticker
 	if sticker_health:
+		max_stickers = sticker_health.sticker_count
+		hits_per_sticker = sticker_health.chips_per_sticker
+		current_stickers = max_stickers
+		current_sticker_hits_remaining = hits_per_sticker
 		sticker_health.died.connect(_on_sticker_health_depleted)
 	if hurtbox:
 		hurtbox.set_owner_axel(self)
+	if has_node("DamageFlash"):
+		$DamageFlash.visible = false
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
