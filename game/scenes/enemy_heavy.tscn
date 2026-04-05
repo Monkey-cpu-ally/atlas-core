@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/entities/heavy_enemy.gd" id="1"]
+
+[node name="HeavyEnemy" type="CharacterBody2D"]
+script = ExtResource("1")
+collision_layer = 4
+collision_mask = 3
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.42, 0.42, 0.48, 1)
+polygon = PackedVector2Array(-18, -15, 18, -15, 24, -4, 18, 12, -18, 12, -24, -4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = RectangleShape2D.new()
+"shape:size" = Vector2(46, 34)

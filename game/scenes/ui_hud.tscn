@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_8q6qp"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 1
+script = ExtResource("1_8q6qp")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 540.0
+offset_bottom = 286.0
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Rows" type="VBoxContainer" parent="Panel/Margin"]
+theme_override_constants/separation = 5
+
+[node name="ScrapSignature" type="Label" parent="Panel/Margin/Rows"]
+text = "SCRAP // Analyzer Mk-II (damaged eye online)"
+
+[node name="CoinsLabel" type="Label" parent="Panel/Margin/Rows"]
+text = "Coins: 0"
+
+[node name="StickersLabel" type="Label" parent="Panel/Margin/Rows"]
+text = "Stickers: [#] [#] [#] [#]"
+
+[node name="ScrapPartsLabel" type="Label" parent="Panel/Margin/Rows"]
+text = "Scrap Parts: 0"
+
+[node name="ScrapMeterLabel" type="Label" parent="Panel/Margin/Rows"]
+text = "Scrap Meter: 0 / 100"
+
+[node name="ScrapMeterBar" type="ProgressBar" parent="Panel/Margin/Rows"]
+value = 0.0
+max_value = 100.0
+show_percentage = false
+
+[node name="PowerRow" type="HBoxContainer" parent="Panel/Margin/Rows"]
+theme_override_constants/separation = 8
+
+[node name="PowerIcon" type="Label" parent="Panel/Margin/Rows/PowerRow"]
+text = "--"
+
+[node name="PowerLabel" type="Label" parent="Panel/Margin/Rows/PowerRow"]
+text = "Power: None"
+
+[node name="PowerTimerLabel" type="Label" parent="Panel/Margin/Rows/PowerRow"]
+text = "Timer: 0.0"
+
+[node name="PickupTextLabel" type="Label" parent="Panel/Margin/Rows"]
+text = ""
+modulate = Color(0.95, 0.86, 0.55, 1)
+
+[node name="FlightLogLabel" type="Label" parent="Panel/Margin/Rows"]
+text = "Flight Log: No entries yet."
