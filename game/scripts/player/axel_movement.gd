@@ -238,15 +238,35 @@ func take_damage(light_hits: int = 1, is_heavy: bool = false, from_position: Vec
 
 func _hurt_feedback(from_position: Vector2) -> void:
 	var dir := sign(global_position.x - from_position.x)
-	if is_zero_approx(dir):
-		dir = 1.0
+	if dir == 0:
+		dir = -facing
+
 	velocity.x = dir * knockback_x
 	velocity.y = knockback_y
+
+	_flash_damage()
+	_flicker_brief()
+
+func _flash_damage() -> void:
 	if has_node("DamageFlash"):
 		$DamageFlash.visible = true
-		var tween := create_tween()
-		tween.tween_interval(0.08)
-		tween.tween_callback(func(): $DamageFlash.visible = false)
+		$DamageFlash.modulate = Color(1, 1, 1, 0.8)
+
+		var t = create_tween()
+		t.tween_property($DamageFlash, "modulate:a", 0.0, 0.08)
+		await t.finished
+		$DamageFlash.visible = false
+	else:
+		sprite.modulate = Color(1, 0.7, 0.7, 1)
+		var t2 = create_tween()
+		t2.tween_property(sprite, "modulate", Color.WHITE, 0.10)
+
+func _flicker_brief() -> void:
+	for i in 4:
+		sprite.visible = false
+		await get_tree().create_timer(0.04).timeout
+		sprite.visible = true
+		await get_tree().create_timer(0.04).timeout
 
 
 func _die() -> void:
