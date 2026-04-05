@@ -467,3 +467,13 @@ func add_food(value: int) -> void:
 
 func activate_power(power_id: String) -> void:
 	PowerManager.activate_power(power_id)
+
+
+func restore_hits(value: int = 2) -> void:
+	var hits_to_restore := max(0, value)
+	if hits_to_restore <= 0:
+		return
+	if sticker_health and sticker_health.has_method("take_hit"):
+		for i in range(hits_to_restore):
+			sticker_health.take_hit(0)
+	GameState.restore_health(hits_to_restore)
