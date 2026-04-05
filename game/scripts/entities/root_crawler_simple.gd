@@ -22,8 +22,8 @@ func _ready() -> void:
 	if hurtbox:
 		hurtbox.set_enemy(self)
 	if hitbox:
-		hitbox.chip_damage = 1
-		hitbox.heavy_hit = false
+		hitbox.light_hits = 1
+		hitbox.is_heavy = false
 
 
 func _physics_process(delta: float) -> void:
