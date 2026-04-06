@@ -111,17 +111,43 @@ func receive_hit(damage_scale: float, attack_kind: String) -> Dictionary:
 	if enemy_category.to_lower() == "heavy enemies":
 		damage += 1
 
-	current_health -= damage
-	hit_cooldown = 0.1
-	velocity = Vector2(float(direction) * -95.0, -145.0)
-	body_poly.color = body_poly.color.lightened(0.22)
+	var hit_origin: Vector2 = player.global_position if player != null else global_position
+	var defeated := _apply_direct_hit(damage, hit_origin)
 	result["hit"] = true
 
-	if current_health <= 0:
+	if defeated:
 		result["defeated"] = true
-		_die()
 
 	return result
+
+
+func take_hit(damage: int, from_position: Vector2) -> void:
+	if is_dead() or is_invulnerable():
+		return
+	_apply_direct_hit(max(1, damage), from_position)
+
+
+func take_percent_damage(percent: float, from_position: Vector2) -> void:
+	if is_dead() or is_invulnerable():
+		return
+	var damage: int = max(1, int(ceil(float(max_health) * percent)))
+	take_hit(damage, from_position)
+
+
+func is_dead() -> bool:
+	return current_health <= 0
+
+
+func is_invulnerable() -> bool:
+	return hit_cooldown > 0.0
+
+
+func is_weak_enemy() -> bool:
+	return enemy_size_class.to_lower() == "weak"
+
+
+func is_large_enemy() -> bool:
+	return enemy_size_class.to_lower() == "large"
 
 
 func _try_contact_damage() -> void:
@@ -162,3 +188,17 @@ func _family_display() -> String:
 			return "Machine"
 		_:
 			return "Unknown"
+
+
+func _apply_direct_hit(damage: int, from_position: Vector2) -> bool:
+	current_health -= max(1, damage)
+	hit_cooldown = 0.1
+	var dir: float = sign(global_position.x - from_position.x)
+	if is_zero_approx(dir):
+		dir = -1.0 if direction >= 0 else 1.0
+	velocity = Vector2(dir * 95.0, -145.0)
+	body_poly.color = body_poly.color.lightened(0.22)
+	if current_health <= 0:
+		_die()
+		return true
+	return false
