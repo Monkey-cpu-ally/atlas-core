@@ -594,12 +594,18 @@ func _do_scrap_orange_assist() -> void:
 	scrap_actor.start_entry("orange", start_pos, stop_x)
 
 	scrap_actor.assist_finished.connect(func():
-		var malfunction: bool = randf() < max(0.10, 0.30 - scrap_upgrade_malfunction_reduction)
+		var bonus = scrap_upgrade_bonus_damage
+		var malfunction_chance = max(0.10, 0.30 - scrap_upgrade_malfunction_reduction)
+		var malfunction: bool = randf() < malfunction_chance
 
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 120.0:
-				if enemy.has_method("take_hit"):
-					enemy.take_hit(1, global_position)
+				if enemy.has_method("is_weak_enemy") and enemy.is_weak_enemy():
+					if enemy.has_method("take_percent_damage"):
+						enemy.take_percent_damage(0.15 + bonus, global_position)
+				elif enemy.has_method("is_large_enemy") and enemy.is_large_enemy():
+					if enemy.has_method("take_percent_damage"):
+						enemy.take_percent_damage(0.10 + bonus, global_position)
 
 		if malfunction:
 			take_damage(1, false, global_position + Vector2(-8, 0))
