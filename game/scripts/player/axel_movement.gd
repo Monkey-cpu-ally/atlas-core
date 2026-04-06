@@ -568,10 +568,16 @@ func _do_scrap_yellow_assist() -> void:
 	scrap_actor.start_entry("yellow", start_pos, stop_x)
 
 	scrap_actor.assist_finished.connect(func():
+		var bonus = scrap_upgrade_bonus_damage
+
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 140.0:
-				if enemy.has_method("take_hit"):
-					enemy.take_hit(999, global_position)
+				if enemy.has_method("is_weak_enemy") and enemy.is_weak_enemy():
+					if enemy.has_method("take_hit"):
+						enemy.take_hit(999, global_position)
+				elif enemy.has_method("is_large_enemy") and enemy.is_large_enemy():
+					if enemy.has_method("take_percent_damage"):
+						enemy.take_percent_damage(0.10 + bonus, global_position)
 
 		scrap_actor.exit_left()
 	)
