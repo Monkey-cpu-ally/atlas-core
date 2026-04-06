@@ -19,6 +19,7 @@ signal scrap_assist_changed(value: float, max_value: float, level_name: String, 
 @export var knockback_y: float = -120.0
 @export var power_duration: float = 15.0
 @export var scrap_assist_max: float = 100.0
+@export var scrap_assist_use_cost: float = 20.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_pivot: Node2D = $AttackPivot
@@ -109,6 +110,7 @@ func _physics_process(delta: float) -> void:
 	sprite.flip_h = facing < 0
 
 	_handle_attack_input()
+	_handle_scrap_assist_input()
 	if is_buffalo_mode:
 		_handle_buffalo_breaks()
 
@@ -501,6 +503,23 @@ func _get_scrap_assist_color(level: int) -> Color:
 			return Color(0.9, 0.33, 0.3, 1.0)
 		_:
 			return Color(0.82, 0.82, 0.82, 1.0)
+
+
+func _handle_scrap_assist_input() -> void:
+	if not InputMap.has_action("assist"):
+		return
+	if not Input.is_action_just_pressed("assist"):
+		return
+	if scrap_assist_max <= 0.0:
+		return
+	if scrap_assist_meter < scrap_assist_use_cost:
+		GameState.announce_pickup("Scrap Assist low. Need more charge.", Color(0.96, 0.62, 0.4, 1.0))
+		_emit_scrap_assist_state()
+		return
+
+	scrap_assist_meter = clampf(scrap_assist_meter - scrap_assist_use_cost, 0.0, scrap_assist_max)
+	GameState.announce_pickup("Scrap Assist pulse deployed.", Color(0.72, 0.9, 0.98, 1.0))
+	_emit_scrap_assist_state()
 
 
 func _handle_buffalo_breaks() -> void:
