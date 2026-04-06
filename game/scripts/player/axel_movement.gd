@@ -17,6 +17,7 @@ signal power_mode_changed(power_name: String, time_left: float, total_time: floa
 @export var knockback_x: float = 160.0
 @export var knockback_y: float = -120.0
 @export var power_duration: float = 15.0
+@export var scrap_assist_max: float = 100.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_pivot: Node2D = $AttackPivot
@@ -47,6 +48,18 @@ var current_stickers := 0
 var current_sticker_hits_remaining := 0
 var is_hurt := false
 var is_invulnerable := false
+var scrap_assist_meter: float = 0.0
+
+enum ScrapAssistLevel {
+	GREEN,
+	YELLOW,
+	ORANGE,
+	RED
+}
+
+var scrap_upgrade_bonus_damage: float = 0.0
+var scrap_upgrade_bonus_duration: float = 0.0
+var scrap_upgrade_malfunction_reduction: float = 0.0
 
 func _ready() -> void:
 	add_to_group("player")
