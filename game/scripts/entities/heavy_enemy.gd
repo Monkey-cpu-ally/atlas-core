@@ -12,7 +12,7 @@ func _ready() -> void:
 	patrol_speed = 58.0
 	chase_speed = 88.0
 	detect_radius = 260.0
-	max_hp = 8
+	max_hp = 20
 	scrap_reward = 3
 	coin_reward = 2
 	base_color = Color(0.4, 0.51, 0.63, 1.0)
