@@ -15,6 +15,8 @@ const CHIP_STICKER := "[-]"
 @onready var power_timer_label: Label = $Panel/Margin/Rows/PowerRow/PowerTimerLabel
 @onready var pickup_text_label: Label = $Panel/Margin/Rows/PickupTextLabel
 @onready var log_label: Label = $Panel/Margin/Rows/FlightLogLabel
+@onready var assist_label: Label = $ScrapAssistPanel/AssistLabel
+@onready var assist_meter: ProgressBar = $ScrapAssistPanel/AssistMeter
 
 var _pickup_text_timeout: float = 0.0
 
@@ -29,6 +31,7 @@ func _ready() -> void:
 	_on_stats_changed(GameState.get_state_snapshot())
 	_on_power_changed(PowerManager.active_power_id, PowerManager.remaining_time)
 	_refresh_latest_log()
+	_set_scrap_assist_ui(0.0, 100.0, "Green", Color("7fe08a"))
 
 
 func _process(delta: float) -> void:
@@ -98,3 +101,22 @@ func _build_sticker_text(stickers: Array) -> String:
 		else:
 			chunks.append(CHIP_STICKER)
 	return " ".join(chunks)
+
+
+func connect_player(player: Node) -> void:
+	if player == null:
+		return
+	if player.has_signal("scrap_assist_changed"):
+		player.scrap_assist_changed.connect(_on_scrap_assist_changed)
+
+
+func _on_scrap_assist_changed(value: float, max_value: float, level_name: String, color: Color) -> void:
+	_set_scrap_assist_ui(value, max_value, level_name, color)
+
+
+func _set_scrap_assist_ui(value: float, max_value: float, level_name: String, color: Color) -> void:
+	var safe_max := maxf(1.0, max_value)
+	assist_meter.max_value = safe_max
+	assist_meter.value = clampf(value, 0.0, safe_max)
+	assist_label.text = "Assist: %s" % level_name
+	assist_label.modulate = color
