@@ -542,13 +542,18 @@ func trigger_scrap_assist() -> void:
 
 func _do_scrap_green_assist() -> void:
 	emit_signal("pickup_feedback_requested", "Scrap Assist: Supply Drop", Color("7fe08a"))
-
-	# simple first version:
-	# either heal or give stored power placeholder
-	if current_sticker_hits_remaining < hits_per_sticker:
-		restore_hits(1)
-	else:
-		add_scrap(5)
+	var drop: Node = supply_drop_scene.instantiate()
+	get_parent().add_child(drop)
+	drop.global_position = global_position + Vector2(0, -160)
+	drop.ground_y = global_position.y - 8
+	drop.landed.connect(
+		func():
+			if current_sticker_hits_remaining < hits_per_sticker:
+				restore_hits(1)
+			else:
+				add_scrap(5)
+			drop.queue_free()
+	)
 
 
 func _do_scrap_yellow_assist() -> void:
