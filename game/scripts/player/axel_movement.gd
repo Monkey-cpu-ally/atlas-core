@@ -537,19 +537,47 @@ func trigger_scrap_assist() -> void:
 
 
 func _do_scrap_green_assist() -> void:
-	emit_signal("pickup_feedback_requested", "Scrap Assist: Green pulse", _get_scrap_assist_color(ScrapAssistLevel.GREEN))
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Supply Drop", Color("7fe08a"))
+
+	# simple first version:
+	# either heal or give stored power placeholder
+	if current_sticker_hits_remaining < hits_per_sticker:
+		restore_hits(1)
+	else:
+		add_scrap(5)
 
 
 func _do_scrap_yellow_assist() -> void:
-	emit_signal("pickup_feedback_requested", "Scrap Assist: Yellow pulse", _get_scrap_assist_color(ScrapAssistLevel.YELLOW))
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Shotgun Entry", Color("ffd447"))
+
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 140.0:
+			if enemy.has_method("take_hit"):
+				enemy.take_hit(999, global_position)
 
 
 func _do_scrap_orange_assist() -> void:
-	emit_signal("pickup_feedback_requested", "Scrap Assist: Orange pulse", _get_scrap_assist_color(ScrapAssistLevel.ORANGE))
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Burn Smoke", Color("ff9f43"))
+
+	var malfunction: bool = randf() < max(0.10, 0.30 - scrap_upgrade_malfunction_reduction)
+
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 120.0:
+			if enemy.has_method("take_hit"):
+				enemy.take_hit(1, global_position)
+
+	if malfunction:
+		take_damage(1, false, global_position + Vector2(-8, 0))
+		emit_signal("pickup_feedback_requested", "Scrap malfunction!", Color("ff5a5a"))
 
 
 func _do_scrap_red_assist() -> void:
-	emit_signal("pickup_feedback_requested", "Scrap Assist: Red pulse", _get_scrap_assist_color(ScrapAssistLevel.RED))
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Air Strike", Color("ff5a5a"))
+
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 220.0:
+			if enemy.has_method("take_hit"):
+				enemy.take_hit(3, global_position)
 
 
 func _handle_buffalo_breaks() -> void:
