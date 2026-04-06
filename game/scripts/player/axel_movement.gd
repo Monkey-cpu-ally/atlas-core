@@ -1,5 +1,9 @@
 extends CharacterBody2D
 
+var scrap_actor_scene = preload("res://world/ScrapAssistActor.tscn")
+var supply_drop_scene = preload("res://world/SupplyDrop.tscn")
+var fighter_plane_scene = preload("res://world/FighterPlaneAssist.tscn")
+
 enum PowerMode {
 	NONE,
 	BURNING_BUFFALO
