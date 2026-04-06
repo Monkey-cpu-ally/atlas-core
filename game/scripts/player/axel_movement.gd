@@ -637,17 +637,13 @@ func _do_plane_machine_gun_strike(percent: float) -> void:
 		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 220.0:
 			if enemy.has_method("take_percent_damage"):
 				enemy.take_percent_damage(percent, global_position)
-			elif enemy.has_method("take_hit"):
-				enemy.take_hit(max(1, int(round(3.0 * percent))), global_position)
 
 
 func _do_plane_bomb_strike(percent: float) -> void:
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 220.0:
+		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 180.0:
 			if enemy.has_method("take_percent_damage"):
 				enemy.take_percent_damage(percent, global_position)
-			elif enemy.has_method("take_hit"):
-				enemy.take_hit(max(1, int(round(5.0 * percent))), global_position)
 
 
 func play_burnt_feedback() -> void:
