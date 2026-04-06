@@ -8,10 +8,11 @@ func _ready() -> void:
 	enemy_family = "element"
 	enemy_type_label = "Root Crawlers"
 	weakness_rule = "stomp_or_basic_attack"
+	enemy_size_class = "weak"
 	patrol_speed = 78.0
 	chase_speed = 124.0
 	detect_radius = 220.0
-	max_health = 2
+	max_hp = 3
 	scrap_reward = 1
 	coin_reward = 1
 	base_color = Color(0.31, 0.63, 0.34, 1.0)

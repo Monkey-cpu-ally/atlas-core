@@ -10,6 +10,11 @@ class_name EnemyBase
 @export var chase_speed: float = 112.0
 @export var detect_radius: float = 210.0
 @export var max_health: int = 2
+var max_hp: int:
+	get:
+		return max_health
+	set(value):
+		max_health = max(1, value)
 @export var scrap_reward: int = 1
 @export var coin_reward: int = 1
 @export var enemy_size_class: String = "weak"
