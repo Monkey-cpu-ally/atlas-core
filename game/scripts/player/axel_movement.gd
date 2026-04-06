@@ -83,6 +83,7 @@ func _ready() -> void:
 	if PowerManager.power_changed:
 		PowerManager.power_changed.connect(_on_power_changed)
 	_sync_power_mode_from_id(PowerManager.get_active_power())
+	_emit_scrap_assist_state()
 	if has_node("DamageFlash"):
 		$DamageFlash.visible = false
 
