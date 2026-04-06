@@ -559,10 +559,22 @@ func _do_scrap_green_assist() -> void:
 func _do_scrap_yellow_assist() -> void:
 	emit_signal("pickup_feedback_requested", "Scrap Assist: Shotgun Entry", Color("ffd447"))
 
-	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 140.0:
-			if enemy.has_method("take_hit"):
-				enemy.take_hit(999, global_position)
+	var scrap_actor = scrap_actor_scene.instantiate()
+	get_parent().add_child(scrap_actor)
+
+	var start_pos = global_position + Vector2(-420, 0)
+	var stop_x = global_position.x - 40
+
+	scrap_actor.start_entry("yellow", start_pos, stop_x)
+
+	scrap_actor.assist_finished.connect(func():
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 140.0:
+				if enemy.has_method("take_hit"):
+					enemy.take_hit(999, global_position)
+
+		scrap_actor.exit_left()
+	)
 
 
 func _do_scrap_orange_assist() -> void:
