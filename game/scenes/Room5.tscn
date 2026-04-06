@@ -1,9 +1,23 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/room5_boss_arena.gd" id="1_room5"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="4_boss_placeholder"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(3800, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_2"]
+size = Vector2(24, 144)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_3"]
+size = Vector2(24, 144)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_4"]
+size = Vector2(90, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_5"]
+size = Vector2(140, 120)
 
 [node name="Room5" type="Node2D"]
 script = ExtResource("1_room5")
@@ -13,8 +27,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(3800, 48)
+shape = SubResource("RectangleShape2D_auto_1")
 position = Vector2(0, 312)
 
 [node name="GroundVisual" type="ColorRect" parent="Ground"]
@@ -62,8 +75,7 @@ collision_mask = 0
 position = Vector2(-220, 240)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BossGate"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(24, 144)
+shape = SubResource("RectangleShape2D_auto_2")
 
 [node name="GateVisual" type="ColorRect" parent="BossGate"]
 offset_left = -12.0
@@ -78,8 +90,7 @@ collision_mask = 0
 position = Vector2(860, 240)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ExitGate"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(24, 144)
+shape = SubResource("RectangleShape2D_auto_3")
 
 [node name="GateVisual" type="ColorRect" parent="ExitGate"]
 offset_left = -12.0
@@ -96,8 +107,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FightTrigger"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(90, 120)
+shape = SubResource("RectangleShape2D_auto_4")
 
 [node name="BossPlaceholder" parent="." instance=ExtResource("4_boss_placeholder")]
 position = Vector2(360, 246)
@@ -111,8 +121,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DefeatTrigger"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(140, 120)
+shape = SubResource("RectangleShape2D_auto_5")
 
 [node name="ArenaStateLabel" type="Label" parent="."]
 offset_left = -250.0

@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/entities/flicker_enemy.gd" id="1_flicker_script"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(32, 24)
 
 [node name="FlickerEnemy" type="CharacterBody2D"]
 script = ExtResource("1_flicker_script")
@@ -8,8 +10,7 @@ collision_layer = 4
 collision_mask = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(32, 24)
+shape = SubResource("RectangleShape2D_auto_1")
 
 [node name="Body" type="Polygon2D" parent="."]
 color = Color(0.58, 0.44, 0.78, 1)

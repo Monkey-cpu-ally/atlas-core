@@ -1,10 +1,18 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/fox_alcove.gd" id="1_alcove_script"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://world/FoxStatue.tscn" id="4_fox_statue"]
 [ext_resource type="Script" path="res://scripts/entities/alcove_trigger.gd" id="5_alcove_trigger_script"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(1400, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_auto_2"]
+radius = 42.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_3"]
+size = Vector2(280, 180)
 
 [node name="FoxAlcove" type="Node2D"]
 script = ExtResource("1_alcove_script")
@@ -14,8 +22,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(1400, 48)
+shape = SubResource("RectangleShape2D_auto_1")
 position = Vector2(0, 312)
 
 [node name="GroundVisual" type="ColorRect" parent="Ground"]
@@ -63,8 +70,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FoxStatue/InteractionArea"]
-shape = CircleShape2D.new()
-"shape:radius" = 42.0
+shape = SubResource("CircleShape2D_auto_2")
 
 [node name="PromptLabel" type="Label" parent="FoxStatue"]
 offset_left = -56.0
@@ -83,5 +89,4 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AlcoveTrigger"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(280, 180)
+shape = SubResource("RectangleShape2D_auto_3")

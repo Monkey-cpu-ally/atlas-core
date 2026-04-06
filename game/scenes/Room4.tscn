@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="2_hud"]
@@ -6,6 +6,11 @@
 [ext_resource type="PackedScene" path="res://world/BreakableWall.tscn" id="4_breakable_wall"]
 [ext_resource type="PackedScene" path="res://world/Coin.tscn" id="5_coin"]
 [ext_resource type="PackedScene" path="res://world/ScrapPickup.tscn" id="6_scrap"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(3600, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_auto_2"]
+radius = 12.0
 
 [node name="Room4" type="Node2D"]
 
@@ -14,8 +19,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(3600, 48)
+shape = SubResource("RectangleShape2D_auto_1")
 position = Vector2(0, 312)
 
 [node name="GroundVisual" type="ColorRect" parent="Ground"]
@@ -52,8 +56,7 @@ power_id = "burning_buffalo"
 duration = 15.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PowerPickup"]
-shape = CircleShape2D.new()
-"shape:radius" = 12.0
+shape = SubResource("CircleShape2D_auto_2")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="PowerPickup"]
 modulate = Color(0.99, 0.55, 0.35, 1)

@@ -97,7 +97,7 @@ func _remove_chips(amount: int) -> int:
 			break
 		if stickers[i] <= 0:
 			continue
-		var loss := min(stickers[i], remaining)
+		var loss: int = min(stickers[i], remaining)
 		stickers[i] -= loss
 		remaining -= loss
 		removed += loss

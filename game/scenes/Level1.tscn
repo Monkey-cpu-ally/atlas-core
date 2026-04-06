@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/level1.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
@@ -6,6 +6,17 @@
 [ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="3_root_crawler"]
 [ext_resource type="PackedScene" path="res://world/Coin.tscn" id="4_coin"]
 [ext_resource type="PackedScene" path="res://world/FoodPickup.tscn" id="5_food"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(3400, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_2"]
+size = Vector2(120, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_3"]
+size = Vector2(120, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_4"]
+size = Vector2(120, 20)
 
 [node name="Level1" type="Node2D"]
 script = ExtResource("1_level")
@@ -29,8 +40,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(3400, 48)
+shape = SubResource("RectangleShape2D_auto_1")
 
 [node name="GroundVisual" type="Polygon2D" parent="Ground"]
 polygon = PackedVector2Array(-1700, -24, 1700, -24, 1700, 24, -1700, 24)
@@ -42,8 +52,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlatformA"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(120, 20)
+shape = SubResource("RectangleShape2D_auto_2")
 
 [node name="PlatformAVisual" type="Polygon2D" parent="PlatformA"]
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
@@ -55,8 +64,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlatformB"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(120, 20)
+shape = SubResource("RectangleShape2D_auto_3")
 
 [node name="PlatformBVisual" type="Polygon2D" parent="PlatformB"]
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
@@ -68,8 +76,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlatformC"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(120, 20)
+shape = SubResource("RectangleShape2D_auto_4")
 
 [node name="PlatformCVisual" type="Polygon2D" parent="PlatformC"]
 polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)

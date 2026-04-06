@@ -1,9 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
 [ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="2_hud"]
 [ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="3_root_crawler"]
 [ext_resource type="PackedScene" path="res://world/Coin.tscn" id="4_coin"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(2400, 48)
 
 [node name="Room1" type="Node2D"]
 
@@ -12,8 +14,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(2400, 48)
+shape = SubResource("RectangleShape2D_auto_1")
 position = Vector2(0, 312)
 
 [node name="GroundVisual" type="ColorRect" parent="Ground"]

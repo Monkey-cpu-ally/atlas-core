@@ -21,8 +21,8 @@ signal power_mode_changed(power_name: String, time_left: float, total_time: floa
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var attack_pivot: Node2D = $AttackPivot
 @onready var attack_hitbox: Area2D = $AttackPivot/AttackHitbox
-@onready var sticker_health: AxelStickerHealth = $StickerHealth
-@onready var hurtbox: AxelHurtbox = $Hurtbox
+@onready var sticker_health: Node = $StickerHealth
+@onready var hurtbox: Area2D = $Hurtbox
 
 var facing := 1
 var is_attacking := false
@@ -262,7 +262,7 @@ func take_damage(light_hits: int = 1, is_heavy: bool = false, from_position: Vec
 
 
 func _hurt_feedback(from_position: Vector2) -> void:
-	var dir := sign(global_position.x - from_position.x)
+	var dir: float = sign(global_position.x - from_position.x)
 	if dir == 0:
 		dir = -facing
 
@@ -469,7 +469,7 @@ func activate_power(power_id: String) -> void:
 
 
 func restore_hits(value: int = 2) -> void:
-	var hits_to_restore := max(0, value)
+	var hits_to_restore: int = max(0, value)
 	if hits_to_restore <= 0:
 		return
 	if sticker_health and sticker_health.has_method("take_hit"):

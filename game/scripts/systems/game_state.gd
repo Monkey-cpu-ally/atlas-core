@@ -41,14 +41,14 @@ func apply_hit(chip_damage: int = 1, heavy_hit: bool = false) -> void:
 
 
 func restore_health(chips: int = 1) -> void:
-	var remaining := max(1, chips)
+	var remaining: int = max(1, chips)
 	for i in range(MAX_STICKERS - 1, -1, -1):
 		if remaining <= 0:
 			break
 		var gap := CHIP_PER_STICKER - sticker_chips[i]
 		if gap <= 0:
 			continue
-		var recovered := min(gap, remaining)
+		var recovered: int = min(gap, remaining)
 		sticker_chips[i] += recovered
 		remaining -= recovered
 	_emit_stats()
@@ -107,13 +107,13 @@ func announce_pickup(text: String, color: Color = Color(0.94, 0.86, 0.54, 1.0)) 
 
 
 func _remove_chips(chips_to_remove: int) -> void:
-	var remaining := chips_to_remove
+	var remaining: int = chips_to_remove
 	for i in range(MAX_STICKERS):
 		if remaining <= 0:
 			break
 		if sticker_chips[i] <= 0:
 			continue
-		var loss := min(sticker_chips[i], remaining)
+		var loss: int = min(sticker_chips[i], remaining)
 		sticker_chips[i] -= loss
 		remaining -= loss
 

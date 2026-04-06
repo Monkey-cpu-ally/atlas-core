@@ -12,11 +12,11 @@ enum State {
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var floor_ray: RayCast2D = $FloorRay
 @onready var wall_ray: RayCast2D = $WallRay
-@onready var hurtbox: EnemyHurtbox = $Hurtbox
-@onready var hitbox: EnemyContactHitbox = $Hitbox
+@onready var hurtbox: Area2D = $Hurtbox
+@onready var hitbox: Area2D = $Hitbox
 
 var hp: int
-var facing := -1
+var facing: int = -1
 var state: State = State.PATROL
 var invulnerable := false
 
@@ -66,7 +66,7 @@ func take_hit(damage: int, from_position: Vector2) -> void:
 	hp -= damage
 	invulnerable = true
 
-	var dir := sign(global_position.x - from_position.x)
+	var dir: float = sign(global_position.x - from_position.x)
 	if dir == 0:
 		dir = 1
 

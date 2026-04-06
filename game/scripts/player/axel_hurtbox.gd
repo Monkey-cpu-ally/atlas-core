@@ -29,7 +29,7 @@ func _on_hurtbox_area_entered(area: Area2D) -> void:
 	if not area.has_method("get_damage_data"):
 		return
 
-	var data = area.get_damage_data()
+	var data: Dictionary = area.get_damage_data()
 	take_damage(
 		int(data.get("light_hits", 1)),
 		bool(data.get("is_heavy", false)),

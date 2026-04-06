@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/game_root.gd" id="1_root"]
 [ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_player"]
@@ -8,6 +8,14 @@
 [ext_resource type="PackedScene" path="res://scenes/enemy_flicker.tscn" id="6_flicker_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/enemy_heavy.tscn" id="7_heavy_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/pickup_item.tscn" id="8_pickup"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(3200, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_2"]
+size = Vector2(40, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_3"]
+size = Vector2(88, 18)
 
 [node name="GameRoot" type="Node2D"]
 script = ExtResource("1_root")
@@ -26,8 +34,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(3200, 48)
+shape = SubResource("RectangleShape2D_auto_1")
 
 [node name="GroundVisual" type="Polygon2D" parent="Ground"]
 polygon = PackedVector2Array(-1600, -24, 1600, -24, 1600, 24, -1600, 24)
@@ -41,8 +48,7 @@ metadata/is_breakable_wall = true
 groups = ["breakable"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BreakableWall"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(40, 120)
+shape = SubResource("RectangleShape2D_auto_2")
 
 [node name="WallVisual" type="Polygon2D" parent="BreakableWall"]
 polygon = PackedVector2Array(-20, -60, 20, -60, 20, 60, -20, 60)
@@ -56,8 +62,7 @@ metadata/is_breakable_floor = true
 groups = ["breakable"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BreakableFloor"]
-shape = RectangleShape2D.new()
-"shape:size" = Vector2(88, 18)
+shape = SubResource("RectangleShape2D_auto_3")
 
 [node name="FloorVisual" type="Polygon2D" parent="BreakableFloor"]
 polygon = PackedVector2Array(-44, -9, 44, -9, 44, 9, -44, 9)
