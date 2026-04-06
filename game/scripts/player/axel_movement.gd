@@ -467,15 +467,16 @@ func _emit_scrap_assist_state() -> void:
 
 
 func get_scrap_assist_level() -> int:
-	var max_value: float = maxf(scrap_assist_max, 1.0)
-	var ratio: float = clampf(scrap_assist_meter / max_value, 0.0, 1.0)
-	if ratio >= 0.75:
+	var ratio := scrap_assist_meter / scrap_assist_max
+
+	if ratio < 0.25:
 		return ScrapAssistLevel.GREEN
-	if ratio >= 0.5:
+	elif ratio < 0.50:
 		return ScrapAssistLevel.YELLOW
-	if ratio >= 0.25:
+	elif ratio < 0.75:
 		return ScrapAssistLevel.ORANGE
-	return ScrapAssistLevel.RED
+	else:
+		return ScrapAssistLevel.RED
 
 
 func _get_scrap_assist_level_name(level: int) -> String:
