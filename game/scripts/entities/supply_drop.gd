@@ -1,10 +1,14 @@
 extends Node2D
-class_name SupplyDrop
 
-@onready var body_sprite: Sprite2D = $Sprite2D
-@onready var parachute_sprite: Sprite2D = $Parachute
+signal landed
 
+@export var fall_speed: float = 80.0
+@export var ground_y: float = 0.0
 
-func _ready() -> void:
-	# Placeholder hook for drop motion logic.
-	pass
+func _process(delta: float) -> void:
+	global_position.y += fall_speed * delta
+
+	if global_position.y >= ground_y:
+		global_position.y = ground_y
+		emit_signal("landed")
+		set_process(false)
