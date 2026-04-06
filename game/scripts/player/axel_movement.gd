@@ -606,6 +606,12 @@ func _do_scrap_orange_assist() -> void:
 func _do_scrap_red_assist() -> void:
 	emit_signal("pickup_feedback_requested", "Scrap Assist: Air Strike", Color("ff5a5a"))
 
+	var plane = fighter_plane_scene.instantiate()
+	get_parent().add_child(plane)
+
+	plane.start_strike(global_position + Vector2(-500, -120))
+
+	# immediate gameplay effect placeholder
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 220.0:
 			if enemy.has_method("take_hit"):
