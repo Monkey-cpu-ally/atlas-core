@@ -621,14 +621,33 @@ func _do_scrap_red_assist() -> void:
 
 	var plane = fighter_plane_scene.instantiate()
 	get_parent().add_child(plane)
-
 	plane.start_strike(global_position + Vector2(-500, -120))
 
-	# immediate gameplay effect placeholder
+	var attack_mode: int = randi() % 2
+	var bonus: float = scrap_upgrade_bonus_damage
+
+	if attack_mode == 0:
+		_do_plane_machine_gun_strike(0.20 + bonus)
+	else:
+		_do_plane_bomb_strike(0.30 + bonus)
+
+
+func _do_plane_machine_gun_strike(percent: float) -> void:
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 220.0:
-			if enemy.has_method("take_hit"):
-				enemy.take_hit(3, global_position)
+			if enemy.has_method("take_percent_damage"):
+				enemy.take_percent_damage(percent, global_position)
+			elif enemy.has_method("take_hit"):
+				enemy.take_hit(max(1, int(round(3.0 * percent))), global_position)
+
+
+func _do_plane_bomb_strike(percent: float) -> void:
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 220.0:
+			if enemy.has_method("take_percent_damage"):
+				enemy.take_percent_damage(percent, global_position)
+			elif enemy.has_method("take_hit"):
+				enemy.take_hit(max(1, int(round(5.0 * percent))), global_position)
 
 
 func play_burnt_feedback() -> void:
