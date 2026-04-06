@@ -451,6 +451,58 @@ func _get_power_color(mode: int) -> Color:
 			return Color(0.82, 0.82, 0.82, 1.0)
 
 
+func _emit_scrap_assist_state() -> void:
+	var level: int = get_scrap_assist_level()
+
+	emit_signal(
+		"scrap_assist_changed",
+		scrap_assist_meter,
+		scrap_assist_max,
+		_get_scrap_assist_level_name(level),
+		_get_scrap_assist_color(level)
+	)
+
+
+func get_scrap_assist_level() -> int:
+	var max_value: float = maxf(scrap_assist_max, 1.0)
+	var ratio: float = clampf(scrap_assist_meter / max_value, 0.0, 1.0)
+	if ratio >= 0.75:
+		return ScrapAssistLevel.GREEN
+	if ratio >= 0.5:
+		return ScrapAssistLevel.YELLOW
+	if ratio >= 0.25:
+		return ScrapAssistLevel.ORANGE
+	return ScrapAssistLevel.RED
+
+
+func _get_scrap_assist_level_name(level: int) -> String:
+	match level:
+		ScrapAssistLevel.GREEN:
+			return "GREEN"
+		ScrapAssistLevel.YELLOW:
+			return "YELLOW"
+		ScrapAssistLevel.ORANGE:
+			return "ORANGE"
+		ScrapAssistLevel.RED:
+			return "RED"
+		_:
+			return "UNKNOWN"
+
+
+func _get_scrap_assist_color(level: int) -> Color:
+	match level:
+		ScrapAssistLevel.GREEN:
+			return Color(0.55, 0.9, 0.48, 1.0)
+		ScrapAssistLevel.YELLOW:
+			return Color(0.98, 0.88, 0.4, 1.0)
+		ScrapAssistLevel.ORANGE:
+			return Color(0.97, 0.62, 0.34, 1.0)
+		ScrapAssistLevel.RED:
+			return Color(0.9, 0.33, 0.3, 1.0)
+		_:
+			return Color(0.82, 0.82, 0.82, 1.0)
+
+
 func _handle_buffalo_breaks() -> void:
 	if abs(velocity.x) < 140.0:
 		return
