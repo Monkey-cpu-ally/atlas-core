@@ -111,7 +111,12 @@ func connect_player(player: Node) -> void:
 
 
 func _on_scrap_assist_changed(value: float, max_value: float, level_name: String, color: Color) -> void:
-	_set_scrap_assist_ui(value, max_value, level_name, color)
+	assist_label.text = "Scrap Assist: " + level_name
+	assist_label.modulate = color
+
+	assist_meter.max_value = max_value
+	assist_meter.value = value
+	assist_meter.modulate = color
 
 
 func _set_scrap_assist_ui(value: float, max_value: float, level_name: String, color: Color) -> void:
