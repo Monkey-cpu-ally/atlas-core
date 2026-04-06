@@ -513,15 +513,41 @@ func _handle_scrap_assist_input() -> void:
 
 
 func trigger_scrap_assist() -> void:
-	if scrap_assist_max <= 0.0:
-		return
-	if scrap_assist_meter < scrap_assist_use_cost:
-		GameState.announce_pickup("Scrap Assist low. Need more charge.", Color(0.96, 0.62, 0.4, 1.0))
+	if scrap_assist_meter <= 0:
+		emit_signal("pickup_feedback_requested", "Scrap assist empty", Color("ff7070"))
 		_emit_scrap_assist_state()
 		return
-	scrap_assist_meter = clampf(scrap_assist_meter - scrap_assist_use_cost, 0.0, scrap_assist_max)
-	GameState.announce_pickup("Scrap Assist pulse deployed.", Color(0.72, 0.9, 0.98, 1.0))
+
+	var level := get_scrap_assist_level()
+
+	match level:
+		ScrapAssistLevel.GREEN:
+			_do_scrap_green_assist()
+		ScrapAssistLevel.YELLOW:
+			_do_scrap_yellow_assist()
+		ScrapAssistLevel.ORANGE:
+			_do_scrap_orange_assist()
+		ScrapAssistLevel.RED:
+			_do_scrap_red_assist()
+
+	scrap_assist_meter = 0.0
 	_emit_scrap_assist_state()
+
+
+func _do_scrap_green_assist() -> void:
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Green pulse", _get_scrap_assist_color(ScrapAssistLevel.GREEN))
+
+
+func _do_scrap_yellow_assist() -> void:
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Yellow pulse", _get_scrap_assist_color(ScrapAssistLevel.YELLOW))
+
+
+func _do_scrap_orange_assist() -> void:
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Orange pulse", _get_scrap_assist_color(ScrapAssistLevel.ORANGE))
+
+
+func _do_scrap_red_assist() -> void:
+	emit_signal("pickup_feedback_requested", "Scrap Assist: Red pulse", _get_scrap_assist_color(ScrapAssistLevel.RED))
 
 
 func _handle_buffalo_breaks() -> void:
