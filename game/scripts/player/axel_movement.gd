@@ -482,29 +482,29 @@ func get_scrap_assist_level() -> int:
 func _get_scrap_assist_level_name(level: int) -> String:
 	match level:
 		ScrapAssistLevel.GREEN:
-			return "GREEN"
+			return "Green"
 		ScrapAssistLevel.YELLOW:
-			return "YELLOW"
+			return "Yellow"
 		ScrapAssistLevel.ORANGE:
-			return "ORANGE"
+			return "Orange"
 		ScrapAssistLevel.RED:
-			return "RED"
+			return "Red"
 		_:
-			return "UNKNOWN"
+			return "Green"
 
 
 func _get_scrap_assist_color(level: int) -> Color:
 	match level:
 		ScrapAssistLevel.GREEN:
-			return Color(0.55, 0.9, 0.48, 1.0)
+			return Color("7fe08a")
 		ScrapAssistLevel.YELLOW:
-			return Color(0.98, 0.88, 0.4, 1.0)
+			return Color("ffd447")
 		ScrapAssistLevel.ORANGE:
-			return Color(0.97, 0.62, 0.34, 1.0)
+			return Color("ff9f43")
 		ScrapAssistLevel.RED:
-			return Color(0.9, 0.33, 0.3, 1.0)
+			return Color("ff5a5a")
 		_:
-			return Color(0.82, 0.82, 0.82, 1.0)
+			return Color("7fe08a")
 
 
 func _handle_scrap_assist_input() -> void:
