@@ -190,6 +190,14 @@ func _family_display() -> String:
 			return "Unknown"
 
 
+func is_weak_enemy() -> bool:
+	return enemy_size_class == "weak"
+
+
+func is_large_enemy() -> bool:
+	return enemy_size_class == "large"
+
+
 func _apply_direct_hit(damage: int, from_position: Vector2) -> bool:
 	current_health -= max(1, damage)
 	hit_cooldown = 0.1
