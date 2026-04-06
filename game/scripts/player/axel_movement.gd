@@ -652,9 +652,11 @@ func _do_plane_bomb_strike(percent: float) -> void:
 
 func play_burnt_feedback() -> void:
 	if sprite:
-		sprite.modulate = Color(1.0, 0.55, 0.45)
+		sprite.modulate = Color(1.0, 0.45, 0.35)
+		if sprite.sprite_frames and sprite.sprite_frames.has_animation("burnt"):
+			sprite.play("burnt")
 		var t = create_tween()
-		t.tween_property(sprite, "modulate", Color.WHITE, 0.35)
+		t.tween_property(sprite, "modulate", Color.WHITE, 0.4)
 
 
 func upgrade_scrap_damage(level: int) -> void:
