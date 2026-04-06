@@ -8,6 +8,7 @@ func _ready() -> void:
 	enemy_family_name = "Machine"
 	enemy_category = "Machine - Heavy enemies"
 	weakness_rule = "empowered_attack_or_burning_buffalo"
+	enemy_size_class = "large"
 	patrol_speed = 58.0
 	chase_speed = 88.0
 	detect_radius = 260.0
