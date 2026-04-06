@@ -508,17 +508,17 @@ func _get_scrap_assist_color(level: int) -> Color:
 
 
 func _handle_scrap_assist_input() -> void:
-	if not InputMap.has_action("assist"):
-		return
-	if not Input.is_action_just_pressed("assist"):
-		return
+	if Input.is_action_just_pressed("assist"):
+		trigger_scrap_assist()
+
+
+func trigger_scrap_assist() -> void:
 	if scrap_assist_max <= 0.0:
 		return
 	if scrap_assist_meter < scrap_assist_use_cost:
 		GameState.announce_pickup("Scrap Assist low. Need more charge.", Color(0.96, 0.62, 0.4, 1.0))
 		_emit_scrap_assist_state()
 		return
-
 	scrap_assist_meter = clampf(scrap_assist_meter - scrap_assist_use_cost, 0.0, scrap_assist_max)
 	GameState.announce_pickup("Scrap Assist pulse deployed.", Color(0.72, 0.9, 0.98, 1.0))
 	_emit_scrap_assist_state()
