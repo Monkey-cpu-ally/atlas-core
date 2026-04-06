@@ -12,6 +12,7 @@ class_name EnemyBase
 @export var max_health: int = 2
 @export var scrap_reward: int = 1
 @export var coin_reward: int = 1
+@export var enemy_size_class: String = "weak"
 @export var base_color: Color = Color(0.46, 0.53, 0.58, 1.0)
 @export var alert_color: Color = Color(0.62, 0.71, 0.76, 1.0)
 @export var log_note: String = "Pattern noted."
