@@ -579,17 +579,28 @@ func _do_scrap_yellow_assist() -> void:
 
 func _do_scrap_orange_assist() -> void:
 	emit_signal("pickup_feedback_requested", "Scrap Assist: Burn Smoke", Color("ff9f43"))
+	var scrap_actor = scrap_actor_scene.instantiate()
+	get_parent().add_child(scrap_actor)
 
-	var malfunction: bool = randf() < max(0.10, 0.30 - scrap_upgrade_malfunction_reduction)
+	var start_pos = global_position + Vector2(-420, 0)
+	var stop_x = global_position.x - 30
 
-	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 120.0:
-			if enemy.has_method("take_hit"):
-				enemy.take_hit(1, global_position)
+	scrap_actor.start_entry("orange", start_pos, stop_x)
 
-	if malfunction:
-		take_damage(1, false, global_position + Vector2(-8, 0))
-		emit_signal("pickup_feedback_requested", "Scrap malfunction!", Color("ff5a5a"))
+	scrap_actor.assist_finished.connect(func():
+		var malfunction: bool = randf() < max(0.10, 0.30 - scrap_upgrade_malfunction_reduction)
+
+		for enemy in get_tree().get_nodes_in_group("enemies"):
+			if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 120.0:
+				if enemy.has_method("take_hit"):
+					enemy.take_hit(1, global_position)
+
+		if malfunction:
+			take_damage(1, false, global_position + Vector2(-8, 0))
+			emit_signal("pickup_feedback_requested", "Scrap malfunction!", Color("ff5a5a"))
+
+		scrap_actor.exit_left()
+	)
 
 
 func _do_scrap_red_assist() -> void:
