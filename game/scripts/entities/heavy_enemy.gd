@@ -4,7 +4,9 @@ extends EnemyBase
 func _ready() -> void:
 	enemy_id = "heavy_enemy"
 	enemy_display_name = "Heavy Chassis"
-	enemy_category = "Heavy enemies"
+	enemy_family = EnemyFamily.MACHINE
+	enemy_family_name = "Machine"
+	enemy_category = "Machine - Heavy enemies"
 	weakness_rule = "empowered_attack_or_burning_buffalo"
 	patrol_speed = 58.0
 	chase_speed = 88.0

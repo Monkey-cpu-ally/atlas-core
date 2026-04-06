@@ -4,6 +4,7 @@ class_name EnemyBase
 @export var enemy_id: String = "enemy"
 @export var enemy_display_name: String = "Enemy Unit"
 @export var enemy_category: String = "generic"
+@export var enemy_family: String = "machine"
 @export var weakness_rule: String = "attackable"
 @export var patrol_speed: float = 72.0
 @export var chase_speed: float = 112.0
@@ -139,7 +140,7 @@ func _die() -> void:
 	GameState.add_scrap_parts(scrap_reward)
 	GameState.add_coins(coin_reward)
 	GameState.add_scrap_meter(9.0)
-	FlightLog.add_enemy_note(enemy_display_name, log_note)
+	FlightLog.add_enemy_note("%s [%s]" % [enemy_display_name, _family_display()], log_note)
 	GameState.announce_pickup("%s cracked open (+%d scrap)" % [enemy_display_name, scrap_reward], Color(0.74, 0.83, 0.91, 1.0))
 	queue_free()
 
@@ -148,3 +149,15 @@ func _restore_visual_after_hit() -> void:
 	if hit_cooldown > 0.0:
 		return
 	body_poly.color = alert_color if state == "chase" else base_color
+
+
+func _family_display() -> String:
+	match enemy_family.to_lower():
+		"element":
+			return "Element"
+		"dinosaur":
+			return "Dinosaur"
+		"machine":
+			return "Machine"
+		_:
+			return "Unknown"

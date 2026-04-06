@@ -13,21 +13,22 @@ func _ready() -> void:
 
 func _seed_flight_log() -> void:
 	FlightLog.entries.clear()
+	FlightLog.add_observation("Enemy families mapped: Element / Dinosaur / Machine.")
 	FlightLog.add_enemy_note(
 		"Root Crawler",
-		"Round shell, moss trim. Slow march with a clear turn cue."
+		"Family: Dinosaur. Round shell, moss trim. Slow march with a clear turn cue."
 	)
 	FlightLog.add_enemy_note(
 		"Gear Bug",
-		"Turquoise wheel-shell jitters before burst. Back seam is the weak read."
+		"Family: Machine. Turquoise wheel-shell jitters before burst. Back seam is the weak read."
 	)
 	FlightLog.add_enemy_note(
 		"Flicker Unit",
-		"Violet blink loop. Strike right after the glow dip."
+		"Family: Element. Violet blink loop. Strike right after the glow dip."
 	)
 	FlightLog.add_enemy_note(
 		"Heavy Chassis",
-		"Chunky front shell shrugs weak taps. Use empowered force."
+		"Family: Machine. Chunky front shell shrugs weak taps. Use empowered force."
 	)
 	FlightLog.add_power_note(
 		"Burning Buffalo",

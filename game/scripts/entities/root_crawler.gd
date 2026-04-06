@@ -4,7 +4,9 @@ extends EnemyBase
 func _ready() -> void:
 	enemy_id = "root_crawler"
 	enemy_display_name = "Root Crawler"
-	enemy_category = "Root Crawlers"
+	enemy_category = "element_type"
+	enemy_family = "element"
+	enemy_type_label = "Root Crawlers"
 	weakness_rule = "stomp_or_basic_attack"
 	patrol_speed = 78.0
 	chase_speed = 124.0

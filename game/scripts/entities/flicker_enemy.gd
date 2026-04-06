@@ -4,7 +4,8 @@ extends EnemyBase
 func _ready() -> void:
 	enemy_id = "flicker_enemy"
 	enemy_display_name = "Flicker Unit"
-	enemy_category = "Flicker enemies"
+	enemy_family = EnemyFamily.ELEMENT
+	enemy_category = "Element"
 	weakness_rule = "attack_after_blink"
 	patrol_speed = 62.0
 	chase_speed = 112.0

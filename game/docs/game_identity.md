@@ -66,11 +66,21 @@
 ## Enemy Rules
 - Clear silhouettes and simple readable patterns.
 - Readability-first body language with punchy hit reactions.
-- Required categories:
-  - Root Crawlers
-  - Gear Bugs
-  - Flicker enemies
-  - Heavy enemies
+- Required family taxonomy (locked from provided references):
+  - Element Family:
+    - elemental bodies (fire/water/air/stone/ice motifs)
+    - round/chunky reads first, high-clarity element accent second
+  - Dinosaur Family:
+    - creature-forward silhouettes, playful but dangerous posture
+    - strong profile readability with bright species accents
+  - Machine Family:
+    - mechanical shells, bolts/plates/wheels, heavy shape weight
+    - high-contrast warning accents for weak points and attack tells
+- Prototype mapping used in current slice:
+  - Root Crawlers -> Dinosaur Family (small crawler branch)
+  - Gear Bugs -> Machine Family (light machine branch)
+  - Flicker enemies -> Element Family (energy/flicker branch)
+  - Heavy enemies -> Machine Family (heavy chassis branch)
 
 ## Flight Log Tone
 - Mechanical explorer journal.

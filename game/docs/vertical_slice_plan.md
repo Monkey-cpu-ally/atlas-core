@@ -8,6 +8,7 @@
   - Scrap meter that charges from combat + pickups and spends on systems.
   - Six one-at-a-time timed powers (15s each) with distinct icon/color/behavior.
   - Enemy category pass: Root Crawler, Gear Bug, Flicker Unit, Heavy Chassis.
+  - Enemy family taxonomy lock: Element / Dinosaur / Machine (used as style lineage + encounter labeling).
   - Breakable wall/floor interactions (Buffalo + smash gate examples).
   - Scrap-themed HUD + Flight Log feed with practical cryptic entries.
 
@@ -45,8 +46,18 @@
   - `player_controller.gd`: movement/attack/power ability/environment interactions.
 - `scripts/entities/`
   - `enemy_base.gd`: shared patrol/detect/chase/contact/hit response loop.
-  - `root_crawler.gd`, `gear_bug.gd`, `flicker_enemy.gd`, `heavy_enemy.gd`: category tuning.
+  - `root_crawler.gd`, `gear_bug.gd`, `flicker_enemy.gd`, `heavy_enemy.gd`: category + family tuning.
   - `pickup_item.gd`: reusable pickup logic for coin/scrap/food/power.
+
+## Enemy Family Mapping (Reference-Driven)
+- **Element family**:
+  - `Root Crawler` (earth/root line)
+  - `Flicker Unit` (lightning/frost spectral line)
+- **Dinosaur family**:
+  - reserved for incoming creature variants and branch forms
+- **Machine family**:
+  - `Gear Bug` (small machine line)
+  - `Heavy Chassis` (armored machine line)
 - `scripts/ui/`
   - `hud.gd`: sticker readout, scrap meter, power icon/timer, pickup text, log summary.
 
