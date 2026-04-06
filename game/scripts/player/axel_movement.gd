@@ -7,6 +7,7 @@ enum PowerMode {
 
 signal pickup_feedback_requested(text: String, color: Color)
 signal power_mode_changed(power_name: String, time_left: float, total_time: float, color: Color)
+signal scrap_assist_changed(value: float, max_value: float, level_name: String, color: Color)
 
 @export var speed := 200.0
 @export var acceleration := 900.0
