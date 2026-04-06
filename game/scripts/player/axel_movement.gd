@@ -657,6 +657,16 @@ func play_burnt_feedback() -> void:
 		t.tween_property(sprite, "modulate", Color.WHITE, 0.35)
 
 
+func upgrade_scrap_damage(level: int) -> void:
+	match level:
+		1:
+			scrap_upgrade_bonus_damage = 0.05
+		2:
+			scrap_upgrade_bonus_damage = 0.10
+		_:
+			scrap_upgrade_bonus_damage = 0.0
+
+
 func _handle_buffalo_breaks() -> void:
 	if abs(velocity.x) < 140.0:
 		return
