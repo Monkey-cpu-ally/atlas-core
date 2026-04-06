@@ -8,6 +8,7 @@ enum PowerMode {
 signal pickup_feedback_requested(text: String, color: Color)
 signal power_mode_changed(power_name: String, time_left: float, total_time: float, color: Color)
 signal scrap_assist_changed(value: float, max_value: float, level_name: String, color: Color)
+signal scrap_changed(value: int)
 
 @export var speed := 200.0
 @export var acceleration := 900.0
@@ -50,6 +51,7 @@ var current_stickers := 0
 var current_sticker_hits_remaining := 0
 var is_hurt := false
 var is_invulnerable := false
+var scrap: int = 0
 var scrap_assist_meter: float = 0.0
 
 enum ScrapAssistLevel {
@@ -566,10 +568,13 @@ func add_coin(value: int) -> void:
 	GameState.announce_pickup("Star coin +%d" % value, Color(0.95, 0.86, 0.54, 1.0))
 
 
-func add_scrap(value: int) -> void:
-	GameState.add_scrap_parts(value)
-	GameState.add_scrap_meter(8.0 * float(value))
-	GameState.announce_pickup("Scrap bits +%d | Meter +%d" % [value, int(8 * value)], Color(0.73, 0.83, 0.91, 1.0))
+func add_scrap(amount: int = 1) -> void:
+	scrap += amount
+	scrap_assist_meter = min(scrap_assist_meter + amount, scrap_assist_max)
+
+	emit_signal("scrap_changed", scrap)
+	emit_signal("pickup_feedback_requested", "+%d Scrap" % amount, Color("4ecdc4"))
+	_emit_scrap_assist_state()
 
 
 func add_food(value: int) -> void:
