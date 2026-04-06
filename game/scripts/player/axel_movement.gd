@@ -597,6 +597,7 @@ func _do_scrap_orange_assist() -> void:
 
 		if malfunction:
 			take_damage(1, false, global_position + Vector2(-8, 0))
+			play_burnt_feedback()
 			emit_signal("pickup_feedback_requested", "Scrap malfunction!", Color("ff5a5a"))
 
 		scrap_actor.exit_left()
@@ -616,6 +617,13 @@ func _do_scrap_red_assist() -> void:
 		if enemy is Node2D and enemy.global_position.distance_to(global_position) <= 220.0:
 			if enemy.has_method("take_hit"):
 				enemy.take_hit(3, global_position)
+
+
+func play_burnt_feedback() -> void:
+	if sprite:
+		sprite.modulate = Color(1.0, 0.55, 0.45)
+		var t = create_tween()
+		t.tween_property(sprite, "modulate", Color.WHITE, 0.35)
 
 
 func _handle_buffalo_breaks() -> void:
