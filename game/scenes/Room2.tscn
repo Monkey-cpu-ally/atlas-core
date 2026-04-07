@@ -1,0 +1,158 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="1_axel"]
+[ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" path="res://scenes/root_crawler_simple.tscn" id="3_root_crawler"]
+[ext_resource type="PackedScene" path="res://world/Coin.tscn" id="4_coin"]
+[ext_resource type="PackedScene" path="res://world/ScrapPickup.tscn" id="5_scrap"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(3400, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_2"]
+size = Vector2(120, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_3"]
+size = Vector2(120, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_4"]
+size = Vector2(140, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_5"]
+size = Vector2(80, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_6"]
+size = Vector2(80, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_7"]
+size = Vector2(80, 20)
+
+[node name="Room2" type="Node2D"]
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_auto_1")
+position = Vector2(0, 312)
+
+[node name="GroundVisual" type="ColorRect" parent="Ground"]
+offset_left = -1700.0
+offset_top = 288.0
+offset_right = 1700.0
+offset_bottom = 336.0
+color = Color(0.47, 0.43, 0.31, 1)
+
+[node name="Platforms" type="Node2D" parent="."]
+
+[node name="ClimbPlatformA" type="StaticBody2D" parent="Platforms"]
+position = Vector2(-520, 250)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/ClimbPlatformA"]
+shape = SubResource("RectangleShape2D_auto_2")
+
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformA"]
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+color = Color(0.52, 0.45, 0.34, 1)
+
+[node name="ClimbPlatformB" type="StaticBody2D" parent="Platforms"]
+position = Vector2(-350, 200)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/ClimbPlatformB"]
+shape = SubResource("RectangleShape2D_auto_3")
+
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformB"]
+polygon = PackedVector2Array(-60, -10, 60, -10, 60, 10, -60, 10)
+color = Color(0.52, 0.45, 0.34, 1)
+
+[node name="ClimbPlatformC" type="StaticBody2D" parent="Platforms"]
+position = Vector2(-170, 150)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/ClimbPlatformC"]
+shape = SubResource("RectangleShape2D_auto_4")
+
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/ClimbPlatformC"]
+polygon = PackedVector2Array(-70, -10, 70, -10, 70, 10, -70, 10)
+color = Color(0.52, 0.45, 0.34, 1)
+
+[node name="NarrowPlatformA" type="StaticBody2D" parent="Platforms"]
+position = Vector2(860, 220)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/NarrowPlatformA"]
+shape = SubResource("RectangleShape2D_auto_5")
+
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformA"]
+polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
+color = Color(0.52, 0.45, 0.34, 1)
+
+[node name="NarrowPlatformB" type="StaticBody2D" parent="Platforms"]
+position = Vector2(1010, 180)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/NarrowPlatformB"]
+shape = SubResource("RectangleShape2D_auto_6")
+
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformB"]
+polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
+color = Color(0.52, 0.45, 0.34, 1)
+
+[node name="NarrowPlatformC" type="StaticBody2D" parent="Platforms"]
+position = Vector2(1160, 140)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/NarrowPlatformC"]
+shape = SubResource("RectangleShape2D_auto_7")
+
+[node name="PlatformVisual" type="Polygon2D" parent="Platforms/NarrowPlatformC"]
+polygon = PackedVector2Array(-40, -10, 40, -10, 40, 10, -40, 10)
+color = Color(0.52, 0.45, 0.34, 1)
+
+[node name="Axel" parent="." instance=ExtResource("1_axel")]
+position = Vector2(-760, 210)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-420, 110)
+enabled = true
+limit_left = -1200
+limit_top = -280
+limit_right = 1600
+limit_bottom = 600
+smoothing_enabled = true
+smoothing_speed = 8.0
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="PlatformEnemy" parent="Enemies" instance=ExtResource("3_root_crawler")]
+position = Vector2(-170, 110)
+
+[node name="DropEnemyA" parent="Enemies" instance=ExtResource("3_root_crawler")]
+position = Vector2(220, 246)
+
+[node name="DropEnemyB" parent="Enemies" instance=ExtResource("3_root_crawler")]
+position = Vector2(420, 246)
+
+[node name="Coins" type="Node2D" parent="."]
+
+[node name="CoinA" parent="Coins" instance=ExtResource("4_coin")]
+position = Vector2(560, 220)
+
+[node name="CoinB" parent="Coins" instance=ExtResource("4_coin")]
+position = Vector2(620, 220)
+
+[node name="ScrapPickup" parent="." instance=ExtResource("5_scrap")]
+position = Vector2(680, 220)
+
+[node name="ExitMarker" type="Marker2D" parent="."]
+position = Vector2(1360, 130)

@@ -1,0 +1,92 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/fox_alcove.gd" id="1_alcove_script"]
+[ext_resource type="PackedScene" path="res://scenes/player_axel.tscn" id="2_axel"]
+[ext_resource type="PackedScene" path="res://scenes/ui_hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://world/FoxStatue.tscn" id="4_fox_statue"]
+[ext_resource type="Script" path="res://scripts/entities/alcove_trigger.gd" id="5_alcove_trigger_script"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_1"]
+size = Vector2(1400, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_auto_2"]
+radius = 42.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto_3"]
+size = Vector2(280, 180)
+
+[node name="FoxAlcove" type="Node2D"]
+script = ExtResource("1_alcove_script")
+
+[node name="Ground" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_auto_1")
+position = Vector2(0, 312)
+
+[node name="GroundVisual" type="ColorRect" parent="Ground"]
+offset_left = -700.0
+offset_top = 288.0
+offset_right = 700.0
+offset_bottom = 336.0
+color = Color(0.52, 0.67, 0.5, 1)
+
+[node name="AxelSpawn" type="Marker2D" parent="."]
+position = Vector2(-520, 210)
+
+[node name="Axel" parent="." instance=ExtResource("2_axel")]
+position = Vector2(-520, 210)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-260, 110)
+enabled = true
+limit_left = -740
+limit_top = -300
+limit_right = 740
+limit_bottom = 620
+smoothing_enabled = true
+smoothing_speed = 8.0
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+
+[node name="FoxStatue" parent="." instance=ExtResource("4_fox_statue")]
+position = Vector2(220, 220)
+
+[node name="EndText" type="Label" parent="."]
+offset_left = -120.0
+offset_top = 40.0
+offset_right = 560.0
+offset_bottom = 108.0
+horizontal_alignment = 1
+autowrap_mode = 3
+text = "Demo Complete\nThe fox is waiting."
+
+[node name="InteractionArea" type="Area2D" parent="FoxStatue"]
+position = Vector2(0, -16)
+monitoring = true
+monitorable = true
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FoxStatue/InteractionArea"]
+shape = SubResource("CircleShape2D_auto_2")
+
+[node name="PromptLabel" type="Label" parent="FoxStatue"]
+offset_left = -56.0
+offset_top = -120.0
+offset_right = 56.0
+offset_bottom = -96.0
+horizontal_alignment = 1
+text = "Press USE"
+visible = false
+
+[node name="AlcoveTrigger" type="Area2D" parent="."]
+script = ExtResource("5_alcove_trigger_script")
+monitoring = true
+monitorable = true
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AlcoveTrigger"]
+shape = SubResource("RectangleShape2D_auto_3")
