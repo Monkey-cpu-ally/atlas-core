@@ -150,6 +150,7 @@ body {
   width: 350px;
   height: 350px;
   transition-duration: 300ms;
+  pointer-events: none;
 }
 
 .ai-segment {
@@ -159,6 +160,7 @@ body {
   cursor: pointer;
   padding: 0;
   z-index: 10;
+  pointer-events: auto;
 }
 
 .ai-segment .segment-content {
@@ -225,6 +227,7 @@ body {
   transition-duration: 180ms;
   transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: grab;
+  pointer-events: none;
 }
 
 .ring-2:active {
@@ -237,7 +240,8 @@ body {
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 5;
+  z-index: 15;
+  pointer-events: auto;
 }
 
 .operation-segment .segment-content {
@@ -319,6 +323,7 @@ body {
   transition-duration: 380ms;
   transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   cursor: grab;
+  pointer-events: none;
 }
 
 .ring-3:active {
@@ -331,7 +336,8 @@ body {
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 3;
+  z-index: 12;
+  pointer-events: auto;
 }
 
 .knowledge-segment .segment-content {
@@ -505,13 +511,14 @@ body {
 }
 
 .close-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--hud-text-dim);
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .close-btn:hover {
