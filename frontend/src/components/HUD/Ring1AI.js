@@ -1,15 +1,15 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { User, Brain, Zap, Users } from 'lucide-react';
 
 const AI_ICONS = {
   ajani: User,
   minerva: Brain,
   hermes: Zap,
-  council: Users
+  trinity: Users
 };
 
-export default function Ring1AI({ aiConfig, rotation, activeAI, speakingAI, onSelect }) {
-  const aiKeys = Object.keys(aiConfig);
+export default function Ring1AI({ aiPersonas, rotation, activeAI, speakingAI, onSelect }) {
+  const aiKeys = Object.keys(aiPersonas);
 
   return (
     <div 
@@ -48,7 +48,7 @@ export default function Ring1AI({ aiConfig, rotation, activeAI, speakingAI, onSe
         const isActive = activeAI === aiKey;
         const isSpeaking = speakingAI === aiKey;
         const Icon = AI_ICONS[aiKey];
-        const ai = aiConfig[aiKey];
+        const ai = aiPersonas[aiKey];
 
         return (
           <button
@@ -103,9 +103,9 @@ export default function Ring1AI({ aiConfig, rotation, activeAI, speakingAI, onSe
       <svg className="active-arc" viewBox="0 0 400 400">
         <defs>
           <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={aiConfig[activeAI].color} stopOpacity="0" />
-            <stop offset="50%" stopColor={aiConfig[activeAI].color} stopOpacity="0.8" />
-            <stop offset="100%" stopColor={aiConfig[activeAI].color} stopOpacity="0" />
+            <stop offset="0%" stopColor={aiPersonas[activeAI].color} stopOpacity="0" />
+            <stop offset="50%" stopColor={aiPersonas[activeAI].color} stopOpacity="0.8" />
+            <stop offset="100%" stopColor={aiPersonas[activeAI].color} stopOpacity="0" />
           </linearGradient>
         </defs>
         <path

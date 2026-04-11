@@ -1,109 +1,98 @@
-# HUD Ring Animation Interface - PRD
+# Atlas Core HUD Interface - PRD
 
 ## Original Problem Statement
-Build a futuristic HUD (Heads-Up Display) interface with 3 concentric rings:
-- **Ring 1** - AI Identity Ring (Ajani, Minerva, Hermes, Council)
-- **Ring 2** - Operations/Manual Ring (Manual, Encyclopedia, Memory, System Monitor, Customization, Explore Mode)
-- **Ring 3** - Knowledge & Creation Ring (Subjects, Lab, Projects, Blueprints, Systems, Archive)
-
-### Key Features Requested
-- Voice activation using Web Speech API
-- Audio feedback (clicks, tones, snaps, glides)
-- Central planet/terrain visualization
-- Side panels on segment selection
-- Mobile responsive design
-- Distinct motion language per ring
+Build a futuristic HUD (Heads-Up Display) interface for Atlas Core educational system with:
+- 3 AI personas: Ajani (Elemental Kinetics), Minerva (Bio-Genesis), Hermes (Nano-Synthesis) + Trinity Counsel mode
+- 30 research projects across all AIs with phases (Philosophy → Research → Blueprint → Simulation → Physical Proposal)
+- 22 teaching fields shared by all AIs
+- 4 teaching modes: Teach, Build, Analyze, Story
+- Voice activation, audio feedback, visual core, side panels
 
 ## Architecture
 
 ### Frontend (React)
 ```
 /app/frontend/src/
-├── App.js                          # Main app entry
-├── App.css                         # Complete HUD styling
+├── App.js, App.css
 ├── components/
-│   ├── HUDInterface.js             # Main HUD orchestrator
+│   ├── HUDInterface.js        # Main circular HUD
 │   └── HUD/
-│       ├── HUDCore.js              # Canvas-based planet visualization
-│       ├── Ring1AI.js              # AI Identity ring (4 segments)
-│       ├── Ring2Operations.js      # Operations ring (6 segments, draggable)
-│       ├── Ring3Knowledge.js       # Knowledge ring (6 segments, draggable)
-│       └── SidePanel.js            # Contextual side panel
+│       ├── HUDCore.js         # Canvas planet visualization
+│       └── AtlasSidePanel.js  # Contextual panels
+├── data/
+│   └── atlasCore.js           # AI personas, projects, fields data
 └── hooks/
-    ├── useVoiceRecognition.js      # Web Speech API integration
-    └── useAudioFeedback.js         # Web Audio API sounds
+    ├── useVoiceRecognition.js # Web Speech API
+    └── useAudioFeedback.js    # Web Audio API
 ```
 
-### Backend (FastAPI)
-- Basic status check endpoints (expandable for future features)
+## What's Implemented (Jan 2026)
 
-## What's Been Implemented (Jan 2026)
+### Circular HUD Layout
+- [x] Concentric circular rings matching reference design
+- [x] Inner ring: 4 AI personas at cardinal positions
+- [x] Outer ring: 12 operation/knowledge segments evenly distributed
+- [x] Central animated core with AI-specific visualizations
+- [x] Ring visual guides (elliptical borders)
 
-### Core HUD System
-- [x] 3 concentric animated rings with distinct motion behaviors
-- [x] Ring 1: AI Identity (Ajani-crimson, Minerva-teal, Hermes-ivory, Council-purple)
-- [x] Ring 2: Operations with mechanical feel (6 sections)
-- [x] Ring 3: Knowledge with exploratory motion (6 tabs)
-- [x] Central core with animated planet/terrain canvas visualization
-- [x] AI color theming throughout (core glow, active indicators)
+### AI System
+- [x] Ajani (crimson) - Elemental Kinetics - 13 projects
+- [x] Minerva (teal) - Bio-Genesis - 12 projects  
+- [x] Hermes (silver) - Nano-Synthesis - 5 projects
+- [x] Trinity Counsel (purple) - Collaborative mode
 
 ### Interactions
-- [x] Voice recognition (Web Speech API) for AI names and tab commands
-- [x] Audio feedback (Web Audio API) - clicks, tones, snaps, glides
-- [x] Ring rotation animations on selection
-- [x] Manual drag rotation for Ring 2 & Ring 3
-- [x] Speaking state indicator with pulse animation
-- [x] Sound toggle control
-- [x] Voice toggle control
+- [x] Click AI to select and see info panel
+- [x] Click operation segments for context panels
+- [x] Voice recognition for AI names
+- [x] Audio feedback (clicks, tones, snaps)
+- [x] Drag to rotate outer ring
+- [x] Hard Limits warning overlay
 
-### Side Panels
-- [x] Ring 2 panels: Manual (guides), Encyclopedia (entries), Memory (items with counts), System Monitor (stats), Customization (options), Explore Mode (zones)
-- [x] Ring 3 panels: Subjects (progress bars), Lab (experiments with status), Projects (starred items), Blueprints (versions), Systems (node connections), Archive (data sizes)
+### Content
+- [x] All 30 projects with phases and progress
+- [x] Operation panels: Manual, Encyclopedia, Lab, Projects, Memory, Blueprints, Systems, Archive, etc.
+- [x] AI profiles with domain, core belief, hard rule
 
-### Responsive Design
-- [x] Desktop optimized layout
-- [x] Mobile scaled view with repositioned controls
-- [x] Touch support for dragging
+## Data Model
 
-## User Personas
-1. **Power User** - Uses voice commands to quickly switch AIs and access knowledge
-2. **Explorer** - Manually drags rings, explores all panels
-3. **Mobile User** - Touch interactions on smaller screens
+### AI Personas
+```js
+{
+  ajani: { name, title, domain, color, coreBelief, hardRule, projects[] },
+  minerva: { ... },
+  hermes: { ... },
+  trinity: { ... }
+}
+```
 
-## Prioritized Backlog
+### Project Phases
+```
+Philosophy (20%) → Research (40%) → Blueprint (60%) → Simulation (80%) → Physical Proposal (100%)
+```
 
-### P0 (Critical) - DONE
-- [x] All ring segments functional
-- [x] Panel content for all segments
-- [x] Voice recognition working
-- [x] Audio feedback working
+## Backlog
 
-### P1 (High Priority)
-- [ ] Real data integration (connect to actual AI services)
-- [ ] Persistent state (remember last AI, open panels)
-- [ ] Keyboard shortcuts for accessibility
+### P1 (High)
+- [ ] Connect to Atlas Core backend API
+- [ ] Real-time AI chat integration
+- [ ] Text-to-speech for AI responses
 
-### P2 (Medium Priority)
-- [ ] Council mode with multi-AI switching visualization
-- [ ] Custom themes beyond AI colors
-- [ ] Haptic feedback for mobile
-- [ ] Panel content drill-down navigation
+### P2 (Medium)
+- [ ] Persistent user progress
+- [ ] Teaching mode activation
+- [ ] Field selection → learning flow
 
 ### P3 (Nice to Have)
 - [ ] 3D WebGL core visualization
-- [ ] Ring drag physics/momentum
-- [ ] Custom voice commands
+- [ ] Haptic feedback on mobile
 - [ ] Multi-language voice support
 
-## Next Tasks
-1. Integrate with actual AI backend services
-2. Add data persistence (localStorage or backend)
-3. Implement keyboard navigation
-4. Add more panel interactivity
-
-## Technical Notes
-- Uses CSS variables for theming
-- Canvas-based core for smooth animation
-- Web Audio API for low-latency sounds
-- Web Speech API for voice (Chrome/Edge best support)
-- Pointer-events management for layered ring interactions
+## Hard Limits (All AIs)
+- No self-directed real-world action
+- No unsupervised autonomy
+- No illegal guidance
+- No medical diagnosis
+- No weapons
+- No overriding user decisions
+- User is always the architect-in-chief
