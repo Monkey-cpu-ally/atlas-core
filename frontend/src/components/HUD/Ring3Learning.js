@@ -1,18 +1,17 @@
 import React, { useRef, useCallback } from 'react';
-import { BookOpen, FlaskConical, FileCode, Sparkles, Rocket, Globe, FolderOpen } from 'lucide-react';
+import { BookOpen, FlaskConical, FileCode, Sparkles, Globe, FolderOpen } from 'lucide-react';
 import { AI_PERSONAS } from '../../data/atlasCore';
 
 // Ring 3 - Learning/Projects Ring (outermost, most expansive)
-// AI subjects, Lab, Blueprints, Weaver, Hyper Axel, Creative worlds, Notes/archives
+// AI subjects, Lab, Blueprints, Weaver, Creative worlds, Notes/archives
 const LEARNING_ITEMS = [
   { id: 'subjects', label: 'Subjects', icon: BookOpen, angle: 0 },
-  { id: 'lab', label: 'Lab', icon: FlaskConical, angle: 45 },
-  { id: 'blueprints', label: 'Blueprints', icon: FileCode, angle: 90 },
-  { id: 'weaver', label: 'Weaver', icon: Sparkles, angle: 135 },
-  { id: 'hyperaxel', label: 'Hyper Axel', icon: Rocket, angle: 180 },
-  { id: 'worlds', label: 'Worlds', icon: Globe, angle: 225 },
-  { id: 'archives', label: 'Archives', icon: FolderOpen, angle: 270 },
-  { id: 'projects', label: 'Projects', icon: FileCode, angle: 315 },
+  { id: 'lab', label: 'Lab', icon: FlaskConical, angle: 51.4 },
+  { id: 'blueprints', label: 'Blueprints', icon: FileCode, angle: 102.8 },
+  { id: 'weaver', label: 'Weaver', icon: Sparkles, angle: 154.2 },
+  { id: 'worlds', label: 'Worlds', icon: Globe, angle: 205.6 },
+  { id: 'archives', label: 'Archives', icon: FolderOpen, angle: 257 },
+  { id: 'projects', label: 'Projects', icon: FileCode, angle: 308.4 },
 ];
 
 export default function Ring3Learning({ rotation, onRotate, selected, onSelect, activeAI }) {
