@@ -1,9 +1,9 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { Settings, Palette, Mic2, Smartphone, Database, Activity } from 'lucide-react';
 import { AI_PERSONAS } from '../../data/atlasCore';
 
 // Ring 2 - System/Manual Ring
-// Settings, UI skins, Voice modes, Device connections, Memory/logs, System health
+// Motion: Mechanical, precise, tight snap (150-220ms)
 const SYSTEM_ITEMS = [
   { id: 'settings', label: 'Settings', icon: Settings, angle: 0 },
   { id: 'skins', label: 'UI Skins', icon: Palette, angle: 60 },
@@ -13,35 +13,50 @@ const SYSTEM_ITEMS = [
   { id: 'health', label: 'Health', icon: Activity, angle: 300 },
 ];
 
+const SNAP_THRESHOLD = 15; // degrees - snap to nearest node
+
 export default function Ring2System({ rotation, onRotate, selected, onSelect, activeAI }) {
   const ringRef = useRef(null);
   const isDragging = useRef(false);
   const lastX = useRef(0);
   const dragOffset = useRef(0);
+  const [snappedRotation, setSnappedRotation] = useState(0);
 
   const handleMouseDown = useCallback((e) => {
     isDragging.current = true;
     lastX.current = e.clientX;
-    dragOffset.current = 0;
+    dragOffset.current = snappedRotation;
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snappedRotation]);
 
   const handleMouseMove = useCallback((e) => {
     if (!isDragging.current) return;
     const delta = e.clientX - lastX.current;
-    dragOffset.current += delta * 0.5;
+    dragOffset.current += delta * 0.4; // Slight resistance feel
     lastX.current = e.clientX;
   }, []);
 
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
+    
+    // Snap to nearest node (mechanical feel)
+    const currentRotation = dragOffset.current % 360;
+    const nearestAngle = SYSTEM_ITEMS.reduce((nearest, item) => {
+      const diff = Math.abs((currentRotation - item.angle + 540) % 360 - 180);
+      const nearestDiff = Math.abs((currentRotation - nearest + 540) % 360 - 180);
+      return diff < nearestDiff ? item.angle : nearest;
+    }, 0);
+    
+    setSnappedRotation(nearestAngle);
+    
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
   }, [handleMouseMove]);
 
-  // Combine auto rotation with drag offset
-  const totalRotation = rotation + dragOffset.current;
+  // Use snapped rotation when not dragging, drag offset while dragging
+  const totalRotation = isDragging.current ? dragOffset.current : snappedRotation;
 
   const getPosition = (angle, radius) => {
     const rad = (angle + totalRotation - 90) * (Math.PI / 180);
@@ -58,9 +73,18 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
       ref={ringRef}
       className="ring ring-2"
       onMouseDown={handleMouseDown}
+      style={{ 
+        cursor: isDragging.current ? 'grabbing' : 'grab' 
+      }}
     >
-      {/* Ring track with technical details */}
-      <svg className="ring-track" viewBox="0 0 100 100">
+      {/* Ring track with technical details and mechanical snap transition */}
+      <svg 
+        className="ring-track" 
+        viewBox="0 0 100 100"
+        style={{
+          transition: isDragging.current ? 'none' : 'transform 180ms cubic-bezier(0.4, 0.0, 0.2, 1)' // Tight mechanical snap (150-220ms)
+        }}
+      >
         {/* Outer border */}
         <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.3" />
         <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.3" />

@@ -1,23 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Brain, Zap, Users } from 'lucide-react';
 import { AI_PERSONAS } from '../../data/atlasCore';
 
 const AI_ICONS = { ajani: User, minerva: Brain, hermes: Zap, trinity: Users };
 
 // Ring 1 hugs the core - AI Presence
+// Motion: Smooth, identity-driven, soft snap (250-350ms)
 export default function Ring1AIPresence({ activeAI, onSelect, coreState, rotation = 0 }) {
   const aiKeys = ['ajani', 'minerva', 'hermes', 'trinity'];
+  const [targetRotation, setTargetRotation] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   
-  // Positions around the core (close ring)
-  const positions = [
-    { angle: -60, label: 'top-left' },    // Ajani
-    { angle: 60, label: 'top-right' },    // Minerva
-    { angle: 180, label: 'bottom' },       // Hermes
-    { angle: -120, label: 'left' },        // Trinity (Council)
+  // Base positions around the core (close ring)
+  const basePositions = [
+    { key: 'ajani', angle: -60 },    // Top-left
+    { key: 'minerva', angle: 60 },    // Top-right  
+    { key: 'hermes', angle: 180 },    // Bottom
+    { key: 'trinity', angle: -120 },  // Left
   ];
 
+  // When AI changes, rotate to bring it to top center (-90°)
+  useEffect(() => {
+    const aiIndex = aiKeys.indexOf(activeAI);
+    if (aiIndex === -1) return;
+    
+    const currentAngle = basePositions[aiIndex].angle;
+    const targetAngle = -90; // Top center position
+    const rotationNeeded = targetAngle - currentAngle;
+    
+    setTargetRotation(rotationNeeded);
+    setIsAnimating(true);
+    
+    // Animation completes in 300ms (per spec: 250-350ms)
+    const timer = setTimeout(() => setIsAnimating(false), 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAI]);
+
   const getPosition = (angle, radius) => {
-    const rad = (angle + rotation) * (Math.PI / 180);
+    const rad = (angle + targetRotation) * (Math.PI / 180);
     return {
       x: 50 + radius * Math.cos(rad),
       y: 50 + radius * Math.sin(rad)
@@ -26,8 +47,15 @@ export default function Ring1AIPresence({ activeAI, onSelect, coreState, rotatio
 
   return (
     <div className={`ring ring-1 ${coreState === 'speaking' ? 'speaking' : ''}`}>
-      {/* Ring track */}
-      <svg className="ring-track" viewBox="0 0 100 100" style={{ transform: `rotate(${rotation}deg)` }}>
+      {/* Ring track with smooth rotation and soft snap easing */}
+      <svg 
+        className="ring-track" 
+        viewBox="0 0 100 100" 
+        style={{ 
+          transform: `rotate(${targetRotation}deg)`,
+          transition: isAnimating ? 'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none'
+        }}
+      >
         <circle 
           cx="50" cy="50" r="28"
           fill="none" 
@@ -39,8 +67,8 @@ export default function Ring1AIPresence({ activeAI, onSelect, coreState, rotatio
         {aiKeys.map((key, i) => {
           const isActive = activeAI === key;
           const ai = AI_PERSONAS[key];
-          const startAngle = positions[i].angle - 30;
-          const endAngle = positions[i].angle + 30;
+          const startAngle = basePositions[i].angle - 30;
+          const endAngle = basePositions[i].angle + 30;
           
           return (
             <path
@@ -64,7 +92,7 @@ export default function Ring1AIPresence({ activeAI, onSelect, coreState, rotatio
         const ai = AI_PERSONAS[key];
         const Icon = AI_ICONS[key];
         const isActive = activeAI === key;
-        const pos = getPosition(positions[i].angle, 28);
+        const pos = getPosition(basePositions[i].angle, 28);
 
         return (
           <button
@@ -74,7 +102,8 @@ export default function Ring1AIPresence({ activeAI, onSelect, coreState, rotatio
               left: `${pos.x}%`,
               top: `${pos.y}%`,
               '--ai-color': ai.color,
-              transform: `translate(-50%, -50%) rotate(${-rotation}deg)`
+              transform: `translate(-50%, -50%) rotate(${-targetRotation}deg)`,
+              transition: isAnimating ? 'all 300ms cubic-bezier(0.34, 1.56, 0.64, 1)' : 'all 0.3s ease'
             }}
             onClick={() => onSelect(key)}
             data-testid={`ai-${key}`}

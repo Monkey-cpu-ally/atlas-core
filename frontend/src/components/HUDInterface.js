@@ -34,21 +34,47 @@ export default function HUDInterface() {
 
   const { playClick, playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
 
-  // Handle voice commands
+  // Handle voice commands with sequential flow
+  // Example: "Minerva, open Projects"
   const handleVoiceCommand = useCallback((command) => {
     const lower = command.toLowerCase();
     setCoreState(CORE_STATES.THINKING);
     
     setTimeout(() => {
+      let selectedAI = null;
+      let selectedOperation = null;
+      
       // Check for AI names
-      if (lower.includes('ajani')) selectAI('ajani');
-      else if (lower.includes('minerva')) selectAI('minerva');
-      else if (lower.includes('hermes')) selectAI('hermes');
-      else if (lower.includes('council') || lower.includes('trinity')) selectAI('trinity');
+      if (lower.includes('ajani')) selectedAI = 'ajani';
+      else if (lower.includes('minerva')) selectedAI = 'minerva';
+      else if (lower.includes('hermes')) selectedAI = 'hermes';
+      else if (lower.includes('council') || lower.includes('trinity')) selectedAI = 'trinity';
+      
+      // Check for operations (Ring 3 learning nodes)
+      if (lower.includes('projects')) selectedOperation = 'projects';
+      else if (lower.includes('subjects')) selectedOperation = 'subjects';
+      else if (lower.includes('lab')) selectedOperation = 'lab';
+      else if (lower.includes('blueprints')) selectedOperation = 'blueprints';
+      else if (lower.includes('weaver')) selectedOperation = 'weaver';
+      else if (lower.includes('worlds')) selectedOperation = 'worlds';
+      else if (lower.includes('archives')) selectedOperation = 'archives';
+      
+      // Sequential flow: AI first, then operation
+      if (selectedAI) {
+        selectAI(selectedAI);
+        
+        // If operation mentioned, trigger it after AI animation completes
+        if (selectedOperation) {
+          setTimeout(() => {
+            selectLearning(selectedOperation);
+          }, 400); // Wait for Ring 1 rotation to complete (300ms + buffer)
+        }
+      }
       
       setCoreState(CORE_STATES.SPEAKING);
       setTimeout(() => setCoreState(CORE_STATES.IDLE), 2000);
     }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { startListening, stopListening, isSupported } = useVoiceRecognition({
