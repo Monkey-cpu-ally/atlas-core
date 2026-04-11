@@ -82,6 +82,7 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
         className="ring-track" 
         viewBox="0 0 100 100"
         style={{
+          transform: `rotate(${totalRotation}deg)`,
           transition: isDragging.current ? 'none' : 'transform 180ms cubic-bezier(0.4, 0.0, 0.2, 1)' // Tight mechanical snap (150-220ms)
         }}
       >
