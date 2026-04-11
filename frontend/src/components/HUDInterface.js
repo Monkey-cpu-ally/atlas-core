@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Mic, MicOff, Volume2, VolumeX, AlertTriangle } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, AlertTriangle, Upload as UploadIcon } from 'lucide-react';
 import AtlasCore from './HUD/AtlasCore';
 import Ring1AI from './HUD/Ring1AIPresence';
 import Ring2System from './HUD/Ring2System';
 import Ring3Learning from './HUD/Ring3Learning';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
+import FileUploadModal from './FileUploadModal';
+import FileBrowserPanel from './FileBrowserPanel';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { AI_PERSONAS } from '../data/atlasCore';
@@ -31,6 +33,8 @@ export default function HUDInterface() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [transcript, setTranscript] = useState('');
   const [showLimits, setShowLimits] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showFileBrowser, setShowFileBrowser] = useState(false);
 
   const { playClick, playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
 
@@ -101,14 +105,28 @@ export default function HUDInterface() {
   const selectSystem = useCallback((systemId) => {
     playClick();
     setSelectedSystem(systemId);
-    setPanelContent({ type: 'operation', operation: systemId, ai: activeAI });
-    playSnap();
+    
+    // Special handling for Memory/Archives - open file browser
+    if (systemId === 'memory') {
+      setShowFileBrowser(true);
+      closePanel();
+    } else {
+      setPanelContent({ type: 'operation', operation: systemId, ai: activeAI });
+      playSnap();
+    }
   }, [activeAI, playClick, playSnap]);
 
   const selectLearning = useCallback((learningId) => {
     playGlide();
     setSelectedLearning(learningId);
-    setPanelContent({ type: 'operation', operation: learningId, ai: activeAI });
+    
+    // Special handling for Archives - open file browser  
+    if (learningId === 'archives') {
+      setShowFileBrowser(true);
+      closePanel();
+    } else {
+      setPanelContent({ type: 'operation', operation: learningId, ai: activeAI });
+    }
   }, [activeAI, playGlide]);
 
   const closePanel = useCallback(() => {
@@ -159,6 +177,13 @@ export default function HUDInterface() {
           onClick={() => setSoundEnabled(!soundEnabled)}
         >
           {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+        </button>
+        <button 
+          className="ctrl-btn"
+          onClick={() => setShowUploadModal(true)}
+          title="Upload Files"
+        >
+          <UploadIcon size={18} />
         </button>
       </div>
 
@@ -244,6 +269,22 @@ export default function HUDInterface() {
         <div className="date-num">{new Date().getDate()} {new Date().toLocaleDateString('en-US', { month: 'short' })}</div>
       </div>
       <div className="year-display">{new Date().getFullYear()}</div>
+
+      {/* File Upload Modal */}
+      <FileUploadModal 
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUploadSuccess={(result) => {
+          console.log('File uploaded:', result);
+          playTone();
+        }}
+      />
+
+      {/* File Browser Panel */}
+      <FileBrowserPanel
+        isOpen={showFileBrowser}
+        onClose={() => setShowFileBrowser(false)}
+      />
     </div>
   );
 }
