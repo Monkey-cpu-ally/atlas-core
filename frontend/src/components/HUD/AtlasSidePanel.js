@@ -40,18 +40,22 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
   const renderOperationInfo = () => {
     const opName = content.operation;
     const opData = {
-      'Subjects': { title: 'Subject Library', items: ['Aerospace Engineering', 'Architecture', 'Artificial Intelligence', 'Biology', 'Business', 'Chemistry', 'Creative Writing', 'Economics', 'Electronics', 'Environmental Science', 'Film Studies', 'Game Design'] },
-      'Manual': { title: 'System Manual', items: ['Getting Started', 'Voice Commands', 'Ring Navigation', 'AI Interaction'] },
-      'Encyclopedia': { title: 'Knowledge Base', items: ['AI Profiles', 'System Architecture', 'Command Reference', 'Terminology'] },
-      'Lab': { title: 'Research Lab', items: ['Pattern Recognition - Running', 'Data Synthesis - Complete', 'Model Training - Queued', 'Analysis Pipeline - Running'] },
-      'Projects': { title: 'Project Workspace', items: ['Project Aurora ★', 'Data Nexus ★', 'Mind Map v2', 'Archive Rebuild'] },
-      'Memory': { title: 'Memory Bank', items: ['Recent Sessions (24)', 'Saved Contexts (12)', 'Bookmarks (8)', 'Pinned Items (5)'] },
-      'Blueprints': { title: 'Blueprint Gallery', items: ['System Architecture v3.2', 'Data Flow Model v2.1', 'Interface Layout v4.0', 'AI Integration v1.8'] },
-      'System Monitor': { title: 'System Status', stats: [{ name: 'Core Status', value: 'Online', good: true }, { name: 'Ring Sync', value: '100%', good: true }, { name: 'Voice Engine', value: 'Active', good: true }] },
-      'Systems': { title: 'System Network', items: ['Core Processor - 12 connections', 'Memory Banks - 8 connections', 'IO Controller - 6 connections', 'Archive Server - Offline'] },
-      'Customization': { title: 'Preferences', options: [{ name: 'Theme', value: 'Dark Void' }, { name: 'Animation Speed', value: 'Normal' }, { name: 'Sound Effects', value: 'Enabled' }] },
-      'Archive': { title: 'Data Archive', items: ['Session Logs - 2.4 GB', 'Research Data - 8.1 GB', 'Media Library - 12.7 GB', 'Backup Store - 45.2 GB'] },
-      'Explore Mode': { title: 'Exploration Hub', zones: [{ name: 'Discovery Zone', status: 'unlocked' }, { name: 'Deep Archive', status: 'unlocked' }, { name: 'Experimental', status: 'locked' }] }
+      // Ring 2 - System
+      'settings': { title: 'Settings', items: ['Display Preferences', 'Notification Settings', 'Privacy Controls', 'Data Management'] },
+      'skins': { title: 'UI Skins', items: ['Dark Void', 'Light Crystal', 'Midnight Blue', 'Forest Green', 'Custom Theme'] },
+      'voice': { title: 'Voice Modes', items: ['Natural Speech', 'Technical Mode', 'Storytelling', 'Whisper Mode'] },
+      'devices': { title: 'Connected Devices', items: ['Primary Display', 'Audio Interface', 'Input Controller', 'External Sensors'] },
+      'memory': { title: 'Memory Bank', items: ['Recent Sessions (24)', 'Saved Contexts (12)', 'Bookmarks (8)', 'Pinned Items (5)'] },
+      'health': { title: 'System Health', stats: [{ name: 'Core Status', value: 'Online', good: true }, { name: 'Ring Sync', value: '100%', good: true }, { name: 'Memory Usage', value: '42%', good: true }] },
+      // Ring 3 - Learning
+      'subjects': { title: 'AI Subjects', items: ['Aerospace Engineering', 'Architecture', 'Artificial Intelligence', 'Biology', 'Business', 'Chemistry', 'Creative Writing', 'Physics', 'Robotics', 'Game Design'] },
+      'lab': { title: 'Research Lab', items: ['Pattern Recognition — Running', 'Data Synthesis — Complete', 'Model Training — Queued', 'Analysis Pipeline — Running', 'Experiment Archive'] },
+      'blueprints': { title: 'Blueprint Gallery', items: ['System Architecture v3.2', 'Data Flow Model v2.1', 'Interface Layout v4.0', 'AI Integration v1.8', 'Neural Pathway Map'] },
+      'weaver': { title: 'Story Weaver', items: ['Active Narratives', 'Character Profiles', 'World Building', 'Plot Threads', 'Mythology System'] },
+      'hyperaxel': { title: 'Hyper Axel', items: ['Velocity Simulations', 'Kinetic Models', 'Energy Flow Charts', 'Motion Capture Data'] },
+      'worlds': { title: 'Creative Worlds', items: ['Pantheon Prime', 'Neo-Terra', 'Quantum Realm', 'Bio-Sphere Alpha', 'Create New World'] },
+      'archives': { title: 'Archives', items: ['Session Logs — 2.4 GB', 'Research Data — 8.1 GB', 'Media Library — 12.7 GB', 'Backup Store — 45.2 GB'] },
+      'projects': { title: 'Active Projects', items: ['Project Aurora ★', 'Data Nexus ★', 'Mind Map v2', 'Archive Rebuild', 'Neural Bridge'] },
     };
     const data = opData[opName] || { title: opName, items: [] };
 

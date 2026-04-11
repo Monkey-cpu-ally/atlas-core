@@ -1,92 +1,90 @@
 # Atlas Core HUD Interface - PRD
 
 ## Original Problem Statement
-Build a futuristic HUD (Heads-Up Display) interface for Atlas Core educational system with:
-- 3 AI personas: Ajani (Elemental Kinetics), Minerva (Bio-Genesis), Hermes (Nano-Synthesis) + Trinity Counsel mode
-- 30 research projects across all AIs with phases (Philosophy → Research → Blueprint → Simulation → Physical Proposal)
-- 22 teaching fields shared by all AIs
-- 4 teaching modes: Teach, Build, Analyze, Story
-- Voice activation, audio feedback, visual core, side panels
+Build a futuristic HUD interface for Atlas Core educational system matching the elegant light-themed reference design with:
+- Living Core (glowing sphere with state-based animations)
+- Ring 1: AI Presence (Ajani, Minerva, Hermes, Trinity Counsel)
+- Ring 2: System/Manual (Settings, Skins, Voice, Devices, Memory, Health)
+- Ring 3: Learning/Projects (Subjects, Lab, Blueprints, Weaver, Hyper Axel, Worlds, Archives, Projects)
+
+## Core Behavior States
+- **Idle**: Soft breathing glow, slow pulse
+- **Listening**: Light expands outward in waves
+- **Thinking**: Inner rings spin faster, particles swirl
+- **Speaking**: Pulses sync to voice rhythm
+- **Alert**: Sharper flashes and tighter rotations
+
+## AI Identity Colors
+- **Ajani**: Deep crimson — grounded, powerful (Elemental Kinetics)
+- **Minerva**: Teal-blue — calm, wise (Bio-Genesis)
+- **Hermes**: Soft white/silver — fast, precise (Nano-Synthesis)
+- **Trinity Counsel**: Layered purple aura (Collaborative)
 
 ## Architecture
 
 ### Frontend (React)
 ```
 /app/frontend/src/
-├── App.js, App.css
 ├── components/
-│   ├── HUDInterface.js        # Main circular HUD
+│   ├── HUDInterface.js          # Main orchestrator with state management
 │   └── HUD/
-│       ├── HUDCore.js         # Canvas planet visualization
-│       └── AtlasSidePanel.js  # Contextual panels
+│       ├── AtlasCore.js         # Canvas-based living core visualization
+│       ├── Ring1AIPresence.js   # AI ring with arc segments
+│       ├── Ring2System.js       # System ring with drag rotation
+│       ├── Ring3Learning.js     # Learning ring with expansion nodes
+│       └── AtlasSidePanel.js    # Contextual panels
 ├── data/
-│   └── atlasCore.js           # AI personas, projects, fields data
+│   └── atlasCore.js             # AI personas, 30 projects, 22 fields
 └── hooks/
-    ├── useVoiceRecognition.js # Web Speech API
-    └── useAudioFeedback.js    # Web Audio API
+    ├── useVoiceRecognition.js   # Web Speech API
+    └── useAudioFeedback.js      # Web Audio API
 ```
 
 ## What's Implemented (Jan 2026)
 
-### Circular HUD Layout
-- [x] Concentric circular rings matching reference design
-- [x] Inner ring: 4 AI personas at cardinal positions
-- [x] Outer ring: 12 operation/knowledge segments evenly distributed
-- [x] Central animated core with AI-specific visualizations
-- [x] Ring visual guides (elliptical borders)
+### Visual Design
+- [x] Light elegant theme (cream/beige gradients)
+- [x] Glass-like core with AI-specific energy visualization
+- [x] Clean white node buttons with subtle shadows
+- [x] Date display (left) and year (right) like reference
+- [x] Responsive layout for mobile
 
-### AI System
-- [x] Ajani (crimson) - Elemental Kinetics - 13 projects
-- [x] Minerva (teal) - Bio-Genesis - 12 projects  
-- [x] Hermes (silver) - Nano-Synthesis - 5 projects
-- [x] Trinity Counsel (purple) - Collaborative mode
+### Core System
+- [x] 5 core states with distinct animations
+- [x] AI color theming throughout
+- [x] Particles, rings, pulses, ripples
+
+### Ring 1 - AI Presence
+- [x] 4 AI nodes hugging the core
+- [x] Arc segment highlights
+- [x] Active state glow animation
+- [x] Speaking state pulse
+
+### Ring 2 - System/Manual
+- [x] 6 system nodes: Settings, UI Skins, Voice Modes, Devices, Memory, Health
+- [x] Drag to rotate
+- [x] Technical tick marks
+- [x] Scanner line animation
+
+### Ring 3 - Learning/Projects
+- [x] 8 learning nodes: Subjects, Lab, Blueprints, Weaver, Hyper Axel, Worlds, Archives, Projects
+- [x] Expansion dots on selection
+- [x] Ambient particle effects
+- [x] Drag to rotate
 
 ### Interactions
-- [x] Click AI to select and see info panel
-- [x] Click operation segments for context panels
-- [x] Voice recognition for AI names
-- [x] Audio feedback (clicks, tones, snaps)
-- [x] Drag to rotate outer ring
+- [x] Voice recognition for AI selection
+- [x] Audio feedback (clicks, tones, snaps, glides)
+- [x] Side panels with contextual content
 - [x] Hard Limits warning overlay
 
-### Content
-- [x] All 30 projects with phases and progress
-- [x] Operation panels: Manual, Encyclopedia, Lab, Projects, Memory, Blueprints, Systems, Archive, etc.
-- [x] AI profiles with domain, core belief, hard rule
+## 30 Projects Data
+- Ajani: 13 projects (INSERT-CELL, HYDRA-CORE, RESONANCE, etc.)
+- Minerva: 12 projects (PHOENIX-STRAND, ANANSI-WEAVE, EDEN-PROTOCOL, etc.)
+- Hermes: 5 projects (SCARAB-FLEET, TERRABOT-BLOOM, DAEDALUS-FORGE, etc.)
 
-## Data Model
-
-### AI Personas
-```js
-{
-  ajani: { name, title, domain, color, coreBelief, hardRule, projects[] },
-  minerva: { ... },
-  hermes: { ... },
-  trinity: { ... }
-}
-```
-
-### Project Phases
-```
-Philosophy (20%) → Research (40%) → Blueprint (60%) → Simulation (80%) → Physical Proposal (100%)
-```
-
-## Backlog
-
-### P1 (High)
-- [ ] Connect to Atlas Core backend API
-- [ ] Real-time AI chat integration
-- [ ] Text-to-speech for AI responses
-
-### P2 (Medium)
-- [ ] Persistent user progress
-- [ ] Teaching mode activation
-- [ ] Field selection → learning flow
-
-### P3 (Nice to Have)
-- [ ] 3D WebGL core visualization
-- [ ] Haptic feedback on mobile
-- [ ] Multi-language voice support
+## 22 Teaching Fields
+Aerospace, Architecture, AI, Biology, Business, Chemistry, Creative Writing, Economics, Electronics, Environmental Science, Film Studies, Game Design, History, Mathematics, Music Theory, Nanotechnology, Philosophy, Physics, Psychology, Robotics, Software Engineering, Visual Arts
 
 ## Hard Limits (All AIs)
 - No self-directed real-world action
@@ -94,5 +92,21 @@ Philosophy (20%) → Research (40%) → Blueprint (60%) → Simulation (80%) →
 - No illegal guidance
 - No medical diagnosis
 - No weapons
-- No overriding user decisions
-- User is always the architect-in-chief
+- You are always the architect-in-chief
+
+## Backlog
+
+### P1 (High)
+- [ ] Connect to Atlas Core FastAPI backend
+- [ ] Real AI chat integration (text-to-speech)
+- [ ] Persistent user progress
+
+### P2 (Medium)
+- [ ] Hidden/Advanced rings (diagnostics, build mode)
+- [ ] Teaching mode activation flows
+- [ ] Haptic feedback on mobile
+
+### P3 (Nice to Have)
+- [ ] 3D WebGL core upgrade
+- [ ] Multi-language voice support
+- [ ] Custom AI voice profiles
