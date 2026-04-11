@@ -19,10 +19,12 @@ export default function Ring3Learning({ rotation, onRotate, selected, onSelect, 
   const ringRef = useRef(null);
   const isDragging = useRef(false);
   const lastX = useRef(0);
+  const dragOffset = useRef(0);
 
   const handleMouseDown = useCallback((e) => {
     isDragging.current = true;
     lastX.current = e.clientX;
+    dragOffset.current = 0;
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   }, []);
@@ -30,9 +32,9 @@ export default function Ring3Learning({ rotation, onRotate, selected, onSelect, 
   const handleMouseMove = useCallback((e) => {
     if (!isDragging.current) return;
     const delta = e.clientX - lastX.current;
-    onRotate(prev => prev + delta * 0.2);
+    dragOffset.current += delta * 0.3;
     lastX.current = e.clientX;
-  }, [onRotate]);
+  }, []);
 
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
@@ -40,8 +42,11 @@ export default function Ring3Learning({ rotation, onRotate, selected, onSelect, 
     document.removeEventListener('mouseup', handleMouseUp);
   }, [handleMouseMove]);
 
+  // Combine auto rotation with drag offset
+  const totalRotation = rotation + dragOffset.current;
+
   const getPosition = (angle, radius) => {
-    const rad = (angle + rotation - 90) * (Math.PI / 180);
+    const rad = (angle + totalRotation - 90) * (Math.PI / 180);
     return {
       x: 50 + radius * Math.cos(rad),
       y: 50 + radius * Math.sin(rad)
@@ -66,8 +71,8 @@ export default function Ring3Learning({ rotation, onRotate, selected, onSelect, 
         {/* Ambient glow segments */}
         {LEARNING_ITEMS.map((item, i) => {
           const isSelected = selected === item.id;
-          const startAngle = item.angle + rotation - 20;
-          const endAngle = item.angle + rotation + 20;
+          const startAngle = item.angle + totalRotation - 20;
+          const endAngle = item.angle + totalRotation + 20;
           
           return (
             <g key={item.id}>
@@ -87,10 +92,10 @@ export default function Ring3Learning({ rotation, onRotate, selected, onSelect, 
               {/* Connector line to node */}
               {isSelected && (
                 <line
-                  x1={50 + 44 * Math.cos((item.angle + rotation - 90) * Math.PI / 180)}
-                  y1={50 + 44 * Math.sin((item.angle + rotation - 90) * Math.PI / 180)}
-                  x2={50 + 48 * Math.cos((item.angle + rotation - 90) * Math.PI / 180)}
-                  y2={50 + 48 * Math.sin((item.angle + rotation - 90) * Math.PI / 180)}
+                  x1={50 + 44 * Math.cos((item.angle + totalRotation - 90) * Math.PI / 180)}
+                  y1={50 + 44 * Math.sin((item.angle + totalRotation - 90) * Math.PI / 180)}
+                  x2={50 + 48 * Math.cos((item.angle + totalRotation - 90) * Math.PI / 180)}
+                  y2={50 + 48 * Math.sin((item.angle + totalRotation - 90) * Math.PI / 180)}
                   stroke={aiColor}
                   strokeWidth="1"
                   opacity="0.6"
@@ -102,7 +107,7 @@ export default function Ring3Learning({ rotation, onRotate, selected, onSelect, 
 
         {/* Subtle particle dots around ring */}
         {[...Array(24)].map((_, i) => {
-          const angle = i * 15 + rotation * 0.1;
+          const angle = i * 15 + totalRotation * 0.1;
           const rad = angle * Math.PI / 180;
           const r = 47 + Math.sin(i * 0.5) * 1;
           return (
@@ -130,7 +135,7 @@ export default function Ring3Learning({ rotation, onRotate, selected, onSelect, 
             style={{
               left: `${pos.x}%`,
               top: `${pos.y}%`,
-              transform: `translate(-50%, -50%) rotate(${-rotation}deg)`
+              transform: `translate(-50%, -50%) rotate(${-totalRotation}deg)`
             }}
             onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
             data-testid={`learning-${item.id}`}

@@ -21,6 +21,7 @@ const CORE_STATES = {
 export default function HUDInterface() {
   const [activeAI, setActiveAI] = useState('ajani');
   const [coreState, setCoreState] = useState(CORE_STATES.IDLE);
+  const [ring1Rotation, setRing1Rotation] = useState(0);
   const [ring2Rotation, setRing2Rotation] = useState(0);
   const [ring3Rotation, setRing3Rotation] = useState(0);
   const [selectedSystem, setSelectedSystem] = useState(null);
@@ -183,6 +184,7 @@ export default function HUDInterface() {
           activeAI={activeAI}
           onSelect={selectAI}
           coreState={coreState}
+          rotation={ring1Rotation}
         />
 
         {/* Core */}

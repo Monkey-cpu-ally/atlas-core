@@ -5,7 +5,7 @@ import { AI_PERSONAS } from '../../data/atlasCore';
 const AI_ICONS = { ajani: User, minerva: Brain, hermes: Zap, trinity: Users };
 
 // Ring 1 hugs the core - AI Presence
-export default function Ring1AIPresence({ activeAI, onSelect, coreState }) {
+export default function Ring1AIPresence({ activeAI, onSelect, coreState, rotation = 0 }) {
   const aiKeys = ['ajani', 'minerva', 'hermes', 'trinity'];
   
   // Positions around the core (close ring)
@@ -17,7 +17,7 @@ export default function Ring1AIPresence({ activeAI, onSelect, coreState }) {
   ];
 
   const getPosition = (angle, radius) => {
-    const rad = angle * (Math.PI / 180);
+    const rad = (angle + rotation) * (Math.PI / 180);
     return {
       x: 50 + radius * Math.cos(rad),
       y: 50 + radius * Math.sin(rad)
@@ -27,7 +27,7 @@ export default function Ring1AIPresence({ activeAI, onSelect, coreState }) {
   return (
     <div className={`ring ring-1 ${coreState === 'speaking' ? 'speaking' : ''}`}>
       {/* Ring track */}
-      <svg className="ring-track" viewBox="0 0 100 100">
+      <svg className="ring-track" viewBox="0 0 100 100" style={{ transform: `rotate(${rotation}deg)` }}>
         <circle 
           cx="50" cy="50" r="28"
           fill="none" 
@@ -73,7 +73,8 @@ export default function Ring1AIPresence({ activeAI, onSelect, coreState }) {
             style={{
               left: `${pos.x}%`,
               top: `${pos.y}%`,
-              '--ai-color': ai.color
+              '--ai-color': ai.color,
+              transform: `translate(-50%, -50%) rotate(${-rotation}deg)`
             }}
             onClick={() => onSelect(key)}
             data-testid={`ai-${key}`}

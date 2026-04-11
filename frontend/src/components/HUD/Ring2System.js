@@ -17,10 +17,12 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
   const ringRef = useRef(null);
   const isDragging = useRef(false);
   const lastX = useRef(0);
+  const dragOffset = useRef(0);
 
   const handleMouseDown = useCallback((e) => {
     isDragging.current = true;
     lastX.current = e.clientX;
+    dragOffset.current = 0;
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   }, []);
@@ -28,9 +30,9 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
   const handleMouseMove = useCallback((e) => {
     if (!isDragging.current) return;
     const delta = e.clientX - lastX.current;
-    onRotate(prev => prev + delta * 0.3);
+    dragOffset.current += delta * 0.5;
     lastX.current = e.clientX;
-  }, [onRotate]);
+  }, []);
 
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
@@ -38,8 +40,11 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
     document.removeEventListener('mouseup', handleMouseUp);
   }, [handleMouseMove]);
 
+  // Combine auto rotation with drag offset
+  const totalRotation = rotation + dragOffset.current;
+
   const getPosition = (angle, radius) => {
-    const rad = (angle + rotation - 90) * (Math.PI / 180);
+    const rad = (angle + totalRotation - 90) * (Math.PI / 180);
     return {
       x: 50 + radius * Math.cos(rad),
       y: 50 + radius * Math.sin(rad)
@@ -83,8 +88,8 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
         {/* Section highlights */}
         {SYSTEM_ITEMS.map((item, i) => {
           const isSelected = selected === item.id;
-          const startAngle = item.angle + rotation - 25;
-          const endAngle = item.angle + rotation + 25;
+          const startAngle = item.angle + totalRotation - 25;
+          const endAngle = item.angle + totalRotation + 25;
           
           return (
             <path
@@ -113,7 +118,7 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
             style={{
               left: `${pos.x}%`,
               top: `${pos.y}%`,
-              transform: `translate(-50%, -50%) rotate(${-rotation}deg)`
+              transform: `translate(-50%, -50%) rotate(${-totalRotation}deg)`
             }}
             onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
             data-testid={`system-${item.id}`}
@@ -127,7 +132,7 @@ export default function Ring2System({ rotation, onRotate, selected, onSelect, ac
       {/* Scanner indicator */}
       <div 
         className="scanner-line"
-        style={{ transform: `rotate(${rotation * 0.5}deg)` }}
+        style={{ transform: `rotate(${totalRotation * 0.5}deg)` }}
       />
     </div>
   );
