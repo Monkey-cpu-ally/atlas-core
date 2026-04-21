@@ -3,6 +3,14 @@ extends CharacterBody2D
 var scrap_actor_scene = preload("res://world/ScrapAssistActor.tscn")
 var supply_drop_scene = preload("res://world/SupplyDrop.tscn")
 var fighter_plane_scene = preload("res://world/FighterPlaneAssist.tscn")
+const SUPPLY_ASSIST_POWER_POOL: Array[String] = [
+	"burning_buffalo",
+	"shadow_tag",
+	"golden_gloves",
+	"super_mode",
+	"specter_mode",
+	"fighter_plane"
+]
 
 enum PowerMode {
 	NONE,
@@ -553,9 +561,7 @@ func _do_scrap_green_assist() -> void:
 				restore_hits(1)
 				emit_signal("pickup_feedback_requested", "Medical Drop", Color("7fe08a"))
 			else:
-				# placeholder stored power-up behavior
-				add_scrap(10)
-				emit_signal("pickup_feedback_requested", "Stored Supply Delivered", Color("7fe08a"))
+				_deliver_stored_power_supply()
 			drop.queue_free()
 	)
 
@@ -667,6 +673,33 @@ func upgrade_scrap_damage(level: int) -> void:
 			scrap_upgrade_bonus_damage = 0.10
 		_:
 			scrap_upgrade_bonus_damage = 0.0
+
+
+func _deliver_stored_power_supply() -> void:
+	var active_power_id: String = PowerManager.get_active_power()
+	var duration_bonus: float = maxf(0.0, 4.0 + scrap_upgrade_bonus_duration)
+
+	if not active_power_id.is_empty():
+		var refreshed_duration: float = maxf(power_duration, PowerManager.remaining_time) + duration_bonus
+		PowerManager.activate_power(active_power_id, refreshed_duration)
+		var refreshed_meta: Dictionary = PowerManager.get_power_meta(active_power_id)
+		emit_signal(
+			"pickup_feedback_requested",
+			"Stored Supply: %s refreshed" % str(refreshed_meta.get("display", active_power_id)),
+			refreshed_meta.get("color", Color("7fe08a"))
+		)
+		return
+
+	var random_index: int = randi() % SUPPLY_ASSIST_POWER_POOL.size()
+	var delivered_power_id: String = SUPPLY_ASSIST_POWER_POOL[random_index]
+	var delivered_duration: float = power_duration + duration_bonus
+	PowerManager.activate_power(delivered_power_id, delivered_duration)
+	var delivered_meta: Dictionary = PowerManager.get_power_meta(delivered_power_id)
+	emit_signal(
+		"pickup_feedback_requested",
+		"Stored Supply Delivered: %s" % str(delivered_meta.get("display", delivered_power_id)),
+		delivered_meta.get("color", Color("7fe08a"))
+	)
 
 
 func _handle_buffalo_breaks() -> void:
