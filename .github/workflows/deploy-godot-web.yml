@@ -1,0 +1,61 @@
+name: Deploy Godot Web Build
+
+on:
+  push:
+    branches:
+      - main
+      - Atlasside-project-setup-423f
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  export-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Godot HTML5 export
+        uses: firebelley/godot-export@v6.0.0
+        with:
+          godotVersion: 4.2.2
+          exportPresetFiles: game/export_presets.cfg
+          projectPath: game
+          archiveOutput: false
+
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p pages
+          cp -r game/build/web/* pages/
+          if [ ! -f pages/index.html ]; then
+            echo "Expected game/build/web/index.html not found."
+            exit 1
+          fi
+          touch pages/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+  deploy:
+    needs: export-web
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
