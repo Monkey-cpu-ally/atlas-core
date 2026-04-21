@@ -80,6 +80,27 @@ func apply_heavy_hit(from_position: Vector2) -> void:
 		died.emit()
 
 
+func restore_chips(chips: int = 1) -> int:
+	if chips <= 0:
+		return 0
+	var remaining: int = chips
+	var restored: int = 0
+	for i in range(max_stickers - 1, -1, -1):
+		if remaining <= 0:
+			break
+		var gap: int = hits_per_sticker - stickers[i]
+		if gap <= 0:
+			continue
+		var recovered: int = min(gap, remaining)
+		stickers[i] += recovered
+		remaining -= recovered
+		restored += recovered
+	current_stickers = _count_stickers_with_health()
+	current_sticker_hits_remaining = stickers[0] if stickers.size() > 0 else 0
+	_emit_health_changed()
+	return restored
+
+
 func _reset_health() -> void:
 	stickers.clear()
 	for i in range(max_stickers):

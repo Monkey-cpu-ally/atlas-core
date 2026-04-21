@@ -707,7 +707,6 @@ func restore_hits(value: int = 2) -> void:
 	var hits_to_restore: int = max(0, value)
 	if hits_to_restore <= 0:
 		return
-	if sticker_health and sticker_health.has_method("take_hit"):
-		for i in range(hits_to_restore):
-			sticker_health.take_hit(0)
+	if sticker_health and sticker_health.has_method("restore_chips"):
+		sticker_health.restore_chips(hits_to_restore)
 	GameState.restore_health(hits_to_restore)
