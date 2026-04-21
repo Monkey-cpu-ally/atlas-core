@@ -707,6 +707,17 @@ func restore_hits(value: int = 2) -> void:
 	var hits_to_restore: int = max(0, value)
 	if hits_to_restore <= 0:
 		return
+	var max_total_hits: int = max_stickers * hits_per_sticker
+	var current_total_hits: int = 0
+	if current_stickers > 0:
+		current_total_hits = ((current_stickers - 1) * hits_per_sticker) + max(0, current_sticker_hits_remaining)
+	var restored_total_hits: int = min(max_total_hits, current_total_hits + hits_to_restore)
+	if restored_total_hits <= 0:
+		current_stickers = 0
+		current_sticker_hits_remaining = 0
+	else:
+		current_stickers = ceili(float(restored_total_hits) / float(hits_per_sticker))
+		current_sticker_hits_remaining = restored_total_hits - ((current_stickers - 1) * hits_per_sticker)
 	if sticker_health and sticker_health.has_method("restore_chips"):
 		sticker_health.restore_chips(hits_to_restore)
 	GameState.restore_health(hits_to_restore)
