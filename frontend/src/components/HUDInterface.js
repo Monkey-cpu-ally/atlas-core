@@ -7,6 +7,7 @@ import Ring3Learning from './HUD/Ring3Learning';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
 import FileUploadModal from './FileUploadModal';
 import FileBrowserPanel from './FileBrowserPanel';
+import ChatPanel from './ChatPanel';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { AI_PERSONAS } from '../data/atlasCore';
@@ -284,6 +285,12 @@ export default function HUDInterface() {
       <FileBrowserPanel
         isOpen={showFileBrowser}
         onClose={() => setShowFileBrowser(false)}
+      />
+
+      {/* Chat Panel - Always accessible */}
+      <ChatPanel
+        activeAI={activeAI}
+        onAISwitch={setActiveAI}
       />
     </div>
   );
