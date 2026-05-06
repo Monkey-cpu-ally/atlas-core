@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 from routes.files import router as files_router
 # Import chat routes
 from routes.chat import router as chat_router
+# Import knowledge core routes
+from routes.knowledge import router as knowledge_router
 
 
 ROOT_DIR = Path(__file__).parent
@@ -75,6 +77,7 @@ async def get_status_checks():
 app.include_router(api_router)
 app.include_router(files_router)  # File upload and management routes
 app.include_router(chat_router)  # AI chat routes
+app.include_router(knowledge_router)  # Knowledge core routes
 
 app.add_middleware(
     CORSMiddleware,

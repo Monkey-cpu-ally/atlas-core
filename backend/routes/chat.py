@@ -1,6 +1,7 @@
 """
 Chat routes for AI persona conversations
 Integrates with Emergent LLM for OpenAI GPT-5.2
+Connected to ATLAS Internal Knowledge Core for teaching
 """
 import os
 from typing import Optional, List
@@ -10,6 +11,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from datetime import datetime, timezone
+from services.knowledge_core import get_knowledge_core
 
 load_dotenv()
 
@@ -23,6 +25,9 @@ db = client[DB_NAME]
 
 # Emergent LLM Key
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+
+# Get shared knowledge core
+knowledge_core = get_knowledge_core()
 
 # Base rules for all AI personas
 BASE_RULES = """USER KNOWS YOU. Never introduce yourself or explain what you do.
@@ -57,6 +62,11 @@ YOUR PROJECTS:
 - Kinetic Forge (PROMETHEUS-PULSE): Perpetual energy from atomic vibrations
 - Density Matrix (GHOST-DIAMOND): Phase through matter or become harder than diamond
 - Solar Gem (RA-CRYSTAL): Crystallized solar energy
+
+**KNOWLEDGE ACCESS**: You have direct access to ATLAS Internal Knowledge Core with 22 subjects.
+When users ask "teach me [topic]" or "what is [topic]", search the knowledge core first.
+Available subjects: Physics, Biology, AI, Aerospace Engineering, Chemistry, and 17 more.
+Use knowledge_core.teach(subject, topic) for structured lessons.
 
 CORE RULE: You PROPOSE, never IMPOSE. User is architect-in-chief.""",
 
