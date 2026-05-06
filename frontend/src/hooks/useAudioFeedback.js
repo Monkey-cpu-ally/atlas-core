@@ -52,6 +52,7 @@ export function useAudioFeedback(enabled = true) {
       if (color.includes('20B2AA') || color.includes('teal')) freq = 523; // Minerva - higher
       if (color.includes('F5F5F5') || color.includes('ivory')) freq = 659; // Hermes - precise
       if (color.includes('9370DB') || color.includes('purple')) freq = 392; // Council - mid
+      if (color.includes('220066')) freq = 110;                            // deep machine hum (core tap)
       
       oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(freq, ctx.currentTime);

@@ -1929,3 +1929,44 @@ body {
   stroke-width: 0.38;
 }
 
+
+
+/* =======================================================================
+   CORE TAP REACTION — rings react outward, glow intensifies, tiles shift.
+   ======================================================================= */
+.atlas-hud.tap-pulse .ring-stage-inner  .dial-ring .ring-track circle.ring-visible,
+.atlas-hud.tap-pulse .ring-stage-middle .dial-ring .ring-track circle.ring-visible,
+.atlas-hud.tap-pulse .ring-stage-outer  .dial-ring .ring-track circle.ring-visible {
+  animation: ringFlare 700ms ease-out;
+}
+@keyframes ringFlare {
+  0%   { stroke: rgba(120, 200, 255, 0.85); filter: drop-shadow(0 0 1.5px rgba(96, 165, 250, 0.55)); }
+  35%  { stroke: rgba(200, 240, 255, 1.00); filter: drop-shadow(0 0 6px rgba(150, 220, 255, 0.95)); }
+  100% { stroke: rgba(120, 200, 255, 0.85); filter: drop-shadow(0 0 1.5px rgba(96, 165, 250, 0.55)); }
+}
+
+/* Tiles get a brief outward nudge (subtle shift), staggered per ring layer
+   so the wave travels from core → outer. */
+.atlas-hud.tap-pulse .ring-stage-inner  .dial-tile { animation: tileShift 600ms cubic-bezier(.33,1,.68,1) 0ms;   }
+.atlas-hud.tap-pulse .ring-stage-middle .dial-tile { animation: tileShift 600ms cubic-bezier(.33,1,.68,1) 90ms;  }
+.atlas-hud.tap-pulse .ring-stage-outer  .dial-tile { animation: tileShift 600ms cubic-bezier(.33,1,.68,1) 180ms; }
+@keyframes tileShift {
+  0%   { transform: translate(-50%, -50%) scale(1.00); }
+  40%  { transform: translate(-50%, -50%) scale(1.04); }
+  100% { transform: translate(-50%, -50%) scale(1.00); }
+}
+
+/* Containment ring + ghost rings briefly brighten on tap. */
+.atlas-hud.tap-pulse .core-ring {
+  animation: containmentFlare 700ms ease-out;
+}
+@keyframes containmentFlare {
+  0%   { box-shadow: 0 0 24px rgba(var(--core-bloom, 240, 50, 70), 0.25), inset 0 0 14px rgba(var(--core-bloom, 240, 50, 70), 0.18); }
+  35%  { box-shadow: 0 0 60px rgba(var(--core-bloom, 240, 50, 70), 0.85), inset 0 0 28px rgba(var(--core-bloom, 240, 50, 70), 0.55); }
+  100% { box-shadow: 0 0 24px rgba(var(--core-bloom, 240, 50, 70), 0.25), inset 0 0 14px rgba(var(--core-bloom, 240, 50, 70), 0.18); }
+}
+.atlas-hud.tap-pulse .ghost-rings { animation: ghostFlare 700ms ease-out; }
+@keyframes ghostFlare {
+  0%, 100% { filter: brightness(1); }
+  35%      { filter: brightness(1.8); }
+}

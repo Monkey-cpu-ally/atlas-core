@@ -36,6 +36,7 @@ export default function HUDInterface() {
   const [showLimits, setShowLimits] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
+  const [coreTapPulse, setCoreTapPulse] = useState(false);
 
   const { playClick, playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
 
@@ -165,6 +166,18 @@ export default function HUDInterface() {
     }
   };
 
+  // Core tap — wakes the system, ripples the rings outward, plays a deep
+  // hum, and toggles voice listening when supported. Spec: "rings react
+  // outward, glow intensifies, energy pulse expands, UI tiles subtly
+  // shift, audio hum deepens."
+  const handleCoreTap = useCallback(() => {
+    if (soundEnabled) playTone('#220066');  // low frequency hum
+    setCoreTapPulse(true);
+    setTimeout(() => setCoreTapPulse(false), 700);
+    if (isSupported) toggleListening();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundEnabled, playTone, isSupported]);
+
   const currentAI = AI_PERSONAS[activeAI];
 
   // --- Ring handlers ------------------------------------------------------
@@ -254,7 +267,10 @@ export default function HUDInterface() {
       )}
 
       {/* Main HUD — 3 concentric radial dials + ghost background + core */}
-      <div className="atlas-hud" data-ring-motion={coreState}>
+      <div
+        className={`atlas-hud ${coreTapPulse ? 'tap-pulse' : ''}`}
+        data-ring-motion={coreState}
+      >
         {/* Layer 0: ghost / parallax background rings */}
         <GhostRings />
 
@@ -309,7 +325,7 @@ export default function HUDInterface() {
           <AtlasCore
             activeAI={activeAI}
             coreState={coreState}
-            onActivate={isSupported ? toggleListening : undefined}
+            onActivate={handleCoreTap}
           />
         </div>
       </div>
