@@ -1,57 +1,51 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 /**
- * AtlasCore — unified-consciousness lava-lamp orb.
+ * AtlasCore — tappable lava-lamp orb (unified-consciousness viz).
  *
- *  Functional role: wake area, AI listening indicator, state monitor,
- *  personality transition hub, navigation anchor, audio-reactive viz.
- *
- *  Visual approach:
- *   • Plasma blobs rendered to an OFFSCREEN canvas as solid colored
- *     circles.
- *   • That offscreen layer is then drawn onto the main canvas with a
- *     "blur(N) contrast(M)" filter — the classic 2D metaball trick.
- *     Soft circle edges + heavy contrast clamp the alpha so blobs gain
- *     hard organic edges and visibly fuse into bigger lava-lamp shapes
- *     when they touch.
- *   • A glass shell, specular highlight, soft inner shadow and an outer
- *     bloom finish the "liquid plasma trapped in glass" look.
+ *  Six plasma blobs (Ajani crimson, Minerva teal, Hermes silver, Council
+ *  violet) float against a near-black glass interior. They are painted
+ *  to an offscreen canvas as solid radial gradients, then re-drawn to
+ *  the main canvas with `filter: blur(N) contrast(M)` — the classic 2D
+ *  metaball trick — so blob edges become hard and they fuse into bigger
+ *  shapes when they touch. No fog: contrast is high and inside is dark.
  *
  *  Physics:
- *   • Each blob has a slow vertical oscillation (lava-lamp convection).
- *   • Weak mutual repulsion keeps them from collapsing into one mass.
- *   • Damped jitter scaled by `coreState` produces alert / listening
- *     bursts of activity.
+ *   • Each blob has slow vertical convection (lava-lamp bobbing) plus
+ *     lateral wobble.
+ *   • Weak mutual repulsion + spring-toward-center keeps composition.
+ *   • Jitter scales with `coreState`.
  *
  *  Interaction:
- *   • A small central disc (`.core-wake`) is the click target so the
- *     surrounding inner ring stays draggable.
+ *   • Tapping anywhere on the orb fires `onActivate` and triggers a
+ *     "shock" — every blob picks up an outward impulse so the lava
+ *     visibly thrashes for a moment, then relaxes back. This is the
+ *     wake / voice-toggle gesture and also a clear "I felt that" cue.
  */
 
 const AI_COLORS = {
-  ajani:   { r: 240, g: 50,  b: 70,  hex: '#F03246' }, // crimson
-  minerva: { r: 40,  g: 200, b: 190, hex: '#28C8BE' }, // teal
-  hermes:  { r: 240, g: 240, b: 250, hex: '#F0F0FA' }, // silver
-  trinity: { r: 168, g: 120, b: 230, hex: '#A878E6' }, // violet
+  ajani:   { r: 240, g: 50,  b: 70 },  // crimson
+  minerva: { r: 40,  g: 200, b: 190 }, // teal
+  hermes:  { r: 240, g: 240, b: 250 },
+  trinity: { r: 168, g: 120, b: 230 }, // violet
 };
 
 const STATE_RHYTHM = {
-  idle:      { speed: 0.6,  jitter: 0.06, gravity: 0.85 },
-  listening: { speed: 1.4,  jitter: 0.18, gravity: 1.10 },
-  thinking:  { speed: 2.2,  jitter: 0.30, gravity: 1.40 },
-  speaking:  { speed: 1.7,  jitter: 0.14, gravity: 1.20 },
-  alert:     { speed: 3.5,  jitter: 0.40, gravity: 1.55 },
+  idle:      { speed: 0.7,  jitter: 0.06, gravity: 0.85 },
+  listening: { speed: 1.6,  jitter: 0.18, gravity: 1.10 },
+  thinking:  { speed: 2.4,  jitter: 0.30, gravity: 1.40 },
+  speaking:  { speed: 1.8,  jitter: 0.14, gravity: 1.20 },
+  alert:     { speed: 3.6,  jitter: 0.42, gravity: 1.55 },
 };
 
-// Each persona contributes 1-2 blobs so all four colors are always alive
-// inside the orb (red AND teal floating, even when one AI dominates).
+// Each persona contributes 1–2 blobs so all colors are alive at once.
 const BLOB_RECIPE = [
   { ai: 'ajani',   weight: 1.0, phase: 0.00 },
-  { ai: 'ajani',   weight: 0.7, phase: 0.55 },
+  { ai: 'ajani',   weight: 0.65, phase: 0.55 },
   { ai: 'minerva', weight: 1.0, phase: 0.20 },
-  { ai: 'minerva', weight: 0.6, phase: 0.75 },
-  { ai: 'hermes',  weight: 0.8, phase: 0.40 },
-  { ai: 'trinity', weight: 0.7, phase: 0.85 },
+  { ai: 'minerva', weight: 0.60, phase: 0.75 },
+  { ai: 'hermes',  weight: 0.75, phase: 0.40 },
+  { ai: 'trinity', weight: 0.70, phase: 0.85 },
 ];
 
 export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onActivate }) {
@@ -60,22 +54,22 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
   const blobsRef = useRef(null);
   const rafRef = useRef(null);
   const startRef = useRef(performance.now());
+  const shockRef = useRef(0); // 0..1 — fades after a tap to drive a ripple
 
-  // Initialize blobs once.
+  const [tapping, setTapping] = useState(false);
+
   if (!blobsRef.current) {
     blobsRef.current = BLOB_RECIPE.map((recipe, i) => {
       const a = (i / BLOB_RECIPE.length) * Math.PI * 2;
       return {
         ...recipe,
-        // normalized [-1, 1]; scaled by core radius at draw time
-        x: 0.32 * Math.cos(a),
-        y: 0.32 * Math.sin(a),
+        x: 0.30 * Math.cos(a),
+        y: 0.30 * Math.sin(a),
         vx: 0,
         vy: 0,
-        // Per-blob oscillation params for varied motion.
-        bobAmp: 0.35 + Math.random() * 0.25,
+        bobAmp: 0.36 + Math.random() * 0.24,
         bobFreq: 0.18 + Math.random() * 0.18,
-        wobAmp: 0.20 + Math.random() * 0.20,
+        wobAmp: 0.22 + Math.random() * 0.20,
         wobFreq: 0.13 + Math.random() * 0.18,
       };
     });
@@ -92,7 +86,6 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    // Offscreen canvas for the metaball layer.
     if (!offscreenRef.current) {
       offscreenRef.current = document.createElement('canvas');
     }
@@ -103,8 +96,8 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
     offCtx.scale(dpr, dpr);
 
     const C = cssSize / 2;
-    const CORE_R = cssSize * 0.42;
-    const BLUR_PX = Math.max(8, cssSize * 0.05);
+    const CORE_R = cssSize * 0.44;
+    const BLUR_PX = Math.max(7, cssSize * 0.038);
 
     let lastT = performance.now();
 
@@ -113,23 +106,26 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
       lastT = now;
       const t = (now - startRef.current) / 1000;
       const rhythm = STATE_RHYTHM[coreState] || STATE_RHYTHM.idle;
+      const ai = AI_COLORS[activeAI] || AI_COLORS.ajani;
 
-      // ─── Update blob physics ────────────────────────────────────────
+      // Decay shock impulse.
+      shockRef.current *= 0.92;
+      if (shockRef.current < 0.001) shockRef.current = 0;
+
+      // ─── physics ────────────────────────────────────────────────────
       const blobs = blobsRef.current;
       for (let i = 0; i < blobs.length; i++) {
         const b = blobs[i];
-        // Lava-lamp vertical bobbing.
         const bobSpeed = b.bobFreq * rhythm.speed;
         const wobSpeed = b.wobFreq * rhythm.speed;
         const targetY = b.bobAmp * Math.sin(t * bobSpeed * Math.PI + b.phase * Math.PI * 2);
         const targetX = b.wobAmp * Math.cos(t * wobSpeed * Math.PI + b.phase * Math.PI * 2);
-        // Spring toward target trajectory.
-        b.vx += (targetX - b.x) * 0.0015;
-        b.vy += (targetY - b.y) * 0.0015;
-        // Center pull (gravity) so blobs stay roughly centered.
+        b.vx += (targetX - b.x) * 0.0017;
+        b.vy += (targetY - b.y) * 0.0017;
+        // Center pull.
         b.vx += -b.x * 0.0003 * rhythm.gravity;
         b.vy += -b.y * 0.0003 * rhythm.gravity;
-        // Mutual repulsion so they don't all stack on top of each other.
+        // Mutual repulsion.
         for (let j = 0; j < blobs.length; j++) {
           if (i === j) continue;
           const o = blobs[j];
@@ -140,35 +136,48 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
           b.vx += dx * force;
           b.vy += dy * force;
         }
-        // Tiny turbulence for organic feel.
+        // Tap shock — push outward radially.
+        if (shockRef.current > 0) {
+          const r = Math.hypot(b.x, b.y) + 0.001;
+          b.vx += (b.x / r) * shockRef.current * 0.012;
+          b.vy += (b.y / r) * shockRef.current * 0.012;
+        }
+        // Turbulence.
         b.vx += (Math.random() - 0.5) * 0.00012 * rhythm.jitter;
         b.vy += (Math.random() - 0.5) * 0.00012 * rhythm.jitter;
         // Damping.
-        b.vx *= 0.94;
-        b.vy *= 0.94;
+        b.vx *= 0.93;
+        b.vy *= 0.93;
         b.x += b.vx * dt;
         b.y += b.vy * dt;
-        // Soft confine.
         const r = Math.hypot(b.x, b.y);
         if (r > 0.62) { b.x *= 0.62 / r; b.y *= 0.62 / r; }
       }
 
-      // ─── Layer A: paint blobs to offscreen, ───────────────────────
-      // then blur+contrast to fuse into lava-lamp metaballs.
+      // ─── offscreen blob layer ───────────────────────────────────────
       offCtx.save();
       offCtx.clearRect(0, 0, cssSize, cssSize);
+      // Solid dark background fills the offscreen so contrast filter has
+      // a clean alpha map to work with — eliminates the foggy halo.
+      offCtx.fillStyle = '#000000';
+      offCtx.fillRect(0, 0, cssSize, cssSize);
+      // Punch out the core circle so blobs exist against transparent.
+      offCtx.globalCompositeOperation = 'destination-out';
+      offCtx.beginPath();
+      offCtx.arc(C, C, CORE_R, 0, Math.PI * 2);
+      offCtx.fill();
+      offCtx.globalCompositeOperation = 'source-over';
+
       for (const b of blobs) {
         const isActive = b.ai === activeAI;
         const col = AI_COLORS[b.ai];
-        const blobR = CORE_R * 0.32 * b.weight * (isActive ? 1.35 : 1.0);
+        const blobR = CORE_R * 0.34 * b.weight * (isActive ? 1.30 : 1.0);
         const cx = C + b.x * CORE_R;
         const cy = C + b.y * CORE_R;
-        // Soft radial gradient — combined with blur+contrast on the
-        // main canvas this becomes a hard-edged lava blob.
+        // Solid-edged radial gradient: full alpha at center, hard fall-off.
         const g = offCtx.createRadialGradient(cx, cy, 0, cx, cy, blobR);
-        const peak = isActive ? 1 : 0.85;
-        g.addColorStop(0,    `rgba(${col.r}, ${col.g}, ${col.b}, ${peak})`);
-        g.addColorStop(0.55, `rgba(${col.r}, ${col.g}, ${col.b}, ${peak * 0.6})`);
+        g.addColorStop(0,    `rgba(${col.r}, ${col.g}, ${col.b}, 1)`);
+        g.addColorStop(0.55, `rgba(${col.r}, ${col.g}, ${col.b}, 0.90)`);
         g.addColorStop(1,    `rgba(${col.r}, ${col.g}, ${col.b}, 0)`);
         offCtx.fillStyle = g;
         offCtx.beginPath();
@@ -177,58 +186,53 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
       }
       offCtx.restore();
 
-      // Clear main canvas.
+      // ─── main canvas ────────────────────────────────────────────────
       ctx.clearRect(0, 0, cssSize, cssSize);
 
-      // ─── Layer 1: outer bloom (drawn before clip) ───────────────────
-      const ai = AI_COLORS[activeAI] || AI_COLORS.ajani;
+      // Outer bloom.
       const bloom = ctx.createRadialGradient(C, C, CORE_R * 0.85, C, C, CORE_R * 1.7);
-      bloom.addColorStop(0, `rgba(${ai.r}, ${ai.g}, ${ai.b}, 0.30)`);
+      bloom.addColorStop(0, `rgba(${ai.r}, ${ai.g}, ${ai.b}, 0.32)`);
       bloom.addColorStop(0.5, `rgba(${ai.r}, ${ai.g}, ${ai.b}, 0.10)`);
-      bloom.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      bloom.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = bloom;
       ctx.beginPath();
       ctx.arc(C, C, CORE_R * 1.7, 0, Math.PI * 2);
       ctx.fill();
 
-      // ─── Clip to core circle for everything inside the glass ────────
+      // Clip to core.
       ctx.save();
       ctx.beginPath();
       ctx.arc(C, C, CORE_R, 0, Math.PI * 2);
       ctx.clip();
 
-      // ─── Layer 2: glass shell back ──────────────────────────────────
-      const shellBack = ctx.createRadialGradient(C, C * 0.92, 0, C, C, CORE_R);
-      shellBack.addColorStop(0,    'rgba(12, 8, 18, 0.0)');
-      shellBack.addColorStop(0.55, 'rgba(12, 8, 18, 0.15)');
-      shellBack.addColorStop(0.92, 'rgba(8,  6, 14, 0.45)');
-      shellBack.addColorStop(1,    'rgba(8,  6, 14, 0.6)');
-      ctx.fillStyle = shellBack;
+      // Dark glass interior — the lamp's "oil".
+      const interior = ctx.createRadialGradient(C, C * 0.95, 0, C, C, CORE_R);
+      interior.addColorStop(0,   '#0a0410');
+      interior.addColorStop(0.7, '#05030a');
+      interior.addColorStop(1,   '#000000');
+      ctx.fillStyle = interior;
       ctx.fillRect(0, 0, cssSize, cssSize);
 
-      // ─── Layer 3: lava-lamp metaballs ───────────────────────────────
-      // Heavy blur + extreme contrast = blobs with hard organic edges
-      // that merge into bigger shapes when they touch.
+      // Lava-lamp blobs: blur + extreme contrast → hard organic edges, no fog.
       ctx.save();
-      ctx.filter = `blur(${BLUR_PX}px) contrast(18) saturate(1.25)`;
+      ctx.filter = `blur(${BLUR_PX}px) contrast(28) saturate(1.35)`;
       ctx.drawImage(off, 0, 0, cssSize, cssSize);
       ctx.restore();
 
-      // Layer 3b: subtle re-paint of the same blobs un-thresholded for
-      // a soft inner glow that follows the same shapes.
+      // Soft inner glow following the same blob silhouettes.
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.35;
-      ctx.filter = `blur(${BLUR_PX * 0.6}px)`;
+      ctx.globalAlpha = 0.45;
+      ctx.filter = `blur(${BLUR_PX * 0.55}px)`;
       ctx.drawImage(off, 0, 0, cssSize, cssSize);
       ctx.restore();
 
-      // ─── Layer 4: state-driven overlays ─────────────────────────────
+      // State overlays.
       if (coreState === 'listening') {
         for (let i = 0; i < 3; i++) {
-          const phase = ((t * 0.6) + i / 3) % 1;
+          const phase = ((t * 0.7) + i / 3) % 1;
           const r = CORE_R * (0.42 + phase * 0.55);
-          ctx.strokeStyle = `rgba(${ai.r}, ${ai.g}, ${ai.b}, ${(1 - phase) * 0.5})`;
+          ctx.strokeStyle = `rgba(${ai.r}, ${ai.g}, ${ai.b}, ${(1 - phase) * 0.55})`;
           ctx.lineWidth = 1.4;
           ctx.beginPath();
           ctx.arc(C, C, r, 0, Math.PI * 2);
@@ -237,26 +241,33 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
       }
       if (coreState === 'speaking') {
         const p = 0.5 + 0.5 * Math.sin(t * 5);
-        ctx.strokeStyle = `rgba(${ai.r}, ${ai.g}, ${ai.b}, ${0.35 + p * 0.35})`;
+        ctx.strokeStyle = `rgba(${ai.r}, ${ai.g}, ${ai.b}, ${0.35 + p * 0.4})`;
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.arc(C, C, CORE_R * (0.93 + p * 0.04), 0, Math.PI * 2);
         ctx.stroke();
       }
-      if (coreState === 'alert') {
-        ctx.fillStyle = `rgba(${ai.r}, ${ai.g}, ${ai.b}, ${0.18 * Math.abs(Math.sin(t * 9))})`;
-        ctx.fillRect(0, 0, cssSize, cssSize);
+
+      // Tap ripple — outward expanding ring on shock.
+      if (shockRef.current > 0.05) {
+        const ringR = CORE_R * (0.30 + (1 - shockRef.current) * 0.7);
+        const alpha = shockRef.current * 0.7;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(C, C, ringR, 0, Math.PI * 2);
+        ctx.stroke();
       }
 
       ctx.restore(); // end clip
 
-      // ─── Layer 5: glass front specular + rim ────────────────────────
+      // Specular highlight on glass surface.
       const spec = ctx.createRadialGradient(
-        C - CORE_R * 0.35, C - CORE_R * 0.4, 0,
-        C - CORE_R * 0.35, C - CORE_R * 0.4, CORE_R * 0.55
+        C - CORE_R * 0.35, C - CORE_R * 0.42, 0,
+        C - CORE_R * 0.35, C - CORE_R * 0.42, CORE_R * 0.55
       );
-      spec.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
-      spec.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+      spec.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+      spec.addColorStop(0.5, 'rgba(255, 255, 255, 0.06)');
       spec.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.save();
       ctx.beginPath();
@@ -266,9 +277,9 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
       ctx.fillRect(0, 0, cssSize, cssSize);
       ctx.restore();
 
-      // Outer rim ring
-      ctx.strokeStyle = `rgba(${ai.r}, ${ai.g}, ${ai.b}, 0.55)`;
-      ctx.lineWidth = 1;
+      // Outer rim.
+      ctx.strokeStyle = `rgba(${ai.r}, ${ai.g}, ${ai.b}, 0.65)`;
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.arc(C, C, CORE_R, 0, Math.PI * 2);
       ctx.stroke();
@@ -282,27 +293,30 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
     };
   }, [activeAI, coreState]);
 
+  const handleTap = () => {
+    shockRef.current = 1;        // visible ripple + outward blob impulse
+    setTapping(true);
+    setTimeout(() => setTapping(false), 200);
+    if (onActivate) onActivate();
+  };
+
   return (
-    <div
-      className={`atlas-core core-state-${coreState} core-ai-${activeAI}`}
+    <button
+      type="button"
+      className={`atlas-core core-state-${coreState} core-ai-${activeAI} ${tapping ? 'tapping' : ''}`}
       style={{
         '--core-bloom': (
           activeAI === 'minerva' ? '40, 200, 190' :
           activeAI === 'hermes'  ? '240, 240, 250' :
           activeAI === 'trinity' ? '168, 120, 230' :
-          '240, 50, 70' // ajani default
+          '240, 50, 70'
         ),
       }}
+      onClick={handleTap}
       data-testid="core-orb"
+      aria-label="Atlas Core — tap to wake / activate voice"
     >
       <canvas ref={canvasRef} />
-      <button
-        type="button"
-        className="core-wake"
-        onClick={onActivate}
-        data-testid="core-wake"
-        aria-label="Atlas Core — wake / activate voice"
-      />
-    </div>
+    </button>
   );
 }

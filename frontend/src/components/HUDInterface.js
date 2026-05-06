@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Mic, MicOff, Volume2, VolumeX, AlertTriangle, Upload as UploadIcon } from 'lucide-react';
 import AtlasCore from './HUD/AtlasCore';
 import DialRing from './HUD/DialRing';
+import GhostRings from './HUD/GhostRings';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
 import FileUploadModal from './FileUploadModal';
 import FileBrowserPanel from './FileBrowserPanel';
@@ -252,8 +253,11 @@ export default function HUDInterface() {
         </div>
       )}
 
-      {/* Main HUD — 3 concentric radial dials */}
+      {/* Main HUD — 3 concentric radial dials + ghost background + core */}
       <div className="atlas-hud" data-ring-motion={coreState}>
+        {/* Layer 0: ghost / parallax background rings */}
+        <GhostRings />
+
         <div className="ring-stage ring-stage-outer" data-ring="outer">
           <DialRing
             items={OUTER_RING.items}
@@ -286,7 +290,21 @@ export default function HUDInterface() {
           />
         </div>
 
-        {/* Central Core — wake / state indicator / unified-consciousness viz */}
+        {/* Containment ring — decorative reactor cradle, 1.3× orb */}
+        <div
+          className="core-ring"
+          aria-hidden="true"
+          style={{
+            '--core-bloom': (
+              activeAI === 'minerva' ? '40, 200, 190' :
+              activeAI === 'hermes'  ? '240, 240, 250' :
+              activeAI === 'trinity' ? '168, 120, 230' :
+              '240, 50, 70'
+            ),
+          }}
+        />
+
+        {/* Central Core — tappable lava-lamp orb (wake / state / activation) */}
         <div className="core-wrap">
           <AtlasCore
             activeAI={activeAI}

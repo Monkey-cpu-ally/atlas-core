@@ -1673,11 +1673,19 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: none; /* tiles + ring surface re-enable */
 }
-.ring-stage-outer  { width: 100%; height: 100%; z-index: 10;
+/* Stacked ring stages — diameter ratios follow user spec:
+   orb ≈ 18%, core-ring ≈ 22%, inner ≈ 38%, middle ≈ 60%, outer ≈ 88%. */
+.ring-stage {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.ring-stage-outer  { width: 100%;  height: 100%; z-index: 10;
   --snap-duration: 400ms; --snap-easing: cubic-bezier(.25, .8, .3, 1); }
-.ring-stage-middle { width: 68%;  height: 68%;  z-index: 20;
+.ring-stage-middle { width: 68%;   height: 68%;  z-index: 20;
   --snap-duration: 180ms; --snap-easing: cubic-bezier(.4, 0, .2, 1); }
-.ring-stage-inner  { width: 33%;  height: 33%;  z-index: 30;
+.ring-stage-inner  { width: 43%;   height: 43%;  z-index: 30;
   --snap-duration: 300ms; --snap-easing: cubic-bezier(.33, 1, .68, 1); }
 
 /* The draggable ring surface itself. */
@@ -1805,65 +1813,54 @@ body {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 30%;
-  height: 30%;
-  z-index: 5;        /* below rings so tiles render above */
+  width: 18%;        /* orb diameter — anchors all other ratios */
+  height: 18%;
+  z-index: 40;
+  pointer-events: none; /* canvas inside re-enables for tap */
+}
+
+/* Decorative containment ring — 1.3× orb diameter. Reactor cradle. */
+.core-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 23%;
+  height: 23%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(var(--core-bloom, 240, 50, 70), 0.45);
   pointer-events: none;
+  z-index: 6;
+  box-shadow:
+    0 0 24px rgba(var(--core-bloom, 240, 50, 70), 0.25),
+    inset 0 0 14px rgba(var(--core-bloom, 240, 50, 70), 0.18);
 }
 
 .atlas-core {
   position: relative;
   width: 100%;
   height: 100%;
-  pointer-events: none;       /* canvas is non-interactive; .core-wake is the click target */
+  border: none;
+  background: transparent;
+  padding: 0;
   display: block;
   border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;       /* whole orb is the tap target */
+  outline: none;
   filter:
-    drop-shadow(0 0 22px rgba(var(--core-bloom, 220, 38, 60), 0.22))
-    drop-shadow(0 0 60px rgba(var(--core-bloom, 220, 38, 60), 0.12));
-  animation: coreBloomBreath 3.6s ease-in-out infinite;
+    drop-shadow(0 0 22px rgba(var(--core-bloom, 240, 50, 70), 0.28))
+    drop-shadow(0 0 60px rgba(var(--core-bloom, 240, 50, 70), 0.14));
+  /* Core stays still — no breathing, no hover scale, no tap scale.
+     All life happens INSIDE the orb (lava blobs + tap ripple). */
 }
-
-/* Each AI repaints its own bloom by overriding --core-bloom inline. */
 
 .atlas-core canvas {
   display: block;
   width: 100%;
   height: 100%;
   pointer-events: none;
-}
-
-/* Small central disc — the actual wake/voice toggle target. Sits inside the
-   core's visible orb so the surrounding inner ring stays draggable. */
-.core-wake {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 44%;
-  height: 44%;
-  border: none;
-  background: transparent;
   border-radius: 50%;
-  cursor: pointer;
-  pointer-events: auto;
-  outline: none;
-  padding: 0;
-  transition: transform 200ms ease, box-shadow 200ms ease;
 }
-.core-wake:hover {
-  transform: translate(-50%, -50%) scale(1.06);
-  box-shadow: 0 0 24px rgba(var(--core-bloom, 220, 38, 60), 0.45),
-              inset 0 0 16px rgba(255, 255, 255, 0.08);
-}
-.core-wake:active {
-  transform: translate(-50%, -50%) scale(0.96);
-}
-
-/* State-driven bloom rhythm. */
-.atlas-core.core-state-listening { animation: coreBloomBreath 1.4s ease-in-out infinite; }
-.atlas-core.core-state-thinking  { animation: coreBloomBreath 0.9s ease-in-out infinite; }
-.atlas-core.core-state-speaking  { animation: coreBloomBreath 1.1s ease-in-out infinite; }
-.atlas-core.core-state-alert     { animation: coreBloomBreath 0.45s ease-in-out infinite; }
 
 @keyframes coreBloomBreath {
   0%, 100% {
@@ -1890,3 +1887,45 @@ body {
     letter-spacing: 1px;
   }
 }
+
+/* =======================================================================
+   GHOST RINGS — faint parallax background rings (depth + "living machine")
+   ======================================================================= */
+.ghost-rings {
+  position: absolute;
+  inset: -20%;          /* extend beyond the rectangular HUD frame */
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+.ghost-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  opacity: var(--opacity, 0.08);
+  animation: ghostSpin var(--dur, 200s) linear infinite;
+  overflow: visible;
+}
+.ghost-ring.reverse {
+  animation: ghostSpinReverse var(--dur, 200s) linear infinite;
+}
+@keyframes ghostSpin        { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes ghostSpinReverse { to { transform: translate(-50%, -50%) rotate(-360deg); } }
+
+/* Differentiate ring track thicknesses per the visual-hierarchy spec.
+   Inner = boldest visible track, mid = thin, outer = medium-thin. */
+.ring-stage-inner  .dial-ring .ring-track circle.ring-visible {
+  stroke: rgba(120, 200, 255, 0.85);
+  stroke-width: 0.55;
+}
+.ring-stage-middle .dial-ring .ring-track circle.ring-visible {
+  stroke: rgba(120, 180, 240, 0.40);
+  stroke-width: 0.30;
+}
+.ring-stage-outer  .dial-ring .ring-track circle.ring-visible {
+  stroke: rgba(110, 170, 235, 0.55);
+  stroke-width: 0.38;
+}
+

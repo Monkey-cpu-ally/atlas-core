@@ -49,20 +49,26 @@ tile glows in the AI's identity color).
     └── knowledge_core.py        # 22 educational subjects (in-memory)
 ```
 
-## Ring Layout (matches reference screenshot)
+## Ring Layout (matches reference screenshot + 6-layer spec)
 
-### Inner ring (radius 14.2% of HUD, 4 slots @ 90°)
+### Layer hierarchy (inside → outside, all centered on orb)
+1. **Core orb** ≈ 18% of HUD — tappable lava-lamp visualization
+2. **Core containment ring** ≈ 22% (1.3× orb) — decorative reactor cradle
+3. **Inner orbit** ≈ 38% (2.5× orb) — AI personas (4 slots @ 90°, compass)
+4. **Mid system ring** ≈ 60% (4× orb) — operating-system shell
+5. **Outer world ring** ≈ 88% (6× orb) — knowledge / exploration
+6. **Ghost / parallax rings** — 7 faded background circles drifting at
+   different speeds (75–320 s per revolution) for "living machine" depth.
+   Opacity 5–15%, extend beyond the rectangular HUD frame.
+
+### Inner ring (4 slots @ 90°)
 - N: AJANI — E: MINERVA — S: HERMES — W: COUNCIL
 
-### Middle ring (radius 29.2% of HUD, 6 of 8 slots @ 45°)
-- N: MANUAL — E: ENCYCLOPEDIA — S: SYSTEM MONITOR — W: EXPLORE MODE
-- SE: MEMORY — SW: CUSTOMIZATION
-- (NE, NW intentionally empty)
+### Mid System ring (5 slots, 8-slot grid)
+- N: MANUAL — E: ENCYCLOPEDIA — SE: MEMORY — S: SYSTEMS — SW: CUSTOMIZATION
 
-### Outer ring (radius 43% of HUD, 6 of 8 slots @ 45°)
-- N: SUBJECTS — E: LAB — S: BLUEPRINTS — W: ARCHIVE
-- SE: PROJECTS — SW: SYSTEMS
-- (NE, NW intentionally empty)
+### Outer World ring (6 slots, 8-slot grid)
+- N: SUBJECTS — E: LAB — SE: PROJECTS — S: BLUEPRINTS — SW: ARCHIVE — W: EXPLORE MODE
 
 ## Motion Spec (per ring)
 | Ring   | Snap duration | Easing                        | Personality |
