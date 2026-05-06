@@ -1,11 +1,16 @@
-// Radial HUD layout — 4 visible orbits + core ring, with strict diameter
-// ratios relative to the orb (per user spec):
-//   Core Ring   ≈ 1.3× orb (decorative containment ring)
-//   Inner Orbit ≈ 2.5× orb (AI personas — N/E/S/W)
-//   Mid System  ≈ 4×   orb (operating-system shell)
-//   Outer World ≈ 6×   orb (knowledge / exploration)
+// Radial HUD layout — tile positions designed so that tiles from different
+// orbits NEVER align radially, creating clean visual separation between
+// rings (each ring has its own angular signature).
+//
+// Diameter ratios per spec:
+//   Core orb     ≈ 1×   (anchor)
+//   Core ring    ≈ 1.3× orb
+//   Inner orbit  ≈ 2.5× orb (4 AI personas at compass cardinals)
+//   Mid system   ≈ 4×   orb (offset 22.5° from outer to interleave)
+//   Outer world  ≈ 6×   orb (cardinals + ordinals)
 //
 // Angles: -90° = top (12 o'clock), 0° = right, 90° = bottom, 180° = left.
+// Positive = clockwise.
 
 import {
   // Inner ring (AIs)
@@ -16,7 +21,7 @@ import {
   BookOpen, FlaskConical, FolderOpen, FileCode, Archive, Compass,
 } from 'lucide-react';
 
-// --- Inner Orbit (AI personas, 4 slots @ 90°, compass directions) ---
+// --- Inner Orbit (4 AIs at compass cardinals) ---
 export const INNER_RING = {
   slotAngle: 90,
   items: [
@@ -27,25 +32,26 @@ export const INNER_RING = {
   ],
 };
 
-// --- Mid System Ring (operating-system shell, 5 items on an 8-slot grid) ---
+// --- Mid System Ring (5 items, offset 22.5° from outer to interleave) ---
+// Tiles sit at NNE / ENE / SSE / SSW / WSW so they fall between outer ring spokes.
 export const MIDDLE_RING = {
   slotAngle: 45,
   items: [
-    { angle: -90, id: 'manual',        label: 'MANUAL',        icon: Book,       type: 'section' },
-    { angle:   0, id: 'encyclopedia',  label: 'ENCYCLOPEDIA',  icon: BookMarked, type: 'section' },
-    { angle:  45, id: 'memory',        label: 'MEMORY',        icon: Database,   type: 'section' },
-    { angle:  90, id: 'systems',       label: 'SYSTEMS',       icon: Layout,     type: 'section' },
-    { angle: 135, id: 'customization', label: 'CUSTOMIZATION', icon: Settings,   type: 'section' },
+    { angle: -67.5, id: 'manual',        label: 'MANUAL',        icon: Book,       type: 'section' },
+    { angle: -22.5, id: 'encyclopedia',  label: 'CYCLOPEDIA',    icon: BookMarked, type: 'section' },
+    { angle:  22.5, id: 'memory',        label: 'MEMORY',        icon: Database,   type: 'section' },
+    { angle:  67.5, id: 'systems',       label: 'SYSTEMS',       icon: Layout,     type: 'section' },
+    { angle: 112.5, id: 'customization', label: 'CUSTOMIZATION', icon: Settings,   type: 'section' },
   ],
 };
 
-// --- Outer World Ring (knowledge / exploration, 6 items on an 8-slot grid) ---
+// --- Outer World Ring (6 items at cardinals + 2 ordinals) ---
 export const OUTER_RING = {
   slotAngle: 45,
   items: [
     { angle: -90, id: 'subjects',   label: 'SUBJECTS',     icon: BookOpen,     type: 'section' },
-    { angle:   0, id: 'lab',        label: 'LAB',          icon: FlaskConical, type: 'section' },
-    { angle:  45, id: 'projects',   label: 'PROJECTS',     icon: FolderOpen,   type: 'section' },
+    { angle: -45, id: 'lab',        label: 'LAB',          icon: FlaskConical, type: 'section' },
+    { angle:   0, id: 'projects',   label: 'PROJECTS',     icon: FolderOpen,   type: 'section' },
     { angle:  90, id: 'blueprints', label: 'BLUEPRINTS',   icon: FileCode,     type: 'section' },
     { angle: 135, id: 'archive',    label: 'ARCHIVE',      icon: Archive,      type: 'section' },
     { angle: 180, id: 'explore',    label: 'EXPLORE MODE', icon: Compass,      type: 'section' },

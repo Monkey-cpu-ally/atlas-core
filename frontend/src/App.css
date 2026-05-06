@@ -1728,25 +1728,32 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: auto;
   cursor: pointer;
-  background: rgba(10, 12, 22, 0.88);
-  border: 1px solid rgba(120, 140, 170, 0.22);
-  border-radius: 12px;
+  /* Floating glass panel — dark translucent with neon rim. */
+  background:
+    linear-gradient(180deg, rgba(20, 28, 44, 0.78) 0%, rgba(8, 12, 22, 0.88) 100%);
+  border: 1px solid rgba(140, 180, 230, 0.28);
+  border-radius: 10px;
   width: max-content;
-  min-width: 84px;
-  padding: 9px 13px 7px;
+  min-width: 92px;
+  padding: 10px 14px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: rgba(210, 218, 234, 0.9);
+  color: rgba(220, 230, 245, 0.92);
   font-family: 'Rajdhani', sans-serif;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 0 12px rgba(80, 140, 220, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
   transition:
     left  var(--snap-duration, 250ms) var(--snap-easing, ease),
     top   var(--snap-duration, 250ms) var(--snap-easing, ease),
     background 200ms ease,
     border-color 200ms ease,
-    box-shadow 200ms ease,
+    box-shadow 220ms ease,
     transform 200ms ease;
   user-select: none;
   -webkit-user-select: none;
@@ -1771,14 +1778,22 @@ body {
 }
 
 .dial-tile:hover {
-  background: rgba(20, 24, 40, 0.95);
-  border-color: rgba(160, 180, 210, 0.42);
+  background:
+    linear-gradient(180deg, rgba(34, 50, 80, 0.90) 0%, rgba(14, 22, 38, 0.95) 100%);
+  border-color: rgba(180, 220, 255, 0.55);
+  box-shadow:
+    0 0 22px rgba(120, 200, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.40);
 }
 
-/* Tile currently at the top of its ring — highlighted, breathing glow. */
+/* Tile currently at the top of its ring — highlighted neon rim. */
 .dial-tile.is-top {
-  border-color: rgba(120, 180, 255, 0.55);
-  box-shadow: 0 0 20px rgba(80, 150, 255, 0.18);
+  border-color: rgba(150, 215, 255, 0.75);
+  box-shadow:
+    0 0 24px rgba(120, 200, 255, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.40);
 }
 
 /* Active AI tile (inner ring) — colored outline + breathing glow. */
