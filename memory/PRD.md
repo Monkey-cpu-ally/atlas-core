@@ -92,23 +92,42 @@ movement they snap to the nearest slot and stop. No auto-spin.
 ## What's Implemented (this session, Feb 2026)
 - [x] Radial dial rebuild with polar-coord tile placement and pointer-driven
       drag-to-rotate (DialRing.js)
-- [x] Layout matches user reference image exactly (inner/middle/outer)
-- [x] Click-vs-drag detection with > 4° threshold
-- [x] Selected tile snaps to top, glows in AI color (inner) or blue (others)
-- [x] Per-ring motion personality (timings + easing)
-- [x] **Lava-lamp central core**: 6 plasma blobs (red, teal, silver, violet)
-      driven by spring-pull + mutual repulsion + per-blob bobbing/wobbling.
-      Rendered to an offscreen canvas, then drawn back with
-      `filter: blur(N) contrast(M)` so blob edges become hard and they fuse
-      into bigger shapes when they touch — true 2D metaball trick.
-      Glass shell back, specular highlight, outer bloom that bleeds into
-      the rings, AI-tinted color via `--core-bloom` CSS variable.
-- [x] Core acts as wake/voice activation: small central `.core-wake` disc
-      is the click target so the inner ring drag area stays free.
-- [x] Voice command bug fixed (callback-ref hook + onError + getUserMedia)
+- [x] Layout matches user reference image exactly with interleaved middle
+      ring (offset 22.5° from outer to avoid radial collisions)
+- [x] Premium glass tiles with neon rim, gradient bg, hover lift
+- [x] 6-layer ring hierarchy: orb (18%) → core ring (22%) → inner (38%) →
+      mid (60%) → outer (88%) → 7 ghost parallax rings
+- [x] Differentiated ring track thicknesses (containment > inner > outer > mid)
+- [x] **Fluid liquid lava-lamp core** — 11 organic deformed blobs (red,
+      teal, silver, violet, magenta) with velocity squash/stretch, particle
+      system, central pulse nucleus, multi-layer depth, tap-to-shock ripple
+- [x] Tap reaction: rings flare, tiles shift, containment ring brightens,
+      deep machine hum
+- [x] Voice command flow fixed (callback-ref hook, getUserMedia, onError)
 - [x] FileUploadModal + FileBrowserPanel: data-testid for testability
-- [x] Backend `.env` fix: EMERGENT_LLM_KEY moved onto its own line
-- [x] Dead code removed: old OriginalRing1/2/3, Ring1AIPresence, etc.
+- [x] Backend `.env` fix: EMERGENT_LLM_KEY on its own line
+
+### AI Services (NEW this iteration)
+- [x] **OpenAI TTS** — POST /api/ai/tts with per-AI voice mapping
+      (Ajani→onyx, Minerva→nova, Hermes→echo, Trinity→shimmer)
+- [x] **Minerva approval API** — POST /api/ai/minerva/approve returns
+      verdict + ethical_score + concerns + conditions + alternatives +
+      ancestral_wisdom
+- [x] **Hermes validation API** — POST /api/ai/hermes/validate returns
+      verdict + feasibility/safety scores + failure_modes + constraints +
+      next_steps
+- [x] **Blueprint Engine** — POST /api/ai/blueprint/generate returns
+      5-phase structured spec (Philosophy, Research, Blueprint, Simulation,
+      Physical)
+- [x] **Audio-reactive core** — useAudioReactive hook pipes mic
+      AnalyserNode RMS into AtlasCore via levelRef. When listening, blob
+      jitter + speed scale with voice volume.
+- [x] **TTS playback in ChatPanel** — chat-voice-toggle button, AI
+      responses spoken aloud in the persona's voice
+- [x] **BlueprintWorkbench** — interactive UI (opens via outer-blueprints
+      tile) for Generate Blueprint + Minerva Review + Hermes Validate
+- [x] All 11 backend AI tests passed (test_ai_services.py); frontend
+      flows verified end-to-end
 
 ## Backlog
 

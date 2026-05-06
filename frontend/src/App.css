@@ -1350,8 +1350,8 @@ body {
 /* Chat Panel - Floating always-accessible chat */
 .chat-fab {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 28px;
+  left: 28px;       /* moved off the bottom-right to avoid 'Made with Emergent' badge overlap */
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -1386,7 +1386,7 @@ body {
 .chat-panel {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  left: 24px;       /* match FAB position so the panel slides up from the same corner */
   width: 400px;
   height: 600px;
   background: rgba(10, 10, 18, 0.98);
