@@ -90,16 +90,19 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] Click-vs-drag detection with > 4° threshold
 - [x] Selected tile snaps to top, glows in AI color (inner) or blue (others)
 - [x] Per-ring motion personality (timings + easing)
-- [x] Voice command bug fixed:
-      - removed undefined `setSelectedSystem` / `setSelectedLearning` setters
-        that crashed the app on voice result
-      - hook now uses callback refs so recognition isn't recreated each render
-      - added explicit `getUserMedia` permission request and `onError` callback
+- [x] **Lava-lamp central core**: 6 plasma blobs (red, teal, silver, violet)
+      driven by spring-pull + mutual repulsion + per-blob bobbing/wobbling.
+      Rendered to an offscreen canvas, then drawn back with
+      `filter: blur(N) contrast(M)` so blob edges become hard and they fuse
+      into bigger shapes when they touch — true 2D metaball trick.
+      Glass shell back, specular highlight, outer bloom that bleeds into
+      the rings, AI-tinted color via `--core-bloom` CSS variable.
+- [x] Core acts as wake/voice activation: small central `.core-wake` disc
+      is the click target so the inner ring drag area stays free.
+- [x] Voice command bug fixed (callback-ref hook + onError + getUserMedia)
 - [x] FileUploadModal + FileBrowserPanel: data-testid for testability
-- [x] Backend `.env` fix: EMERGENT_LLM_KEY moved onto its own line (was being
-      silently dropped by python-dotenv → `/api/chat/send` returned 503)
-- [x] Dead code removed: old OriginalRing1/2/3, Ring1AIPresence, Ring2System,
-      Ring3Learning, originalRingStructure data file
+- [x] Backend `.env` fix: EMERGENT_LLM_KEY moved onto its own line
+- [x] Dead code removed: old OriginalRing1/2/3, Ring1AIPresence, etc.
 
 ## Backlog
 

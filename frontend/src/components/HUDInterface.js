@@ -286,9 +286,13 @@ export default function HUDInterface() {
           />
         </div>
 
-        {/* Central Core */}
+        {/* Central Core — wake / state indicator / unified-consciousness viz */}
         <div className="core-wrap">
-          <AtlasCore activeAI={activeAI} coreState={coreState} />
+          <AtlasCore
+            activeAI={activeAI}
+            coreState={coreState}
+            onActivate={isSupported ? toggleListening : undefined}
+          />
         </div>
       </div>
 
