@@ -482,7 +482,126 @@ body {
   display: none; /* Remove dots for original look */
 }
 
-/* Core */
+/* Original HUD Card Layout */
+.original-card {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  background: rgba(20, 20, 30, 0.9);
+  border: 2px solid rgba(100, 120, 150, 0.4);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 120px;
+  min-height: 90px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s ease;
+}
+
+.original-card:hover {
+  background: rgba(30, 30, 40, 0.95);
+  border-color: rgba(100, 200, 255, 0.6);
+  box-shadow: 0 0 25px rgba(100, 200, 255, 0.4), 0 6px 25px rgba(0, 0, 0, 0.8);
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.original-card.selected {
+  background: rgba(30, 30, 40, 0.95);
+  border-color: rgba(100, 200, 255, 0.8);
+  border-width: 3px;
+  box-shadow: 0 0 30px rgba(100, 200, 255, 0.6), 0 8px 30px rgba(0, 0, 0, 0.9);
+}
+
+.original-card.ai-card {
+  border-color: var(--ai-color);
+}
+
+.original-card.ai-card.active-ai {
+  border-width: 3px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ai-color) 20%, transparent),
+              0 0 40px var(--ai-color),
+              0 8px 30px rgba(0, 0, 0, 0.9);
+}
+
+.original-card.large {
+  min-width: 140px;
+  min-height: 110px;
+  padding: 20px 24px;
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.original-card.selected .card-icon,
+.original-card:hover .card-icon {
+  color: rgba(100, 200, 255, 0.9);
+  filter: drop-shadow(0 0 12px rgba(100, 200, 255, 0.8));
+}
+
+.original-card.ai-card .card-icon {
+  color: var(--ai-color);
+}
+
+.original-card.ai-card.active-ai .card-icon {
+  filter: drop-shadow(0 0 15px var(--ai-color));
+}
+
+.card-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.3;
+  transition: all 0.3s ease;
+}
+
+.original-card.selected .card-label,
+.original-card:hover .card-label {
+  color: rgba(100, 200, 255, 0.95);
+  text-shadow: 0 0 10px rgba(100, 200, 255, 0.6);
+}
+
+.original-card.ai-card .card-label {
+  color: var(--ai-color);
+}
+
+.original-card.ai-card.active-ai .card-label {
+  text-shadow: 0 0 15px var(--ai-color);
+}
+
+/* Ring-specific styles */
+.ring-1-original,
+.ring-2-original,
+.ring-3-original {
+  z-index: 10;
+}
+
+.ring-1-original {
+  z-index: 10;
+}
+
+.ring-2-original {
+  z-index: 20;
+}
+
+.ring-3-original {
+  z-index: 30;
+}
 .atlas-core {
   position: absolute;
   left: 50%;

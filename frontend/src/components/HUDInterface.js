@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Mic, MicOff, Volume2, VolumeX, AlertTriangle, Upload as UploadIcon } from 'lucide-react';
 import AtlasCore from './HUD/AtlasCore';
-import Ring1AI from './HUD/Ring1AIPresence';
-import Ring2System from './HUD/Ring2System';
-import Ring3Learning from './HUD/Ring3Learning';
+import OriginalRing1 from './HUD/OriginalRing1';
+import OriginalRing2 from './HUD/OriginalRing2';
+import OriginalRing3 from './HUD/OriginalRing3';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
 import FileUploadModal from './FileUploadModal';
 import FileBrowserPanel from './FileBrowserPanel';
@@ -24,11 +24,8 @@ const CORE_STATES = {
 export default function HUDInterface() {
   const [activeAI, setActiveAI] = useState('ajani');
   const [coreState, setCoreState] = useState(CORE_STATES.IDLE);
-  const [ring1Rotation, setRing1Rotation] = useState(0);
-  const [ring2Rotation, setRing2Rotation] = useState(0);
-  const [ring3Rotation, setRing3Rotation] = useState(0);
-  const [selectedSystem, setSelectedSystem] = useState(null);
-  const [selectedLearning, setSelectedLearning] = useState(null);
+  const [selectedRing1, setSelectedRing1] = useState(null);
+  const [selectedRing2, setSelectedRing2] = useState(null);
   const [panelContent, setPanelContent] = useState(null);
   const [isListening, setIsListening] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -230,30 +227,39 @@ export default function HUDInterface() {
 
       {/* Main HUD */}
       <div className="atlas-hud">
-        {/* Ring 3 - Learning/Projects (outermost) */}
-        <Ring3Learning
-          rotation={ring3Rotation}
-          onRotate={setRing3Rotation}
-          selected={selectedLearning}
-          onSelect={selectLearning}
+        {/* Ring 1 - Outer (SUBJECTS, LAB, PROJECTS, etc.) */}
+        <OriginalRing1
+          selected={selectedRing1}
+          onSelect={(id) => {
+            playClick();
+            setSelectedRing1(id);
+            setPanelContent({ type: 'section', section: id });
+          }}
+        />
+
+        {/* Ring 2 - Middle (MANUAL, MINERVA, HERMES, etc.) */}
+        <OriginalRing2
+          selected={selectedRing2}
+          onSelect={(id, type) => {
+            playClick();
+            if (type === 'ai') {
+              setActiveAI(id);
+              playTone();
+            } else {
+              setSelectedRing2(id);
+              setPanelContent({ type: 'section', section: id });
+            }
+          }}
           activeAI={activeAI}
         />
 
-        {/* Ring 2 - System/Manual */}
-        <Ring2System
-          rotation={ring2Rotation}
-          onRotate={setRing2Rotation}
-          selected={selectedSystem}
-          onSelect={selectSystem}
+        {/* Ring 3 - Inner (Active AI) */}
+        <OriginalRing3
           activeAI={activeAI}
-        />
-
-        {/* Ring 1 - AI Presence */}
-        <Ring1AI
-          activeAI={activeAI}
-          onSelect={selectAI}
-          coreState={coreState}
-          rotation={ring1Rotation}
+          onSelect={(id) => {
+            playSnap();
+            setPanelContent({ type: 'ai', ai: id });
+          }}
         />
 
         {/* Core */}
