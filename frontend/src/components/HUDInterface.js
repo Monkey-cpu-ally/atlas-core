@@ -137,10 +137,17 @@ export default function HUDInterface() {
   }, []);
 
   const toggleListening = () => {
+    if (!isSupported) {
+      alert('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+    
     if (isListening) {
       stopListening();
+      setTranscript('');
     } else {
       startListening();
+      playTone();
     }
   };
 
@@ -165,12 +172,22 @@ export default function HUDInterface() {
         >
           <AlertTriangle size={18} />
         </button>
-        {isSupported && (
+        {isSupported ? (
           <button 
             className={`ctrl-btn ${isListening ? 'active listening' : ''}`}
             onClick={toggleListening}
+            title={isListening ? 'Stop Listening' : 'Start Voice Commands'}
           >
             {isListening ? <Mic size={18} /> : <MicOff size={18} />}
+          </button>
+        ) : (
+          <button 
+            className="ctrl-btn"
+            disabled
+            title="Voice not supported. Use Chrome/Edge."
+            style={{ opacity: 0.3, cursor: 'not-allowed' }}
+          >
+            <MicOff size={18} />
           </button>
         )}
         <button 
