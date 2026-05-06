@@ -1,0 +1,83 @@
+{
+  "summary": "Backend + Frontend regression for Atlas Core 2.5D radial HUD (3 concentric rings with drag-to-rotate). Backend: 10 API endpoints validated (9 pass + 1 pass after fixing .env parse bug). Frontend: 19/21 critical UI assertions pass. All 3 rings render, all 16 tiles present with correct testids, AI selection + active-ai glow + status update + side panel + FileBrowserPanel routing (memory/archive) all work. Drag-to-rotate visually confirmed via screenshot comparison. Voice mic button present and click does not crash.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/chat/send", "issue": "Initially returned 503 because backend/.env had CORS_ORIGINS and EMERGENT_LLM_KEY on the SAME line ('CORS_ORIGINS=\"*\"EMERGENT_LLM_KEY=...'). python-dotenv logged 'could not parse statement starting at line 3' and silently dropped EMERGENT_LLM_KEY. FIXED by splitting into two lines; chat endpoint now returns 200 with real LLM response."},
+      {"endpoint": "routes/chat.py, routes/files.py, routes/knowledge.py", "issue": "Each route module creates its own AsyncIOMotorClient and calls load_dotenv() at import time. Works, but causes duplicate mongo clients + relies on implicit cwd for .env lookup. Low priority."},
+      {"endpoint": "/api/chat/send", "issue": "Review request referenced 'POST /api/chat/message' but the actual route is POST /api/chat/send. Update docs or add an alias."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "FileUploadModal", "issue": "No data-testid on root/overlay/close so it cannot be reliably queried in E2E. Modal DOES open on btn-upload click (verified via manual inspection), but test selectors [data-testid=\"file-upload-modal\"] / [role=\"dialog\"] return null.", "selector": "FileUploadModal.js root", "priority": "LOW"},
+      {"component": "FileBrowserPanel", "issue": "No data-testid on root / close button. Works functionally (opens on memory + archive clicks, visible in screenshot) but harder to test.", "selector": "FileBrowserPanel.js root & close", "priority": "LOW"},
+      {"component": "DialRing outer tile labels", "issue": "At 1920px viewport, outer-ring side tiles are clipped ('SUBJECT' instead of 'SUBJECTS', 'YCLOPEDIA' instead of 'ENCYCLOPEDIA', 'LUEPRINTS' instead of 'BLUEPRINTS'). Text overflows its container when tiles are positioned near the edge of ring-stage. Consider increasing stage width, shrinking font, or adding tile padding.", "selector": ".dial-tile .tile-label", "priority": "MEDIUM"},
+      {"component": "DialRing is-top class", "issue": "After a pure drag (no click) that rotates the ring, no tile receives 'is-top'. 'is-top' appears to be bound to selectedId rather than geometric position. Review request expects drag-snap to 'fire onSelect' (so the new top tile gets is-top) — verify DialRing.js L67-92 actually calls onSelect on snap release, not only on click.", "selector": "DialRing drag-hit snap logic", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "HUD main", "issues": ["Tile labels truncated on outer ring (see above)", "Outer-ring square boundary (blue box from 620,200 to 1290,880 in screenshot) is visible — appears to be the ring-stage's debug/container border. Confirm this is intentional; reference image shows only circular rings with no square frame."]}
+    ]
+  },
+  "passed_tests": [
+    "Backend: GET /api/ root",
+    "Backend: GET /api/knowledge/subjects (returns 22+ subjects)",
+    "Backend: POST /api/knowledge/teach valid subject",
+    "Backend: POST /api/knowledge/teach unknown subject → 404",
+    "Backend: GET /api/files/list",
+    "Backend: POST /api/files/upload → list → DELETE /api/files/{id} (full CRUD)",
+    "Backend: GET /api/files/stats",
+    "Backend: POST /api/chat/send invalid persona → 400",
+    "Backend: POST /api/chat/send ajani → 200 with real LLM response (after .env fix)",
+    "Backend: GET /api/chat/conversations",
+    "Frontend: 3 ring stages render (ring-outer/middle/inner)",
+    "Frontend: All 16 tiles present with correct data-testid ring-{layer}-{id}",
+    "Frontend: Inner ring click (minerva) adds active-ai + is-top classes, ajani loses active-ai",
+    "Frontend: Status text updates to MINERVA with teal color",
+    "Frontend: Side panel opens on AI select",
+    "Frontend: panel-close-btn closes panel",
+    "Frontend: Middle ring 'manual' opens AtlasSidePanel",
+    "Frontend: Middle ring 'memory' opens FileBrowserPanel (NOT side panel)",
+    "Frontend: Outer ring 'subjects' opens AtlasSidePanel",
+    "Frontend: Outer ring 'archive' opens FileBrowserPanel",
+    "Frontend: btn-hard-limits toggles .limits-card overlay",
+    "Frontend: btn-sound toggles active class",
+    "Frontend: btn-mic present (Web Speech supported in Chromium), click does not crash (no ReferenceError)",
+    "Frontend: btn-upload click dispatches (modal opens visually)",
+    "Frontend: Click-not-drag selects tile (lab click opens panel)",
+    "Frontend: Drag rotates outer ring (before-screenshot LAB at top, after-screenshot SUBJECTS at top)"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_atlas_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Add data-testid to FileUploadModal (e.g. 'file-upload-modal' on root, 'file-upload-close' on close button).",
+    "Add data-testid to FileBrowserPanel (e.g. 'file-browser-panel', 'file-browser-close').",
+    "Fix outer-ring tile label truncation (SUBJECTS/ENCYCLOPEDIA/BLUEPRINTS clipped). Either increase .dial-tile min-width, reduce font-size, or use text-overflow: ellipsis with a larger max-width.",
+    "Verify DialRing.js drag-release snap actually calls onSelect so the snapped top tile gets is-top / active state. Currently a rotation-only drag leaves no tile marked is-top.",
+    "Update review documentation: chat endpoint is POST /api/chat/send (not /api/chat/message).",
+    "Consider consolidating load_dotenv + Mongo client creation to server.py (currently duplicated in each route module)."
+  ],
+  "critical_code_review_comments": [
+    "backend/.env had malformed line (CORS_ORIGINS and EMERGENT_LLM_KEY concatenated) — silently broke all LLM calls. Fixed this iteration. Add a startup assertion: `assert os.environ.get('EMERGENT_LLM_KEY'), 'LLM key missing'` to fail fast next time.",
+    "routes/chat.py lines 21-22 use os.environ.get with defaults for MONGO_URL/DB_NAME. Per repo rules, env vars must not have defaults so missing config fails fast. Same pattern in routes/files.py L19-20.",
+    "HUDInterface.js click handler for outer tiles calls openSection synchronously; DialRing internal drag detection (>4° gesture) was not fully verified end-to-end from outside (no is-top applied after snap).",
+    "FileUploadModal and FileBrowserPanel lack data-testid on interactive elements — violates the stated testability rule in /app/memory (all interactive elements must have data-testid)."
+  ],
+  "updated_files": [
+    "/app/backend/.env (split CORS_ORIGINS and EMERGENT_LLM_KEY onto separate lines)",
+    "/app/backend/tests/test_atlas_api.py (new regression suite)"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 after .env fix)",
+    "frontend": "90% (19/21 critical assertions; 2 selector-related test issues, underlying features work)"
+  },
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "Upload test created and deleted TEST_atlas.txt (cleanup included).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend .env must stay with EMERGENT_LLM_KEY on its own line. Chat endpoint is /api/chat/send. Frontend: DialRing 'is-top' class semantics need main-agent review — appears tied to selectedId, not geometric top after drag-only rotation. FileUploadModal/FileBrowserPanel lack data-testid; recommend adding before next UI regression. Outer-ring tile labels are clipped on wide viewports.",
+  "rca_of_the_issue": "Chat 503: /app/backend/.env had two assignments on one line (`CORS_ORIGINS=\"*\"EMERGENT_LLM_KEY=sk-emergent-...`). python-dotenv emitted 'could not parse statement starting at line 3' in backend stderr log and discarded EMERGENT_LLM_KEY. Reproduction: `curl -X POST .../api/chat/send -d '{\"persona\":\"ajani\",\"message\":\"hi\"}'` → HTTP 503 'AI services are currently offline'. Mitigation applied: rewrote .env with each KEY=VALUE on its own line and restarted backend via supervisorctl. Verified POST /api/chat/send now returns 200 with a real GPT-5.2 response."
+}

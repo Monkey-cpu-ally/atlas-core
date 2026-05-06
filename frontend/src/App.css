@@ -632,17 +632,19 @@ body {
 /* Status Display */
 .atlas-status {
   position: absolute;
-  bottom: 40px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
+  pointer-events: none;
+  z-index: 60;
 }
 
 .status-ai {
   font-family: 'Orbitron', sans-serif;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: 6px;
+  letter-spacing: 4px;
   transition: color 0.3s ease;
 }
 
@@ -1642,4 +1644,186 @@ body {
 .chat-send-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+
+/* =======================================================================
+   RADIAL DIAL HUD — concentric drag-to-rotate rings
+   (overrides earlier HUD rules because it appears later in the file)
+   ======================================================================= */
+
+.atlas-container {
+  background: radial-gradient(ellipse at center, #0b0b15 0%, #05050a 55%, #000 100%);
+}
+
+.atlas-hud {
+  position: relative;
+  width: min(680px, 84vmin);
+  height: min(680px, 84vmin);
+  border: 1.5px solid rgba(59, 130, 246, 0.55);
+  border-radius: 4px;
+  filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.2));
+  background: transparent;
+}
+
+/* Stacked ring stages — each defines its own visual radius and motion timing. */
+.ring-stage {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none; /* tiles + ring surface re-enable */
+}
+.ring-stage-outer  { width: 100%; height: 100%; z-index: 10;
+  --snap-duration: 400ms; --snap-easing: cubic-bezier(.25, .8, .3, 1); }
+.ring-stage-middle { width: 66%;  height: 66%;  z-index: 20;
+  --snap-duration: 180ms; --snap-easing: cubic-bezier(.4, 0, .2, 1); }
+.ring-stage-inner  { width: 38%;  height: 38%;  z-index: 30;
+  --snap-duration: 300ms; --snap-easing: cubic-bezier(.33, 1, .68, 1); }
+
+/* The draggable ring surface itself. */
+.dial-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;       /* container is transparent; only tiles + drag-hit catch events */
+  touch-action: none;
+}
+
+/* Glowing blue ring-track circle drawn in the background of each ring. */
+.dial-ring .ring-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.dial-ring .ring-track circle.drag-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;           /* wide invisible drag target */
+  pointer-events: stroke;
+  cursor: grab;
+}
+.dial-ring.dragging .ring-track circle.drag-hit { cursor: grabbing; }
+
+.dial-ring .ring-track circle.ring-visible {
+  fill: none;
+  stroke: rgba(96, 165, 250, 0.65);
+  stroke-width: 0.35;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+  filter: drop-shadow(0 0 2px rgba(96, 165, 250, 0.55));
+}
+
+/* Tiles — rounded rectangular cards positioned by polar coords. */
+.dial-tile {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  background: rgba(10, 12, 22, 0.82);
+  border: 1px solid rgba(120, 140, 170, 0.22);
+  border-radius: 14px;
+  min-width: 108px;
+  padding: 12px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: rgba(210, 218, 234, 0.9);
+  font-family: 'Rajdhani', sans-serif;
+  backdrop-filter: blur(6px);
+  transition:
+    left  var(--snap-duration, 250ms) var(--snap-easing, ease),
+    top   var(--snap-duration, 250ms) var(--snap-easing, ease),
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+}
+/* Disable transitions during active drag — tiles follow the pointer directly. */
+.dial-ring.dragging .dial-tile { transition: none; }
+
+.dial-tile .tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(220, 228, 240, 0.9);
+}
+.dial-tile .tile-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(200, 208, 224, 0.78);
+}
+
+.dial-tile:hover {
+  background: rgba(20, 24, 40, 0.95);
+  border-color: rgba(160, 180, 210, 0.42);
+}
+
+/* Tile currently at the top of its ring — highlighted, breathing glow. */
+.dial-tile.is-top {
+  border-color: rgba(120, 180, 255, 0.55);
+  box-shadow: 0 0 20px rgba(80, 150, 255, 0.18);
+}
+
+/* Active AI tile (inner ring) — colored outline + breathing glow. */
+.dial-tile.ai-tile.active-ai {
+  border: 1.5px solid var(--tile-color);
+  color: var(--tile-color);
+  background: rgba(12, 10, 18, 0.92);
+  animation: aiBreathe 2.6s ease-in-out infinite;
+}
+.dial-tile.ai-tile.active-ai .tile-icon,
+.dial-tile.ai-tile.active-ai .tile-label {
+  color: var(--tile-color);
+  filter: drop-shadow(0 0 6px var(--tile-color));
+}
+
+@keyframes aiBreathe {
+  0%, 100% {
+    box-shadow:
+      0 0 22px color-mix(in srgb, var(--tile-color) 35%, transparent),
+      inset 0 0 10px color-mix(in srgb, var(--tile-color) 10%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 40px color-mix(in srgb, var(--tile-color) 60%, transparent),
+      inset 0 0 14px color-mix(in srgb, var(--tile-color) 18%, transparent);
+  }
+}
+
+/* Central core wrapper — sits behind the inner ring visually but inside it. */
+.core-wrap {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24%;
+  height: 24%;
+  z-index: 5;   /* below rings so tiles render above the orb if overlapping */
+  pointer-events: none;
+  filter: drop-shadow(0 0 30px rgba(220, 50, 80, 0.28));
+}
+.core-wrap canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Tighten tiles on smaller viewports. */
+@media (max-width: 768px) {
+  .dial-tile {
+    min-width: 82px;
+    padding: 8px 10px 6px;
+    border-radius: 10px;
+  }
+  .dial-tile .tile-label {
+    font-size: 8.5px;
+    letter-spacing: 1px;
+  }
 }

@@ -1,9 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Mic, MicOff, Volume2, VolumeX, AlertTriangle, Upload as UploadIcon } from 'lucide-react';
 import AtlasCore from './HUD/AtlasCore';
-import OriginalRing1 from './HUD/OriginalRing1';
-import OriginalRing2 from './HUD/OriginalRing2';
-import OriginalRing3 from './HUD/OriginalRing3';
+import DialRing from './HUD/DialRing';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
 import FileUploadModal from './FileUploadModal';
 import FileBrowserPanel from './FileBrowserPanel';
@@ -11,6 +9,7 @@ import ChatPanel from './ChatPanel';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { AI_PERSONAS } from '../data/atlasCore';
+import { INNER_RING, MIDDLE_RING, OUTER_RING } from '../data/ringStructure';
 
 // Core states: idle, listening, thinking, speaking, alert
 const CORE_STATES = {
@@ -18,14 +17,17 @@ const CORE_STATES = {
   LISTENING: 'listening',
   THINKING: 'thinking',
   SPEAKING: 'speaking',
-  ALERT: 'alert'
+  ALERT: 'alert',
 };
+
+// File-browser sections — open the FileBrowserPanel instead of side panel.
+const FILE_SECTIONS = new Set(['memory', 'archive']);
 
 export default function HUDInterface() {
   const [activeAI, setActiveAI] = useState('ajani');
   const [coreState, setCoreState] = useState(CORE_STATES.IDLE);
-  const [selectedRing1, setSelectedRing1] = useState(null);
-  const [selectedRing2, setSelectedRing2] = useState(null);
+  const [selectedMiddle, setSelectedMiddle] = useState(null);
+  const [selectedOuter, setSelectedOuter] = useState(null);
   const [panelContent, setPanelContent] = useState(null);
   const [isListening, setIsListening] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -36,166 +38,191 @@ export default function HUDInterface() {
 
   const { playClick, playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
 
-  // Handle voice commands with sequential flow
+  // --- Core actions -------------------------------------------------------
+  const selectAI = useCallback((aiKey) => {
+    const color = AI_PERSONAS[aiKey]?.color;
+    if (color) playTone(color);
+    setActiveAI(aiKey);
+    setCoreState(CORE_STATES.SPEAKING);
+    setPanelContent({ type: 'ai-info', ai: aiKey });
+    setTimeout(() => setCoreState(CORE_STATES.IDLE), 2000);
+  }, [playTone]);
+
+  const openSection = useCallback((sectionId, ringSource) => {
+    if (FILE_SECTIONS.has(sectionId)) {
+      playClick();
+      setShowFileBrowser(true);
+      setPanelContent(null);
+      return;
+    }
+    if (ringSource === 'outer') {
+      playGlide();
+      setSelectedOuter(sectionId);
+    } else {
+      playSnap();
+      setSelectedMiddle(sectionId);
+    }
+    setPanelContent({ type: 'operation', operation: sectionId, ai: activeAI });
+  }, [activeAI, playClick, playGlide, playSnap]);
+
+  const closePanel = useCallback(() => {
+    setPanelContent(null);
+    setSelectedMiddle(null);
+    setSelectedOuter(null);
+  }, []);
+
+  // --- Voice command flow -------------------------------------------------
   // Example: "Minerva, open Projects"
   const handleVoiceCommand = useCallback((command) => {
     const lower = command.toLowerCase();
     setCoreState(CORE_STATES.THINKING);
-    
+
     setTimeout(() => {
-      let selectedAI = null;
-      let selectedOperation = null;
-      
-      // Check for AI names
-      if (lower.includes('ajani')) selectedAI = 'ajani';
-      else if (lower.includes('minerva')) selectedAI = 'minerva';
-      else if (lower.includes('hermes')) selectedAI = 'hermes';
-      else if (lower.includes('council') || lower.includes('trinity')) selectedAI = 'trinity';
-      
-      // Check for operations (Ring 3 learning nodes)
-      if (lower.includes('projects')) selectedOperation = 'projects';
-      else if (lower.includes('subjects')) selectedOperation = 'subjects';
-      else if (lower.includes('lab')) selectedOperation = 'lab';
-      else if (lower.includes('blueprints')) selectedOperation = 'blueprints';
-      else if (lower.includes('weaver')) selectedOperation = 'weaver';
-      else if (lower.includes('worlds')) selectedOperation = 'worlds';
-      else if (lower.includes('archives')) selectedOperation = 'archives';
-      
-      // Sequential flow: AI first, then operation
-      if (selectedAI) {
-        selectAI(selectedAI);
-        
-        // If operation mentioned, trigger it after AI animation completes
-        if (selectedOperation) {
-          setTimeout(() => {
-            selectLearning(selectedOperation);
-          }, 400); // Wait for Ring 1 rotation to complete (300ms + buffer)
-        }
+      let aiKey = null;
+      let outerOp = null;
+      let middleOp = null;
+
+      if (lower.includes('ajani')) aiKey = 'ajani';
+      else if (lower.includes('minerva')) aiKey = 'minerva';
+      else if (lower.includes('hermes')) aiKey = 'hermes';
+      else if (lower.includes('council') || lower.includes('trinity')) aiKey = 'trinity';
+
+      // Outer ring (knowledge & creation)
+      if (lower.includes('subject')) outerOp = 'subjects';
+      else if (lower.includes('lab')) outerOp = 'lab';
+      else if (lower.includes('project')) outerOp = 'projects';
+      else if (lower.includes('blueprint')) outerOp = 'blueprints';
+      else if (lower.includes('archive')) outerOp = 'archive';
+
+      // Middle ring (ops)
+      if (!outerOp) {
+        if (lower.includes('manual')) middleOp = 'manual';
+        else if (lower.includes('encyclopedia')) middleOp = 'encyclopedia';
+        else if (lower.includes('memory')) middleOp = 'memory';
+        else if (lower.includes('system monitor') || lower.includes('monitor')) middleOp = 'system_monitor';
+        else if (lower.includes('customization') || lower.includes('customize')) middleOp = 'customization';
+        else if (lower.includes('explore')) middleOp = 'explore';
+        else if (lower.includes('system')) middleOp = 'systems'; // falls to outer
       }
-      
+
+      if (aiKey) {
+        selectAI(aiKey);
+      }
+      // Sequence: Ring 1 rotates first (~300ms), then Ring 3/2 rotates.
+      if (outerOp) {
+        setTimeout(() => openSection(outerOp, 'outer'), aiKey ? 400 : 0);
+      } else if (middleOp) {
+        setTimeout(() => openSection(middleOp, 'middle'), aiKey ? 400 : 0);
+      }
+
       setCoreState(CORE_STATES.SPEAKING);
-      setTimeout(() => setCoreState(CORE_STATES.IDLE), 2000);
-    }, 500);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      setTimeout(() => setCoreState(CORE_STATES.IDLE), 2200);
+    }, 400);
+  }, [selectAI, openSection]);
 
   const { startListening, stopListening, isSupported } = useVoiceRecognition({
-    onResult: (text) => {
+    onResult: (text, isFinal) => {
       setTranscript(text);
-      handleVoiceCommand(text);
+      if (isFinal) handleVoiceCommand(text);
     },
     onListeningChange: (listening) => {
       setIsListening(listening);
       setCoreState(listening ? CORE_STATES.LISTENING : CORE_STATES.IDLE);
-    }
+    },
+    onError: (errorCode) => {
+      const msg =
+        errorCode === 'not-allowed' || errorCode === 'service-not-allowed'
+          ? 'Microphone permission denied'
+          : errorCode === 'no-speech'
+            ? 'No speech detected — try again'
+            : errorCode === 'audio-capture'
+              ? 'No microphone found'
+              : errorCode === 'network'
+                ? 'Network error during voice recognition'
+                : errorCode === 'aborted'
+                  ? ''
+                  : `Voice error: ${errorCode}`;
+      if (msg) {
+        setTranscript(msg);
+        setTimeout(() => setTranscript(''), 3000);
+      }
+    },
   });
-
-  const selectAI = useCallback((aiKey) => {
-    playTone(AI_PERSONAS[aiKey].color);
-    setActiveAI(aiKey);
-    setCoreState(CORE_STATES.SPEAKING);
-    setTimeout(() => setCoreState(CORE_STATES.IDLE), 2000);
-    
-    // Show AI info panel
-    setPanelContent({ type: 'ai-info', ai: aiKey });
-  }, [playTone]);
-
-  const selectSystem = useCallback((systemId) => {
-    playClick();
-    setSelectedSystem(systemId);
-    
-    // Special handling for Memory/Archives - open file browser
-    if (systemId === 'memory') {
-      setShowFileBrowser(true);
-      closePanel();
-    } else {
-      setPanelContent({ type: 'operation', operation: systemId, ai: activeAI });
-      playSnap();
-    }
-  }, [activeAI, playClick, playSnap]);
-
-  const selectLearning = useCallback((learningId) => {
-    playGlide();
-    setSelectedLearning(learningId);
-    
-    // Special handling for Archives - open file browser  
-    if (learningId === 'archives') {
-      setShowFileBrowser(true);
-      closePanel();
-    } else {
-      setPanelContent({ type: 'operation', operation: learningId, ai: activeAI });
-    }
-  }, [activeAI, playGlide]);
-
-  const closePanel = useCallback(() => {
-    setPanelContent(null);
-    setSelectedSystem(null);
-    setSelectedLearning(null);
-  }, []);
 
   const toggleListening = () => {
     if (!isSupported) {
       alert('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
       return;
     }
-    
     if (isListening) {
       stopListening();
       setTranscript('');
     } else {
+      setTranscript('Listening…');
       startListening();
-      playTone();
+      playClick();
     }
-  };
-
-  // Trigger alert state demo
-  const triggerAlert = () => {
-    setCoreState(CORE_STATES.ALERT);
-    setTimeout(() => setCoreState(CORE_STATES.IDLE), 3000);
   };
 
   const currentAI = AI_PERSONAS[activeAI];
 
+  // --- Ring handlers ------------------------------------------------------
+  const onInnerSelect = (item) => {
+    selectAI(item.id);
+  };
+  const onMiddleSelect = (item) => {
+    openSection(item.id, 'middle');
+  };
+  const onOuterSelect = (item) => {
+    openSection(item.id, 'outer');
+  };
+
   return (
     <div className="atlas-container">
-      {/* Light gradient background */}
       <div className="atlas-background" />
-      
+
       {/* Top Controls */}
       <div className="atlas-controls">
-        <button 
+        <button
           className={`ctrl-btn ${showLimits ? 'active warning' : ''}`}
           onClick={() => setShowLimits(!showLimits)}
+          data-testid="btn-hard-limits"
+          title="Hard Limits"
         >
           <AlertTriangle size={18} />
         </button>
         {isSupported ? (
-          <button 
+          <button
             className={`ctrl-btn ${isListening ? 'active listening' : ''}`}
             onClick={toggleListening}
+            data-testid="btn-mic"
             title={isListening ? 'Stop Listening' : 'Start Voice Commands'}
           >
             {isListening ? <Mic size={18} /> : <MicOff size={18} />}
           </button>
         ) : (
-          <button 
+          <button
             className="ctrl-btn"
             disabled
+            data-testid="btn-mic-disabled"
             title="Voice not supported. Use Chrome/Edge."
             style={{ opacity: 0.3, cursor: 'not-allowed' }}
           >
             <MicOff size={18} />
           </button>
         )}
-        <button 
+        <button
           className={`ctrl-btn ${soundEnabled ? 'active' : ''}`}
           onClick={() => setSoundEnabled(!soundEnabled)}
+          data-testid="btn-sound"
+          title={soundEnabled ? 'Mute Sound' : 'Enable Sound'}
         >
           {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
         </button>
-        <button 
+        <button
           className="ctrl-btn"
           onClick={() => setShowUploadModal(true)}
+          data-testid="btn-upload"
           title="Upload Files"
         >
           <UploadIcon size={18} />
@@ -219,54 +246,50 @@ export default function HUDInterface() {
 
       {/* Voice Transcript */}
       {transcript && (
-        <div className="voice-display">
+        <div className="voice-display" data-testid="voice-transcript">
           <span className="voice-label">VOICE</span>
           <span className="voice-text">{transcript}</span>
         </div>
       )}
 
-      {/* Main HUD */}
-      <div className="atlas-hud">
-        {/* Ring 1 - Outer (SUBJECTS, LAB, PROJECTS, etc.) */}
-        <OriginalRing1
-          selected={selectedRing1}
-          onSelect={(id) => {
-            playClick();
-            setSelectedRing1(id);
-            setPanelContent({ type: 'section', section: id });
-          }}
-        />
+      {/* Main HUD — 3 concentric radial dials */}
+      <div className="atlas-hud" data-ring-motion={coreState}>
+        <div className="ring-stage ring-stage-outer" data-ring="outer">
+          <DialRing
+            items={OUTER_RING.items}
+            slotAngle={OUTER_RING.slotAngle}
+            radiusPct={43}
+            selectedId={selectedOuter}
+            onSelect={onOuterSelect}
+            ringTestId="ring-outer"
+          />
+        </div>
+        <div className="ring-stage ring-stage-middle" data-ring="middle">
+          <DialRing
+            items={MIDDLE_RING.items}
+            slotAngle={MIDDLE_RING.slotAngle}
+            radiusPct={43}
+            selectedId={selectedMiddle}
+            onSelect={onMiddleSelect}
+            ringTestId="ring-middle"
+          />
+        </div>
+        <div className="ring-stage ring-stage-inner" data-ring="inner">
+          <DialRing
+            items={INNER_RING.items}
+            slotAngle={INNER_RING.slotAngle}
+            radiusPct={43}
+            selectedId={activeAI}
+            onSelect={onInnerSelect}
+            ringTestId="ring-inner"
+            activeAI={activeAI}
+          />
+        </div>
 
-        {/* Ring 2 - Middle (MANUAL, MINERVA, HERMES, etc.) */}
-        <OriginalRing2
-          selected={selectedRing2}
-          onSelect={(id, type) => {
-            playClick();
-            if (type === 'ai') {
-              setActiveAI(id);
-              playTone();
-            } else {
-              setSelectedRing2(id);
-              setPanelContent({ type: 'section', section: id });
-            }
-          }}
-          activeAI={activeAI}
-        />
-
-        {/* Ring 3 - Inner (Active AI) */}
-        <OriginalRing3
-          activeAI={activeAI}
-          onSelect={(id) => {
-            playSnap();
-            setPanelContent({ type: 'ai', ai: id });
-          }}
-        />
-
-        {/* Core */}
-        <AtlasCore
-          activeAI={activeAI}
-          coreState={coreState}
-        />
+        {/* Central Core */}
+        <div className="core-wrap">
+          <AtlasCore activeAI={activeAI} coreState={coreState} />
+        </div>
       </div>
 
       {/* Side Panel */}
@@ -287,34 +310,26 @@ export default function HUDInterface() {
         <div className="status-state">{coreState}</div>
       </div>
 
-      {/* Date Display (like reference) */}
+      {/* Date Display */}
       <div className="date-display">
         <div className="date-day">{new Date().toLocaleDateString('en-US', { weekday: 'short' })}</div>
-        <div className="date-num">{new Date().getDate()} {new Date().toLocaleDateString('en-US', { month: 'short' })}</div>
+        <div className="date-num">
+          {new Date().getDate()} {new Date().toLocaleDateString('en-US', { month: 'short' })}
+        </div>
       </div>
       <div className="year-display">{new Date().getFullYear()}</div>
 
-      {/* File Upload Modal */}
-      <FileUploadModal 
+      {/* Modals */}
+      <FileUploadModal
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}
-        onUploadSuccess={(result) => {
-          console.log('File uploaded:', result);
-          playTone();
-        }}
+        onUploadSuccess={() => { playTone(currentAI.color); }}
       />
-
-      {/* File Browser Panel */}
       <FileBrowserPanel
         isOpen={showFileBrowser}
         onClose={() => setShowFileBrowser(false)}
       />
-
-      {/* Chat Panel - Always accessible */}
-      <ChatPanel
-        activeAI={activeAI}
-        onAISwitch={setActiveAI}
-      />
+      <ChatPanel activeAI={activeAI} onAISwitch={setActiveAI} />
     </div>
   );
 }
