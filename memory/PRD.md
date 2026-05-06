@@ -1,112 +1,119 @@
-# Atlas Core HUD Interface - PRD
+# Atlas Core HUD — PRD
 
 ## Original Problem Statement
-Build a futuristic HUD interface for Atlas Core educational system matching the elegant light-themed reference design with:
-- Living Core (glowing sphere with state-based animations)
-- Ring 1: AI Presence (Ajani, Minerva, Hermes, Trinity Counsel)
-- Ring 2: System/Manual (Settings, Skins, Voice, Devices, Memory, Health)
-- Ring 3: Learning/Projects (Subjects, Lab, Blueprints, Weaver, Hyper Axel, Worlds, Archives, Projects)
+A 2.5D AI HUD interface for Atlas Core. Three concentric, drag-to-rotate radial
+dial rings around a central animated core. Built to match the user's exact
+reference screenshot (rectangular tiles on glowing blue circular tracks inside a
+blue rectangular HUD frame, tiles snap to the top slot when selected, selected
+tile glows in the AI's identity color).
 
-## Core Behavior States
-- **Idle**: Soft breathing glow, slow pulse
-- **Listening**: Light expands outward in waves
-- **Thinking**: Inner rings spin faster, particles swirl
-- **Speaking**: Pulses sync to voice rhythm
-- **Alert**: Sharper flashes and tighter rotations
-
-## AI Identity Colors
-- **Ajani**: Deep crimson — grounded, powerful (Elemental Kinetics)
-- **Minerva**: Teal-blue — calm, wise (Bio-Genesis)
-- **Hermes**: Soft white/silver — fast, precise (Nano-Synthesis)
-- **Trinity Counsel**: Layered purple aura (Collaborative)
+## Identity Colors
+- **Ajani**:   crimson #DC143C — Builder / Strategist / Engineer
+- **Minerva**: teal    #20B2AA — Guide / Teacher / Healer
+- **Hermes**:  silver  #C0C0C0 — Messenger / Protector / Validator
+- **Council**: purple  #9370DB — Trinity Counsel
 
 ## Architecture
 
-### Frontend (React)
+### Frontend
 ```
 /app/frontend/src/
 ├── components/
-│   ├── HUDInterface.js          # Main orchestrator with state management
-│   └── HUD/
-│       ├── AtlasCore.js         # Canvas-based living core visualization
-│       ├── Ring1AIPresence.js   # AI ring with arc segments
-│       ├── Ring2System.js       # System ring with drag rotation
-│       ├── Ring3Learning.js     # Learning ring with expansion nodes
-│       └── AtlasSidePanel.js    # Contextual panels
+│   ├── HUDInterface.js          # Main orchestrator
+│   ├── HUD/
+│   │   ├── DialRing.js          # Single radial drag-to-rotate dial
+│   │   ├── AtlasCore.js         # Canvas-based central orb
+│   │   └── AtlasSidePanel.js    # Right-side context panel
+│   ├── ChatPanel.js
+│   ├── FileUploadModal.js
+│   └── FileBrowserPanel.js
 ├── data/
-│   └── atlasCore.js             # AI personas, 30 projects, 22 fields
-└── hooks/
-    ├── useVoiceRecognition.js   # Web Speech API
-    └── useAudioFeedback.js      # Web Audio API
+│   ├── ringStructure.js         # INNER/MIDDLE/OUTER ring tile definitions
+│   └── atlasCore.js             # AI personas, projects, phases
+├── hooks/
+│   ├── useVoiceRecognition.js   # Web Speech API wrapper
+│   └── useAudioFeedback.js      # WebAudio click/tone/snap/glide
+└── App.css                      # Theme + radial dial CSS
 ```
 
-## What's Implemented (Jan 2026)
+### Backend
+```
+/app/backend/
+├── server.py                    # FastAPI entrypoint
+├── routes/
+│   ├── chat.py                  # POST /api/chat/send (Emergent LLM Key)
+│   ├── files.py                 # /api/files/{upload,list,download,delete,stats}
+│   └── knowledge.py             # /api/knowledge/{subjects,teach}
+└── services/
+    ├── ai_categorizer.py
+    └── knowledge_core.py        # 22 educational subjects (in-memory)
+```
 
-### Visual Design
-- [x] Light elegant theme (cream/beige gradients)
-- [x] Glass-like core with AI-specific energy visualization
-- [x] Clean white node buttons with subtle shadows
-- [x] Date display (left) and year (right) like reference
-- [x] Responsive layout for mobile
+## Ring Layout (matches reference screenshot)
 
-### Core System
-- [x] 5 core states with distinct animations
-- [x] AI color theming throughout
-- [x] Particles, rings, pulses, ripples
+### Inner ring (radius 14.2% of HUD, 4 slots @ 90°)
+- N: AJANI — E: MINERVA — S: HERMES — W: COUNCIL
 
-### Ring 1 - AI Presence
-- [x] 4 AI nodes hugging the core
-- [x] Arc segment highlights
-- [x] Active state glow animation
-- [x] Speaking state pulse
+### Middle ring (radius 29.2% of HUD, 6 of 8 slots @ 45°)
+- N: MANUAL — E: ENCYCLOPEDIA — S: SYSTEM MONITOR — W: EXPLORE MODE
+- SE: MEMORY — SW: CUSTOMIZATION
+- (NE, NW intentionally empty)
 
-### Ring 2 - System/Manual
-- [x] 6 system nodes: Settings, UI Skins, Voice Modes, Devices, Memory, Health
-- [x] Drag to rotate
-- [x] Technical tick marks
-- [x] Scanner line animation
+### Outer ring (radius 43% of HUD, 6 of 8 slots @ 45°)
+- N: SUBJECTS — E: LAB — S: BLUEPRINTS — W: ARCHIVE
+- SE: PROJECTS — SW: SYSTEMS
+- (NE, NW intentionally empty)
 
-### Ring 3 - Learning/Projects
-- [x] 8 learning nodes: Subjects, Lab, Blueprints, Weaver, Hyper Axel, Worlds, Archives, Projects
-- [x] Expansion dots on selection
-- [x] Ambient particle effects
-- [x] Drag to rotate
+## Motion Spec (per ring)
+| Ring   | Snap duration | Easing                        | Personality |
+|--------|---------------|-------------------------------|-------------|
+| Inner  | 300 ms        | cubic-bezier(.33, 1, .68, 1)  | Identity / soft |
+| Middle | 180 ms        | cubic-bezier(.4, 0, .2, 1)    | Mechanical / precise |
+| Outer  | 400 ms        | cubic-bezier(.25, .8, .3, 1)  | Exploratory / graceful |
 
-### Interactions
-- [x] Voice recognition for AI selection
-- [x] Audio feedback (clicks, tones, snaps, glides)
-- [x] Side panels with contextual content
-- [x] Hard Limits warning overlay
+Stillness rule: rings only move on drag, click, voice, or panel open. After
+movement they snap to the nearest slot and stop. No auto-spin.
 
-## 30 Projects Data
-- Ajani: 13 projects (INSERT-CELL, HYDRA-CORE, RESONANCE, etc.)
-- Minerva: 12 projects (PHOENIX-STRAND, ANANSI-WEAVE, EDEN-PROTOCOL, etc.)
-- Hermes: 5 projects (SCARAB-FLEET, TERRABOT-BLOOM, DAEDALUS-FORGE, etc.)
+## Interactions
+- **Click a tile** → select it (inner = activate AI; middle/outer = open panel)
+- **Drag the ring** → rotates all tiles around center; on release, snaps to
+  nearest slot and the new top tile is selected
+- **Memory / Archive tiles** → open File Browser (not side panel)
+- **Voice mic button** (top-right) → "Minerva, open projects" rotates ring 1 to
+  Minerva, ring 3 to Projects, opens panel
+- **Hard Limits / Sound / Upload** → top-right control buttons
 
-## 22 Teaching Fields
-Aerospace, Architecture, AI, Biology, Business, Chemistry, Creative Writing, Economics, Electronics, Environmental Science, Film Studies, Game Design, History, Mathematics, Music Theory, Nanotechnology, Philosophy, Physics, Psychology, Robotics, Software Engineering, Visual Arts
-
-## Hard Limits (All AIs)
-- No self-directed real-world action
-- No unsupervised autonomy
-- No illegal guidance
-- No medical diagnosis
-- No weapons
-- You are always the architect-in-chief
+## What's Implemented (this session, Feb 2026)
+- [x] Radial dial rebuild with polar-coord tile placement and pointer-driven
+      drag-to-rotate (DialRing.js)
+- [x] Layout matches user reference image exactly (inner/middle/outer)
+- [x] Click-vs-drag detection with > 4° threshold
+- [x] Selected tile snaps to top, glows in AI color (inner) or blue (others)
+- [x] Per-ring motion personality (timings + easing)
+- [x] Voice command bug fixed:
+      - removed undefined `setSelectedSystem` / `setSelectedLearning` setters
+        that crashed the app on voice result
+      - hook now uses callback refs so recognition isn't recreated each render
+      - added explicit `getUserMedia` permission request and `onError` callback
+- [x] FileUploadModal + FileBrowserPanel: data-testid for testability
+- [x] Backend `.env` fix: EMERGENT_LLM_KEY moved onto its own line (was being
+      silently dropped by python-dotenv → `/api/chat/send` returned 503)
+- [x] Dead code removed: old OriginalRing1/2/3, Ring1AIPresence, Ring2System,
+      Ring3Learning, originalRingStructure data file
 
 ## Backlog
 
-### P1 (High)
-- [ ] Connect to Atlas Core FastAPI backend
-- [ ] Real AI chat integration (text-to-speech)
-- [ ] Persistent user progress
+### P1
+- [ ] Minerva approval API + Hermes validation API (parity with user's GitHub repo)
+- [ ] Blueprint Engine + Design Tools (from user's GitHub repo)
 
-### P2 (Medium)
-- [ ] Hidden/Advanced rings (diagnostics, build mode)
-- [ ] Teaching mode activation flows
-- [ ] Haptic feedback on mobile
+### P2
+- [ ] Real-time TTS for AI personas (per-AI voice rhythm)
+- [ ] Offline AI fallback (Ollama local LLM or hybrid cache)
+- [ ] Hidden / advanced rings (diagnostics, build mode)
 
-### P3 (Nice to Have)
-- [ ] 3D WebGL core upgrade
+### P3
+- [ ] Persistent PostgreSQL/MongoDB Knowledge Core (currently in-memory)
+- [ ] 3D WebGL upgrade for the central core
 - [ ] Multi-language voice support
 - [ ] Custom AI voice profiles

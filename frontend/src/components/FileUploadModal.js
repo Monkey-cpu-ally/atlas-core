@@ -79,11 +79,11 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="upload-modal-overlay" onClick={handleClose}>
+    <div className="upload-modal-overlay" onClick={handleClose} data-testid="file-upload-modal">
       <div className="upload-modal" onClick={(e) => e.stopPropagation()}>
         <div className="upload-modal-header">
           <h3>📁 Upload File</h3>
-          <button className="close-btn-upload" onClick={handleClose}>
+          <button className="close-btn-upload" onClick={handleClose} data-testid="file-upload-close">
             <X size={18} />
           </button>
         </div>

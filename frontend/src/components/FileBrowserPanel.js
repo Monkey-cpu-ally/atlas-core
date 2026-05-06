@@ -85,13 +85,13 @@ export default function FileBrowserPanel({ isOpen, onClose, filterAI, filterSect
   if (!isOpen) return null;
 
   return (
-    <div className="side-panel file-browser-panel visible">
+    <div className="side-panel file-browser-panel visible" data-testid="file-browser-panel">
       <div className="panel-header">
         <div className="panel-title">
           <Folder size={16} />
           <h2>File Manager</h2>
         </div>
-        <button className="close-btn" onClick={onClose}>
+        <button className="close-btn" onClick={onClose} data-testid="file-browser-close">
           <X size={18} />
         </button>
       </div>

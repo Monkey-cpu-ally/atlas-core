@@ -1675,9 +1675,9 @@ body {
 }
 .ring-stage-outer  { width: 100%; height: 100%; z-index: 10;
   --snap-duration: 400ms; --snap-easing: cubic-bezier(.25, .8, .3, 1); }
-.ring-stage-middle { width: 66%;  height: 66%;  z-index: 20;
+.ring-stage-middle { width: 68%;  height: 68%;  z-index: 20;
   --snap-duration: 180ms; --snap-easing: cubic-bezier(.4, 0, .2, 1); }
-.ring-stage-inner  { width: 38%;  height: 38%;  z-index: 30;
+.ring-stage-inner  { width: 33%;  height: 33%;  z-index: 30;
   --snap-duration: 300ms; --snap-easing: cubic-bezier(.33, 1, .68, 1); }
 
 /* The draggable ring surface itself. */
@@ -1721,15 +1721,16 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: auto;
   cursor: pointer;
-  background: rgba(10, 12, 22, 0.82);
+  background: rgba(10, 12, 22, 0.88);
   border: 1px solid rgba(120, 140, 170, 0.22);
-  border-radius: 14px;
-  min-width: 108px;
-  padding: 12px 16px 10px;
+  border-radius: 12px;
+  width: max-content;
+  min-width: 84px;
+  padding: 9px 13px 7px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   color: rgba(210, 218, 234, 0.9);
   font-family: 'Rajdhani', sans-serif;
   backdrop-filter: blur(6px);
@@ -1755,9 +1756,9 @@ body {
 }
 .dial-tile .tile-label {
   font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 500;
-  letter-spacing: 1.4px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: rgba(200, 208, 224, 0.78);
 }
