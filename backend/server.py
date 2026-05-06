@@ -16,6 +16,8 @@ from routes.files import router as files_router
 from routes.chat import router as chat_router
 # Import knowledge core routes
 from routes.knowledge import router as knowledge_router
+# Import AI services (TTS / Minerva / Hermes / Blueprint)
+from routes.ai_services import router as ai_services_router
 
 
 ROOT_DIR = Path(__file__).parent
@@ -78,6 +80,7 @@ app.include_router(api_router)
 app.include_router(files_router)  # File upload and management routes
 app.include_router(chat_router)  # AI chat routes
 app.include_router(knowledge_router)  # Knowledge core routes
+app.include_router(ai_services_router)  # TTS, Minerva, Hermes, Blueprint
 
 app.add_middleware(
     CORSMiddleware,

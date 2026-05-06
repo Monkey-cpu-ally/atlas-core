@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, ChevronRight, AlertTriangle, Zap, Brain, User, FileCode, Beaker, Clock, Star, ArrowRight } from 'lucide-react';
 import { PHASES, TEACHING_MODES, getProjectsByAI } from '../../data/atlasCore';
+import BlueprintWorkbench from './BlueprintWorkbench';
 
 export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose, onSelectProject }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -39,6 +40,13 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
 
   const renderOperationInfo = () => {
     const opName = content.operation;
+
+    // Special-case: Blueprints opens the live AI workbench (Blueprint Engine
+    // + Minerva approval + Hermes validation), not a static gallery.
+    if (opName === 'blueprints') {
+      return <BlueprintWorkbench aiColor={aiColor} />;
+    }
+
     const opData = {
       // Ring 2 - System
       'settings': { title: 'Settings', items: ['Display Preferences', 'Notification Settings', 'Privacy Controls', 'Data Management'] },

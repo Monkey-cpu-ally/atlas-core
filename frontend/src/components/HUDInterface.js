@@ -9,6 +9,7 @@ import FileBrowserPanel from './FileBrowserPanel';
 import ChatPanel from './ChatPanel';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
+import { useAudioReactive } from '../hooks/useAudioReactive';
 import { AI_PERSONAS } from '../data/atlasCore';
 import { INNER_RING, MIDDLE_RING, OUTER_RING } from '../data/ringStructure';
 
@@ -39,6 +40,7 @@ export default function HUDInterface() {
   const [coreTapPulse, setCoreTapPulse] = useState(false);
 
   const { playClick, playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
+  const audioReactive = useAudioReactive();
 
   // --- Core actions -------------------------------------------------------
   const selectAI = useCallback((aiKey) => {
@@ -130,6 +132,9 @@ export default function HUDInterface() {
     onListeningChange: (listening) => {
       setIsListening(listening);
       setCoreState(listening ? CORE_STATES.LISTENING : CORE_STATES.IDLE);
+      // Start / stop audio-reactive analysis in lockstep with voice listening.
+      if (listening) audioReactive.start();
+      else audioReactive.stop();
     },
     onError: (errorCode) => {
       const msg =
@@ -326,6 +331,7 @@ export default function HUDInterface() {
             activeAI={activeAI}
             coreState={coreState}
             onActivate={handleCoreTap}
+            audioLevelRef={audioReactive.levelRef}
           />
         </div>
       </div>

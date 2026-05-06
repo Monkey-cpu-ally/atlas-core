@@ -1,0 +1,68 @@
+{
+  "summary": "Atlas Core HUD AI services iteration validated end-to-end. Backend: 11/11 pytest cases pass for /api/ai/voices, /api/ai/tts (all 4 personas + explicit voice override + 400 validation), /api/ai/minerva/approve, /api/ai/hermes/validate, /api/ai/blueprint/generate (full 5-phase schema). Frontend: BlueprintWorkbench opens via outer-blueprints tile, Hermes review returns valid_with_constraints with feasibility/safety scores, ChatPanel chat-voice-toggle changes title between Mute/Enable, /api/ai/tts is fired automatically when chat AI response arrives, mic toggle does not crash (useAudioReactive start/stop wired). All previous regression flows still work (inner-ring AI selection, side panel, file browser).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/ai/tts", "issue": "Persona case-insensitive but unknown persona silently falls back to 'alloy' voice instead of returning 400. Acceptable but consider documenting."},
+      {"endpoint": "routes/ai_services.py", "issue": "Each LlmChat call uses session_id with float timestamp — sessions are throwaway. OK for stateless reviews but if you ever need conversation memory you'd need to thread session_id."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ChatPanel chat-fab", "issue": "Floating chat button at bottom-right is overlapped by the 'Made with Emergent' badge so a real-user click on the FAB can be intercepted. Real click via Playwright failed; only JS .click() worked. Move the FAB up/left or raise its z-index above the badge.", "selector": ".chat-fab", "priority": "MEDIUM"},
+      {"component": "AtlasSidePanel", "issue": "The panel-close-btn is positioned outside the 1920x1080 viewport in some layouts (Playwright reported 'Element is outside of the viewport' on click). Likely the side panel slides in from beyond the right edge — consider clamping panel position so the close button is always visible.", "selector": "[data-testid=\"panel-close-btn\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Bottom-right corner", "issues": ["chat-fab and 'Made with Emergent' badge overlap (~1860,1020 area)"]}
+    ]
+  },
+  "passed_tests": [
+    "Backend: GET /api/ai/voices returns correct ajani:onyx, minerva:nova, hermes:echo, trinity:shimmer mapping",
+    "Backend: POST /api/ai/tts ajani→onyx (audio/mpeg, X-AI-Voice header, >10KB MP3)",
+    "Backend: POST /api/ai/tts minerva→nova",
+    "Backend: POST /api/ai/tts hermes→echo",
+    "Backend: POST /api/ai/tts trinity→shimmer",
+    "Backend: POST /api/ai/tts with explicit voice='shimmer' override",
+    "Backend: POST /api/ai/tts empty text → 400",
+    "Backend: POST /api/ai/tts text >4096 chars → 400",
+    "Backend: POST /api/ai/minerva/approve returns full ApprovalReview JSON (verdict in approve|approve_with_conditions|reject, ethical_score, concerns, conditions, alternatives, ancestral_wisdom)",
+    "Backend: POST /api/ai/hermes/validate returns full HermesReview JSON (verdict in valid|valid_with_constraints|invalid, feasibility_score, safety_score, failure_modes, constraints, patterns, next_steps)",
+    "Backend: POST /api/ai/blueprint/generate returns 5 phases (philosophy/research/blueprint/simulation/physical) each with required nested keys",
+    "Frontend: outer-blueprints tile opens BlueprintWorkbench (not static gallery)",
+    "Frontend: typing into bp-concept-input enables generate/minerva/hermes buttons",
+    "Frontend: bp-hermes-btn click → bp-hermes-output renders verdict 'valid_with_constraints', feasibility/safety scores, failure modes, next steps within 90s",
+    "Frontend: chat-voice-toggle present, title flips Mute AI voice ↔ Enable AI voice on click",
+    "Frontend: After chat AI response, /api/ai/tts is invoked automatically (verified via network listener)",
+    "Frontend: btn-mic toggle (start/stop) does not throw and does not break HUD render — useAudioReactive wired",
+    "Frontend: inner-ring minerva click selects AI and opens side-panel",
+    "Frontend: ring-middle-memory click opens file browser"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_ai_services.py",
+    "/app/test_reports/pytest/ai_services_results.xml",
+    "/app/backend/tests/test_atlas_api.py"
+  ],
+  "action_items": [
+    "Move chat-fab off the bottom-right corner OR set z-index above 'Made with Emergent' badge — currently real-user clicks may be intercepted.",
+    "Optional: in /api/ai/tts, return 400 when an unknown persona is passed (instead of silent fallback to 'alloy') for cleaner contract.",
+    "Optional: add data-testid to the chat-panel close button and chat-fab itself for easier E2E."
+  ],
+  "critical_code_review_comments": [
+    "ai_services.py uses bare `except Exception as exc:` and re-raises as HTTPException 500 with raw exception text — fine for dev, but in production sanitize the message so OpenAI internals are not echoed back.",
+    "_extract_json_object regex r'\\{.*\\}' is greedy across the whole string — if the model returns multiple JSON blocks it will glue them. Acceptable for current prompts which always return one object, but document this.",
+    "Per-call construction of OpenAITextToSpeech and LlmChat clients re-imports SDK each time. Consider caching at module level if latency matters under load.",
+    "ChatPanel.js calls tts.speak() without awaiting; if user spams send, multiple Audio elements overlap. tts.stop() inside speak() should already cover this but worth a unit test.",
+    "BlueprintWorkbench.js has no abort/cancel for in-flight LLM requests — if the user closes the panel mid-generation, the request still completes in the background and setState fires on unmounted component. Wrap callJson with AbortController."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_ai_services.py (NEW — 11 pytest cases for AI services)"
+  ],
+  "success_rate": {"backend": "100% (11/11 pytest)", "frontend": "100% on tested critical flows"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "None (LLM calls are stateless, no DB writes from /api/ai endpoints)",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "AI services backend rock-solid. EMERGENT_LLM_KEY in /app/backend/.env must remain on its own line. /api/ai/blueprint/generate takes ~30-50s, /api/ai/minerva/approve ~20-40s, /api/ai/hermes/validate ~15-25s; use timeouts >=120s. ChatPanel's chat-fab is overlapped by 'Made with Emergent' badge — when E2E-testing it, use JS .click() or move the badge. BlueprintWorkbench opens via clicking the outer-ring 'BLUEPRINTS' tile (data-testid=ring-outer-blueprints).",
+  "rca_of_the_issue": "N/A — no regressions found this iteration."
+}

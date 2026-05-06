@@ -63,7 +63,12 @@ const PARTICLE_COUNT = 22;
 // Pre-built lookup so we don't allocate during draw.
 const BLOB_SEGMENTS = 22;
 
-export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onActivate }) {
+export default function AtlasCore({
+  activeAI = 'ajani',
+  coreState = 'idle',
+  onActivate,
+  audioLevelRef,    // optional: { current: 0..1 } from useAudioReactive
+}) {
   const canvasRef = useRef(null);
   const offscreenRef = useRef(null);
   const blobsRef = useRef(null);
@@ -135,6 +140,14 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
       const rhythm = STATE_RHYTHM[coreState] || STATE_RHYTHM.idle;
       const ai = AI_COLORS[activeAI] || AI_COLORS.ajani;
 
+      // Audio-reactive boost — when the user is talking during listening,
+      // the lava physically reacts to the mic level. Falls back to 0 when
+      // no audio is being captured.
+      const audioLevel = audioLevelRef?.current ?? 0;
+      const audioBoost = 1 + audioLevel * 1.6;
+      const liveJitter = rhythm.jitter * audioBoost;
+      const liveSpeed  = rhythm.speed  * (1 + audioLevel * 0.6);
+
       shockRef.current *= 0.92;
       if (shockRef.current < 0.001) shockRef.current = 0;
 
@@ -147,8 +160,8 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
       const blobs = blobsRef.current;
       for (let i = 0; i < blobs.length; i++) {
         const b = blobs[i];
-        const bobSpeed = b.bobFreq * rhythm.speed;
-        const wobSpeed = b.wobFreq * rhythm.speed;
+        const bobSpeed = b.bobFreq * liveSpeed;
+        const wobSpeed = b.wobFreq * liveSpeed;
         const targetY = b.bobAmp * Math.sin(t * bobSpeed * Math.PI + b.phase * Math.PI * 2);
         const targetX = b.wobAmp * Math.cos(t * wobSpeed * Math.PI + b.phase * Math.PI * 2);
         b.vx += (targetX - b.x) * 0.0017;
@@ -170,8 +183,8 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
           b.vx += (b.x / r) * shockRef.current * 0.012;
           b.vy += (b.y / r) * shockRef.current * 0.012;
         }
-        b.vx += (Math.random() - 0.5) * 0.00012 * rhythm.jitter;
-        b.vy += (Math.random() - 0.5) * 0.00012 * rhythm.jitter;
+        b.vx += (Math.random() - 0.5) * 0.00012 * liveJitter;
+        b.vy += (Math.random() - 0.5) * 0.00012 * liveJitter;
         b.vx *= 0.93;
         b.vy *= 0.93;
         b.x += b.vx * dt;
@@ -196,8 +209,8 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
           p.vx += (nearest.x - p.x) * 0.00009;
           p.vy += (nearest.y - p.y) * 0.00009;
         }
-        p.vx += (Math.random() - 0.5) * 0.00006 * rhythm.jitter;
-        p.vy += (Math.random() - 0.5) * 0.00006 * rhythm.jitter;
+        p.vx += (Math.random() - 0.5) * 0.00006 * liveJitter;
+        p.vy += (Math.random() - 0.5) * 0.00006 * liveJitter;
         if (shockRef.current > 0) {
           const r = Math.hypot(p.x, p.y) + 0.001;
           p.vx += (p.x / r) * shockRef.current * 0.018;
@@ -428,7 +441,7 @@ export default function AtlasCore({ activeAI = 'ajani', coreState = 'idle', onAc
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [activeAI, coreState]);
+  }, [activeAI, coreState, audioLevelRef]);
 
   const handleTap = () => {
     shockRef.current = 1;

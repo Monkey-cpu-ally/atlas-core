@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Minimize2, Maximize2, Trash2 } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Maximize2, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { AI_PERSONAS } from '../data/atlasCore';
+import { useTTS } from '../hooks/useTTS';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -11,8 +12,11 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [speakingMsgId, setSpeakingMsgId] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const tts = useTTS();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,6 +63,7 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
       setConversationId(data.conversation_id);
       
       const aiMessage = {
+        id: data.timestamp,
         role: 'assistant',
         content: data.response,
         persona: data.persona,
@@ -66,6 +71,14 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+
+      // Speak the response in the persona's voice when voice is enabled.
+      if (voiceEnabled) {
+        setSpeakingMsgId(aiMessage.id);
+        tts.speak(data.response, data.persona, {
+          onEnd: () => setSpeakingMsgId(null),
+        });
+      }
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, {
@@ -125,6 +138,19 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
         </div>
         
         <div className="chat-header-actions">
+          <button
+            onClick={() => {
+              if (voiceEnabled && speakingMsgId) {
+                tts.stop();
+                setSpeakingMsgId(null);
+              }
+              setVoiceEnabled(!voiceEnabled);
+            }}
+            title={voiceEnabled ? 'Mute AI voice' : 'Enable AI voice'}
+            data-testid="chat-voice-toggle"
+          >
+            {voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
           <button onClick={clearConversation} title="Clear chat">
             <Trash2 size={16} />
           </button>
