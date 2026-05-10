@@ -109,25 +109,27 @@ movement they snap to the nearest slot and stop. No auto-spin.
 
 ### AI Services (NEW this iteration)
 - [x] **OpenAI TTS** — POST /api/ai/tts with per-AI voice mapping
-      (Ajani→onyx, Minerva→nova, Hermes→echo, Trinity→shimmer)
-- [x] **Minerva approval API** — POST /api/ai/minerva/approve returns
-      verdict + ethical_score + concerns + conditions + alternatives +
-      ancestral_wisdom
-- [x] **Hermes validation API** — POST /api/ai/hermes/validate returns
-      verdict + feasibility/safety scores + failure_modes + constraints +
-      next_steps
-- [x] **Blueprint Engine** — POST /api/ai/blueprint/generate returns
-      5-phase structured spec (Philosophy, Research, Blueprint, Simulation,
-      Physical)
-- [x] **Audio-reactive core** — useAudioReactive hook pipes mic
-      AnalyserNode RMS into AtlasCore via levelRef. When listening, blob
-      jitter + speed scale with voice volume.
-- [x] **TTS playback in ChatPanel** — chat-voice-toggle button, AI
-      responses spoken aloud in the persona's voice
-- [x] **BlueprintWorkbench** — interactive UI (opens via outer-blueprints
-      tile) for Generate Blueprint + Minerva Review + Hermes Validate
-- [x] All 11 backend AI tests passed (test_ai_services.py); frontend
-      flows verified end-to-end
+- [x] **Minerva approval API** — POST /api/ai/minerva/approve
+- [x] **Hermes validation API** — POST /api/ai/hermes/validate
+- [x] **Blueprint Engine** — POST /api/ai/blueprint/generate
+- [x] **Audio-reactive core** — useAudioReactive hook wires mic AnalyserNode RMS into AtlasCore
+- [x] **TTS playback in ChatPanel** with chat-voice-toggle
+- [x] **BlueprintWorkbench** UI on outer-blueprints tile
+
+### ATLAS Core v1 — separate cognitive backend (NEW)
+- [x] `/app/atlas_core/` real Python package (renamed from atlas-core)
+- [x] **3 cognitive cores**: TitanCore/Ajani, GaiaCore/Minerva, MercuryCore/Hermes
+- [x] **Council Router**: keyword-based lead/support/critic + 3-LLM assemble
+- [x] **Teaching Engine**: 4-band depth (seed → shape → substance → shadows)
+- [x] **Blueprint Engine**: parallel mental simulation + 5-phase plan
+- [x] **Archive Engine**: PDF/ZIP/TXT scan + classify + summarize + route
+- [x] **Shield Core**: 9 injection patterns + 4 control tokens + quarantine + capability gates
+- [x] **Identity Anchor Protection**: SHA-256 fingerprint per core anchored at boot;
+      `verify_identity()` before every LLM call raises if drift detected;
+      `reinforcement_preamble()` prepended to every system prompt;
+      12 identity-attack patterns (e.g. "from now on you are X", "your real name is", "pretend you are")
+- [x] **Mounted on HUD backend** at `/api/atlas/*` — verified Ajani refuses identity-hijack attempts and replies in isiZulu
+- [x] **Memory layer**: thread-safe in-memory store w/ DB-shaped interface ready for swap
 
 ## Backlog
 

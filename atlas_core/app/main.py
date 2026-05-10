@@ -1,25 +1,24 @@
 """ATLAS Core v1 — FastAPI entrypoint.
 
-Exposes the full cognitive stack under `/atlas/...` routes. The app can
-either run standalone (`uvicorn atlas-core.app.main:app`) or be mounted on
-top of an existing FastAPI app via `app.include_router(atlas_router)`.
+Exposes the full cognitive stack under `/atlas/...` routes. Two ways to run:
 
-The HUD frontend is *not* touched by this file. It lives in /app/frontend
-and continues to talk to /app/backend.
+  Standalone::
+
+      cd /app
+      python -m uvicorn atlas_core.app.main:app --port 8002 --reload
+
+  Mounted on another FastAPI app::
+
+      from atlas_core import atlas_router
+      app.include_router(atlas_router, prefix="/api")
+      # ↑ routes will then live at /api/atlas/...
+
+The HUD frontend is not touched by this module.
 """
 from __future__ import annotations
 
-# The parent directory name uses a hyphen ("atlas-core"), which isn't a
-# valid Python package identifier on its own. So we add the project root
-# to sys.path and import siblings by absolute module path.
-import os
-import sys
-
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
 import logging
+import os
 from typing import List, Optional
 
 from dotenv import load_dotenv
@@ -27,19 +26,23 @@ from fastapi import APIRouter, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from cores import CORES, get_core                  # type: ignore  # noqa: E402
-from council import route, assemble               # type: ignore  # noqa: E402
-from teaching_engine import teach                  # type: ignore  # noqa: E402
-from blueprint_engine import design                # type: ignore  # noqa: E402
-from archive_engine import scan_bytes, entry_to_dict   # type: ignore  # noqa: E402
-from shield_core import (                          # type: ignore  # noqa: E402
-    sanitize_text,
-    quarantine_upload,
+from ..archive_engine import scan_bytes, entry_to_dict
+from ..blueprint_engine import design
+from ..council import assemble, route
+from ..cores import CORES, get_core
+from ..memory import memory
+from ..shield_core import (
+    IdentityDriftError,
+    detect_identity_attack,
+    identity_status,
     is_permitted,
+    quarantine_upload,
+    sanitize_text,
+    scrub_identity_attack,
     set_permission,
     status as shield_status,
 )
-from memory import memory                          # type: ignore  # noqa: E402
+from ..teaching_engine import teach
 
 load_dotenv()
 logger = logging.getLogger("atlas")
@@ -83,6 +86,12 @@ class PermissionRequest(BaseModel):
     allowed: bool
 
 
+# ----- helpers -------------------------------------------------------------
+def _harden_user_input(text: str) -> str:
+    """Apply both shield-level and identity-level scrubs to user text."""
+    return scrub_identity_attack(sanitize_text(text))
+
+
 # ----- system status -------------------------------------------------------
 @atlas_router.get("/status")
 async def status_endpoint():
@@ -99,6 +108,7 @@ async def status_endpoint():
             for k, c in CORES.items()
         },
         "shield": shield_status(),
+        "identity_anchor": identity_status(),
         "memory": {
             "archive_entries": len(memory.list_archive()),
             "recent_events": len(memory.recent_events(limit=1000)),
@@ -118,18 +128,28 @@ async def think(core_key: str, req: ThinkRequest):
         raise HTTPException(404, str(exc))
 
     session = req.session_id or f"hud_{core_key}"
-    user_msg = sanitize_text(req.message)
+    user_msg = _harden_user_input(req.message)
     if not user_msg.strip():
         raise HTTPException(400, "message is empty after sanitization")
 
+    attack_detected = detect_identity_attack(req.message)
+    if attack_detected:
+        memory.log_event("identity_attack_blocked", {
+            "core": core_key, "session": session, "raw": req.message[:200],
+        })
+
     memory.append_message(session, "user", user_msg)
-    answer = await core.think(user_msg, session_id=session, context=req.context)
+    try:
+        answer = await core.think(user_msg, session_id=session, context=req.context)
+    except IdentityDriftError as exc:
+        raise HTTPException(503, f"Core refused to respond: {exc}")
     memory.append_message(session, "assistant", answer)
     memory.log_event("think", {"core": core_key, "session": session})
     return {
         "core": core_key,
         "session_id": session,
         "answer": answer,
+        "identity_attack_blocked": attack_detected,
     }
 
 
@@ -144,14 +164,17 @@ async def history(core_key: str, session_id: Optional[str] = None):
 # ----- council -------------------------------------------------------------
 @atlas_router.post("/council/route")
 async def council_route(req: CouncilRequest):
-    question = sanitize_text(req.question)
+    question = _harden_user_input(req.question)
     if not question.strip():
         raise HTTPException(400, "question is empty after sanitization")
-    result = await assemble(
-        question,
-        context=req.context,
-        include_critique=req.include_critique,
-    )
+    try:
+        result = await assemble(
+            question,
+            context=req.context,
+            include_critique=req.include_critique,
+        )
+    except IdentityDriftError as exc:
+        raise HTTPException(503, f"Council refused to assemble: {exc}")
     memory.log_event("council", {"decision": result["decision"]})
     return result
 
@@ -159,7 +182,7 @@ async def council_route(req: CouncilRequest):
 @atlas_router.post("/council/preview")
 async def council_preview(req: CouncilRequest):
     """Cheap version — return just the routing decision without any LLM calls."""
-    decision = route(sanitize_text(req.question))
+    decision = route(_harden_user_input(req.question))
     return {
         "lead": decision.lead,
         "support": decision.support,
@@ -172,25 +195,31 @@ async def council_preview(req: CouncilRequest):
 # ----- teaching ------------------------------------------------------------
 @atlas_router.post("/teach")
 async def teaching(req: TeachRequest):
-    topic = sanitize_text(req.topic)
+    topic = _harden_user_input(req.topic)
     if not topic.strip():
         raise HTTPException(400, "topic is empty")
-    result = await teach(topic, core=req.core, bands=req.bands, context=req.context)
-    return result
+    try:
+        return await teach(
+            topic, core=req.core, bands=req.bands, context=req.context
+        )
+    except IdentityDriftError as exc:
+        raise HTTPException(503, f"Teaching engine refused: {exc}")
 
 
-# ----- blueprint ------------------------------------------------------------
+# ----- blueprint -----------------------------------------------------------
 @atlas_router.post("/blueprint")
 async def blueprint(req: BlueprintRequest):
-    concept = sanitize_text(req.concept)
+    concept = _harden_user_input(req.concept)
     if not concept.strip():
         raise HTTPException(400, "concept is empty")
-    result = await design(
-        concept,
-        with_plan=req.with_plan,
-        synthesizer=req.synthesizer,
-    )
-    return result
+    try:
+        return await design(
+            concept,
+            with_plan=req.with_plan,
+            synthesizer=req.synthesizer,
+        )
+    except IdentityDriftError as exc:
+        raise HTTPException(503, f"Blueprint engine refused: {exc}")
 
 
 # ----- archive --------------------------------------------------------------
@@ -201,7 +230,9 @@ async def archive_upload(file: UploadFile = File(...)):
     data = await file.read()
     report = quarantine_upload(file.filename or "", len(data))
     if not report.allowed:
-        memory.log_event("quarantine_reject", {"filename": file.filename, "reason": report.reason})
+        memory.log_event("quarantine_reject", {
+            "filename": file.filename, "reason": report.reason,
+        })
         raise HTTPException(400, f"Upload rejected by shield: {report.reason}")
 
     try:
@@ -217,7 +248,9 @@ async def archive_upload(file: UploadFile = File(...)):
         d = entry_to_dict(entry)
         memory.add_archive_entry(d)
         payloads.append(d)
-    memory.log_event("archive_upload", {"filename": file.filename, "entries": len(payloads)})
+    memory.log_event("archive_upload", {
+        "filename": file.filename, "entries": len(payloads),
+    })
     return {"filename": file.filename, "entries": payloads}
 
 
@@ -229,14 +262,20 @@ async def archive_list(core: Optional[str] = None):
 # ----- shield ---------------------------------------------------------------
 @atlas_router.get("/shield/status")
 async def shield_status_endpoint():
-    return shield_status()
+    return {**shield_status(), "identity_anchor": identity_status()}
 
 
 @atlas_router.post("/shield/permission")
 async def shield_set_permission(req: PermissionRequest):
     set_permission(req.capability, req.allowed)
-    memory.log_event("permission_change", {"capability": req.capability, "allowed": req.allowed})
-    return {"capability": req.capability, "allowed": req.allowed, "all": shield_status()["permissions"]}
+    memory.log_event("permission_change", {
+        "capability": req.capability, "allowed": req.allowed,
+    })
+    return {
+        "capability": req.capability,
+        "allowed": req.allowed,
+        "all": shield_status()["permissions"],
+    }
 
 
 # ----- events --------------------------------------------------------------

@@ -20,7 +20,7 @@ import json
 import re
 from typing import Dict, Optional
 
-from cores import CORES, get_core
+from ..cores import CORES, get_core
 
 
 async def _simulate_all(concept: str) -> Dict[str, str]:

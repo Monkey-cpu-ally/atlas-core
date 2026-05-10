@@ -3,12 +3,16 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import sys
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 import uuid
 from datetime import datetime, timezone
+
+# Make /app importable so we can find the atlas_core sibling package.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import file routes
 from routes.files import router as files_router
@@ -18,6 +22,8 @@ from routes.chat import router as chat_router
 from routes.knowledge import router as knowledge_router
 # Import AI services (TTS / Minerva / Hermes / Blueprint)
 from routes.ai_services import router as ai_services_router
+# Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
+from atlas_core import atlas_router as atlas_core_router
 
 
 ROOT_DIR = Path(__file__).parent
@@ -81,6 +87,9 @@ app.include_router(files_router)  # File upload and management routes
 app.include_router(chat_router)  # AI chat routes
 app.include_router(knowledge_router)  # Knowledge core routes
 app.include_router(ai_services_router)  # TTS, Minerva, Hermes, Blueprint
+# ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
+# cognition stack (council, mental simulation, teaching, identity anchor).
+app.include_router(atlas_core_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,

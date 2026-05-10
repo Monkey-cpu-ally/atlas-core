@@ -21,7 +21,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from cores import CORES, get_core
+from ..cores import CORES, get_core
 
 
 # Lightweight keyword lexicons. Deliberately overlapping — score-based.

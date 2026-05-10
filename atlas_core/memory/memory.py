@@ -18,7 +18,7 @@ from collections import defaultdict, deque
 from datetime import datetime, timezone
 from typing import Deque, Dict, List, Optional
 
-from shield_core.shield import sanitize_text
+from ..shield_core.shield import sanitize_text
 
 
 _lock = threading.Lock()

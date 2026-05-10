@@ -21,8 +21,8 @@ from typing import List, Optional
 
 from pypdf import PdfReader
 
-from cores import get_core
-from shield_core.shield import sanitize_text
+from ..cores import get_core
+from ..shield_core.shield import sanitize_text
 
 
 SUPPORTED_EXTS = (".pdf", ".txt", ".md")

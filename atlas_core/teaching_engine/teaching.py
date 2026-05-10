@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-from cores import get_core
+from ..cores import get_core
 
 
 DEFAULT_BANDS = ["seed", "shape", "substance", "shadows"]

@@ -11,6 +11,13 @@ handles the heavy lifting:
 
 `AICore` deliberately avoids any persistence; the memory layer lives in
 `atlas_core.memory.memory` and is injected at call-time.
+
+Identity anchor protection is wired in:
+  • At import time each core is anchored via :func:`anchor_core`.
+  • At call time `_compose_system_prompt()` checks `verify_identity()` and
+    prepends the reinforcement preamble.
+  • User messages are scrubbed of identity-hijack phrases via
+    :func:`scrub_identity_attack` before reaching the LLM.
 """
 from __future__ import annotations
 
@@ -19,6 +26,14 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from dotenv import load_dotenv
+
+from ..shield_core import (
+    anchor_core,
+    verify_identity,
+    reinforcement_preamble,
+    scrub_identity_attack,
+    IdentityDriftError,
+)
 
 load_dotenv()
 
@@ -67,10 +82,23 @@ class AICore:
     """Base class for all three cores.
 
     Subclasses only need to set `identity` and (optionally) override
-    `extra_system_prompt()` to add persona-specific instructions.
+    `extra_system_prompt()` to add persona-specific instructions. The
+    base class auto-anchors each subclass instance the first time it is
+    created so a runtime tamper attempt is detected at call-time.
     """
 
     identity: CoreIdentity  # set by subclass
+
+    def __init__(self):
+        # Anchor this core's identity. Re-anchoring is idempotent because
+        # the fingerprint is deterministic.
+        anchor_core(
+            self.identity.key,
+            self.identity.name,
+            self.identity.code_name,
+            self.identity.domain,
+            self.identity.hard_rules,
+        )
 
     # Lazy import so the module can be imported without emergentintegrations.
     @classmethod
@@ -85,17 +113,33 @@ class AICore:
     # ------------------------------------------------------------------
     # Prompt assembly
     # ------------------------------------------------------------------
+    def _verify_identity_or_raise(self) -> None:
+        if not verify_identity(
+            self.identity.key,
+            self.identity.name,
+            self.identity.code_name,
+            self.identity.domain,
+            self.identity.hard_rules,
+        ):
+            raise IdentityDriftError(
+                f"Identity drift detected for {self.identity.key!r}. "
+                "Refusing to talk."
+            )
+
     def system_prompt(self) -> str:
+        """Compose the full system prompt, anchor-verified and reinforced."""
+        self._verify_identity_or_raise()
         identity = self.identity
         rules = "\n".join(f"  - {r}" for r in identity.hard_rules)
         return (
-            f"You are {identity.name} — code name {identity.code_name}.\n"
-            f"Domain: {identity.domain}\n"
-            f"Reasoning style: {identity.reasoning_style}\n"
-            f"{identity.bio}\n\n"
-            f"YOUR HARD RULES (never violate):\n{rules}\n"
-            f"{BASE_RULES}\n"
-            f"{self.extra_system_prompt()}"
+            reinforcement_preamble(identity.name, identity.code_name)
+            + f"You are {identity.name} — code name {identity.code_name}.\n"
+            + f"Domain: {identity.domain}\n"
+            + f"Reasoning style: {identity.reasoning_style}\n"
+            + f"{identity.bio}\n\n"
+            + f"YOUR HARD RULES (never violate):\n{rules}\n"
+            + f"{BASE_RULES}\n"
+            + f"{self.extra_system_prompt()}"
         )
 
     def extra_system_prompt(self) -> str:  # subclass hook
@@ -114,13 +158,19 @@ class AICore:
         """Single-shot reasoning. Returns the core's natural-language response."""
         from emergentintegrations.llm.chat import UserMessage
 
+        # Identity-attack scrub on every user-supplied surface before the
+        # LLM sees it. Sanitization at the shield is already done by the
+        # route layer; this is the per-core last-mile defense.
+        clean_msg = scrub_identity_attack(user_message)
+        clean_ctx = scrub_identity_attack(context) if context else None
+
         chat = self._llm_chat(
             session_id=session_id or f"{self.identity.key}_{os.urandom(4).hex()}",
             system_message=self.system_prompt(),
         )
-        text = user_message
-        if context:
-            text = f"CONTEXT:\n{context}\n\nQUESTION:\n{user_message}"
+        text = clean_msg
+        if clean_ctx:
+            text = f"CONTEXT:\n{clean_ctx}\n\nQUESTION:\n{clean_msg}"
         return await chat.send_message(UserMessage(text=text))
 
     async def mental_simulate(
@@ -136,6 +186,7 @@ class AICore:
         """
         from emergentintegrations.llm.chat import UserMessage
 
+        clean_proposal = scrub_identity_attack(proposal)
         sim_prompt = (
             self.system_prompt()
             + "\n\nYou are now in MENTAL SIMULATION mode. Do not draft an "
@@ -150,4 +201,4 @@ class AICore:
             session_id=session_id or f"sim_{self.identity.key}_{os.urandom(4).hex()}",
             system_message=sim_prompt,
         )
-        return await chat.send_message(UserMessage(text=proposal))
+        return await chat.send_message(UserMessage(text=clean_proposal))
