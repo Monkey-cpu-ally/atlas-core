@@ -1,0 +1,15 @@
+# ATLAS Core v1 — runtime dependencies.
+# Frozen versions match what's already installed for the main backend so we
+# don't introduce dependency conflicts.
+
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+python-multipart
+
+# LLM access via Emergent Universal Key
+emergentintegrations
+
+# PDF parsing for the archive engine
+pypdf
