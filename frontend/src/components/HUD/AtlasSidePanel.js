@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, ChevronRight, AlertTriangle, Zap, Brain, User, FileCode, Beaker, Clock, Star, ArrowRight } from 'lucide-react';
 import { PHASES, TEACHING_MODES, getProjectsByAI } from '../../data/atlasCore';
 import BlueprintWorkbench from './BlueprintWorkbench';
+import TeachingWorkbench from './TeachingWorkbench';
 
 export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose, onSelectProject }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -45,6 +46,11 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
     // + Minerva approval + Hermes validation), not a static gallery.
     if (opName === 'blueprints') {
       return <BlueprintWorkbench aiColor={aiColor} />;
+    }
+
+    // Special-case: Subjects opens the Teaching Engine workbench.
+    if (opName === 'subjects') {
+      return <TeachingWorkbench aiColor={aiColor} />;
     }
 
     const opData = {

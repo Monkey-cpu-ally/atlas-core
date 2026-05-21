@@ -2050,3 +2050,47 @@ body {
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+
+/* Tri-council blueprint output blocks. */
+.bp-loading {
+  color: rgba(220, 230, 245, 0.7);
+  font-style: italic;
+  font-size: 11.5px;
+}
+.bp-voice {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 5px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+}
+.bp-voice summary {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.bp-voice-body {
+  font-size: 11.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  margin-top: 6px;
+  color: rgba(220, 230, 245, 0.88);
+}
+.bp-synth-title {
+  margin-top: 14px !important;
+}
+.bp-synth-block {
+  margin-top: 8px;
+}
+.bp-synth-block h5 {
+  margin: 4px 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+.bp-synth-block ul {
+  margin: 2px 0 6px 16px;
+  font-size: 11.5px;
+}
+

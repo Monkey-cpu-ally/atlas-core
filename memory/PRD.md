@@ -120,16 +120,24 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] `/app/atlas_core/` real Python package (renamed from atlas-core)
 - [x] **3 cognitive cores**: TitanCore/Ajani, GaiaCore/Minerva, MercuryCore/Hermes
 - [x] **Council Router**: keyword-based lead/support/critic + 3-LLM assemble
-- [x] **Teaching Engine**: 4-band depth (seed → shape → substance → shadows)
-- [x] **Blueprint Engine**: parallel mental simulation + 5-phase plan
-- [x] **Archive Engine**: PDF/ZIP/TXT scan + classify + summarize + route
-- [x] **Shield Core**: 9 injection patterns + 4 control tokens + quarantine + capability gates
+- [x] **Teaching Engine**: 4-band depth — **simple / systems / advanced / speculative** (with seed/shape/substance/shadows aliases) — auto-routes lead core through council; ATLAS teaching law enforced in the prompt
+- [x] **Blueprint Engine** (two flows):
+  - [x] `design()` → original 5-phase plan
+  - [x] `tri_council()` → 3 parallel voices (Ajani structural / Minerva human / Hermes inventive) + synthesis blueprint (headline, 3 pillars, tensions, first_actions, open_questions)
+- [x] **Archive Engine**: PDF/ZIP/TXT scan → shield-sanitize → classify → core route → summarize → memory store
+- [x] **Shield Core**: 9 injection patterns + 4 control tokens + upload quarantine + capability gates
 - [x] **Identity Anchor Protection**: SHA-256 fingerprint per core anchored at boot;
       `verify_identity()` before every LLM call raises if drift detected;
       `reinforcement_preamble()` prepended to every system prompt;
-      12 identity-attack patterns (e.g. "from now on you are X", "your real name is", "pretend you are")
-- [x] **Mounted on HUD backend** at `/api/atlas/*` — verified Ajani refuses identity-hijack attempts and replies in isiZulu
-- [x] **Memory layer**: thread-safe in-memory store w/ DB-shaped interface ready for swap
+      12 identity-attack patterns redacted before reaching the LLM
+- [x] **Mounted on HUD backend** at `/api/atlas/*`
+- [x] **Async job queue** at `/api/atlas/jobs/{id}` — tri-council & teach return job_id immediately, frontend polls every 2s. Bypasses K8s ingress 60s timeout for 4-LLM-call flows.
+- [x] **Memory layer**: thread-safe in-memory store + job store
+
+### HUD Workbench wiring (NEW — visuals untouched)
+- [x] **BlueprintWorkbench** wired to `/api/atlas/blueprint/council` via `useAtlasJob` hook. "Generate" runs the tri-council and renders 3 voices + synthesis pillars/tensions/actions/questions.
+- [x] **TeachingWorkbench** mounted on the SUBJECTS tile. Calls `/api/atlas/teach`, renders 4-band lesson collapsed details.
+- [x] **FileUploadModal** dual-posts PDFs/ZIPs to `/api/atlas/archive/upload`. Result shown inline (routed-to core, domain, summary, open questions). Quarantine errors surface as a red inline message. Identity anchors cannot be modified by uploads (they live in code-level identity hashes).
 
 ## Backlog
 

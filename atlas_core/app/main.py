@@ -27,10 +27,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from ..archive_engine import scan_bytes, entry_to_dict
-from ..blueprint_engine import design
+from ..blueprint_engine import design, tri_council
 from ..council import assemble, route
 from ..cores import CORES, get_core
-from ..memory import memory
+from ..memory import memory, jobs
 from ..shield_core import (
     IdentityDriftError,
     detect_identity_attack,
@@ -79,6 +79,10 @@ class BlueprintRequest(BaseModel):
     concept: str
     with_plan: bool = True
     synthesizer: str = "hermes"
+
+
+class TriCouncilRequest(BaseModel):
+    concept: str
 
 
 class PermissionRequest(BaseModel):
@@ -195,13 +199,29 @@ async def council_preview(req: CouncilRequest):
 # ----- teaching ------------------------------------------------------------
 @atlas_router.post("/teach")
 async def teaching(req: TeachRequest):
+    """Submit a teaching job. Long because the 4-band lesson is one big call."""
+    topic = _harden_user_input(req.topic)
+    if not topic.strip():
+        raise HTTPException(400, "topic is empty")
+
+    async def _work():
+        try:
+            return await teach(topic, core=req.core, bands=req.bands, context=req.context)
+        except IdentityDriftError as exc:
+            return {"error": f"Teaching engine refused: {exc}"}
+
+    job_id = jobs.submit(_work, label=f"teach:{topic[:80]}")
+    return {"job_id": job_id, "status": "pending"}
+
+
+@atlas_router.post("/teach/sync")
+async def teaching_sync(req: TeachRequest):
+    """Synchronous variant — returns the lesson directly. Beware ingress 60s."""
     topic = _harden_user_input(req.topic)
     if not topic.strip():
         raise HTTPException(400, "topic is empty")
     try:
-        return await teach(
-            topic, core=req.core, bands=req.bands, context=req.context
-        )
+        return await teach(topic, core=req.core, bands=req.bands, context=req.context)
     except IdentityDriftError as exc:
         raise HTTPException(503, f"Teaching engine refused: {exc}")
 
@@ -220,6 +240,39 @@ async def blueprint(req: BlueprintRequest):
         )
     except IdentityDriftError as exc:
         raise HTTPException(503, f"Blueprint engine refused: {exc}")
+
+
+@atlas_router.post("/blueprint/council")
+async def blueprint_council(req: TriCouncilRequest):
+    """Kick off a tri-council blueprint job and return immediately.
+
+    4+ LLM calls take ~120–200s — too long for the 60s ingress timeout. So
+    we submit the work as a background job and return a `job_id`; the
+    frontend polls `GET /atlas/jobs/{job_id}` until status == "done".
+    """
+    concept = _harden_user_input(req.concept)
+    if not concept.strip():
+        raise HTTPException(400, "concept is empty")
+
+    async def _work():
+        try:
+            return await tri_council(concept)
+        except IdentityDriftError as exc:
+            return {"error": f"Blueprint council refused: {exc}"}
+
+    job_id = jobs.submit(_work, label=f"council:{concept[:80]}")
+    memory.log_event("blueprint_council_submitted", {
+        "job_id": job_id, "concept": concept[:120],
+    })
+    return {"job_id": job_id, "status": "pending"}
+
+
+@atlas_router.get("/jobs/{job_id}")
+async def get_job(job_id: str):
+    job = jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "job not found or expired")
+    return jobs.to_dict(job)
 
 
 # ----- archive --------------------------------------------------------------

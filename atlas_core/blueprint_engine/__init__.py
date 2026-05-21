@@ -1,3 +1,3 @@
-from .blueprint import design
+from .blueprint import design, tri_council
 
-__all__ = ["design"]
+__all__ = ["design", "tri_council"]
