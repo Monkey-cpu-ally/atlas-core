@@ -91,6 +91,14 @@ app.include_router(ai_services_router)  # TTS, Minerva, Hermes, Blueprint
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
 
+# Wire ATLAS memory to MongoDB on startup so archive entries, conversations,
+# and audit events persist across restarts.
+from atlas_core.memory.memory import attach_mongo_on_startup as _atlas_attach_mongo
+
+@app.on_event("startup")
+async def _wire_atlas_memory():
+    await _atlas_attach_mongo()
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

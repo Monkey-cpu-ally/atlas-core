@@ -3,6 +3,7 @@ import { X, ChevronRight, AlertTriangle, Zap, Brain, User, FileCode, Beaker, Clo
 import { PHASES, TEACHING_MODES, getProjectsByAI } from '../../data/atlasCore';
 import BlueprintWorkbench from './BlueprintWorkbench';
 import TeachingWorkbench from './TeachingWorkbench';
+import DiagnosticsPanel from './DiagnosticsPanel';
 
 export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose, onSelectProject }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -51,6 +52,11 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
     // Special-case: Subjects opens the Teaching Engine workbench.
     if (opName === 'subjects') {
       return <TeachingWorkbench aiColor={aiColor} />;
+    }
+
+    // Special-case: Systems opens the live Diagnostics panel.
+    if (opName === 'systems') {
+      return <DiagnosticsPanel />;
     }
 
     const opData = {

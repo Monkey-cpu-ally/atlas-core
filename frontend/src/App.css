@@ -2094,3 +2094,89 @@ body {
   font-size: 11.5px;
 }
 
+
+
+/* =======================================================================
+   FILE BROWSER — tab bar (Files vs Atlas Archive) + archive items + diag
+   ======================================================================= */
+.fb-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px 0;
+  border-bottom: 1px solid rgba(140, 180, 230, 0.18);
+}
+.fb-tab {
+  background: transparent;
+  border: 1px solid rgba(140, 180, 230, 0.18);
+  border-bottom: none;
+  color: rgba(220, 230, 245, 0.6);
+  padding: 6px 12px;
+  border-radius: 6px 6px 0 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 180ms, border-color 180ms, background 180ms;
+}
+.fb-tab:hover { color: rgba(220, 230, 245, 0.9); }
+.fb-tab.active {
+  color: rgba(180, 220, 255, 0.95);
+  background: rgba(180, 220, 255, 0.06);
+  border-color: rgba(180, 220, 255, 0.5);
+}
+
+.archive-item .archive-summary {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(220, 230, 245, 0.78);
+  margin: 4px 0;
+}
+
+.archive-teach-result {
+  border-top: 1px solid rgba(140, 180, 230, 0.18);
+  background: rgba(140, 180, 230, 0.04);
+  padding: 10px 16px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.archive-teach-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  color: rgba(220, 230, 245, 0.9);
+  margin-bottom: 6px;
+}
+.archive-teach-head button {
+  background: transparent; border: none; color: rgba(220, 230, 245, 0.7);
+  cursor: pointer; padding: 0 4px;
+}
+.archive-teach-body { font-size: 11.5px; line-height: 1.5; }
+
+.diag-event {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(140, 180, 230, 0.10);
+  font-size: 11px;
+}
+.diag-event:last-child { border-bottom: none; }
+.diag-event-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 2px;
+}
+.diag-event-kind {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.diag-event-ts {
+  font-size: 10px;
+  color: rgba(220, 230, 245, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+.diag-event-payload {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  font-size: 10.5px; color: rgba(220, 230, 245, 0.72);
+}

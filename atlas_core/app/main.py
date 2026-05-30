@@ -31,6 +31,7 @@ from ..blueprint_engine import design, tri_council
 from ..council import assemble, route
 from ..cores import CORES, get_core
 from ..memory import memory, jobs
+from ..memory.memory import attach_mongo_on_startup
 from ..shield_core import (
     IdentityDriftError,
     detect_identity_attack,
@@ -355,6 +356,12 @@ app.add_middleware(
 )
 
 app.include_router(atlas_router)
+
+
+@app.on_event("startup")
+async def _attach_mongo():
+    """Wire memory to MongoDB if MONGO_URL is configured. No-op otherwise."""
+    await attach_mongo_on_startup()
 
 
 @app.get("/")
