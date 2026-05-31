@@ -21,6 +21,17 @@ router = APIRouter(prefix="/api/ai", tags=["AI Services"])
 
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 
+# Module-level TTS client cache — instantiating OpenAITextToSpeech on every
+# request added 150–400 ms of cold-start latency. Reuse one client.
+_TTS_CLIENT: Optional[OpenAITextToSpeech] = None
+
+
+def _get_tts_client() -> OpenAITextToSpeech:
+    global _TTS_CLIENT
+    if _TTS_CLIENT is None:
+        _TTS_CLIENT = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
+    return _TTS_CLIENT
+
 
 # ---------------------------------------------------------------------------
 # 1) Text-to-Speech
@@ -55,7 +66,7 @@ async def synthesize_speech(req: TTSRequest):
 
     voice = req.voice or PERSONA_VOICES.get((req.persona or "").lower(), "alloy")
     try:
-        tts = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
+        tts = _get_tts_client()
         audio_bytes = await tts.generate_speech(
             text=req.text,
             model=req.model,
