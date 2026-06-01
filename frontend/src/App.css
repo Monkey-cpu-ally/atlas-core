@@ -2599,3 +2599,213 @@ body {
   color: rgba(220, 230, 245, 0.4);
   font-family: 'Orbitron', sans-serif;
 }
+
+/* ============================================================
+   HUD surface panels — Manual / Memory / Customization /
+   Cyclopedia / Council / Intake / Archive. All live inside
+   the .side-panel and reuse the .bp-workbench shell.
+   ============================================================ */
+
+/* Manual */
+.manual-line { font-size: 11.5px; line-height: 1.55; color: rgba(220,230,245,0.85); }
+.manual-line:empty { height: 6px; }
+.manual-body { white-space: normal; }
+
+/* Memory feed */
+.memory-feed { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+.memory-row {
+  padding: 8px 10px;
+  border: 1px solid rgba(140,180,230,0.13);
+  border-radius: 8px;
+  background: rgba(14,22,38,0.45);
+}
+.memory-row-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.memory-row-type {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9.5px; letter-spacing: 1.1px; text-transform: uppercase;
+}
+.memory-row-time { font-size: 9.5px; color: rgba(220,230,245,0.45); font-variant-numeric: tabular-nums; }
+.memory-row-body {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px; line-height: 1.45;
+  color: rgba(220,230,245,0.72);
+  white-space: pre-wrap; word-break: break-word; margin: 0;
+}
+
+/* Customization */
+.cust-row {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(140,180,230,0.12);
+}
+.cust-row:last-child { border-bottom: none; }
+.cust-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+  color: rgba(220,230,245,0.62);
+}
+.cust-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.cust-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(140,180,230,0.18);
+  background: rgba(14,22,38,0.55);
+  color: rgba(220,230,245,0.78);
+  cursor: pointer; transition: all 0.15s ease;
+}
+.cust-pill:hover { color: rgba(220,230,245,0.95); }
+.cust-pill.active { background: rgba(14,22,38,0.85); }
+
+/* Cyclopedia */
+.cyclo-search { display: flex; align-items: center; gap: 6px; }
+.cyclo-input { padding: 6px 10px !important; font-size: 12px !important; min-height: 0 !important; resize: none; }
+.cyclo-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.cyclo-chip {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(140,180,230,0.2);
+  background: rgba(14,22,38,0.55);
+  color: rgba(220,230,245,0.8);
+  cursor: pointer; transition: all 0.15s ease;
+}
+.cyclo-chip:hover { color: rgba(220,230,245,1); }
+.cyclo-chip.active { background: rgba(14,22,38,0.9); box-shadow: 0 0 8px -2px currentColor; }
+.cyclo-hit { padding: 6px 8px; font-size: 11.5px; border-bottom: 1px solid rgba(140,180,230,0.08); }
+
+/* Council */
+.council-route-line {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12.5px; line-height: 1.5;
+  color: rgba(220,230,245,0.92);
+}
+.council-route-line em { font-style: italic; color: rgba(220,230,245,0.6); }
+.council-voices { display: flex; flex-direction: column; gap: 6px; }
+.council-voice {
+  padding: 10px;
+  background: rgba(14,22,38,0.55);
+  border: 1px solid rgba(140,180,230,0.15);
+  border-left-width: 3px;
+  border-radius: 6px;
+}
+.council-voice.lead {
+  background: rgba(14,22,38,0.85);
+  box-shadow: 0 0 14px -6px currentColor;
+}
+.council-voice-head {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10.5px; letter-spacing: 1.2px; margin-bottom: 4px;
+}
+
+/* Intake */
+.intake-mode { display: flex; gap: 4px; padding-bottom: 6px; border-bottom: 1px dashed rgba(140,180,230,0.12); }
+.intake-result-head { display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 6px; }
+.intake-kw { color: rgba(220,230,245,0.55); }
+.intake-kw em { font-style: italic; color: rgba(220,230,245,0.78); }
+.intake-concepts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+
+/* Archive browser */
+.archive-list { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+.archive-row {
+  padding: 8px 10px;
+  border: 1px solid rgba(140,180,230,0.13);
+  border-left: 3px solid;
+  border-radius: 6px;
+  background: rgba(14,22,38,0.45);
+}
+.archive-row-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 11.5px; }
+.archive-row-title { font-weight: 600; color: rgba(220,230,245,0.95); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.archive-row-tag {
+  font-family: 'Orbitron', sans-serif; font-size: 8.5px;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 999px;
+  background: rgba(140,180,230,0.1); color: rgba(220,230,245,0.65);
+}
+
+/* ============================================================
+   Vibrancy pass — additive only. Does NOT change HUD geometry.
+   Brightens existing rings, adds a soft scan-sweep, intensifies
+   the active persona glow and tile hover.
+   ============================================================ */
+
+/* Subtle vignette + ambient scan sweep behind the HUD frame */
+.hud-container::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(80, 140, 220, 0.03) 0%,
+    rgba(8, 12, 22, 0.55) 80%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.hud-container::after {
+  content: '';
+  position: fixed;
+  left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(140,200,255,0.18) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+  animation: hud-scan 9s linear infinite;
+  opacity: 0.55;
+}
+@keyframes hud-scan {
+  0%   { top: -2%; opacity: 0; }
+  10%  { opacity: 0.55; }
+  90%  { opacity: 0.55; }
+  100% { top: 102%; opacity: 0; }
+}
+
+/* Brighten the dial rings */
+.dial-ring {
+  filter: drop-shadow(0 0 6px rgba(100, 200, 255, 0.18));
+}
+.dial-ring.active {
+  filter: drop-shadow(0 0 14px rgba(100, 220, 255, 0.55));
+}
+
+/* Active persona button: bigger pulse + saturated glow */
+.ring-item.active,
+.ring-inner-item.active {
+  animation: persona-pulse 2.2s ease-in-out infinite;
+}
+@keyframes persona-pulse {
+  0%, 100% { box-shadow: 0 0 12px -4px currentColor; }
+  50%      { box-shadow: 0 0 22px -4px currentColor, 0 0 36px -10px currentColor; }
+}
+
+/* Tile hover: animated neon stroke draw */
+.ring-item, .ring-inner-item {
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.ring-item:hover, .ring-inner-item:hover {
+  transform: translate(-50%, -50%) scale(1.03);
+  box-shadow: 0 0 18px -4px currentColor;
+}
+
+/* Side panel persona-coloured top accent (uses --aiColor when set) */
+.side-panel.atlas-panel { position: relative; }
+.side-panel.atlas-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 16px; right: 16px; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(140,200,255,0.55) 50%, transparent 100%);
+  filter: drop-shadow(0 0 6px rgba(100, 200, 255, 0.35));
+}
+
+/* Central core saturation bump — additive vignette behind the canvas */
+.core-canvas-wrap {
+  filter: saturate(1.18) contrast(1.05);
+}
+
+/* Bottom persona name label glow boost */
+.persona-display .persona-name {
+  text-shadow: 0 0 18px currentColor, 0 0 36px currentColor;
+}
+

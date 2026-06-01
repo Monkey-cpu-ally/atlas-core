@@ -23,7 +23,8 @@ const CORE_STATES = {
 };
 
 // File-browser sections — open the FileBrowserPanel instead of side panel.
-const FILE_SECTIONS = new Set(['memory', 'archive']);
+// (kept empty: MEMORY/ARCHIVE now route to dedicated workbench panels)
+const FILE_SECTIONS = new Set();
 
 export default function HUDInterface() {
   const [activeAI, setActiveAI] = useState('ajani');

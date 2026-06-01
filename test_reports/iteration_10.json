@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 10 — Atlas Core HUD: 7 new HUD tile panels + YouTube intake module + vibrancy pass. Backend pytest: 13/14 passed (test_iter10_hud.py). Frontend Playwright smoke: ALL 8 new tile flows pass, including the bug-fix verification that MEMORY and ARCHIVE no longer open the old .file-browser-panel popover. ONE CRITICAL BACKEND BUG found: /api/council/deliberate returns text:null for all three voices despite LiteLLM completing successfully.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/council/deliberate",
+        "issue": "All three voice entries return `text: null` even though LiteLLM completion logs show the 3 Claude Sonnet 4.5 calls completed with success_handler. The voices array is structurally correct (persona/display/is_lead populated, lead='hermes' for nano-swarm topic), only the text body is None. /api/chat/send using same emergentintegrations library returns proper string content, and /api/sandbox/suggest using identical with_model('anthropic','claude-sonnet-4-5-20250929') works fine — so issue appears isolated to council.deliberate. Hypothesis: _ask() return value not awaited correctly OR send_message swallowing the response when system_message is multi-line persona prompt under sequential reuse. Reproduce: curl POST /api/council/deliberate {topic:'should we deploy nano-swarms in water?'} → all voices.text == null.",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "POST /api/council/route",
+        "issue": "Spec-vs-code mismatch: review request expects 'philosophy of mind' → routed_to='council', but topic_router.MINERVA_KEYWORDS contains 'philosophy', so the topic correctly routes to minerva. Either remove 'philosophy' from MINERVA_KEYWORDS or update the spec; current behaviour is consistent with the keyword lexicon."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter10_hud.py",
+    "/app/test_reports/pytest/iter10_hud.xml"
+  ],
+  "action_items": [
+    "FIX /api/council/deliberate: voices[].text is null. Compare _ask() implementation to working chat.py send_message flow; likely needs the LlmChat instance not to be re-built per-persona in a tight loop, or a missing await/return. Suggest logging raw `await chat.send_message(...)` return value before wrapping into the voices dict.",
+    "Decide on 'philosophy' keyword routing: either remove from MINERVA_KEYWORDS to satisfy the spec ('philosophy of mind' → council) or update the spec/tests to acknowledge minerva ownership."
+  ],
+  "critical_code_review_comments": [
+    "council.py _ask() returns `await chat.send_message(...)` directly. If the awaited value is None the caller has no guard — wrap with `text = result if isinstance(result, str) else f'(empty response from {persona})'` so the UI never gets `text:null`.",
+    "hud_surfaces.py /settings PUT allows tts_provider/default_language/accent_theme via regex; default_language regex is `^(en|zu|yo|maa)$` which is good. voice_enabled is unbounded bool. Consider 400 (not 422) consistency with other routes.",
+    "intake.py defines `_intake_from_transcript` correctly, persists into atlas_archive — but route /api/intake/list filters by kind='youtube', so transcript-pasted lessons are NOT recoverable via that endpoint. Either widen filter or add /api/intake/list?kind=...",
+    "Both intake.py and hud_surfaces.py create their own AsyncIOMotorClient at import time. Acceptable for now but means 4 Mongo clients in process. Consider a shared db module.",
+    "topic_router.py first-match scan iterates AJANI then MINERVA then HERMES per-topic. For multi-domain topics (e.g. 'engineering and biology') AJANI always wins. Document this priority order somewhere user-facing if it matters."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter10_hud.py (new)"
+  ],
+  "success_rate": {"backend": "93% (13/14)", "frontend": "100% (8/8 tile flows + bug-fix verify)"},
+  "test_credentials": "none required (HUD is public preview, no auth)",
+  "seed_data_creation": "Created 1 atlas_archive row via /api/intake/transcript with topic='robotics swarm' (TEST data — non-blocking). PUT /api/settings briefly toggled tts_provider to 'openai' then restored to 'auto'.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All new tile data-testids confirmed wired: ring-middle-{manual,encyclopedia,memory,customization}, ring-outer-{archive,explore}, ring-inner-trinity → opens dedicated panels (manual-panel/cyclopedia-panel/memory-panel/customization-panel/archive-browser/intake-panel/council-panel). Old .file-browser-panel popover is gone for MEMORY+ARCHIVE — verified. Council/deliberate text:null bug is the only blocker; route endpoint works fine. test file: /app/backend/tests/test_iter10_hud.py (~25s incl. deliberate ~10s).",
+  "rca of the issue": "Council deliberate text-null RCA: LiteLLM logs confirm 3 successful completions for claude-sonnet-4-5-20250929 (provider=openai proxy). send_message() in emergentintegrations returns None for these calls but returns proper string for /api/chat/send (gpt-5.2) and /api/sandbox/suggest (claude-sonnet-4-5). Distinguishing feature of council.py: it creates a fresh LlmChat per persona in a tight sequential await loop with multi-line system_message and a session_id containing ISO timestamp + colons. Suggested fix: (a) log `raw = await chat.send_message(...)` before assignment, (b) sanitise session_id (no colons), (c) add fallback `text = raw if isinstance(raw, str) and raw.strip() else '(no response)'`."
+}

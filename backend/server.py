@@ -24,6 +24,12 @@ from routes.knowledge import router as knowledge_router
 from routes.ai_services import router as ai_services_router
 # Sandbox — save/replay configs, mastery curve, AI-suggested tweaks
 from routes.sandbox import router as sandbox_router
+# Council — topic routing + tri-AI deliberation
+from routes.council import router as council_router
+# HUD surfaces — Memory feed, Manual sections, Settings
+from routes.hud_surfaces import router as hud_surfaces_router
+# YouTube / external knowledge intake → routed lesson + quiz
+from routes.intake import router as intake_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -90,6 +96,9 @@ app.include_router(chat_router)  # AI chat routes
 app.include_router(knowledge_router)  # Knowledge core routes
 app.include_router(ai_services_router)  # TTS, Minerva, Hermes, Blueprint
 app.include_router(sandbox_router)  # Sandbox: save/replay, mastery curve, AI suggest
+app.include_router(council_router)  # Topic routing + tri-AI deliberation
+app.include_router(hud_surfaces_router)  # Memory feed, Manual, Settings
+app.include_router(intake_router)  # YouTube intake → routed lesson + quiz
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")

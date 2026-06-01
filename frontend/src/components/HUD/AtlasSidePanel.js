@@ -4,6 +4,13 @@ import { PHASES, TEACHING_MODES, getProjectsByAI } from '../../data/atlasCore';
 import BlueprintWorkbench from './BlueprintWorkbench';
 import TeachingWorkbench from './TeachingWorkbench';
 import DiagnosticsPanel from './DiagnosticsPanel';
+import ManualPanel from './ManualPanel';
+import MemoryPanel from './MemoryPanel';
+import CustomizationPanel from './CustomizationPanel';
+import CyclopediaPanel from './CyclopediaPanel';
+import CouncilPanel from './CouncilPanel';
+import IntakePanel from './IntakePanel';
+import ArchiveBrowser from './ArchiveBrowser';
 
 export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose, onSelectProject }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -64,6 +71,16 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
     if (opName === 'systems') {
       return <DiagnosticsPanel />;
     }
+
+    // Middle-ring system surfaces — all live, all backend-wired.
+    if (opName === 'manual')        return <ManualPanel aiColor={aiColor} />;
+    if (opName === 'encyclopedia')  return <CyclopediaPanel aiColor={aiColor} />;
+    if (opName === 'memory')        return <MemoryPanel aiColor={aiColor} />;
+    if (opName === 'customization') return <CustomizationPanel aiColor={aiColor} />;
+
+    // Outer-ring operations.
+    if (opName === 'archive')       return <ArchiveBrowser aiColor={aiColor} />;
+    if (opName === 'explore')       return <IntakePanel aiColor={aiColor} />;
 
     const opData = {
       // Ring 2 - System
@@ -192,6 +209,7 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
         {content.ai === 'trinity' && (
           <div className="trinity-note">
             <p>{selectedAI.description}</p>
+            <CouncilPanel aiColor={selectedAI.color} />
           </div>
         )}
       </div>
