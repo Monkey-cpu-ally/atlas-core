@@ -321,6 +321,15 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
   const [labKey, setLabKey] = useState(safeInitial);
   const lab = LABS[labKey];
 
+  // Honour later changes to initialLabKey (parent may auto-route from topic
+  // after the component is already mounted).
+  useEffect(() => {
+    if (LABS[initialLabKey] && initialLabKey !== labKey) {
+      setLabKey(initialLabKey);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLabKey]);
+
   const defaultValues = useMemo(() => {
     const v = {};
     lab.controls.forEach((c) => { v[c.key] = c.default; });

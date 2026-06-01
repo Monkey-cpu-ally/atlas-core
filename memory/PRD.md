@@ -152,13 +152,22 @@ movement they snap to the nearest slot and stop. No auto-spin.
 
 ### Interactive Sandbox — hands-on labs in the teaching flow (Feb 2026)
 - [x] **`InteractiveSandbox` component** at `/app/frontend/src/components/HUD/InteractiveSandbox.js`
-  - 3 labs: **Power** (Solar / energy), **Bridge** (structures), **Code** (algorithmic complexity)
-  - Per-lab sliders (4 controls), live derived metrics (Atlas Score / Output-Efficiency / Stability-Reliability), 5-step Mastery rank, Failure-Vision toggle
-  - 3 mentor cards (Ajani / Minerva / Hermes) with persona-coloured borders and a Volume2 "speak this" button that fires the existing TTS pipeline in the mentor's native language
+  - **6 labs**, two per persona — failure modes map directly to each lead core's Hard Rule, so failing the design teaches the doctrine:
+    - **Power** (Ajani / red) — Solar station: tune sunlight / angle / temperature / battery; overheats and shuts down if you push it past containment.
+    - **Bridge** (Ajani / red) — Bridge design: balance supports / span / material / load; collapses under stress.
+    - **Resonance** (Ajani / red) — Ambient vibration energy harvesting: tune sensors / frequency / amplifier / damping; resonant collapse if amplifier > 85 and damping < 40 (cannot safely shut down).
+    - **Ecosystem** (Minerva / teal) — Biome balance: predators / plants / water / climate; irreversible harm if any species crashes — teaches "no harm in the name of optimisation."
+    - **Code** (Hermes / silver) — AI module balance: speed / memory / safety / complexity.
+    - **Nanoswarm** (Hermes / silver) — Medical nanobot swarm: size / coordination / precision / battery; uncontainable if size > 800 and coordination < 70 — teaches "never design nanobots capable of self-replication."
+  - Per-lab sliders, live derived metrics (Atlas Score / Output-Efficiency / Stability-Reliability), 5-step Mastery rank, Failure-Vision toggle
+  - 3 mentor cards (Ajani / Minerva / Hermes) — lead persona's card highlighted with `.lead` glow + "PERSONA · LEAD" badge + domain-specific feedback message; non-lead mentors give generic teaching-doctrine feedback
+  - Volume2 "speak this" button on each mentor — fires the existing TTS pipeline in the mentor's native language
   - NaN-safe lab switching via `liveValues` derived state
-- [x] **Embedded inside TeachingWorkbench** — toggle button "Try a hands-on lab"; auto-suggested when lesson topic matches `power|solar|grid|energy|bridge|beam|structure|code|program|algorithm|complexity` (via `pickLabForTopic`)
-- [x] **LAB outer-ring tile** now opens TeachingWorkbench with the sandbox pre-expanded (`forceSandbox={true}` prop) — replacing the previous static items list
-- [x] HUD aesthetic — dark glass panels, Orbitron labels, persona-coloured accent (Ajani red for power/bridge, Hermes silver for code), no purple gradient
+  - Reactive `initialLabKey` — parent can drive tab via prop change (used by topic-auto-route)
+- [x] **Embedded inside TeachingWorkbench** — toggle button "Try a hands-on lab" auto-routes via `pickLabForTopic(topic)` before flipping open; auto-suggested when lesson topic matches `power|solar|grid|battery|reactor`, `bridge|beam|structure|span|load`, `code|program|algorithm|complexity`, `ecosystem|biodiversity|ecology|biome|permaculture|forest|wildlife`, `nano|swarm|atomic|molecular`, `resonance|vibration|wave|kinetic|RF|harvest`, etc.
+- [x] **LAB outer-ring tile** opens TeachingWorkbench with the sandbox pre-expanded (`forceSandbox={true}` prop) — replaces the previous static items list
+- [x] HUD aesthetic — dark glass panels, Orbitron labels, persona-coloured accent per lab, no purple gradient
+- [x] Tabs wrap to 2 rows when 6+ labs are present
 
 ## Backlog
 

@@ -64,6 +64,15 @@ export default function TeachingWorkbench({ aiColor, forceSandbox = false }) {
     job.run('/api/atlas/teach', { topic });
   };
 
+  // Toggle hands-on lab — when opening, auto-route to the lab that matches
+  // the current topic (if any).
+  const toggleSandbox = () => {
+    setSandboxOpen((open) => {
+      if (!open && matchedLab) setSandboxLab(matchedLab);
+      return !open;
+    });
+  };
+
   const sections = lesson?.lesson ? splitLesson(lesson.lesson) : {};
 
   return (
@@ -98,7 +107,7 @@ export default function TeachingWorkbench({ aiColor, forceSandbox = false }) {
         </button>
         <button
           className={`bp-btn ${sandboxOpen ? 'primary' : ''}`}
-          onClick={() => setSandboxOpen((s) => !s)}
+          onClick={toggleSandbox}
           data-testid="teach-sandbox-toggle"
           style={sandboxOpen ? { borderColor: aiColor, color: aiColor } : undefined}
         >
