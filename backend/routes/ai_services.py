@@ -181,10 +181,20 @@ async def synthesize_speech(req: TTSRequest):
             # If the failure was a permissions error, disable ElevenLabs for
             # the rest of this process so we stop paying the failed round-trip.
             detail = str(getattr(exc, "detail", ""))
-            if "missing_permissions" in detail or "text_to_speech" in detail:
+            # Cache the disabled state on any 401/permission/abuse signal so
+            # we stop paying the round-trip on every TTS request.
+            disabled_signals = (
+                "missing_permissions",
+                "text_to_speech",
+                "detected_unusual_activity",
+                "Unusual activity detected",
+                "Free Tier usage disabled",
+                "status_code: 401",
+            )
+            if any(sig in detail for sig in disabled_signals):
                 global _ELEVEN_TTS_DISABLED
                 _ELEVEN_TTS_DISABLED = True
-            logger.warning("ElevenLabs TTS failed, falling back to OpenAI: %s", exc.detail)
+            logger.warning("ElevenLabs TTS failed, falling back to OpenAI: %s", detail[:200])
 
     # --- OpenAI fallback path -----------------------------------------------
     if not EMERGENT_LLM_KEY:
