@@ -2252,7 +2252,7 @@ body {
 }
 .sandbox-mission { font-size: 11px; color: rgba(220, 230, 245, 0.65); margin-top: 2px; line-height: 1.45; }
 
-.sandbox-tabs { display: flex; gap: 4px; }
+.sandbox-tabs { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
 .sandbox-tab {
   text-transform: uppercase;
   font-family: 'Orbitron', sans-serif;
@@ -2379,6 +2379,10 @@ body {
   border: 1px solid rgba(140, 180, 230, 0.15);
   border-radius: 8px;
   display: flex; flex-direction: column; gap: 4px;
+}
+.sandbox-mentor.lead {
+  background: rgba(14, 22, 38, 0.85);
+  box-shadow: 0 0 0 1px currentColor inset, 0 0 14px -8px currentColor;
 }
 .sandbox-mentor-head {
   display: flex; justify-content: space-between; align-items: center;

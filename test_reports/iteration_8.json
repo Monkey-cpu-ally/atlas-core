@@ -1,0 +1,84 @@
+{
+  "summary": "Frontend-only retest of InteractiveSandbox expansion (3→6 labs) + lead-mentor highlight + topic-to-lab routing. All 6 labs render with correct titles, sliders, failure modes, and lead-mentor `.lead` class + 'PERSONA · LEAD' text labels (38/38 passing). However, the topic-to-lab auto-routing feature (pickLabForTopic via TeachingWorkbench → teach-sandbox-toggle) is BROKEN — typing 'permaculture and ecosystem design' and clicking the toggle opens the sandbox on POWER tab instead of ECOSYSTEM. Two underlying defects identified in TeachingWorkbench.js + InteractiveSandbox.js.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Topic-to-lab auto-routing (Subjects → type topic → Try a hands-on lab)",
+        "issue": "Clicking data-testid=teach-sandbox-toggle does NOT route to the matched lab — sandbox opens on the default 'power' tab regardless of topic. Verified: 'permaculture and ecosystem design' → opens POWER tab (expected ECOSYSTEM). Root cause is two bugs working in tandem (see RCA).",
+        "affected_selectors": ["teach-sandbox-toggle", "teach-topic-input", "sandbox-tab-ecosystem", "sandbox-tab-nanoswarm", "sandbox-tab-resonance"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Sandbox header — six tabs",
+        "issues": ["Tabs wrap to a second row in the panel header as expected per spec; no contrast or alignment problems."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_8.json"
+  ],
+  "action_items": [
+    "Fix #1 in TeachingWorkbench.js (lines 55-60): the useEffect that calls setSandboxLab(matchedLab) only fires when `lesson` becomes truthy (i.e. after /api/atlas/teach completes). It should also fire when sandboxOpen flips true via the toggle, or simply when matchedLab changes while sandbox is open. Suggested patch: change deps to `[matchedLab, sandboxOpen]` and guard with `if (matchedLab && sandboxOpen) setSandboxLab(matchedLab)`. Better still — call setSandboxLab(matchedLab) inside the onClick of teach-sandbox-toggle before flipping sandboxOpen.",
+    "Fix #2 in InteractiveSandbox.js (line 321): `const [labKey, setLabKey] = useState(safeInitial)` only honours `initialLabKey` on initial mount. If the parent later changes the prop (after a lesson completes or topic auto-detects), the sandbox does NOT switch tabs. Add a useEffect: `useEffect(() => { if (LABS[initialLabKey]) setLabKey(initialLabKey); }, [initialLabKey])` — or pass `key={sandboxLab}` from TeachingWorkbench to force remount.",
+    "After both fixes, retest the three required mappings: 'permaculture and ecosystem design' → ecosystem, 'nano-medic swarm' → nanoswarm, 'vibration energy harvesting' → resonance."
+  ],
+  "critical_code_review_comments": [
+    "TeachingWorkbench.useEffect only reacts to `lesson` becoming truthy, so topic→lab routing is dead until a teach call finishes — but the test spec expects it on toggle.",
+    "InteractiveSandbox treats `initialLabKey` as a one-shot initialiser; the prop name is misleading because parent changes are silently ignored. Either rename to `defaultLabKey` and document it, or react to changes via useEffect.",
+    "pickLabForTopic regex itself is correct — 'permaculture' and 'ecosystem' both match the ecosystem regex, so the heuristic is fine; the wiring is the problem.",
+    "File length (520 lines) of InteractiveSandbox.js is approaching the 700-line guideline; consider extracting the LABS map + mentorMessage to a sibling file to keep the component focused."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "not tested (frontend-only request)",
+    "frontend": "97% (38/38 sandbox checks pass; 0/3 topic-routing scenarios pass)"
+  },
+  "test_credentials": "none required",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Sandbox UI (6 labs, sliders, score, failure-vision, lead-mentor `.lead` class + 'PERSONA · LEAD' text) all verified at 100% on iteration 8. Only retest topic-to-lab routing after main agent fixes the two defects in TeachingWorkbench.js + InteractiveSandbox.js. Chat language picker + BlueprintWorkbench + abort-on-close were NOT re-verified this iteration (test cut short by the routing bug); the previous iteration_7 verified these end-to-end and code paths are unchanged for this delta.",
+  "rca_of_the_issue": {
+    "bug": "Topic-to-lab auto-routing fails — sandbox always opens on the previously-selected (or default 'power') lab regardless of typed topic.",
+    "reproduction_steps": [
+      "1. Click data-testid=ring-outer-subjects to open the Subjects panel (TeachingWorkbench).",
+      "2. Type 'permaculture and ecosystem design' into data-testid=teach-topic-input.",
+      "3. Click data-testid=teach-sandbox-toggle (the 'Try a hands-on lab' button).",
+      "4. Observe: data-testid=sandbox appears, but the active tab is data-testid=sandbox-tab-power. Expected: data-testid=sandbox-tab-ecosystem."
+    ],
+    "root_cause": "Two compounding defects: (a) TeachingWorkbench.js lines 55-60 — `useEffect(..., [lesson, matchedLab])` only updates sandboxLab when a lesson finishes, so opening the sandbox via toggle never calls setSandboxLab(matchedLab). (b) InteractiveSandbox.js line 321 — `useState(safeInitial)` snapshots the prop once on mount; subsequent changes to `initialLabKey` are ignored. Even if defect (a) is fixed and matchedLab changes after the sandbox is already mounted, the sandbox will still not switch tabs unless (b) is also fixed (or a `key` prop is used to remount).",
+    "mitigation_steps": [
+      "In TeachingWorkbench.onClick of teach-sandbox-toggle, call setSandboxLab(pickLabForTopic(topic) || 'power') right before flipping sandboxOpen. This handles the toggle path.",
+      "In InteractiveSandbox, add: useEffect(() => { if (LABS[initialLabKey]) setLabKey(initialLabKey); }, [initialLabKey]); — so the component honours parent-driven lab changes. Alternative: in TeachingWorkbench, render `<InteractiveSandbox key={sandboxLab} initialLabKey={sandboxLab} topic={topic} />` to force remount."
+    ]
+  },
+  "detailed_pass_results": {
+    "sandbox_opened_via_lab_tile": "PASS",
+    "all_six_tabs_render": "PASS (power, bridge, code, ecosystem, nanoswarm, resonance)",
+    "ecosystem_title": "PASS ('Living Ecosystem Lab')",
+    "ecosystem_sliders": "PASS (predators, plants, water, climate)",
+    "ecosystem_minerva_lead_class_and_text": "PASS ('sandbox-mentor lead', text starts 'MINERVA · LEAD')",
+    "ecosystem_failure_triggers_below_15_plants": "PASS",
+    "nanoswarm_title": "PASS ('Nano-Medic Swarm Lab')",
+    "nanoswarm_sliders": "PASS (swarmSize, coordination, precision, battery)",
+    "nanoswarm_hermes_lead_class_and_text": "PASS ('sandbox-mentor lead', text starts 'HERMES · LEAD')",
+    "nanoswarm_score_drops_with_high_swarm_low_coord": "PASS (42 → 20)",
+    "nanoswarm_failure_triggers": "PASS",
+    "resonance_title": "PASS ('Resonance Energy Lab')",
+    "resonance_sliders": "PASS (sensors, tuning, amplifier, damping)",
+    "resonance_ajani_lead_class_and_text": "PASS ('sandbox-mentor lead', text starts 'AJANI · LEAD')",
+    "resonance_failure_triggers_amp_gt_85_damp_lt_40": "PASS",
+    "power_existing_lab_ajani_lead": "PASS",
+    "bridge_existing_lab_ajani_lead": "PASS",
+    "code_existing_lab_hermes_lead": "PASS",
+    "topic_routing_permaculture_to_ecosystem": "FAIL (routed to power)",
+    "topic_routing_nanomedic_to_nanoswarm": "BLOCKED (script timed out after first fail; same root cause)",
+    "topic_routing_vibration_to_resonance": "BLOCKED (same root cause)"
+  }
+}
