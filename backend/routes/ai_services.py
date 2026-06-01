@@ -6,6 +6,7 @@ when ELEVENLABS_API_KEY is configured; otherwise falls back to OpenAI TTS.
 """
 import asyncio
 import json
+import logging
 import os
 import re
 from datetime import datetime, timezone
@@ -19,6 +20,8 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 load_dotenv()
+
+logger = logging.getLogger("atlas.ai_services")
 
 router = APIRouter(prefix="/api/ai", tags=["AI Services"])
 
@@ -181,7 +184,7 @@ async def synthesize_speech(req: TTSRequest):
             if "missing_permissions" in detail or "text_to_speech" in detail:
                 global _ELEVEN_TTS_DISABLED
                 _ELEVEN_TTS_DISABLED = True
-            print(f"[tts] ElevenLabs failed, falling back to OpenAI: {exc.detail}")
+            logger.warning("ElevenLabs TTS failed, falling back to OpenAI: %s", exc.detail)
 
     # --- OpenAI fallback path -----------------------------------------------
     if not EMERGENT_LLM_KEY:
