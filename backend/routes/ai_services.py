@@ -16,7 +16,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.llm.openai import OpenAITextToSpeech
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
@@ -29,6 +29,11 @@ ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 # request added 150–400 ms of cold-start latency. Reuse one client.
 _TTS_CLIENT: Optional[OpenAITextToSpeech] = None
 _ELEVEN_CLIENT = None  # elevenlabs.ElevenLabs — lazily imported
+
+# When the ElevenLabs key is configured but lacks `text_to_speech`, we
+# discover that on the first request. Cache the result so subsequent calls
+# skip the failed round-trip and go straight to OpenAI fallback.
+_ELEVEN_TTS_DISABLED = False
 
 
 def _get_tts_client() -> OpenAITextToSpeech:
@@ -94,15 +99,20 @@ class TTSRequest(BaseModel):
     provider: Optional[str] = None       # 'elevenlabs' | 'openai' | None (auto)
     language: Optional[str] = None       # ISO code: en, zu, yo, maa, es, fr…
     model: Optional[str] = None          # tts-1 (openai) | eleven_multilingual_v2
-    speed: float = 1.0
+    speed: float = Field(1.0, ge=0.25, le=4.0)
 
 
 def _resolve_provider(req: TTSRequest) -> str:
     """Pick the TTS provider. Honour explicit request, otherwise prefer
-    ElevenLabs when its key is configured (per-persona voices), else OpenAI."""
+    ElevenLabs when its key is configured (per-persona voices), else OpenAI.
+    Once we have proven the ElevenLabs key lacks `text_to_speech`, we stop
+    choosing it automatically — explicit `provider='elevenlabs'` will still
+    attempt it and surface the error."""
     if req.provider:
         return req.provider.lower()
-    return "elevenlabs" if ELEVENLABS_API_KEY else "openai"
+    if ELEVENLABS_API_KEY and not _ELEVEN_TTS_DISABLED:
+        return "elevenlabs"
+    return "openai"
 
 
 async def _synthesize_elevenlabs(text: str, voice_id: str, model_id: str) -> bytes:
@@ -165,7 +175,12 @@ async def synthesize_speech(req: TTSRequest):
             )
         except HTTPException as exc:
             # Fall through to OpenAI on ElevenLabs error — never let TTS 5xx.
-            # eslint-disable-next-line no-console
+            # If the failure was a permissions error, disable ElevenLabs for
+            # the rest of this process so we stop paying the failed round-trip.
+            detail = str(getattr(exc, "detail", ""))
+            if "missing_permissions" in detail or "text_to_speech" in detail:
+                global _ELEVEN_TTS_DISABLED
+                _ELEVEN_TTS_DISABLED = True
             print(f"[tts] ElevenLabs failed, falling back to OpenAI: {exc.detail}")
 
     # --- OpenAI fallback path -----------------------------------------------

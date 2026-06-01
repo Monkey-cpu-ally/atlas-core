@@ -164,7 +164,19 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
     setShowFailure(false);
   }, [defaultValues]);
 
-  const result = lab.evaluate(values);
+  // On the frame we switch labs, `values` still holds the old lab's keys.
+  // Resolve every required key with a sensible fallback so we never feed
+  // NaN into the sliders or the score formula.
+  const liveValues = useMemo(() => {
+    const out = {};
+    for (const c of lab.controls) {
+      const raw = values[c.key];
+      out[c.key] = Number.isFinite(raw) ? raw : c.default;
+    }
+    return out;
+  }, [lab, values]);
+
+  const result = lab.evaluate(liveValues);
   const rank = rankFor(result.score);
   const LabIcon = lab.icon;
 
@@ -218,11 +230,11 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
             <div className="sandbox-control-head">
               <span>{c.label}</span>
               <span className="sandbox-control-value">
-                {values[c.key]}{c.unit}
+                {liveValues[c.key]}{c.unit}
               </span>
             </div>
             <Slider
-              value={[values[c.key]]}
+              value={[liveValues[c.key]]}
               min={c.min}
               max={c.max}
               step={1}

@@ -134,24 +134,49 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **Async job queue** at `/api/atlas/jobs/{id}` — tri-council & teach return job_id immediately, frontend polls every 2s. Bypasses K8s ingress 60s timeout for 4-LLM-call flows.
 - [x] **Memory layer**: thread-safe in-memory store + job store
 
-### HUD Workbench wiring (NEW — visuals untouched)
+### HUD Workbench wiring (Feb 2026 — visuals untouched)
 - [x] **BlueprintWorkbench** wired to `/api/atlas/blueprint/council` via `useAtlasJob` hook. "Generate" runs the tri-council and renders 3 voices + synthesis pillars/tensions/actions/questions.
 - [x] **TeachingWorkbench** mounted on the SUBJECTS tile. Calls `/api/atlas/teach`, renders 4-band lesson collapsed details.
 - [x] **FileUploadModal** dual-posts PDFs/ZIPs to `/api/atlas/archive/upload`. Result shown inline (routed-to core, domain, summary, open questions). Quarantine errors surface as a red inline message. Identity anchors cannot be modified by uploads (they live in code-level identity hashes).
 
+### TTS / ElevenLabs / Multi-language voices (Feb 2026)
+- [x] **Module-level TTS client cache** (OpenAI + ElevenLabs) — eliminates 150–400 ms cold-start per request
+- [x] **ElevenLabs TTS provider** — POST /api/ai/tts auto-routes to ElevenLabs when key configured; per-persona voice IDs (Ajani=Adam, Minerva=Bella, Hermes=Antoni, Trinity=Rachel); model `eleven_multilingual_v2`
+- [x] **Graceful OpenAI fallback** — when ElevenLabs returns 401/missing_permissions, server falls back to OpenAI TTS in-flight; first failure sets a process-level `_ELEVEN_TTS_DISABLED` flag so subsequent calls skip the failed round-trip
+- [x] **Multi-language support** — TTS endpoint accepts `language` (en/zu/yo/maa/…); default per persona (Ajani=Zulu, Minerva=Yoruba, Hermes=Maa, Trinity=English); response headers expose `X-AI-Provider`, `X-AI-Voice`, `X-AI-Language`, `X-AI-Model`
+- [x] **`/api/ai/voices`** — discovery endpoint returns both provider voice maps + persona language defaults + active provider
+- [x] **`/api/ai/voices/elevenlabs`** — live-fetch ElevenLabs account voices (returns JSON error body when key lacks `voices_read`)
+- [x] **Speed validation** — Pydantic `Field(ge=0.25, le=4.0)` on TTS request `speed`
+- [x] **ChatPanel language picker** — inline EN/ZU/YO/MAA pills next to the voice toggle; auto-snaps to active AI's native language; user-selectable
+- [x] **AbortController everywhere** — `useTTS` aborts in-flight fetch on next-speak / unmount; `useAtlasJob` auto-cancels poll + submit on consuming-component unmount; `ChatPanel` aborts chat fetch on unmount → closing a panel mid-LLM-job no longer leaks network calls
+
+### Interactive Sandbox — hands-on labs in the teaching flow (Feb 2026)
+- [x] **`InteractiveSandbox` component** at `/app/frontend/src/components/HUD/InteractiveSandbox.js`
+  - 3 labs: **Power** (Solar / energy), **Bridge** (structures), **Code** (algorithmic complexity)
+  - Per-lab sliders (4 controls), live derived metrics (Atlas Score / Output-Efficiency / Stability-Reliability), 5-step Mastery rank, Failure-Vision toggle
+  - 3 mentor cards (Ajani / Minerva / Hermes) with persona-coloured borders and a Volume2 "speak this" button that fires the existing TTS pipeline in the mentor's native language
+  - NaN-safe lab switching via `liveValues` derived state
+- [x] **Embedded inside TeachingWorkbench** — toggle button "Try a hands-on lab"; auto-suggested when lesson topic matches `power|solar|grid|energy|bridge|beam|structure|code|program|algorithm|complexity` (via `pickLabForTopic`)
+- [x] **LAB outer-ring tile** now opens TeachingWorkbench with the sandbox pre-expanded (`forceSandbox={true}` prop) — replacing the previous static items list
+- [x] HUD aesthetic — dark glass panels, Orbitron labels, persona-coloured accent (Ajani red for power/bridge, Hermes silver for code), no purple gradient
+
 ## Backlog
 
 ### P1
-- [ ] Minerva approval API + Hermes validation API (parity with user's GitHub repo)
-- [ ] Blueprint Engine + Design Tools (from user's GitHub repo)
+- [x] ~~Minerva approval API + Hermes validation API~~ — DONE
+- [x] ~~Blueprint Engine + Design Tools~~ — DONE
 
 ### P2
-- [ ] Real-time TTS for AI personas (per-AI voice rhythm)
+- [x] ~~Real-time TTS for AI personas (per-AI voice rhythm)~~ — DONE (OpenAI + ElevenLabs)
 - [ ] Offline AI fallback (Ollama local LLM or hybrid cache)
 - [ ] Hidden / advanced rings (diagnostics, build mode)
+- [ ] More labs in InteractiveSandbox (Bio-genesis, Nano-synthesis, Energy harvesting)
 
 ### P3
-- [ ] Persistent PostgreSQL/MongoDB Knowledge Core (currently in-memory)
-- [ ] 3D WebGL upgrade for the central core
-- [ ] Multi-language voice support
-- [ ] Custom AI voice profiles
+- [ ] Persistent PostgreSQL Knowledge Core (currently MongoDB-backed via atlas_core memory)
+- [ ] 3D WebGL upgrade for the central core (user deferred — keep canvas core)
+- [x] ~~Multi-language voice support~~ — DONE (ZU/YO/MAA via ElevenLabs multilingual)
+- [x] ~~Custom AI voice profiles~~ — DONE (per-persona ElevenLabs voice IDs)
+- [ ] ElevenLabs key with full `text_to_speech` + `voices_read` scopes (current key has neither — system runs in OpenAI fallback)
+- [ ] Save sandbox configurations + replay
+- [ ] AI-suggested next slider tweak ("try angle = 35 to maximise solar output")
