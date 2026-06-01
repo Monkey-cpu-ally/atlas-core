@@ -171,6 +171,25 @@ movement they snap to the nearest slot and stop. No auto-spin.
 
 ## Backlog
 
+### Live functional tiles (Feb 2026)
+- [x] **MANUAL** → `/api/manual/sections` — 5 collapsible sections (Hard Rules, Personas, Rings, Lab, Voice)
+- [x] **CYCLOPEDIA** → `/api/knowledge/subjects` — searchable chip grid + per-subject detail
+- [x] **MEMORY** → `/api/memory/feed` — live event feed (atlas_events collection), auto-refresh every 8s
+- [x] **CUSTOMIZATION** → `/api/settings` GET/PUT — TTS provider, default language, accent theme, voice toggle (persisted to MongoDB `atlas_settings`)
+- [x] **ARCHIVE** → tabbed browser (`Atlas memory` / `Uploaded files`) reading `atlas_archive` + `/api/files/list`
+- [x] **EXPLORE / INTAKE** → `/api/intake/youtube` + `/api/intake/transcript` — YouTube URL with paste-transcript fallback, builds AI-routed lesson + 5-question quiz, persists to atlas_archive
+- [x] **COUNCIL** → `/api/council/route` + `/api/council/deliberate` — keyword routing (AJANI · MINERVA · HERMES · COUNCIL) + tri-AI deliberation in voice (gpt-5.2)
+- [x] Topic router (`/app/backend/routing/topic_router.py`) — first-match scan: AJANI → MINERVA → HERMES → COUNCIL fallback
+
+### Vibrancy pass (Feb 2026, additive only, HUD geometry untouched)
+- [x] Subtle radial vignette + ambient scan-line sweep behind the HUD frame (9s period)
+- [x] Brighter dial-ring drop-shadow, active ring saturated glow
+- [x] Persona button pulse animation amped (scale + double glow halo)
+- [x] Tile hover: scale-up + neon stroke draw
+- [x] Side-panel persona-coloured top accent line
+- [x] Central core saturation +18%, contrast +5%
+- [x] Persona name label double text-shadow glow
+
 ### P1
 - [x] ~~Minerva approval API + Hermes validation API~~ — DONE
 - [x] ~~Blueprint Engine + Design Tools~~ — DONE

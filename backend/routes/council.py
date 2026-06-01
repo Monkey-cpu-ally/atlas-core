@@ -12,6 +12,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from typing import List, Optional
+from uuid import uuid4
 
 from dotenv import load_dotenv
 from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -62,12 +63,27 @@ async def route(req: RouteRequest):
 
 async def _ask(persona: str, topic: str) -> str:
     system = PERSONA_SYSTEM[persona]
+    # Session id MUST be unique per call — duplicate session ids inside
+    # the same process have been observed to return empty responses.
+    sid = f"council-{persona}-{uuid4().hex}"
+    # Anthropic via the Emergent proxy has been flaky for sequential
+    # multi-persona calls (returns None mid-stream); OpenAI gpt-5.2 is
+    # rock-solid for the same workload. Council is a hot path so we
+    # use the reliable model.
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
-        session_id=f"council_{persona}_{datetime.now(timezone.utc).isoformat()}",
+        session_id=sid,
         system_message=system,
-    ).with_model("anthropic", "claude-sonnet-4-5-20250929")
-    return await chat.send_message(UserMessage(text=f"Topic: {topic}\n\nWeigh in."))
+    ).with_model("openai", "gpt-5.2")
+    try:
+        raw = await chat.send_message(UserMessage(text=f"Topic: {topic}\n\nWeigh in."))
+    except Exception as exc:
+        logger.warning("Council _ask %s failed: %s", persona, exc)
+        raw = None
+    if isinstance(raw, str) and raw.strip():
+        return raw
+    logger.warning("Empty response from %s for topic %s (raw=%r)", persona, topic, raw)
+    return f"({persona.capitalize()} did not respond — please retry.)"
 
 
 @router.post("/deliberate")

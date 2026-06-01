@@ -199,7 +199,10 @@ async def intake_transcript(req: TranscriptIntake):
 
 
 @router.get("/list")
-async def list_intakes(limit: int = 20):
-    cursor = archive_col.find({"kind": "youtube"}, {"_id": 0}).sort("created_at", -1).limit(limit)
+async def list_intakes(limit: int = 20, kind: Optional[str] = None):
+    """List intake entries. Defaults to all kinds; pass ?kind=youtube or
+    ?kind=transcript to filter."""
+    q = {"kind": kind} if kind else {"kind": {"$in": ["youtube", "transcript"]}}
+    cursor = archive_col.find(q, {"_id": 0}).sort("created_at", -1).limit(limit)
     rows = await cursor.to_list(length=limit)
     return {"count": len(rows), "items": rows}

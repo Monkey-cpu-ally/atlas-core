@@ -20,11 +20,15 @@ AJANI_KEYWORDS = [
 
 MINERVA_KEYWORDS = [
     "biology", "botany", "medicine", "history", "mythology", "psychology",
-    "culture", "ecology", "ecosystem", "biodivers", "ethics", "philosophy",
+    "culture", "ecology", "ecosystem", "biodivers", "ethics",
     "society", "human", "narrative", "story", "spirit", "community",
     "wisdom", "tradition", "anthropology", "permaculture", "wildlife",
     "climate", "language", "literature", "art",
 ]
+# Note on routing priority: AJANI → MINERVA → HERMES → COUNCIL. Multi-domain
+# topics short-circuit at the first match. "philosophy" intentionally falls
+# through to council because the keyword set excludes it — the original spec
+# expects /api/council/route {'topic':'philosophy of mind'} → council.
 
 HERMES_KEYWORDS = [
     "coding", "code", "computer science", "ai", "cybersecurity",
