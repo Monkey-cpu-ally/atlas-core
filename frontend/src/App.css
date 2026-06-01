@@ -2217,3 +2217,206 @@ body {
   display: flex; flex-wrap: wrap; gap: 10px;
   font-size: 10.5px; color: rgba(220, 230, 245, 0.72);
 }
+
+/* ============================================================
+   Interactive Sandbox — hands-on lab embedded inside the
+   TeachingWorkbench. Matches HUD vocabulary: dark glass panels,
+   persona-coloured accent, Orbitron meta labels, neon metrics.
+   ============================================================ */
+.bp-sandbox-wrap {
+  padding: 0 !important;
+  background: rgba(140, 180, 230, 0.03) !important;
+  border-top: 1px solid rgba(140, 180, 230, 0.18);
+}
+
+.sandbox {
+  --lab-accent: #F03246;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px;
+  font-family: 'Rajdhani', sans-serif;
+  color: rgba(220, 230, 245, 0.9);
+}
+
+.sandbox-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(140, 180, 230, 0.18);
+}
+.sandbox-head-meta { display: flex; align-items: flex-start; gap: 8px; flex: 1; }
+.sandbox-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11.5px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--lab-accent);
+}
+.sandbox-mission { font-size: 11px; color: rgba(220, 230, 245, 0.65); margin-top: 2px; line-height: 1.45; }
+
+.sandbox-tabs { display: flex; gap: 4px; }
+.sandbox-tab {
+  text-transform: uppercase;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 180, 230, 0.18);
+  background: rgba(14, 22, 38, 0.7);
+  color: rgba(220, 230, 245, 0.65);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sandbox-tab:hover { color: rgba(220, 230, 245, 0.95); }
+.sandbox-tab.active { background: rgba(140, 180, 230, 0.08); }
+
+.sandbox-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 520px) { .sandbox-controls { grid-template-columns: 1fr; } }
+
+.sandbox-control {
+  padding: 10px;
+  background: rgba(14, 22, 38, 0.55);
+  border: 1px solid rgba(140, 180, 230, 0.15);
+  border-radius: 8px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sandbox-control-head {
+  display: flex; justify-content: space-between;
+  font-size: 11px;
+  color: rgba(220, 230, 245, 0.72);
+}
+.sandbox-control-value {
+  font-family: 'Orbitron', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--lab-accent);
+  letter-spacing: 0.5px;
+}
+
+.sandbox-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.sandbox-metric {
+  padding: 10px;
+  background: rgba(14, 22, 38, 0.55);
+  border: 1px solid rgba(140, 180, 230, 0.15);
+  border-radius: 8px;
+}
+.sandbox-metric-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(220, 230, 245, 0.5);
+  margin-bottom: 4px;
+}
+.sandbox-metric-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(220, 230, 245, 0.95);
+}
+
+.sandbox-rank {
+  padding: 10px;
+  background: rgba(14, 22, 38, 0.55);
+  border: 1px solid rgba(140, 180, 230, 0.15);
+  border-radius: 8px;
+}
+.sandbox-rank-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sandbox-rank-name { font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 0.5px; }
+.sandbox-rank-bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.sandbox-rank-pip {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(140, 180, 230, 0.15);
+  transition: background 0.25s ease;
+}
+
+.sandbox-failure-btn {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--lab-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--lab-accent);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sandbox-failure-btn:hover { background: rgba(240, 50, 70, 0.08); }
+
+.sandbox-failure {
+  padding: 10px;
+  background: rgba(240, 50, 70, 0.06);
+  border: 1px solid rgba(240, 50, 70, 0.22);
+  border-radius: 8px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(255, 220, 220, 0.92);
+}
+
+.sandbox-mentors {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 720px) { .sandbox-mentors { grid-template-columns: 1fr; } }
+
+.sandbox-mentor {
+  padding: 10px;
+  background: rgba(14, 22, 38, 0.55);
+  border: 1px solid rgba(140, 180, 230, 0.15);
+  border-radius: 8px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sandbox-mentor-head {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.sandbox-mentor-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10.5px;
+  letter-spacing: 1.2px;
+}
+.sandbox-mentor-role {
+  font-size: 10px;
+  color: rgba(220, 230, 245, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.sandbox-mentor-msg {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220, 230, 245, 0.85);
+  margin-top: 4px;
+}
+.sandbox-mentor-speak {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 180, 230, 0.22);
+  background: rgba(14, 22, 38, 0.55);
+  color: rgba(220, 230, 245, 0.65);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sandbox-mentor-speak:hover { color: rgba(220, 230, 245, 0.95); }
+
+.sandbox-footer {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  color: rgba(220, 230, 245, 0.4);
+  font-family: 'Orbitron', sans-serif;
+}

@@ -54,6 +54,12 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
       return <TeachingWorkbench aiColor={aiColor} />;
     }
 
+    // Special-case: Lab opens the Teaching Engine with the hands-on sandbox
+    // pre-expanded — the architect can experiment without typing a topic first.
+    if (opName === 'lab') {
+      return <TeachingWorkbench aiColor={aiColor} forceSandbox={true} />;
+    }
+
     // Special-case: Systems opens the live Diagnostics panel.
     if (opName === 'systems') {
       return <DiagnosticsPanel />;

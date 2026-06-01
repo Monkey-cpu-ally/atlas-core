@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Loader2, BookOpen } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Loader2, BookOpen, Beaker } from 'lucide-react';
 import { useAtlasJob } from '../../hooks/useAtlasJob';
+import InteractiveSandbox, { pickLabForTopic } from './InteractiveSandbox';
 
 const BAND_META = {
   simple:      { label: 'Simple understanding',      color: '#9CD3FF' },
@@ -31,13 +32,32 @@ function splitLesson(markdown) {
 
 /**
  * TeachingWorkbench — drives /api/atlas/teach. Submits a background job
- * and polls until the 4-band lesson is ready.
+ * and polls until the 4-band lesson is ready. When the topic is hands-on
+ * (power / bridges / code / energy / etc.) the workbench also surfaces an
+ * <InteractiveSandbox/> so the architect can apply the lesson by tweaking
+ * sliders and hearing each mentor weigh in.
+ *
+ * `forceSandbox` — when true (e.g. opened from the outer-ring LAB tile),
+ * the sandbox is shown immediately even before a lesson is generated, so
+ * the architect can experiment hands-on without typing a topic first.
  */
-export default function TeachingWorkbench({ aiColor }) {
+export default function TeachingWorkbench({ aiColor, forceSandbox = false }) {
   const [topic, setTopic] = useState('');
+  const [sandboxOpen, setSandboxOpen] = useState(Boolean(forceSandbox));
+  const [sandboxLab, setSandboxLab] = useState('power');
   const job = useAtlasJob();
   const busy = job.status === 'pending' || job.status === 'running';
   const lesson = job.status === 'done' ? job.result : null;
+
+  // If a lesson finishes and its topic maps to a lab, surface that lab.
+  const matchedLab = useMemo(() => pickLabForTopic(topic), [topic]);
+
+  useEffect(() => {
+    if (lesson && matchedLab) {
+      setSandboxLab(matchedLab);
+      setSandboxOpen(true);
+    }
+  }, [lesson, matchedLab]);
 
   const onTeach = () => {
     if (!topic.trim()) return;
@@ -51,7 +71,9 @@ export default function TeachingWorkbench({ aiColor }) {
       <h3 className="bp-title">Teaching Engine</h3>
       <p className="bp-help">
         Type any subject. The council picks the right lead core, applies
-        the ATLAS teaching law, and returns four nested depths.
+        the ATLAS teaching law, and returns four nested depths. For
+        hands-on subjects (power, structures, code) a live sandbox opens
+        below the lesson so you can apply what you just learned.
       </p>
 
       <textarea
@@ -73,6 +95,15 @@ export default function TeachingWorkbench({ aiColor }) {
         >
           {busy ? <Loader2 size={14} className="spin" /> : <BookOpen size={14} />}
           Teach Me
+        </button>
+        <button
+          className={`bp-btn ${sandboxOpen ? 'primary' : ''}`}
+          onClick={() => setSandboxOpen((s) => !s)}
+          data-testid="teach-sandbox-toggle"
+          style={sandboxOpen ? { borderColor: aiColor, color: aiColor } : undefined}
+        >
+          <Beaker size={14} />
+          {sandboxOpen ? 'Close hands-on lab' : 'Try a hands-on lab'}
         </button>
       </div>
 
@@ -112,6 +143,12 @@ export default function TeachingWorkbench({ aiColor }) {
       )}
       {lesson?.error && (
         <div className="bp-error">{lesson.error}</div>
+      )}
+
+      {sandboxOpen && (
+        <div className="bp-section bp-sandbox-wrap" data-testid="teach-sandbox-wrap">
+          <InteractiveSandbox initialLabKey={sandboxLab} topic={topic} />
+        </div>
       )}
     </div>
   );

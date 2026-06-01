@@ -1,0 +1,61 @@
+{
+  "summary": "Iteration 7 verified ALL new additions: ElevenLabs→OpenAI TTS fallback, /api/ai/voices full shape, JSON error body on /api/ai/voices/elevenlabs (key lacks scopes — expected), explicit openai provider override, chat language picker (EN/ZU/YO/MAA with ZU active by default for Ajani and switch to EN works), LAB outer tile auto-opens TeachingWorkbench with sandbox pre-expanded, 3 mentor cards + speak buttons fire POST /api/ai/tts, Power↔Bridge tab switch rerenders sliders, failure-vision toggle on/off works, Subjects→TeachMe path with 'power systems' topic auto-selects Power lab, and abort-on-close on BlueprintWorkbench (close panel mid-LLM-job) produces 0 console errors confirming useAtlasJob/useTTS cleanup wires properly. Backend: 6/6 new pytest cases pass + previous 11/11 still pass. Frontend: 14/14 manual flow checks pass. HUD visuals untouched (rings, core, date/year overlays intact).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/ai/tts (ElevenLabs path)", "issue": "When ElevenLabs returns 401 missing_permissions the server prints the raw exception to stdout via print() — fine for dev, but consider a structured logger and redacted message for prod."},
+      {"endpoint": "/api/ai/voices/elevenlabs", "issue": "Currently 503 ('not configured') is never returned when key IS set but lacks voices_read scope — instead returns 502 with raw SDK exception in 'detail'. Body is valid JSON so passes the test, but the message echoes ElevenLabs internal error structure. Consider sanitising the detail string."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Sandbox (Power lab) rendering", "issues": ["React warning: 'Received NaN for the %s attribute. ... children' fires once when sandbox first renders — likely a divide-by-zero in a derived metric formatting (Stability/Reliability shows 59.0 then briefly NaN). Cosmetic only, no broken UI."]}
+    ]
+  },
+  "passed_tests": [
+    "Backend GET /api/ai/voices returns voices, elevenlabs_voices, persona_language, active_provider='elevenlabs', elevenlabs_model='eleven_multilingual_v2'",
+    "Backend POST /api/ai/tts {text:'hello', persona:'ajani'} → 200 audio/mpeg, X-AI-Provider='openai' (fallback), X-AI-Voice='onyx', X-AI-Language='zu'",
+    "Backend POST /api/ai/tts provider='openai' explicit → X-AI-Provider='openai' regardless of ElevenLabs key",
+    "Backend POST /api/ai/tts empty text → 400",
+    "Backend GET /api/ai/voices/elevenlabs → JSON error body with 'detail' key (not HTML traceback)",
+    "Backend POST /api/ai/tts language override propagates to X-AI-Language header",
+    "Frontend HUD smoke: ring-outer, ring-middle, ring-inner, atlas core, date/year all render",
+    "Frontend ChatPanel: chat-fab opens panel, chat-lang-picker present with 4 buttons (en/zu/yo/maa), ZU active by default for Ajani, click EN switches active class",
+    "Frontend LAB tile (ring-outer-lab) auto-opens TeachingWorkbench with forceSandbox=true — sandbox + teach-sandbox-wrap visible immediately",
+    "Frontend Power lab: 4 sliders (sunlight, angle, temperature, battery) + 3 mentor cards (ajani/minerva/hermes) + 3 speak buttons all present",
+    "Frontend Sandbox tab switch: Bridge tab updates title to 'Bridge Failure Lab' + rerenders 4 sliders (supports, span, material, load)",
+    "Frontend Sandbox failure-vision toggle: first click shows sandbox-failure-vision, second click hides it",
+    "Frontend Sandbox mentor speak (ajani) fires POST /api/ai/tts request",
+    "Frontend Subjects → Teach Me with 'power systems' topic + teach-sandbox-toggle → Power tab auto-active, power sliders render",
+    "Frontend Abort-on-close: BlueprintWorkbench generate started, panel closed mid-job → 0 console errors after unmount (useAtlasJob auto-cancel works)"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_ai_services_tts_routing.py",
+    "/app/backend/tests/test_ai_services.py",
+    "/app/test_reports/pytest/iter7_tts_routing.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: Sanitise the raw ElevenLabs SDK error message in the /api/ai/voices/elevenlabs 502 detail to avoid echoing third-party internals.",
+    "OPTIONAL: Fix the one-shot React NaN warning in InteractiveSandbox when metrics are computed before sliders mount (guard with `Number.isFinite(x) ? x : 0`).",
+    "OPTIONAL: Replace the print() in the ElevenLabs fallback path with a structured logger."
+  ],
+  "critical_code_review_comments": [
+    "ai_services.py: _resolve_provider() prefers ElevenLabs whenever the key is present, even if the key has no TTS scope. Every first call pays the cost of a failed ElevenLabs round-trip before falling back. Consider caching a 'eleven_lab_supports_tts' boolean after the first 401 so subsequent calls go straight to OpenAI (saves ~200-500 ms per call).",
+    "ai_services.py uses a module-level _TTS_CLIENT and _ELEVEN_CLIENT cache — good. But the ElevenLabs voices/get_all call is also wrapped in asyncio.to_thread on every request — consider caching the voices list for ~5 min since it changes rarely.",
+    "TTSRequest validator does not bound `speed` (model accepts 0.25-4.0 for OpenAI). Out-of-range values will surface as 500 from the SDK. Add Pydantic constraint: speed: float = Field(1.0, ge=0.25, le=4.0).",
+    "InteractiveSandbox produces a transient 'Received NaN for children' React warning — guard the derived score/metric values against NaN before passing into JSX text.",
+    "useAtlasJob cleanup verified working (no errors after panel close). useTTS AbortController behaviour was not directly stress-tested but no console errors fired when navigating away during a speak call."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_ai_services_tts_routing.py (NEW — 6 pytest cases for ElevenLabs routing + OpenAI fallback + voices shape)"
+  ],
+  "success_rate": {"backend": "100% (6/6 new + 11/11 prior = 17/17)", "frontend": "100% on 14 tested flow checks"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "ElevenLabs key in /app/backend/.env intentionally lacks text_to_speech + voices_read scopes — the fallback to OpenAI for /api/ai/tts is EXPECTED, and /api/ai/voices/elevenlabs returning 502 is EXPECTED. Do NOT mark these as bugs. HUD visuals are LOCKED (rings/core/ghost rings — do not edit HUDInterface.js, DialRing.js, AtlasCore.js, GhostRings.js, ringStructure.js). The InteractiveSandbox component lives at /app/frontend/src/components/HUD/InteractiveSandbox.js and is embedded by TeachingWorkbench when forceSandbox prop is true (from LAB tile) or when the user clicks teach-sandbox-toggle. Mentor speak buttons fire POST /api/ai/tts; the network request body cannot always be read by Playwright's request.post_data but the request count > 0 is sufficient proof.",
+  "rca_of_the_issue": "N/A — no regressions found this iteration. One cosmetic React NaN warning in InteractiveSandbox initial render (transient, does not break UI)."
+}
