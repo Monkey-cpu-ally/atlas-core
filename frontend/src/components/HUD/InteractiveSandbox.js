@@ -695,7 +695,7 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
           title="Save this configuration"
         >
           <BookmarkPlus size={11} />
-          Save run
+          Save
         </button>
 
         <button
@@ -707,7 +707,7 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
           title={`Ask ${lab.lead.toUpperCase()} to suggest a tweak`}
         >
           {suggestLoading ? <Loader2 size={11} className="spin" /> : <Sparkles size={11} />}
-          AI Suggest
+          Suggest
         </button>
       </div>
 

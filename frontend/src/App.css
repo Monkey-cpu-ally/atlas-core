@@ -728,6 +728,11 @@ body {
   box-shadow: 0 0 60px rgba(0, 217, 255, 0.2), 0 20px 60px rgba(0, 0, 0, 0.9);
 }
 
+/* Sandbox panels need a bit more breathing room for the 6-tab row and
+   the Saved/Save/AI Suggest toolbar. Falls back gracefully on browsers
+   without :has() — panel just stays at 300px (still functional). */
+.side-panel:has(.sandbox) { width: 340px; }
+
 .side-panel.visible {
   transform: translateY(-50%) translateX(0);
   opacity: 1;
@@ -2238,11 +2243,12 @@ body {
 }
 
 .sandbox-head {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  display: flex; flex-direction: column; gap: 8px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(140, 180, 230, 0.18);
 }
-.sandbox-head-meta { display: flex; align-items: flex-start; gap: 8px; flex: 1; }
+.sandbox-head-meta { display: flex; align-items: flex-start; gap: 8px; }
+
 .sandbox-title {
   font-family: 'Orbitron', sans-serif;
   font-size: 11.5px;
@@ -2252,7 +2258,7 @@ body {
 }
 .sandbox-mission { font-size: 11px; color: rgba(220, 230, 245, 0.65); margin-top: 2px; line-height: 1.45; }
 
-.sandbox-tabs { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
+.sandbox-tabs { display: flex; gap: 4px; flex-wrap: wrap; max-width: 100%; }
 .sandbox-tab {
   text-transform: uppercase;
   font-family: 'Orbitron', sans-serif;
@@ -2417,16 +2423,17 @@ body {
 .sandbox-toolbar-btn {
   display: inline-flex; align-items: center; gap: 4px;
   font-family: 'Orbitron', sans-serif;
-  font-size: 9.5px;
-  letter-spacing: 0.8px;
+  font-size: 9px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
-  padding: 5px 9px;
+  padding: 5px 8px;
   border-radius: 999px;
   border: 1px solid rgba(140, 180, 230, 0.22);
   background: rgba(14, 22, 38, 0.65);
   color: rgba(220, 230, 245, 0.78);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 .sandbox-toolbar-btn:hover:not(:disabled) {
   color: rgba(220, 230, 245, 0.98);
@@ -2443,7 +2450,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.sandbox-toolbar-saved { position: relative; }
+.sandbox-toolbar-saved { position: relative; display: inline-flex; align-items: center; }
 .sandbox-saved-pop {
   position: absolute; top: calc(100% + 4px); left: 0; z-index: 60;
   display: flex; flex-direction: column; gap: 1px;
