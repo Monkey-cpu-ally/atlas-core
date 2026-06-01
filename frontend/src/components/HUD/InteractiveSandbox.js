@@ -1,7 +1,40 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ShieldCheck, Volume2, Loader2, Cpu, Hammer, Brain, Leaf, Atom, Radio } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ShieldCheck, Volume2, Loader2, Cpu, Hammer, Brain, Leaf, Atom, Radio, Sparkles, Save, BookmarkPlus, Bookmark, Trash2, X, Check } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { useTTS } from '../../hooks/useTTS';
+
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+
+// --- Sparkline -------------------------------------------------------------
+// Tiny inline SVG sparkline for the mastery curve. Renders 0..100 score
+// values as a polyline + the latest score as a small filled circle.
+function Sparkline({ runs, accent, width = 220, height = 36 }) {
+  if (!runs || runs.length === 0) return null;
+  const scores = runs.map((r) => r.score);
+  const n = scores.length;
+  const stepX = n === 1 ? 0 : width / (n - 1);
+  const points = scores.map((s, i) => {
+    const y = height - 2 - (s / 100) * (height - 4);
+    const x = n === 1 ? width / 2 : i * stepX;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const polyline = points.join(' ');
+  const last = points[points.length - 1].split(',').map(parseFloat);
+  return (
+    <svg className="sandbox-spark" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" data-testid="sandbox-curve-svg">
+      <polyline
+        points={polyline}
+        fill="none"
+        stroke={accent}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ filter: `drop-shadow(0 0 4px ${accent}55)` }}
+      />
+      <circle cx={last[0]} cy={last[1]} r={2.5} fill={accent} />
+    </svg>
+  );
+}
 
 /**
  * InteractiveSandbox — the architect-in-chief's hands-on lab. Used by
@@ -28,6 +61,11 @@ const LABS = {
     icon: Cpu,
     accent: '#F03246', // Ajani — engineering domain
     lead: 'ajani',
+    failureModes: [
+      'Temperature > 100°F (overheat shutdown)',
+      'Battery < 4 kWh (cannot buffer demand)',
+      'Output < 35 (station not viable)',
+    ],
     controls: [
       { key: 'sunlight',    label: 'Sunlight',    min: 0, max: 100, unit: '%',   default: 70 },
       { key: 'angle',       label: 'Panel Angle', min: 0, max: 90,  unit: '°',   default: 45 },
@@ -54,6 +92,9 @@ const LABS = {
     icon: Hammer,
     accent: '#F03246',
     lead: 'ajani',
+    failureModes: [
+      'Safety score < 70 (bridge collapses under load)',
+    ],
     controls: [
       { key: 'supports', label: 'Support Beams',     min: 1,  max: 12,  unit: '',    default: 5   },
       { key: 'span',     label: 'River Span',        min: 50, max: 500, unit: 'ft',  default: 180 },
@@ -80,6 +121,11 @@ const LABS = {
     icon: Brain,
     accent: '#E0E0EA', // Hermes silver
     lead: 'hermes',
+    failureModes: [
+      'Safety < 55 (unsafe code paths)',
+      'Complexity > 85 (unmaintainable)',
+      'Memory > 90 (OOM risk)',
+    ],
     controls: [
       { key: 'speed',      label: 'Processing Speed', min: 1, max: 100, unit: '%', default: 65 },
       { key: 'memory',     label: 'Memory Usage',     min: 1, max: 100, unit: '%', default: 50 },
@@ -109,6 +155,13 @@ const LABS = {
     icon: Leaf,
     accent: '#28C8BE', // Minerva teal
     lead: 'minerva',
+    failureModes: [
+      'Plants < 15% (habitat lost)',
+      'Water < 20% (drought)',
+      'Predators > 85% (over-predation)',
+      'Climate stress > 80% (runaway)',
+      'Implied herbivores < 5 with predators > 30 (prey extinction)',
+    ],
     controls: [
       { key: 'predators', label: 'Predator Density',  min: 0, max: 100, unit: '%', default: 25 },
       { key: 'plants',    label: 'Plant Coverage',    min: 0, max: 100, unit: '%', default: 60 },
@@ -153,6 +206,12 @@ const LABS = {
     icon: Atom,
     accent: '#E0E0EA', // Hermes silver
     lead: 'hermes',
+    failureModes: [
+      'Swarm > 800 with coordination < 70 (uncontainable)',
+      'Coordination < 40 (chaos / friendly fire)',
+      'Precision < 40 (hits healthy tissue)',
+      'Battery < 15 min (strands the swarm)',
+    ],
     controls: [
       { key: 'swarmSize',    label: 'Swarm Size',         min: 10, max: 1000, unit: '',    default: 250 },
       { key: 'coordination', label: 'Coordination Proto', min: 0,  max: 100,  unit: '%',   default: 70  },
@@ -195,6 +254,11 @@ const LABS = {
     icon: Radio,
     accent: '#F03246', // Ajani crimson
     lead: 'ajani',
+    failureModes: [
+      'Amplifier > 85% with damping < 40% (resonant collapse)',
+      'Tuning < 25% (off-frequency, no yield)',
+      'Harvested < 12 (not worth running)',
+    ],
     controls: [
       { key: 'sensors',   label: 'Sensor Count',    min: 1, max: 200, unit: '',  default: 60 },
       { key: 'tuning',    label: 'Frequency Match', min: 0, max: 100, unit: '%', default: 55 },
@@ -341,9 +405,24 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
   const [speakingId, setSpeakingId] = useState(null);
   const tts = useTTS();
 
+  // ---- Save / Load / Curve / Suggest state -------------------------------
+  const [savedConfigs, setSavedConfigs] = useState([]);  // current lab
+  const [savedOpen, setSavedOpen] = useState(false);
+  const [saveDraft, setSaveDraft] = useState(null);      // null | { name: '' }
+  const [curveRuns, setCurveRuns] = useState([]);        // mastery curve points
+  const [suggestion, setSuggestion] = useState(null);    // { control, value, reason, persona }
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [suggestError, setSuggestError] = useState(null);
+  const recordAbortRef = useRef(null);
+  const recordTimerRef = useRef(null);
+  const lastRecordedScoreRef = useRef(0);
+
   useEffect(() => {
     setValues(defaultValues);
     setShowFailure(false);
+    setSuggestion(null);
+    setSuggestError(null);
+    lastRecordedScoreRef.current = 0;
   }, [defaultValues]);
 
   // On the frame we switch labs, `values` still holds the old lab's keys.
@@ -361,6 +440,170 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
   const result = lab.evaluate(liveValues);
   const rank = rankFor(result.score);
   const LabIcon = lab.icon;
+
+  // -- Load saved configs + mastery curve when the lab changes -------------
+  // localStorage is the write-through cache so the lab feels instant; the
+  // fetch then reconciles with the authoritative MongoDB list.
+  useEffect(() => {
+    const cacheKey = `atlas.sandbox.saved.${labKey}`;
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+      if (Array.isArray(cached)) setSavedConfigs(cached);
+    } catch (_) { /* ignore parse errors */ }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${BACKEND}/api/sandbox/saved/${labKey}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const list = data.configs || [];
+        setSavedConfigs(list);
+        try { localStorage.setItem(cacheKey, JSON.stringify(list)); } catch (_) { /* quota */ }
+      } catch (_) { /* network */ }
+    })();
+
+    (async () => {
+      try {
+        const res = await fetch(`${BACKEND}/api/sandbox/runs/${labKey}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        setCurveRuns(data.runs || []);
+      } catch (_) { /* network */ }
+    })();
+
+    return () => { cancelled = true; };
+  }, [labKey]);
+
+  // -- Auto-record mastery runs (debounced, score ≥ 35, big-change only) ---
+  useEffect(() => {
+    if (result.score < 35) return;
+    if (Math.abs(result.score - lastRecordedScoreRef.current) < 5) return;
+    if (recordTimerRef.current) clearTimeout(recordTimerRef.current);
+    recordTimerRef.current = setTimeout(async () => {
+      if (recordAbortRef.current) recordAbortRef.current.abort();
+      const ctrl = new AbortController();
+      recordAbortRef.current = ctrl;
+      try {
+        const res = await fetch(`${BACKEND}/api/sandbox/runs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: ctrl.signal,
+          body: JSON.stringify({
+            lab_key: labKey,
+            values: liveValues,
+            score: result.score,
+            output: parseFloat(result.output) || 0,
+            stability: parseFloat(result.stability) || 0,
+            failure: result.failure,
+          }),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.recorded) {
+          lastRecordedScoreRef.current = result.score;
+          // Refresh curve quietly.
+          fetch(`${BACKEND}/api/sandbox/runs/${labKey}`)
+            .then((r) => r.ok ? r.json() : null)
+            .then((d) => { if (d) setCurveRuns(d.runs || []); })
+            .catch(() => {});
+        }
+      } catch (_) { /* abort or network */ }
+    }, 1500);
+    return () => {
+      if (recordTimerRef.current) clearTimeout(recordTimerRef.current);
+    };
+    // result identity changes every render; intentionally exclude liveValues
+    // because we already key off result.score for change detection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [labKey, result.score, result.failure]);
+
+  useEffect(() => () => {
+    if (recordAbortRef.current) recordAbortRef.current.abort();
+    if (recordTimerRef.current) clearTimeout(recordTimerRef.current);
+  }, []);
+
+  // -- Save current configuration -----------------------------------------
+  const persistSave = useCallback(async (name) => {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return;
+    try {
+      const res = await fetch(`${BACKEND}/api/sandbox/saved`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed, lab_key: labKey, values: liveValues }),
+      });
+      if (!res.ok) return;
+      const doc = await res.json();
+      const next = [doc, ...savedConfigs];
+      setSavedConfigs(next);
+      try { localStorage.setItem(`atlas.sandbox.saved.${labKey}`, JSON.stringify(next)); } catch (_) { /* quota */ }
+      setSaveDraft(null);
+      setSavedOpen(true);
+    } catch (_) { /* network */ }
+  }, [labKey, liveValues, savedConfigs]);
+
+  const loadConfig = useCallback((cfg) => {
+    if (!cfg || !cfg.values) return;
+    // Sanitise: keep only this lab's control keys to avoid stale schema.
+    const filtered = {};
+    for (const c of lab.controls) {
+      filtered[c.key] = Number.isFinite(cfg.values[c.key]) ? cfg.values[c.key] : c.default;
+    }
+    setValues(filtered);
+    setSavedOpen(false);
+  }, [lab]);
+
+  const deleteConfig = useCallback(async (id) => {
+    try {
+      const res = await fetch(`${BACKEND}/api/sandbox/saved/${id}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 404) return;
+      const next = savedConfigs.filter((c) => c.id !== id);
+      setSavedConfigs(next);
+      try { localStorage.setItem(`atlas.sandbox.saved.${labKey}`, JSON.stringify(next)); } catch (_) { /* quota */ }
+    } catch (_) { /* network */ }
+  }, [labKey, savedConfigs]);
+
+  // -- AI Suggest --------------------------------------------------------
+  const fetchSuggestion = useCallback(async () => {
+    setSuggestLoading(true);
+    setSuggestError(null);
+    setSuggestion(null);
+    try {
+      const payload = {
+        lab_key: labKey,
+        title: lab.title,
+        mission: lab.mission,
+        persona: lab.lead,
+        controls: lab.controls.map((c) => ({ ...c, current: liveValues[c.key] })),
+        metrics: { score: result.score, output: result.output, stability: result.stability, failure: result.failure },
+        failure_modes: lab.failureModes || [],
+      };
+      const res = await fetch(`${BACKEND}/api/sandbox/suggest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`HTTP ${res.status}: ${t}`);
+      }
+      const data = await res.json();
+      setSuggestion(data);
+    } catch (e) {
+      setSuggestError(String(e.message || e));
+    } finally {
+      setSuggestLoading(false);
+    }
+  }, [labKey, lab, liveValues, result.score, result.output, result.stability, result.failure]);
+
+  const applySuggestion = useCallback(() => {
+    if (!suggestion) return;
+    setValues((prev) => ({ ...prev, [suggestion.control]: suggestion.value }));
+    setSuggestion(null);
+  }, [suggestion]);
 
   const speakAs = (mentor, text) => {
     if (speakingId) {
@@ -405,6 +648,135 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
           ))}
         </div>
       </div>
+
+      {/* Toolbar: Saved · Save · AI Suggest --------------------------------- */}
+      <div className="sandbox-toolbar">
+        <div className="sandbox-toolbar-saved">
+          <button
+            className="sandbox-toolbar-btn"
+            onClick={() => setSavedOpen((o) => !o)}
+            data-testid="sandbox-saved-toggle"
+            title="Load a saved configuration"
+            disabled={savedConfigs.length === 0}
+          >
+            <Bookmark size={11} />
+            Saved <span className="sandbox-toolbar-count">{savedConfigs.length}</span>
+          </button>
+          {savedOpen && savedConfigs.length > 0 && (
+            <div className="sandbox-saved-pop" data-testid="sandbox-saved-list">
+              {savedConfigs.map((cfg) => (
+                <div key={cfg.id} className="sandbox-saved-row">
+                  <button
+                    className="sandbox-saved-load"
+                    onClick={() => loadConfig(cfg)}
+                    data-testid={`sandbox-saved-load-${cfg.id}`}
+                    title="Load this configuration"
+                  >
+                    {cfg.name}
+                  </button>
+                  <button
+                    className="sandbox-saved-delete"
+                    onClick={() => deleteConfig(cfg.id)}
+                    title="Delete"
+                    data-testid={`sandbox-saved-delete-${cfg.id}`}
+                  >
+                    <Trash2 size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button
+          className="sandbox-toolbar-btn"
+          onClick={() => setSaveDraft({ name: `${lab.title.split(' ')[0]} · ${result.score}` })}
+          data-testid="sandbox-save-btn"
+          title="Save this configuration"
+        >
+          <BookmarkPlus size={11} />
+          Save run
+        </button>
+
+        <button
+          className="sandbox-toolbar-btn primary"
+          onClick={fetchSuggestion}
+          disabled={suggestLoading}
+          data-testid="sandbox-suggest-btn"
+          style={{ borderColor: lab.accent, color: lab.accent }}
+          title={`Ask ${lab.lead.toUpperCase()} to suggest a tweak`}
+        >
+          {suggestLoading ? <Loader2 size={11} className="spin" /> : <Sparkles size={11} />}
+          AI Suggest
+        </button>
+      </div>
+
+      {saveDraft && (
+        <div className="sandbox-save-draft" data-testid="sandbox-save-draft">
+          <input
+            autoFocus
+            className="sandbox-save-input"
+            value={saveDraft.name}
+            onChange={(e) => setSaveDraft({ name: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') persistSave(saveDraft.name);
+              if (e.key === 'Escape') setSaveDraft(null);
+            }}
+            placeholder="Name this configuration"
+            maxLength={60}
+            data-testid="sandbox-save-input"
+          />
+          <button
+            className="sandbox-toolbar-btn primary"
+            onClick={() => persistSave(saveDraft.name)}
+            data-testid="sandbox-save-confirm"
+            style={{ borderColor: lab.accent, color: lab.accent }}
+          >
+            <Save size={11} /> Save
+          </button>
+          <button className="sandbox-toolbar-btn" onClick={() => setSaveDraft(null)} title="Cancel">
+            <X size={11} />
+          </button>
+        </div>
+      )}
+
+      {(suggestion || suggestError) && (
+        <div className="sandbox-suggestion" data-testid="sandbox-suggestion" style={{ borderColor: lab.accent }}>
+          {suggestion ? (
+            <>
+              <div className="sandbox-suggestion-head">
+                <span className="sandbox-suggestion-tag" style={{ color: lab.accent }}>
+                  {(suggestion.persona || lab.lead).toUpperCase()} SUGGESTS
+                </span>
+                <button
+                  className="sandbox-suggestion-close"
+                  onClick={() => setSuggestion(null)}
+                  data-testid="sandbox-suggestion-dismiss"
+                  title="Dismiss"
+                >
+                  <X size={11} />
+                </button>
+              </div>
+              <div className="sandbox-suggestion-target">
+                Try <strong>{suggestion.control}</strong> = <strong style={{ color: lab.accent }}>{suggestion.value}</strong>
+              </div>
+              <div className="sandbox-suggestion-reason">{suggestion.reason}</div>
+              <button
+                className="sandbox-toolbar-btn primary"
+                onClick={applySuggestion}
+                style={{ borderColor: lab.accent, color: lab.accent, marginTop: 6 }}
+                data-testid="sandbox-suggestion-apply"
+              >
+                <Check size={11} /> Apply
+              </button>
+            </>
+          ) : (
+            <div className="sandbox-suggestion-error" data-testid="sandbox-suggestion-error">
+              Suggest failed: {suggestError}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Controls */}
       <div className="sandbox-controls">
@@ -462,6 +834,19 @@ export default function InteractiveSandbox({ initialLabKey = 'power', topic }) {
             />
           ))}
         </div>
+
+        {/* Mastery curve sparkline — last N runs, auto-recorded ----------- */}
+        {curveRuns.length > 0 && (
+          <div className="sandbox-curve" data-testid="sandbox-curve">
+            <div className="sandbox-curve-head">
+              <span className="sandbox-metric-label">Mastery Curve</span>
+              <span className="sandbox-curve-meta">
+                {curveRuns.length} runs · best {Math.max(...curveRuns.map((r) => r.score))}
+              </span>
+            </div>
+            <Sparkline runs={curveRuns} accent={lab.accent} />
+          </div>
+        )}
       </div>
 
       {/* Failure vision toggle */}

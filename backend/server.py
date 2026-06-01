@@ -22,6 +22,8 @@ from routes.chat import router as chat_router
 from routes.knowledge import router as knowledge_router
 # Import AI services (TTS / Minerva / Hermes / Blueprint)
 from routes.ai_services import router as ai_services_router
+# Sandbox — save/replay configs, mastery curve, AI-suggested tweaks
+from routes.sandbox import router as sandbox_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -87,6 +89,7 @@ app.include_router(files_router)  # File upload and management routes
 app.include_router(chat_router)  # AI chat routes
 app.include_router(knowledge_router)  # Knowledge core routes
 app.include_router(ai_services_router)  # TTS, Minerva, Hermes, Blueprint
+app.include_router(sandbox_router)  # Sandbox: save/replay, mastery curve, AI suggest
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")

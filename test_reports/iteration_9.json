@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 9 — full backend + frontend validation of the 3 new InteractiveSandbox features (Save/Replay, Mastery curve, AI suggest). 12/12 backend pytests pass against /api/sandbox/*. All 8 end-to-end Playwright flows pass: HUD ring opens sandbox, toolbar visible, Save flow increments counter, Load flow restores slider value, Mastery curve + svg render, AI suggest returns persona-flavoured response from Claude Sonnet 4.5, Apply mutates correct slider and dismisses card, Dismiss removes card without touching sliders, Cross-lab isolation works (ecosystem shows 'Saved 0' / disabled), Delete decrements counter.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Sandbox toolbar (LAB side-panel)", "issues": ["Toolbar row (Saved · Save run · AI Suggest) is visually cramped — Save-icon and label collide; suggest-btn label wraps at narrow widths. Stated by main agent as 'small/cramped by design', no action required, but worth a future polish pass."]},
+      {"screen": "Sandbox saved list", "issues": ["Test data (TEST_BestNew, TEST_AutoBest, My Best Solar) persists across runs in Power lab. Main agent may want a manual cleanup of leftover TEST_* configs from MongoDB sandbox_saved collection. Non-blocking."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_sandbox.py",
+    "/app/test_reports/pytest/iter9_sandbox.xml"
+  ],
+  "action_items": [
+    "(Optional) Purge leftover TEST_* docs from MongoDB sandbox_saved collection — left by repeated frontend save-flow runs.",
+    "(Optional polish) Sandbox toolbar (.sandbox-toolbar) is visually cramped; consider widening LAB side-panel or shrinking icon labels."
+  ],
+  "critical_code_review_comments": [
+    "sandbox.py top-3-per-day cap implemented via pull-then-replace in record_run — correct behaviour confirmed by test_top3_cap_keeps_top_scores (scores 50/60/70/80/90 → kept [70,80,90]).",
+    "Saved configs response correctly strips MongoDB _id (verified by test_list_saved_no_id_leak).",
+    "/api/sandbox/suggest validates the LLM JSON: control ∈ provided keys and value ∈ [min,max]; verified for failing Power lab payload.",
+    "Frontend slider is Radix-based — uses aria-valuenow on [role='slider'] (not input_value). Future testing agents must keyboard-drive (ArrowRight/Left) or read aria-valuenow, NOT input_value().",
+    "InteractiveSandbox.js is ~914 lines — consider splitting (toolbar / saved list / suggestion card / sparkline) into sub-components for maintainability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_sandbox.py (new)"
+  ],
+  "success_rate": {"backend": "100% (12/12)", "frontend": "100% (8/8 flows)"},
+  "test_credentials": "none required (sandbox endpoints unauthenticated; HUD is public preview)",
+  "seed_data_creation": "Backend tests create TEST_-prefixed sandbox_runs (auto-rotated by top-3 cap) and self-clean TEST_ sandbox_saved configs. Frontend save-flow leaves 1-3 TEST_BestNew/TEST_AutoBest/TEST_Iter9b/My Best Solar docs (the test's own create deletes via cfg_id, but earlier-iter runs left residue).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Sandbox tabs are: power, bridge, code, ecosystem, nanoswarm, resonance — each keyed by lab_key. Slider is shadcn/Radix → use aria-valuenow & ArrowKeys, not input_value. AI Suggest can take 8-15s (allow 30s). Failure modes are baked into LAB entries and posted as failure_modes field to /api/sandbox/suggest. test file: /app/backend/tests/test_sandbox.py runs in ~10s.",
+  "rca of the issue": "N/A — no bugs found. All 17 review-request acceptance criteria pass."
+}
