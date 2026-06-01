@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -8,6 +8,10 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
  * timeout; Atlas jobs (tri-council blueprint, 4-band teach) routinely
  * take 90–200s. The backend returns a job_id immediately; we poll
  * `GET /api/atlas/jobs/{job_id}` every 2 seconds until done/failed.
+ *
+ * The hook auto-cancels in-flight polling when the consuming component
+ * unmounts (e.g. user closes a panel mid-generation) so we do not waste
+ * LLM calls on hidden UI.
  *
  * Usage:
  *   const { run, cancel, status, result, error } = useAtlasJob();
@@ -20,6 +24,7 @@ export function useAtlasJob() {
   const [error, setError] = useState(null);
   const pollRef = useRef(null);
   const cancelledRef = useRef(false);
+  const abortRef = useRef(null);
 
   const cancel = useCallback(() => {
     cancelledRef.current = true;
@@ -27,7 +32,26 @@ export function useAtlasJob() {
       clearTimeout(pollRef.current);
       pollRef.current = null;
     }
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
     setStatus('idle');
+  }, []);
+
+  // Auto-cancel on unmount: stop polling + abort the submit fetch so the
+  // backend job (if not yet picked up) and the LLM (if still mid-generation)
+  // are not consumed for a UI panel the user already closed.
+  useEffect(() => () => {
+    cancelledRef.current = true;
+    if (pollRef.current) {
+      clearTimeout(pollRef.current);
+      pollRef.current = null;
+    }
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
   }, []);
 
   const pollOnce = useCallback(async (jobId) => {
@@ -61,17 +85,21 @@ export function useAtlasJob() {
     setStatus('pending');
     setResult(null);
     setError(null);
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const res = await fetch(`${API_URL}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: controller.signal,
       });
       if (!res.ok) throw new Error(`${path} → HTTP ${res.status}`);
       const data = await res.json();
       if (!data.job_id) throw new Error('No job_id returned');
       pollOnce(data.job_id);
     } catch (e) {
+      if (e?.name === 'AbortError' || cancelledRef.current) return;
       setStatus('failed');
       setError(String(e.message || e));
     }

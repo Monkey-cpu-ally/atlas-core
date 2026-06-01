@@ -1,7 +1,10 @@
 """AI service endpoints — TTS, Minerva approval, Hermes validation, Blueprint Engine.
 
 All four endpoints use the Emergent Universal LLM Key (no separate keys needed).
+TTS additionally supports ElevenLabs (per-persona custom voices + multilingual)
+when ELEVENLABS_API_KEY is configured; otherwise falls back to OpenAI TTS.
 """
+import asyncio
 import json
 import os
 import re
@@ -20,10 +23,12 @@ load_dotenv()
 router = APIRouter(prefix="/api/ai", tags=["AI Services"])
 
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 
 # Module-level TTS client cache — instantiating OpenAITextToSpeech on every
 # request added 150–400 ms of cold-start latency. Reuse one client.
 _TTS_CLIENT: Optional[OpenAITextToSpeech] = None
+_ELEVEN_CLIENT = None  # elevenlabs.ElevenLabs — lazily imported
 
 
 def _get_tts_client() -> OpenAITextToSpeech:
@@ -33,11 +38,22 @@ def _get_tts_client() -> OpenAITextToSpeech:
     return _TTS_CLIENT
 
 
+def _get_eleven_client():
+    """Lazy import + cache the ElevenLabs client. Returns None if no key."""
+    global _ELEVEN_CLIENT
+    if not ELEVENLABS_API_KEY:
+        return None
+    if _ELEVEN_CLIENT is None:
+        from elevenlabs import ElevenLabs  # imported lazily
+        _ELEVEN_CLIENT = ElevenLabs(api_key=ELEVENLABS_API_KEY)
+    return _ELEVEN_CLIENT
+
+
 # ---------------------------------------------------------------------------
 # 1) Text-to-Speech
 # ---------------------------------------------------------------------------
 
-# Per-AI default voice mapping. Users can override via the `voice` field.
+# Per-AI default voice mapping — OpenAI TTS (fallback when ElevenLabs is off).
 PERSONA_VOICES = {
     "ajani":   "onyx",     # deep / grounded
     "minerva": "nova",     # warm / flowing
@@ -45,31 +61,123 @@ PERSONA_VOICES = {
     "trinity": "shimmer",  # bright / layered
 }
 
+# Per-AI ElevenLabs voice IDs (using ElevenLabs' default voice library).
+# Source: https://elevenlabs.io/app/voice-library — these IDs are stable.
+ELEVEN_PERSONA_VOICES = {
+    "ajani":   "pNInz6obpgDQGcFmaJgB",  # Adam — deep, grounded, warrior cadence
+    "minerva": "EXAVITQu4vr4xnSDxMaL",  # Bella — warm, flowing, wisdom keeper
+    "hermes":  "ErXwobaYiN019PkySvjV",  # Antoni — precise, observant
+    "trinity": "21m00Tcm4TlvDq8ikWAM",  # Rachel — bright, multi-tonal
+}
+
+# Native-language hint per persona (used as a default when caller doesn't pass
+# `language`). Voice will read the literal text — if you provide English text
+# you get English; if you provide Zulu text the multilingual model speaks it.
+PERSONA_LANGUAGE = {
+    "ajani":   "zu",   # isiZulu
+    "minerva": "yo",   # Yorùbá
+    "hermes":  "maa",  # Maa (Maasai) — multilingual_v2 won't render natively
+    "trinity": "en",
+}
+
+# eleven_multilingual_v2 supports ~29 languages including English, Spanish,
+# French, German, Hindi, Arabic, etc. Zulu / Yoruba / Maa are not natively
+# rendered — when the caller asks for those we still send the text, and
+# rely on the model's phonetic approximation.
+ELEVEN_MODEL_DEFAULT = "eleven_multilingual_v2"
+
 
 class TTSRequest(BaseModel):
     text: str
     persona: Optional[str] = None        # ajani | minerva | hermes | trinity
     voice: Optional[str] = None          # explicit voice overrides persona mapping
-    model: str = "tts-1"
+    provider: Optional[str] = None       # 'elevenlabs' | 'openai' | None (auto)
+    language: Optional[str] = None       # ISO code: en, zu, yo, maa, es, fr…
+    model: Optional[str] = None          # tts-1 (openai) | eleven_multilingual_v2
     speed: float = 1.0
+
+
+def _resolve_provider(req: TTSRequest) -> str:
+    """Pick the TTS provider. Honour explicit request, otherwise prefer
+    ElevenLabs when its key is configured (per-persona voices), else OpenAI."""
+    if req.provider:
+        return req.provider.lower()
+    return "elevenlabs" if ELEVENLABS_API_KEY else "openai"
+
+
+async def _synthesize_elevenlabs(text: str, voice_id: str, model_id: str) -> bytes:
+    """Run the synchronous ElevenLabs SDK in a thread so we don't block the
+    event loop. Returns mp3 bytes."""
+    client = _get_eleven_client()
+    if client is None:
+        raise HTTPException(503, "ElevenLabs TTS not configured")
+
+    def _convert():
+        audio_iter = client.text_to_speech.convert(
+            text=text,
+            voice_id=voice_id,
+            model_id=model_id,
+            output_format="mp3_44100_128",
+        )
+        return b"".join(audio_iter)
+
+    try:
+        return await asyncio.to_thread(_convert)
+    except Exception as exc:
+        raise HTTPException(502, f"ElevenLabs TTS failed: {exc}") from exc
 
 
 @router.post("/tts")
 async def synthesize_speech(req: TTSRequest):
-    """Synthesize speech for an AI persona. Returns MP3 audio bytes."""
-    if not EMERGENT_LLM_KEY:
-        raise HTTPException(503, "AI services offline (missing EMERGENT_LLM_KEY)")
+    """Synthesize speech for an AI persona. Returns MP3 audio bytes.
+
+    Routing logic:
+      • provider == 'elevenlabs' (or auto when ELEVENLABS_API_KEY set)
+          → ElevenLabs eleven_multilingual_v2 with per-persona voice.
+      • provider == 'openai' (default fallback)
+          → OpenAI tts-1 with per-persona voice.
+    On ElevenLabs failure, we fall back to OpenAI rather than 5xx.
+    """
     if not req.text or not req.text.strip():
         raise HTTPException(400, "text is required")
     if len(req.text) > 4096:
         raise HTTPException(400, "text exceeds 4096 character limit")
 
-    voice = req.voice or PERSONA_VOICES.get((req.persona or "").lower(), "alloy")
+    persona = (req.persona or "").lower()
+    provider = _resolve_provider(req)
+    language = (req.language or PERSONA_LANGUAGE.get(persona) or "en").lower()
+
+    # --- ElevenLabs path -----------------------------------------------------
+    if provider == "elevenlabs" and ELEVENLABS_API_KEY:
+        voice_id = req.voice or ELEVEN_PERSONA_VOICES.get(persona) or ELEVEN_PERSONA_VOICES["trinity"]
+        model_id = req.model if (req.model and req.model.startswith("eleven_")) else ELEVEN_MODEL_DEFAULT
+        try:
+            audio_bytes = await _synthesize_elevenlabs(req.text, voice_id, model_id)
+            return Response(
+                content=audio_bytes,
+                media_type="audio/mpeg",
+                headers={
+                    "X-AI-Voice": voice_id,
+                    "X-AI-Provider": "elevenlabs",
+                    "X-AI-Language": language,
+                    "X-AI-Model": model_id,
+                },
+            )
+        except HTTPException as exc:
+            # Fall through to OpenAI on ElevenLabs error — never let TTS 5xx.
+            # eslint-disable-next-line no-console
+            print(f"[tts] ElevenLabs failed, falling back to OpenAI: {exc.detail}")
+
+    # --- OpenAI fallback path -----------------------------------------------
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(503, "AI services offline (missing EMERGENT_LLM_KEY)")
+    voice = req.voice if (req.voice and req.voice in {"alloy", "echo", "fable", "onyx", "nova", "shimmer"}) else PERSONA_VOICES.get(persona, "alloy")
+    model = req.model if (req.model and req.model.startswith("tts-")) else "tts-1"
     try:
         tts = _get_tts_client()
         audio_bytes = await tts.generate_speech(
             text=req.text,
-            model=req.model,
+            model=model,
             voice=voice,
             speed=req.speed,
         )
@@ -79,7 +187,12 @@ async def synthesize_speech(req: TTSRequest):
     return Response(
         content=audio_bytes,
         media_type="audio/mpeg",
-        headers={"X-AI-Voice": voice},
+        headers={
+            "X-AI-Voice": voice,
+            "X-AI-Provider": "openai",
+            "X-AI-Language": language,
+            "X-AI-Model": model,
+        },
     )
 
 
@@ -280,5 +393,37 @@ async def generate_blueprint(req: BlueprintRequest):
 
 @router.get("/voices")
 async def list_voices():
-    """Return the per-persona voice mapping the frontend should use."""
-    return {"voices": PERSONA_VOICES}
+    """Return the per-persona voice mapping the frontend should use,
+    plus runtime info on which provider is active and what languages each
+    persona defaults to."""
+    return {
+        "voices": PERSONA_VOICES,
+        "elevenlabs_voices": ELEVEN_PERSONA_VOICES,
+        "persona_language": PERSONA_LANGUAGE,
+        "active_provider": "elevenlabs" if ELEVENLABS_API_KEY else "openai",
+        "elevenlabs_model": ELEVEN_MODEL_DEFAULT,
+    }
+
+
+@router.get("/voices/elevenlabs")
+async def list_elevenlabs_voices():
+    """Live-fetch all voices available on the ElevenLabs account (so the
+    architect-in-chief can discover/swap voice IDs without leaving the HUD)."""
+    client = _get_eleven_client()
+    if client is None:
+        raise HTTPException(503, "ElevenLabs not configured (missing ELEVENLABS_API_KEY)")
+    try:
+        resp = await asyncio.to_thread(client.voices.get_all)
+    except Exception as exc:
+        raise HTTPException(502, f"ElevenLabs voices fetch failed: {exc}") from exc
+
+    voices = []
+    for v in getattr(resp, "voices", []) or []:
+        voices.append({
+            "voice_id": getattr(v, "voice_id", None),
+            "name": getattr(v, "name", None),
+            "category": getattr(v, "category", None),
+            "labels": getattr(v, "labels", None),
+            "preview_url": getattr(v, "preview_url", None),
+        })
+    return {"count": len(voices), "voices": voices}

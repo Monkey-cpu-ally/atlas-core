@@ -1,9 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Minimize2, Maximize2, Trash2, Volume2, VolumeX } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Maximize2, Trash2, Volume2, VolumeX, Globe } from 'lucide-react';
 import { AI_PERSONAS } from '../data/atlasCore';
 import { useTTS } from '../hooks/useTTS';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Native language defaults per persona — matches backend PERSONA_LANGUAGE.
+const PERSONA_LANG = {
+  ajani:   'zu',     // isiZulu
+  minerva: 'yo',     // Yorùbá
+  hermes:  'maa',    // Maa (Maasai)
+  trinity: 'en',
+};
+
+const LANG_OPTIONS = [
+  { code: 'en',  label: 'EN', tip: 'English' },
+  { code: 'zu',  label: 'ZU', tip: 'isiZulu (Ajani)' },
+  { code: 'yo',  label: 'YO', tip: 'Yorùbá (Minerva)' },
+  { code: 'maa', label: 'MAA', tip: 'Maa / Maasai (Hermes)' },
+];
 
 export default function ChatPanel({ activeAI, onAISwitch }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,8 +29,10 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
   const [conversationId, setConversationId] = useState(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [speakingMsgId, setSpeakingMsgId] = useState(null);
+  const [voiceLang, setVoiceLang] = useState('en');  // user-selectable TTS language
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const abortRef = useRef(null);
   const tts = useTTS();
 
   const scrollToBottom = () => {
@@ -32,6 +49,22 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
     }
   }, [isOpen, isMinimized]);
 
+  // When the user switches the active AI, snap the TTS language to that
+  // persona's native default. Architect can still override via picker.
+  useEffect(() => {
+    setVoiceLang(PERSONA_LANG[activeAI] || 'en');
+  }, [activeAI]);
+
+  // Abort any in-flight chat request on unmount so closing the panel
+  // mid-generation does not leak an LLM call.
+  useEffect(() => () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    tts.stop();
+  }, [tts]);
+
   const sendMessage = async () => {
     if (!inputText.trim() || loading) return;
 
@@ -45,10 +78,14 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
     setInputText('');
     setLoading(true);
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const response = await fetch(`${API_URL}/api/chat/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           persona: activeAI,
           message: inputText,
@@ -59,9 +96,10 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
       if (!response.ok) throw new Error('Failed to send message');
 
       const data = await response.json();
-      
+      if (abortRef.current !== controller) return;   // aborted mid-flight
+
       setConversationId(data.conversation_id);
-      
+
       const aiMessage = {
         id: data.timestamp,
         role: 'assistant',
@@ -76,10 +114,13 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
       if (voiceEnabled) {
         setSpeakingMsgId(aiMessage.id);
         tts.speak(data.response, data.persona, {
+          language: voiceLang,
           onEnd: () => setSpeakingMsgId(null),
         });
       }
     } catch (error) {
+      if (error?.name === 'AbortError') return;     // unmounted / cancelled
+      // eslint-disable-next-line no-console
       console.error('Chat error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -88,6 +129,7 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
         timestamp: new Date().toISOString()
       }]);
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
     }
   };
@@ -138,6 +180,23 @@ export default function ChatPanel({ activeAI, onAISwitch }) {
         </div>
         
         <div className="chat-header-actions">
+          {voiceEnabled && (
+            <div className="chat-lang-picker" title="Voice language" data-testid="chat-lang-picker">
+              <Globe size={14} style={{ opacity: 0.6, marginRight: 4 }} />
+              {LANG_OPTIONS.map((opt) => (
+                <button
+                  key={opt.code}
+                  className={`chat-lang-btn ${voiceLang === opt.code ? 'active' : ''}`}
+                  onClick={() => setVoiceLang(opt.code)}
+                  title={opt.tip}
+                  data-testid={`chat-lang-${opt.code}`}
+                  style={voiceLang === opt.code ? { color: getAIColor(activeAI), borderColor: getAIColor(activeAI) } : undefined}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
           <button
             onClick={() => {
               if (voiceEnabled && speakingMsgId) {

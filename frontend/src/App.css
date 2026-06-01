@@ -1467,6 +1467,43 @@ body {
   color: var(--neon-cyan);
 }
 
+/* Inline language picker inside the chat header (TTS language).
+   Uses tiny pill buttons so the bar stays compact even on minimised chat. */
+.chat-lang-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px 2px 4px;
+  margin-right: 4px;
+  background: rgba(100, 200, 255, 0.05);
+  border: 1px solid rgba(100, 200, 255, 0.12);
+  border-radius: 999px;
+}
+
+.chat-lang-btn {
+  font-size: 9px !important;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 6px !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chat-lang-btn:hover {
+  color: var(--neon-cyan) !important;
+  background: rgba(100, 200, 255, 0.08) !important;
+}
+
+.chat-lang-btn.active {
+  background: rgba(100, 200, 255, 0.12) !important;
+  border-color: currentColor !important;
+}
+
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
