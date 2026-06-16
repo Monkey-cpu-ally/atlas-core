@@ -171,6 +171,26 @@ movement they snap to the nearest slot and stop. No auto-spin.
 
 ## Backlog
 
+### Phase 0 — Audit Cleanup (Feb 2026)
+- [x] Full audit report written to `/app/AUDIT-REPORT.md` (9 findings: 2 high, 3 medium, 4 low)
+- [x] `pypdf==6.11.0` + `youtube-transcript-api==1.2.4` added to `requirements.txt` (closes H-2)
+- [x] `atlas_core/council/router.py::route` renamed to `route_internal`; `route` kept as alias in `atlas_core/council/__init__.py` for backwards compat (closes M-1)
+- [x] 4 orphan luxury-reskin frontend files moved to `frontend/src/_legacy/` + README explaining how to restore: ChatPanel, FileBrowserPanel, FileUploadModal, useVoiceRecognition (closes M-2)
+- [x] `_LEGACY_NOTICE` docstrings added to `/api/knowledge/teach`, `/api/atlas/teach`, `/api/atlas/teach/sync` — pointers at canonical `/api/learning/...` (documents H-1; full consolidation deferred to Phase 2)
+- [x] All 9 critical API endpoints verified 200 OK post-cleanup
+- [x] New MongoDB collection `study_journal` (free-form architect notes per lesson) documented
+
+### Phase 1 — Real LLM Integration (Feb 2026)
+- [x] **NEW** `services/llm_provider.py` — unified async `send(persona, system, user)` wrapper with per-persona provider/model selection, graceful local→cloud fallback, never-empty-response defensive retry
+- [x] **NEW** providers supported: `emergent` (default, via Emergent LLM Key — OpenAI gpt-5.2/4.1-mini, Claude Sonnet 4.5/Haiku 4.5, Gemini 3 Flash/Pro), `ollama` (local, OpenAI-compatible HTTP), `lmstudio` (local, OpenAI-compatible HTTP)
+- [x] **NEW** routes (`routes/llm.py`): `GET /api/llm/health`, `GET /api/llm/persona-models`, `PUT /api/llm/persona-models`, `POST /api/llm/test`
+- [x] **NEW** MongoDB doc `atlas_settings.{_id: "persona_models"}` stores per-persona overrides
+- [x] **REFACTORED** `routes/council.py::_ask` now routes through `llm_provider.send` — picking up per-persona overrides automatically while preserving the council deliberation behavior
+- [x] **VERIFIED** fallback path live-tested: set Ajani → Ollama (unreachable) → POST /api/llm/test → response from Emergent gpt-5.2 with `fallback_reason` recorded
+- [x] Env vars (optional): `OLLAMA_HOST` (default `http://localhost:11434`), `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`)
+
+
+
 ### Live functional tiles (Feb 2026)
 - [x] **MANUAL** → `/api/manual/sections` — 5 collapsible sections (Hard Rules, Personas, Rings, Lab, Voice)
 - [x] **CYCLOPEDIA** → `/api/knowledge/subjects` — searchable chip grid + per-subject detail

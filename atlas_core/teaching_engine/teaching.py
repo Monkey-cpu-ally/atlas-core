@@ -24,7 +24,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 
 from ..cores import get_core
-from ..council.router import route as council_route
+from ..council.router import route_internal as council_route
 
 
 # Canonical band order matches what the user requested.

@@ -62,28 +62,26 @@ async def route(req: RouteRequest):
 
 
 async def _ask(persona: str, topic: str) -> str:
+    """Ask one persona via the Phase-1 multi-provider LLM layer.
+
+    Routes through `services.llm_provider.send` so a per-persona override
+    in `atlas_settings.persona_models` (Ollama, LM Studio, etc.) is
+    automatically honoured. Falls back gracefully to Emergent gpt-5.2 on
+    local-provider connection errors."""
+    from services.llm_provider import send as llm_send
+
     system = PERSONA_SYSTEM[persona]
-    # Session id MUST be unique per call — duplicate session ids inside
-    # the same process have been observed to return empty responses.
-    sid = f"council-{persona}-{uuid4().hex}"
-    # Anthropic via the Emergent proxy has been flaky for sequential
-    # multi-persona calls (returns None mid-stream); OpenAI gpt-5.2 is
-    # rock-solid for the same workload. Council is a hot path so we
-    # use the reliable model.
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=sid,
-        system_message=system,
-    ).with_model("openai", "gpt-5.2")
     try:
-        raw = await chat.send_message(UserMessage(text=f"Topic: {topic}\n\nWeigh in."))
+        result = await llm_send(
+            persona,
+            system,
+            f"Topic: {topic}\n\nWeigh in.",
+            session_id=f"council-{persona}-{uuid4().hex[:12]}",
+        )
+        return result.get("text") or f"({persona.capitalize()} did not respond — please retry.)"
     except Exception as exc:
         logger.warning("Council _ask %s failed: %s", persona, exc)
-        raw = None
-    if isinstance(raw, str) and raw.strip():
-        return raw
-    logger.warning("Empty response from %s for topic %s (raw=%r)", persona, topic, raw)
-    return f"({persona.capitalize()} did not respond — please retry.)"
+        return f"({persona.capitalize()} did not respond — please retry.)"
 
 
 @router.post("/deliberate")

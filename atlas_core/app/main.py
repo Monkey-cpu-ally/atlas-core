@@ -200,7 +200,14 @@ async def council_preview(req: CouncilRequest):
 # ----- teaching ------------------------------------------------------------
 @atlas_router.post("/teach")
 async def teaching(req: TeachRequest):
-    """Submit a teaching job. Long because the 4-band lesson is one big call."""
+    """Submit a teaching job. Long because the 4-band lesson is one big call.
+
+    LEGACY (Phase 0 audit): This is the original async teach endpoint used
+    by the SUBJECTS tile. The post-luxury canonical path for new lessons
+    is `POST /api/intake/transcript` → `routes/learning.py::generate_lesson`
+    which persists into the `lessons` MongoDB collection. This endpoint
+    remains for the existing BlueprintWorkbench + TeachingWorkbench wiring.
+    """
     topic = _harden_user_input(req.topic)
     if not topic.strip():
         raise HTTPException(400, "topic is empty")
@@ -217,7 +224,12 @@ async def teaching(req: TeachRequest):
 
 @atlas_router.post("/teach/sync")
 async def teaching_sync(req: TeachRequest):
-    """Synchronous variant — returns the lesson directly. Beware ingress 60s."""
+    """Synchronous variant — returns the lesson directly. Beware ingress 60s.
+
+    LEGACY (Phase 0 audit): Same caveat as `/teach`. The 60s ingress
+    limit is the reason the async + job-polling path exists. Prefer
+    `POST /api/intake/transcript` for new work.
+    """
     topic = _harden_user_input(req.topic)
     if not topic.strip():
         raise HTTPException(400, "topic is empty")

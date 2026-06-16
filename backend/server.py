@@ -32,6 +32,7 @@ from routes.hud_surfaces import router as hud_surfaces_router
 # YouTube / external knowledge intake → routed lesson + quiz
 from routes.intake import router as intake_router
 from routes.learning import router as learning_router
+from routes.llm import router as llm_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -102,6 +103,7 @@ app.include_router(council_router)  # Topic routing + tri-AI deliberation
 app.include_router(hud_surfaces_router)  # Memory feed, Manual, Settings
 app.include_router(intake_router)  # YouTube intake → routed lesson + quiz
 app.include_router(learning_router)  # Full learning pipeline (lessons/projects/mastery)
+app.include_router(llm_router)  # Phase 1: multi-provider LLM (emergent + ollama + lmstudio)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")

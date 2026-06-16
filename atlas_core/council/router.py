@@ -54,8 +54,15 @@ def _score(text: str, lex) -> int:
     return sum(1 for w in lex if w in text)
 
 
-def route(question: str) -> CouncilDecision:
-    """Pick lead / support / critic for one question."""
+def route_internal(question: str) -> CouncilDecision:
+    """Pick lead / support / critic for one question.
+
+    Renamed from `route` in Phase 0 cleanup to disambiguate from the
+    public `/api/council/route` endpoint defined in routes/council.py.
+    External callers use the lighter keyword-based router in
+    routing.topic_router; this function adds support/critic assignment
+    and a textual rationale, used by atlas_core's blueprint engine.
+    """
     ethics = _score(question, ETHICS_LEX)
     techni = _score(question, TECHNICAL_LEX)
 

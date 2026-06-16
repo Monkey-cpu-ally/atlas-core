@@ -59,9 +59,13 @@ async def get_subject_details(subject: str):
 
 @router.post("/teach", response_model=TeachResponse)
 async def teach_topic(req: TeachRequest):
-    """
-    Get teaching from AI personas on a specific topic
-    The AIs teach from their internal knowledge core
+    """Teach a topic from the in-memory KnowledgeCore.
+
+    LEGACY (Phase 0 audit): Predates the LLM-powered pipeline in
+    `routes/learning.py::generate_lesson`. New integrations should
+    target `POST /api/learning/lessons/{id}` or `POST /api/intake/transcript`,
+    both of which persist into the `lessons` MongoDB collection.
+    Kept for backwards compatibility with the SUBJECTS tile.
     """
     try:
         teaching_response = knowledge_core.teach(req.subject, req.topic)
