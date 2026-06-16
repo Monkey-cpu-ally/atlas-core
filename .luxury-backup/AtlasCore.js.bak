@@ -28,6 +28,9 @@ const AI_COLORS = {
   hermes:  { r: 240, g: 240, b: 250 }, // silver-white
   trinity: { r: 168, g: 120, b: 230 }, // soft purple
 };
+// Ambient magenta wisp (no AI) — provides the spec's "magenta" highlight.
+const AMBIENT_MAGENTA = { r: 220, g: 60, b: 180 };
+
 const STATE_RHYTHM = {
   // Motion is slow on purpose. Nothing fast.
   idle:      { speed: 0.45, jitter: 0.05, gravity: 0.85, partAlpha: 0.55 },
@@ -37,8 +40,10 @@ const STATE_RHYTHM = {
   alert:     { speed: 2.50, jitter: 0.36, gravity: 1.55, partAlpha: 1.00 },
 };
 
-// Multiple blobs create sticky lava-lamp motion, but ATLAS displays one AI color at a time.
-// Color handoffs are slow and living, never instant UI state changes.
+// Each persona contributes 1–2 blobs so all colors are alive at once,
+// plus one ambient magenta blob for the cross-color blend the spec calls
+// for. Extra blobs deepen the fluid feel — more masses = more merging
+// and splitting like ink in water.
 const BLOB_RECIPE = [
   { ai: 'ajani',   weight: 1.00, phase: 0.00 },
   { ai: 'ajani',   weight: 0.65, phase: 0.55 },
@@ -71,7 +76,6 @@ export default function AtlasCore({
   const rafRef = useRef(null);
   const startRef = useRef(performance.now());
   const shockRef = useRef(0); // 0..1 fades after a tap
-  const fluidColorRef = useRef({ r: 240, g: 50, b: 70 }); // slow 2.5D color handoff
 
   // Initialize blobs + particles once.
   if (!blobsRef.current) {
@@ -134,13 +138,7 @@ export default function AtlasCore({
       lastT = now;
       const t = (now - startRef.current) / 1000;
       const rhythm = STATE_RHYTHM[coreState] || STATE_RHYTHM.idle;
-      const targetAI = AI_COLORS[activeAI] || AI_COLORS.ajani;
-      const fluid = fluidColorRef.current;
-      const lerpAmount = Math.min(1, dt / 2600); // slow color transition, never a snap
-      fluid.r += (targetAI.r - fluid.r) * lerpAmount;
-      fluid.g += (targetAI.g - fluid.g) * lerpAmount;
-      fluid.b += (targetAI.b - fluid.b) * lerpAmount;
-      const ai = fluid;
+      const ai = AI_COLORS[activeAI] || AI_COLORS.ajani;
 
       // Audio-reactive boost — when the user is talking during listening,
       // the lava physically reacts to the mic level. Falls back to 0 when
@@ -243,11 +241,9 @@ export default function AtlasCore({
       offCtx.translate(-C, -C);
 
       for (const b of blobs) {
-        // One-color-at-a-time rule: all internal lava uses the active AI fluid color.
-        // Individual blobs still have different size/phase so the core feels sticky and alive.
         const isActive = b.ai === activeAI;
-        const col = ai;
-        const blobR = CORE_R * 0.34 * b.weight * (isActive ? 1.16 : 0.96);
+        const col = b.ai === '__magenta__' ? AMBIENT_MAGENTA : AI_COLORS[b.ai];
+        const blobR = CORE_R * 0.34 * b.weight * (isActive ? 1.30 : 1.0);
         const cx = C + (b.x + wobbleX) * CORE_R;
         const cy = C + (b.y + wobbleY) * CORE_R;
 

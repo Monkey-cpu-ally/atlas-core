@@ -1,14 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * DialRing — slow luxury drag ring.
+ * DialRing — a rotating radial ring of tiles.
  *
- * ATLAS rings are not free-spinning wheels. They are home-anchored rings:
- * - drag slowly with weighted resistance
- * - select the nearest tile during the gesture
- * - release returns the ring to its original/home alignment
+ * Tiles are positioned via polar coordinates (center, radius, angle).
+ * The ring follows the pointer during a drag and snaps to the nearest slot
+ * on release. When a new tile lands at the top (-90°) it fires onSelect.
+ * Click-vs-drag is detected by tracking total angular movement during the
+ * gesture; short taps fall through to the tile's native click handler.
  *
- * This keeps the HUD organized while still letting the rings feel tactile.
+ * Implementation detail: pointer move/up are attached at the window level
+ * (instead of using setPointerCapture on the ring container) so that the
+ * native click event on tile buttons is not swallowed.
  */
 export default function DialRing({
   items,
@@ -22,15 +25,22 @@ export default function DialRing({
   const containerRef = useRef(null);
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const rotationRef = useRef(0);
-  useEffect(() => { rotationRef.current = rotation; }, [rotation]);
 
+  // Drag state lives in a ref so handlers can read it without re-binding.
   const dragRef = useRef({ active: false, startAngle: 0, startRot: 0, total: 0 });
 
-  // Rings always live at home when not being touched.
+  // Rotate ring so a given item lands at top when selectedId changes externally.
   useEffect(() => {
-    if (!isDragging) setRotation(0);
-  }, [selectedId, isDragging]);
+    if (!selectedId) return;
+    const item = items.find(it => it.id === selectedId);
+    if (!item) return;
+    const target = -90 - item.angle;
+    setRotation(prev => {
+      const diff = ((target - prev + 540) % 360) - 180;
+      return prev + diff;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
 
   const pointerAngle = useCallback((clientX, clientY) => {
     const rect = containerRef.current.getBoundingClientRect();
@@ -39,6 +49,7 @@ export default function DialRing({
     return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
   }, []);
 
+  // Window-level listeners attached on pointerdown and torn down on pointerup.
   useEffect(() => {
     const onMove = (e) => {
       const st = dragRef.current;
@@ -46,54 +57,54 @@ export default function DialRing({
       const a = pointerAngle(e.clientX, e.clientY);
       let delta = a - st.startAngle;
       delta = ((delta + 540) % 360) - 180;
-
-      // Weighted resistance: rings move, but never feel loose or fast.
-      const weightedDelta = delta * 0.42;
-      st.total = Math.max(st.total, Math.abs(weightedDelta));
-      if (st.total > 3) setIsDragging(true);
-      setRotation(st.startRot + weightedDelta);
+      st.total = Math.max(st.total, Math.abs(delta));
+      if (st.total > 4) setIsDragging(true);
+      setRotation(st.startRot + delta);
     };
 
     const onUp = () => {
       const st = dragRef.current;
       if (!st.active) return;
-      const dragged = st.total > 3;
-      const releaseRotation = rotationRef.current;
+      const dragged = st.total > 4;
       st.active = false;
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
 
       if (dragged) {
-        let best = null;
-        let bestDist = Infinity;
-        for (const it of items) {
-          const eff = it.angle + releaseRotation;
-          const d = Math.abs(((eff + 90 + 540) % 360) - 180);
-          if (d < bestDist) { bestDist = d; best = it; }
-        }
-        if (best && bestDist < slotAngle / 2 + 8) {
-          setTimeout(() => onSelect && onSelect(best, 'drag-release'), 0);
-        }
-
-        // Snap back home after the selection. This is intentional.
-        requestAnimationFrame(() => setRotation(0));
-        setTimeout(() => setIsDragging(false), 420);
+        setRotation(prev => {
+          const snapped = Math.round(prev / slotAngle) * slotAngle;
+          // Find whichever item is now nearest to top (-90°).
+          let best = null;
+          let bestDist = Infinity;
+          for (const it of items) {
+            const eff = it.angle + snapped;
+            const d = Math.abs(((eff + 90 + 540) % 360) - 180);
+            if (d < bestDist) { bestDist = d; best = it; }
+          }
+          if (best && best.id !== selectedId && bestDist < slotAngle / 2 + 1) {
+            setTimeout(() => onSelect && onSelect(best, 'snap'), 0);
+          }
+          return snapped;
+        });
+        // Keep drag flag briefly so the trailing click on a tile is ignored.
+        setTimeout(() => setIsDragging(false), 80);
       } else {
         setIsDragging(false);
-        setRotation(0);
       }
     };
 
+    // Expose to pointerdown handler via closure
     dragRef.current._onMove = onMove;
     dragRef.current._onUp = onUp;
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [items, slotAngle, selectedId, onSelect, pointerAngle, rotation]);
+  }, [items, slotAngle, selectedId, onSelect, pointerAngle]);
 
   const onPointerDown = (e) => {
     if (!containerRef.current) return;
+    // Only main button / touch / pen
     if (e.button !== undefined && e.button !== 0) return;
     const a = pointerAngle(e.clientX, e.clientY);
     dragRef.current.active = true;
@@ -107,7 +118,6 @@ export default function DialRing({
 
   const handleTileClick = (item, e) => {
     if (isDragging) { e.preventDefault(); return; }
-    setRotation(0);
     onSelect && onSelect(item, 'click');
   };
 
@@ -120,7 +130,9 @@ export default function DialRing({
       style={{ touchAction: 'none' }}
     >
       <svg className="ring-track" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        {/* Thick invisible hit-zone stroke for drag-to-rotate. */}
         <circle cx="50" cy="50" r={radiusPct} className="drag-hit" />
+        {/* Thin visible ring. */}
         <circle cx="50" cy="50" r={radiusPct} className="ring-visible" />
       </svg>
 
@@ -150,7 +162,7 @@ export default function DialRing({
             data-testid={`${ringTestId}-${item.id}`}
           >
             <div className="tile-icon">
-              {item.logo ? <img src={item.logo} alt="" className="tile-logo" /> : Icon && <Icon size={22} strokeWidth={1.5} />}
+              {Icon && <Icon size={22} strokeWidth={1.5} />}
             </div>
             <div className="tile-label">{item.label}</div>
           </button>
