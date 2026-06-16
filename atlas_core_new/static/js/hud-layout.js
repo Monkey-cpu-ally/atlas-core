@@ -162,6 +162,7 @@
         if (typeof window.selectPersona === 'function') {
             window.selectPersona(persona);
         }
+        updateChatPersonaLabel();
     }
 
     // ── Ring 2 selection ──

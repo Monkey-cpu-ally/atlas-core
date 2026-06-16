@@ -82,6 +82,12 @@ def read_json(path: Path) -> Dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def require_cv2() -> Any:
+    if cv2 is None:
+        raise RuntimeError("OpenCV is not installed; this image operation is unavailable.")
+    return cv2
+
+
 # ============================================================
 # HERMES: Capability Tokens + Audit
 # ============================================================
@@ -257,16 +263,25 @@ def pil_from_data_url(data_url: str) -> Image.Image:
 
 
 def to_cv(img: Image.Image) -> np.ndarray:
+    cv = require_cv2()
     arr = np.array(img)
-    return cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+    return cv.cvtColor(arr, cv.COLOR_RGB2BGR)
 
 
 def from_cv(arr_bgr: np.ndarray) -> Image.Image:
-    rgb = cv2.cvtColor(arr_bgr, cv2.COLOR_BGR2RGB)
+    cv = require_cv2()
+    rgb = cv.cvtColor(arr_bgr, cv.COLOR_BGR2RGB)
     return Image.fromarray(rgb)
 
 
 def extract_edges(img: Image.Image) -> Image.Image:
+    if cv2 is None:
+        gray = ImageOps.grayscale(img)
+        gray = ImageOps.autocontrast(gray)
+        edges = gray.filter(ImageFilter.FIND_EDGES)
+        edges = ImageOps.autocontrast(edges)
+        return ImageOps.invert(edges).convert("RGB")
+
     arr = to_cv(img)
     gray = cv2.cvtColor(arr, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -282,6 +297,16 @@ def clean_line_art(edge_img: Image.Image, line_weight: float = 1.2) -> Image.Ima
     img = edge_img.convert("L")
     img = ImageOps.autocontrast(img)
     img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=200, threshold=3))
+
+    if cv2 is None:
+        thr_img = img.point(lambda p: 255 if p > 220 else 0)
+        if line_weight > 1.0:
+            k = int(min(5, max(3, round((line_weight - 1.0) * 3 + 1))))
+            if k % 2 == 0:
+                k += 1
+            thr_img = thr_img.filter(ImageFilter.MinFilter(k))
+        return thr_img.convert("RGB")
+
     arr = np.array(img)
     _, thr = cv2.threshold(arr, 220, 255, cv2.THRESH_BINARY)
 
@@ -316,9 +341,12 @@ def apply_style(img: Image.Image, style_id: str, intensity: float = 1.0) -> Imag
         x = x.filter(ImageFilter.UnsharpMask(radius=1, percent=190, threshold=2))
 
     elif style_id == "anime.cel":
-        arr = to_cv(x)
-        arr = cv2.bilateralFilter(arr, d=9, sigmaColor=75, sigmaSpace=75)
-        y = from_cv(arr)
+        if cv2 is None:
+            y = x.filter(ImageFilter.SMOOTH_MORE)
+        else:
+            arr = to_cv(x)
+            arr = cv2.bilateralFilter(arr, d=9, sigmaColor=75, sigmaSpace=75)
+            y = from_cv(arr)
         y = ImageOps.posterize(y, bits=4)
         y = y.filter(ImageFilter.UnsharpMask(radius=2, percent=160, threshold=2))
         x = y

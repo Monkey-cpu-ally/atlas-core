@@ -1563,7 +1563,7 @@
                 </div>
                 <div class="lesson-nav-btns">
                     <button class="cancel-btn" id="prevChapterBtn" onclick="prevChapter()">Previous</button>
-                    <button class="action-btn" id="nextChapterBtn" onclick="nextChapter()">Next Chapter</button>
+                    <button class="action-btn" id="nextChapterBtn" onclick="handleLessonNext()">Next Chapter</button>
                 </div>
             </div>
         </div>
@@ -2736,6 +2736,14 @@
             } else {
                 currentLessonStep++;
                 showLessonStep();
+            }
+        }
+
+        function handleLessonNext() {
+            if (currentLessonData) {
+                nextLessonStep();
+            } else {
+                nextChapter();
             }
         }
 
@@ -5435,6 +5443,8 @@ Be concise. No fluff. Just the key concepts.`,
             currentLesson = null;
             lessonChapters = [];
             currentChapter = 0;
+            currentLessonData = null;
+            currentLessonStep = 0;
             // Reset adaptive learning state
             originalLessonContent = '';
             currentLessonMode = 'default';
