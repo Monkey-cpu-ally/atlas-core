@@ -125,6 +125,20 @@ async def download_architecture_zip():
     )
 
 
+@app.get("/api/exports/atlas-hud-architecture.zip")
+async def download_hud_zip():
+    """Serve the bundled HUD frontend architecture zip for download."""
+    path = EXPORTS_DIR / "atlas-hud-architecture.zip"
+    if not path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(404, "HUD architecture zip not yet built")
+    return FileResponse(
+        path=str(path),
+        filename="atlas-hud-architecture.zip",
+        media_type="application/zip",
+    )
+
+
 @app.get("/api/exports/README.md")
 async def download_readme():
     path = EXPORTS_DIR / "README.md"
@@ -132,6 +146,15 @@ async def download_readme():
         from fastapi import HTTPException
         raise HTTPException(404, "readme not found")
     return FileResponse(path=str(path), filename="atlas-architecture-README.md", media_type="text/markdown")
+
+
+@app.get("/api/exports/README-HUD.md")
+async def download_hud_readme():
+    path = EXPORTS_DIR / "README-HUD.md"
+    if not path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(404, "HUD readme not found")
+    return FileResponse(path=str(path), filename="atlas-hud-README.md", media_type="text/markdown")
 
 # Wire ATLAS memory to MongoDB on startup so archive entries, conversations,
 # and audit events persist across restarts.
