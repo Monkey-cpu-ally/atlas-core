@@ -35,28 +35,31 @@ export const INNER_RING = {
   ],
 };
 
-// --- Mid System Ring (5 items, offset 22.5° from outer to interleave) ---
-// Tiles sit at NNE / ENE / SSE / SSW / WSW so they fall between outer ring spokes.
+// --- Mid System Ring (5 items, evenly spaced at 72° intervals) ---
+// Starts at the top (-90°) so MANUAL sits directly above the core, then
+// rotates clockwise. Forms a clean pentagon around the inner orbit.
 export const MIDDLE_RING = {
-  slotAngle: 45,
+  slotAngle: 72,
   items: [
-    { angle: -67.5, id: 'manual',        label: 'MANUAL',        icon: Book,       type: 'section' },
-    { angle: -22.5, id: 'encyclopedia',  label: 'CYCLOPEDIA',    icon: BookMarked, type: 'section' },
-    { angle:  22.5, id: 'memory',        label: 'MEMORY',        icon: Database,   type: 'section' },
-    { angle:  67.5, id: 'systems',       label: 'SYSTEMS',       icon: Layout,     type: 'section' },
-    { angle: 112.5, id: 'customization', label: 'CUSTOMIZATION', icon: Settings,   type: 'section' },
+    { angle:  -90, id: 'manual',        label: 'MANUAL',        icon: Book,       type: 'section' },
+    { angle:  -18, id: 'encyclopedia',  label: 'CYCLOPEDIA',    icon: BookMarked, type: 'section' },
+    { angle:   54, id: 'memory',        label: 'MEMORY',        icon: Database,   type: 'section' },
+    { angle:  126, id: 'systems',       label: 'SYSTEMS',       icon: Layout,     type: 'section' },
+    { angle: -162, id: 'customization', label: 'CUSTOMIZATION', icon: Settings,   type: 'section' },
   ],
 };
 
-// --- Outer World Ring (6 items at cardinals + 2 ordinals) ---
+// --- Outer World Ring (6 items, evenly spaced at 60° intervals) ---
+// Hexagonal layout — symmetric around the centre so no quadrant feels
+// empty. Cardinals (top, right, bottom) plus three ordinals.
 export const OUTER_RING = {
-  slotAngle: 45,
+  slotAngle: 60,
   items: [
-    { angle: -90, id: 'subjects',   label: 'SUBJECTS',     icon: BookOpen,     type: 'section' },
-    { angle: -45, id: 'lab',        label: 'LAB',          icon: FlaskConical, type: 'section' },
-    { angle:   0, id: 'projects',   label: 'PROJECTS',     icon: FolderOpen,   type: 'section' },
-    { angle:  90, id: 'blueprints', label: 'BLUEPRINTS',   icon: FileCode,     type: 'section' },
-    { angle: 135, id: 'archive',    label: 'ARCHIVE',      icon: Archive,      type: 'section' },
-    { angle: 180, id: 'explore',    label: 'EXPLORE MODE', icon: Compass,      type: 'section' },
+    { angle:  -90, id: 'subjects',   label: 'SUBJECTS',     icon: BookOpen,     type: 'section' },
+    { angle:  -30, id: 'lab',        label: 'LAB',          icon: FlaskConical, type: 'section' },
+    { angle:   30, id: 'projects',   label: 'PROJECTS',     icon: FolderOpen,   type: 'section' },
+    { angle:   90, id: 'blueprints', label: 'BLUEPRINTS',   icon: FileCode,     type: 'section' },
+    { angle:  150, id: 'archive',    label: 'ARCHIVE',      icon: Archive,      type: 'section' },
+    { angle: -150, id: 'explore',    label: 'EXPLORE MODE', icon: Compass,      type: 'section' },
   ],
 };
