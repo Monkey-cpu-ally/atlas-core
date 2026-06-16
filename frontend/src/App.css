@@ -1700,8 +1700,8 @@ body {
 
 .atlas-hud {
   position: relative;
-  width: min(680px, 84vmin);
-  height: min(680px, 84vmin);
+  width: min(580px, 72vmin);
+  height: min(580px, 72vmin);
   border: 1.5px solid rgba(59, 130, 246, 0.55);
   border-radius: 4px;
   filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.2));
@@ -1812,9 +1812,9 @@ body {
 }
 .dial-tile .tile-label {
   font-family: 'Orbitron', sans-serif;
-  font-size: 7.5px;
+  font-size: 6.5px;
   font-weight: 500;
-  letter-spacing: 0.85px;
+  letter-spacing: 0.7px;
   text-transform: uppercase;
   color: rgba(200, 208, 224, 0.78);
 }
@@ -2978,8 +2978,8 @@ body {
    - logo identity system and startup mark
    ======================================================================= */
 .clean-hud-mode .atlas-hud {
-  width: min(640px, 78vmin);
-  height: min(640px, 78vmin);
+  width: min(540px, 66vmin);
+  height: min(540px, 66vmin);
   border: none;
   border-radius: 50%;
   filter: drop-shadow(0 0 34px rgba(120, 170, 220, 0.14));
@@ -3005,9 +3005,9 @@ body {
 .clean-hud-mode .ring-stage-outer  .dial-ring .ring-track circle.ring-visible { stroke-width: 2.0; stroke: rgba(220, 228, 235, 0.30); }
 
 .clean-hud-mode .dial-tile {
-  min-width: 74px;
-  padding: 7px 9px 6px;
-  border-radius: 12px;
+  min-width: 58px;
+  padding: 5px 7px 4px;
+  border-radius: 9px;
   background:
     radial-gradient(circle at 25% 10%, rgba(255,255,255,0.16), transparent 34%),
     linear-gradient(180deg, rgba(68, 72, 80, 0.34) 0%, rgba(12, 14, 20, 0.54) 100%);
@@ -3016,9 +3016,9 @@ body {
   backdrop-filter: blur(18px) saturate(1.15);
   -webkit-backdrop-filter: blur(18px) saturate(1.15);
   box-shadow:
-    0 10px 28px rgba(0,0,0,0.26),
+    0 8px 22px rgba(0,0,0,0.26),
     inset 0 1px 0 rgba(255,255,255,0.14),
-    inset 0 -10px 28px rgba(0,0,0,0.22);
+    inset 0 -8px 22px rgba(0,0,0,0.22);
   transition:
     left var(--snap-duration, 850ms) var(--snap-easing, cubic-bezier(.16,.86,.26,1)),
     top var(--snap-duration, 850ms) var(--snap-easing, cubic-bezier(.16,.86,.26,1)),
@@ -3033,13 +3033,13 @@ body {
 }
 
 .clean-hud-mode .dial-tile .tile-label {
-  font-size: 7.5px;
-  letter-spacing: 1.15px;
+  font-size: 6.2px;
+  letter-spacing: 0.9px;
 }
 
 .clean-hud-mode .tile-logo {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   object-fit: cover;
   border-radius: 50%;
   filter: contrast(1.08) brightness(1.08) drop-shadow(0 0 6px var(--tile-color));
