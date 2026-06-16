@@ -11,6 +11,7 @@ import CyclopediaPanel from './CyclopediaPanel';
 import CouncilPanel from './CouncilPanel';
 import IntakePanel from './IntakePanel';
 import ArchiveBrowser from './ArchiveBrowser';
+import ProjectsPanel from './ProjectsPanel';
 
 export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose, onSelectProject }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -81,6 +82,7 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
     // Outer-ring operations.
     if (opName === 'archive')       return <ArchiveBrowser aiColor={aiColor} />;
     if (opName === 'explore')       return <IntakePanel aiColor={aiColor} />;
+    if (opName === 'projects')      return <ProjectsPanel aiColor={aiColor} />;
 
     const opData = {
       // Ring 2 - System

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -30,6 +31,7 @@ from routes.council import router as council_router
 from routes.hud_surfaces import router as hud_surfaces_router
 # YouTube / external knowledge intake → routed lesson + quiz
 from routes.intake import router as intake_router
+from routes.learning import router as learning_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -99,9 +101,37 @@ app.include_router(sandbox_router)  # Sandbox: save/replay, mastery curve, AI su
 app.include_router(council_router)  # Topic routing + tri-AI deliberation
 app.include_router(hud_surfaces_router)  # Memory feed, Manual, Settings
 app.include_router(intake_router)  # YouTube intake → routed lesson + quiz
+app.include_router(learning_router)  # Full learning pipeline (lessons/projects/mastery)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
+
+
+# --- Exports — let the architect download the AI architecture zip --------
+EXPORTS_DIR = Path("/app/exports")
+
+
+@app.get("/api/exports/atlas-ai-architecture.zip")
+async def download_architecture_zip():
+    """Serve the bundled AI architecture zip for download."""
+    path = EXPORTS_DIR / "atlas-ai-architecture.zip"
+    if not path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(404, "architecture zip not yet built")
+    return FileResponse(
+        path=str(path),
+        filename="atlas-ai-architecture.zip",
+        media_type="application/zip",
+    )
+
+
+@app.get("/api/exports/README.md")
+async def download_readme():
+    path = EXPORTS_DIR / "README.md"
+    if not path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(404, "readme not found")
+    return FileResponse(path=str(path), filename="atlas-architecture-README.md", media_type="text/markdown")
 
 # Wire ATLAS memory to MongoDB on startup so archive entries, conversations,
 # and audit events persist across restarts.

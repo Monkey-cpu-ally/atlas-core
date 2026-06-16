@@ -2799,6 +2799,166 @@ body {
   filter: drop-shadow(0 0 6px rgba(100, 200, 255, 0.35));
 }
 
+/* ============================================================
+   Learning pipeline UI — quiz taker, project cards, lesson body
+   ============================================================ */
+
+/* Lesson body — preserve markdown headings */
+.intake-lesson-body {
+  white-space: pre-wrap;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(220,230,245,0.88);
+  margin: 0;
+}
+.intake-pipe-meta {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgba(220,230,245,0.45);
+  margin-top: 8px;
+}
+
+/* Project cards */
+.project-card {
+  padding: 10px 12px;
+  background: rgba(14,22,38,0.55);
+  border: 1px solid rgba(140,180,230,0.15);
+  border-left: 3px solid;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  transition: background 0.15s ease;
+}
+.project-card.expanded { background: rgba(14,22,38,0.85); }
+.project-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.project-card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; font-weight: 600;
+  color: rgba(220,230,245,0.95);
+  flex: 1;
+}
+.project-card-summary {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220,230,245,0.7);
+  margin-top: 4px;
+}
+.project-status-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+.project-status-pill:hover { background: rgba(140,180,230,0.08); }
+.project-card-body {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(140,180,230,0.12);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.project-card-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+  color: rgba(220,230,245,0.5);
+  margin-bottom: 4px;
+}
+.project-card-list { padding-left: 16px; margin: 0; font-size: 11.5px; line-height: 1.5; color: rgba(220,230,245,0.78); }
+.project-card-list li { margin: 2px 0; }
+.project-card-meta {
+  font-size: 10px;
+  color: rgba(220,230,245,0.5);
+  border-top: 1px dashed rgba(140,180,230,0.08);
+  padding-top: 6px;
+}
+
+/* Quiz taker — inline modal-ish block inside the side panel */
+.quiz-modal {
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(8,14,26,0.92);
+  border: 1px solid rgba(140,180,230,0.22);
+  border-radius: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.quiz-modal-head {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.quiz-modal-head h3 {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  margin: 0;
+}
+.quiz-close {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(140,180,230,0.18);
+  background: transparent;
+  color: rgba(220,230,245,0.55);
+  cursor: pointer;
+}
+.quiz-close:hover { color: rgba(220,230,245,0.95); }
+.quiz-q { display: flex; flex-direction: column; gap: 4px; }
+.quiz-q-label {
+  font-size: 11.5px;
+  color: rgba(220,230,245,0.88);
+  font-weight: 500;
+}
+.quiz-result { display: flex; flex-direction: column; gap: 6px; }
+.quiz-score {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(14,22,38,0.75);
+  box-shadow: 0 0 18px -8px currentColor;
+}
+.quiz-score-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 26px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.quiz-score-rank {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.quiz-feedback {
+  padding: 8px 10px;
+  background: rgba(14,22,38,0.5);
+  border: 1px solid rgba(140,180,230,0.12);
+  border-radius: 6px;
+}
+.quiz-feedback-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.quiz-feedback-text {
+  font-size: 11.5px;
+  color: rgba(220,230,245,0.75);
+  font-style: italic;
+}
+
+
 /* Central core saturation bump — additive vignette behind the canvas */
 .core-canvas-wrap {
   filter: saturate(1.18) contrast(1.05);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Loader2, Youtube, ClipboardPaste } from 'lucide-react';
+import { Loader2, Youtube, ClipboardPaste, ClipboardCheck, Hammer } from 'lucide-react';
+import QuizTaker from './QuizTaker';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL;
 
@@ -19,6 +20,7 @@ export default function IntakePanel({ aiColor }) {
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [quizOpen, setQuizOpen] = useState(false);
 
   const run = async () => {
     setBusy(true); setError(null); setResult(null);
@@ -132,15 +134,57 @@ export default function IntakePanel({ aiColor }) {
               <span key={c} className="cyclo-chip" style={{ borderColor: result.display?.color }}>{c}</span>
             ))}
           </div>
-          {result.quiz?.length > 0 && (
-            <details className="bp-phase" style={{ marginTop: 8 }}>
-              <summary style={{ color: aiColor }}>Quick quiz · {result.quiz.length} questions</summary>
-              <ol className="bp-voice-body" style={{ paddingLeft: 18 }}>
-                {result.quiz.map((q, i) => <li key={i}>{q.question}</li>)}
-              </ol>
+
+          {/* Full LLM-generated lesson body (if pipeline ran) */}
+          {result.pipeline?.lesson?.lesson_text && (
+            <details className="bp-phase" data-testid="intake-lesson-full" open>
+              <summary style={{ color: aiColor }}>Full lesson · {result.pipeline.lesson.difficulty}</summary>
+              <pre className="bp-voice-body intake-lesson-body">{result.pipeline.lesson.lesson_text}</pre>
             </details>
           )}
+
+          {/* Auto-generated project card */}
+          {result.pipeline?.project && (
+            <details className="bp-phase" data-testid="intake-project-card" open>
+              <summary style={{ color: aiColor }}><Hammer size={11} /> Suggested project</summary>
+              <div className="bp-voice-body">
+                <strong>{result.pipeline.project.title}</strong>
+                <div style={{ marginTop: 4 }}>{result.pipeline.project.summary}</div>
+                {result.pipeline.project.steps?.length > 0 && (
+                  <ol className="project-card-list" style={{ marginTop: 6 }}>
+                    {result.pipeline.project.steps.slice(0, 4).map((s, i) => <li key={i}>{s}</li>)}
+                  </ol>
+                )}
+                <div className="intake-pipe-meta">Saved to PROJECTS tile · status: proposed</div>
+              </div>
+            </details>
+          )}
+
+          {result.quiz?.length > 0 && (
+            <div className="bp-actions" data-testid="intake-quiz-row">
+              <button
+                className="bp-btn primary"
+                onClick={() => setQuizOpen(true)}
+                style={{ borderColor: aiColor, color: aiColor }}
+                disabled={!result.pipeline?.lesson_id}
+                data-testid="intake-take-quiz"
+                title={result.pipeline?.lesson_id ? 'Take the quiz · grades into mastery' : 'Quiz requires the persisted lesson'}
+              >
+                <ClipboardCheck size={12} /> Take quiz · {result.quiz.length} Qs
+              </button>
+            </div>
+          )}
         </div>
+      )}
+
+      {quizOpen && result?.pipeline?.lesson_id && (
+        <QuizTaker
+          lessonId={result.pipeline.lesson_id}
+          quiz={result.quiz}
+          persona={result.assigned_to}
+          accent={result.display?.color || aiColor}
+          onClose={() => setQuizOpen(false)}
+        />
       )}
     </div>
   );

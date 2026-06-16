@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 from youtube_transcript_api import YouTubeTranscriptApi
 
 from routing.topic_router import AI_DISPLAY, route_topic
+from routes.learning import persist_pipeline
 
 logger = logging.getLogger("atlas.intake")
 
@@ -115,11 +116,23 @@ def _build_lesson(transcript: str, ai_owner: str) -> dict:
 
 
 def _build_quiz(lesson: dict) -> list[dict]:
-    concepts = lesson.get("key_concepts", [])[:5]
-    return [
-        {"question": f"What role does {c} play in this material?", "answer_type": "short_answer"}
-        for c in concepts
+    """Generate up to 10 short-answer questions from the lesson's key
+    concepts. Concept list is expanded by combining the original keyword
+    detector with the lesson's transcript-derived nouns when available."""
+    concepts = list(lesson.get("key_concepts", []))[:10]
+    # Pad to 10 questions with generic but useful prompts.
+    fillers = [
+        "Explain the underlying mechanism in your own words.",
+        "Where could this concept appear in everyday life?",
+        "What is one common misconception about this topic?",
+        "Describe a real-world experiment that could test this idea.",
+        "Who benefits most when this knowledge spreads?",
     ]
+    qs = [{"question": f"What role does {c} play in this material?", "answer_type": "short_answer"}
+          for c in concepts]
+    while len(qs) < 10:
+        qs.append({"question": fillers[(len(qs) - len(concepts)) % len(fillers)], "answer_type": "short_answer"})
+    return qs[:10]
 
 
 # ---------------------------------------------------------------------------
@@ -153,11 +166,26 @@ def _intake_from_transcript(transcript: str, topic: str, source_url: Optional[st
         "matched_keyword": kw,
         "display": AI_DISPLAY[ai_id],
         "transcript_preview": transcript[:1200],
+        "transcript_full": transcript,    # carried through to persist_pipeline
         "lesson": lesson,
         "quiz": quiz,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     return record
+
+
+async def _persist_full_pipeline(record: dict) -> dict:
+    """Run the full Atlas pipeline (knowledge → lesson → project) and
+    return the persisted IDs + generated artefacts."""
+    return await persist_pipeline(
+        topic=record["topic"],
+        source=record.get("url") or "pasted-transcript",
+        transcript=record.get("transcript_full") or record["transcript_preview"],
+        summary=record["lesson"].get("summary", ""),
+        persona=record["routed_to"],
+        quiz=record["quiz"],
+        title=record["topic"],
+    )
 
 
 @router.post("/youtube")
@@ -166,8 +194,11 @@ async def intake_youtube(req: VideoIntake):
     if not transcript:
         raise HTTPException(404, "transcript was empty")
     record = _intake_from_transcript(transcript, req.topic, req.url, req.persist)
+    pipeline = await _persist_full_pipeline(record) if req.persist else None
     if req.persist:
-        await archive_col.insert_one(record.copy())
+        # legacy `atlas_archive` row kept for the existing archive panel
+        record_for_archive = {k: v for k, v in record.items() if k != "transcript_full"}
+        await archive_col.insert_one(record_for_archive.copy())
     return {
         "topic": req.topic,
         "assigned_to": record["routed_to"],
@@ -176,6 +207,7 @@ async def intake_youtube(req: VideoIntake):
         "lesson": record["lesson"],
         "quiz": record["quiz"],
         "archive_id": record["id"] if req.persist else None,
+        "pipeline": pipeline,
     }
 
 
@@ -185,8 +217,10 @@ async def intake_transcript(req: TranscriptIntake):
     server IP (most cloud providers). Same downstream routing + lesson +
     quiz as /youtube; the architect just supplies the transcript."""
     record = _intake_from_transcript(req.transcript, req.topic, req.source_url, req.persist)
+    pipeline = await _persist_full_pipeline(record) if req.persist else None
     if req.persist:
-        await archive_col.insert_one(record.copy())
+        record_for_archive = {k: v for k, v in record.items() if k != "transcript_full"}
+        await archive_col.insert_one(record_for_archive.copy())
     return {
         "topic": req.topic,
         "assigned_to": record["routed_to"],
@@ -195,6 +229,7 @@ async def intake_transcript(req: TranscriptIntake):
         "lesson": record["lesson"],
         "quiz": record["quiz"],
         "archive_id": record["id"] if req.persist else None,
+        "pipeline": pipeline,
     }
 
 
