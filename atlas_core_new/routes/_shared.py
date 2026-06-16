@@ -1,16 +1,8 @@
-import os
-from openai import OpenAI
+from fastapi import Depends
 from atlas_core_new.db import SessionLocal
+from atlas_core_new.utils.openai_client import create_openai_client
 
-AI_INTEGRATIONS_OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
-AI_INTEGRATIONS_OPENAI_BASE_URL = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
-
-openai_client = None
-if AI_INTEGRATIONS_OPENAI_API_KEY and AI_INTEGRATIONS_OPENAI_BASE_URL:
-    openai_client = OpenAI(
-        api_key=AI_INTEGRATIONS_OPENAI_API_KEY,
-        base_url=AI_INTEGRATIONS_OPENAI_BASE_URL
-    )
+openai_client = create_openai_client()
 
 
 def get_openai_client():

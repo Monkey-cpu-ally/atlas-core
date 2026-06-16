@@ -1,0 +1,1 @@
+{"version":2,"build":{"env":{"DATABASE_URL":"postgresql://username:password@localhost/dbname","PORT":8000},"commands":["pip install -r requirements.txt","uvicorn main:app --host 0.0.0.0 --port $PORT"]},"deploy":{"type":"heroku","app":"your-heroku-app-name"}}

@@ -6,8 +6,7 @@ Trinity Counsel Mode: All three personas collaborate on a problem.
 
 from typing import Dict, List, Optional
 from dataclasses import dataclass
-import os
-from openai import OpenAI
+from atlas_core_new.utils.openai_client import create_openai_client
 
 
 @dataclass
@@ -78,9 +77,7 @@ class TrinityCounsel:
     """Orchestrates collaborative problem-solving between all three personas."""
     
     def __init__(self):
-        api_key = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
-        base_url = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
-        self.client = OpenAI(api_key=api_key, base_url=base_url) if api_key and base_url else None
+        self.client = create_openai_client()
 
     def consult(self, question: str, context: Optional[str] = None) -> Optional[TrinityCounselResult]:
         """Get perspectives from all three personas and synthesize."""

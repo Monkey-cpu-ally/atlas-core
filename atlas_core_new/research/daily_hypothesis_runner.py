@@ -1,8 +1,8 @@
-import os
 import json
 import logging
 from datetime import datetime
 from typing import Optional
+from atlas_core_new.utils.openai_client import create_openai_client
 
 logger = logging.getLogger("atlas.hypothesis_runner")
 
@@ -106,12 +106,7 @@ def get_db_session():
 
 
 def get_openai_client():
-    from openai import OpenAI
-    api_key = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
-    base_url = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
-    if not api_key or not base_url:
-        return None
-    return OpenAI(api_key=api_key, base_url=base_url)
+    return create_openai_client()
 
 
 def select_projects(db, persona: Optional[str] = None, max_per_persona: int = 3):

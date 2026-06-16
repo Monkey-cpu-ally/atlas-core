@@ -247,6 +247,7 @@
                             <option value="dashboard">Dashboard Panel</option>
                             <option value="hero">Hero Section</option>
                             <option value="3d-card">3D Card (Rotatable)</option>
+                            <option value="ai-hud">AI HUD (Interactive)</option>
                             <option value="layered">Layered Component</option>
                         </select>
                         <select id="designPersona" class="design-select">
@@ -336,6 +337,70 @@
                                     <button class="shape-btn" data-shape="diamond" onclick="selectShape('diamond')" title="Diamond">◆</button>
                                     <button class="shape-btn" data-shape="organic" onclick="selectShape('organic')" title="Organic">🫧</button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HUD Surface Backgrounds -->
+                    <div class="forge-dropdown">
+                        <div class="forge-dropdown-header" onclick="toggleForgeDropdown('hudbg')">
+                            <span>🧱 HUD Surface</span>
+                            <span class="forge-dropdown-arrow" id="hudbg-arrow">▼</span>
+                        </div>
+                        <div class="forge-dropdown-content" id="hudbg-content">
+                            <div class="skins-category">
+                                <small>Canvas Background</small>
+                                <div class="hudbg-grid">
+                                    <button class="hudbg-btn active" data-hudbg="offwhite" onclick="selectHudBackground('offwhite')" title="Off White"></button>
+                                    <button class="hudbg-btn" data-hudbg="slate" onclick="selectHudBackground('slate')" title="Slate"></button>
+                                    <button class="hudbg-btn" data-hudbg="graphite" onclick="selectHudBackground('graphite')" title="Graphite"></button>
+                                    <button class="hudbg-btn" data-hudbg="deep-space" onclick="selectHudBackground('deep-space')" title="Deep Space"></button>
+                                    <button class="hudbg-btn" data-hudbg="teal-lab" onclick="selectHudBackground('teal-lab')" title="Teal Lab"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HUD Motion Tuning -->
+                    <div class="forge-dropdown">
+                        <div class="forge-dropdown-header" onclick="toggleForgeDropdown('hudmotion')">
+                            <span>🌀 HUD Motion</span>
+                            <span class="forge-dropdown-arrow" id="hudmotion-arrow">▼</span>
+                        </div>
+                        <div class="forge-dropdown-content" id="hudmotion-content">
+                            <div class="hud-motion-row">
+                                <label>Motion Presets</label>
+                                <div class="hud-preset-row">
+                                    <button class="hud-preset-btn active" data-motion-preset="balanced" onclick="applyHudMotionPreset('balanced')">Balanced</button>
+                                    <button class="hud-preset-btn" data-motion-preset="subtle" onclick="applyHudMotionPreset('subtle')">Subtle</button>
+                                    <button class="hud-preset-btn" data-motion-preset="cinematic" onclick="applyHudMotionPreset('cinematic')">Cinematic</button>
+                                    <button class="hud-preset-btn" data-motion-preset="hyper" onclick="applyHudMotionPreset('hyper')">Hyper</button>
+                                </div>
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Style Presets</label>
+                                <div class="hud-preset-row">
+                                    <button class="hud-preset-btn" data-style-preset="atlas" onclick="applyHudStylePreset('atlas')">Atlas</button>
+                                    <button class="hud-preset-btn" data-style-preset="lacerta" onclick="applyHudStylePreset('lacerta')">Lacerta</button>
+                                    <button class="hud-preset-btn" data-style-preset="oblivion" onclick="applyHudStylePreset('oblivion')">Oblivion</button>
+                                    <button class="hud-preset-btn" data-style-preset="xeno" onclick="applyHudStylePreset('xeno')">Xeno</button>
+                                </div>
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Ring Snap <span id="hudSnapVal">7.5°</span></label>
+                                <input id="hudSnapRange" type="range" min="1" max="20" step="0.5" value="7.5" oninput="updateHudMotion('snapDeg', this.value)">
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Ring Speed <span id="hudRingSpeedVal">1.0×</span></label>
+                                <input id="hudRingSpeedRange" type="range" min="0" max="2.5" step="0.1" value="1" oninput="updateHudMotion('ringSpeed', this.value)">
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Center Float <span id="hudCenterAmpVal">7px</span></label>
+                                <input id="hudCenterAmpRange" type="range" min="0" max="18" step="1" value="7" oninput="updateHudMotion('centerAmp', this.value)">
+                            </div>
+                            <div class="hud-motion-row">
+                                <label>Center Speed <span id="hudCenterSpeedVal">1.0×</span></label>
+                                <input id="hudCenterSpeedRange" type="range" min="0.4" max="2.4" step="0.1" value="1" oninput="updateHudMotion('centerSpeed', this.value)">
                             </div>
                         </div>
                     </div>
@@ -5659,9 +5724,30 @@ Be concise. No fluff. Just the key concepts.`,
         let selectedColorScheme = 'dark';
         let selectedSkin = 'forge';
         let selectedShape = 'sharp';
+        let selectedHudBackground = 'offwhite';
         let selectedArtStyle = 'none';
         let hdQuality = false;
         let is3DEnabled = false;
+        const hudMotionSettings = {
+            snapDeg: 7.5,
+            ringSpeed: 1.0,
+            centerAmp: 7,
+            centerSpeed: 1.0
+        };
+        const HUD_MOTION_PRESETS = {
+            subtle: { snapDeg: 12, ringSpeed: 0.55, centerAmp: 3, centerSpeed: 0.7 },
+            balanced: { snapDeg: 7.5, ringSpeed: 1.0, centerAmp: 7, centerSpeed: 1.0 },
+            cinematic: { snapDeg: 5, ringSpeed: 1.4, centerAmp: 11, centerSpeed: 1.25 },
+            hyper: { snapDeg: 3, ringSpeed: 2.1, centerAmp: 15, centerSpeed: 1.9 }
+        };
+        const HUD_STYLE_PRESETS = {
+            atlas: { shape: 'sharp', scheme: 'ice', background: 'offwhite', skin: 'scifi' },
+            lacerta: { shape: 'rounded', scheme: 'sunset', background: 'offwhite', skin: 'biomimetic' },
+            oblivion: { shape: 'hexagon', scheme: 'teal', background: 'slate', skin: 'scifi' },
+            xeno: { shape: 'organic', scheme: 'purple', background: 'deep-space', skin: 'biomimetic' }
+        };
+        let hudAnimationFrame = null;
+        let hudCleanup = null;
 
         // Art Style Descriptions
         const artStyleDescriptions = {
@@ -5711,6 +5797,86 @@ Be concise. No fluff. Just the key concepts.`,
             document.querySelectorAll('.shape-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.shape === shape);
             });
+        }
+
+        function selectHudBackground(background) {
+            selectedHudBackground = background;
+            document.querySelectorAll('.hudbg-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.hudbg === background);
+            });
+        }
+
+        function updateHudMotion(key, value) {
+            const numeric = parseFloat(value);
+            hudMotionSettings[key] = Number.isFinite(numeric) ? numeric : hudMotionSettings[key];
+
+            const snapEl = document.getElementById('hudSnapVal');
+            const ringEl = document.getElementById('hudRingSpeedVal');
+            const ampEl = document.getElementById('hudCenterAmpVal');
+            const speedEl = document.getElementById('hudCenterSpeedVal');
+            if (snapEl) snapEl.textContent = `${hudMotionSettings.snapDeg.toFixed(1)}°`;
+            if (ringEl) ringEl.textContent = `${hudMotionSettings.ringSpeed.toFixed(1)}×`;
+            if (ampEl) ampEl.textContent = `${Math.round(hudMotionSettings.centerAmp)}px`;
+            if (speedEl) speedEl.textContent = `${hudMotionSettings.centerSpeed.toFixed(1)}×`;
+        }
+
+        function syncHudMotionSliders() {
+            const ranges = {
+                snapDeg: document.getElementById('hudSnapRange'),
+                ringSpeed: document.getElementById('hudRingSpeedRange'),
+                centerAmp: document.getElementById('hudCenterAmpRange'),
+                centerSpeed: document.getElementById('hudCenterSpeedRange')
+            };
+            Object.entries(ranges).forEach(([key, input]) => {
+                if (input) input.value = hudMotionSettings[key];
+            });
+            updateHudMotion('snapDeg', hudMotionSettings.snapDeg);
+        }
+
+        function applyHudMotionPreset(name) {
+            const preset = HUD_MOTION_PRESETS[name];
+            if (!preset) return;
+            Object.assign(hudMotionSettings, preset);
+            syncHudMotionSliders();
+            document.querySelectorAll('[data-motion-preset]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.motionPreset === name);
+            });
+        }
+
+        function applyHudStylePreset(name) {
+            const preset = HUD_STYLE_PRESETS[name];
+            if (!preset) return;
+
+            selectedSkin = preset.skin;
+            selectShape(preset.shape);
+            selectColorScheme(preset.scheme);
+            selectHudBackground(preset.background);
+            const templateSelect = document.getElementById('designTemplate');
+            if (templateSelect) templateSelect.value = 'ai-hud';
+            document.querySelectorAll('.skin-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.skin === preset.skin);
+            });
+            document.querySelectorAll('[data-style-preset]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.stylePreset === name);
+            });
+            rerenderCurrentHud();
+        }
+
+        function rerenderCurrentHud() {
+            const runtimeMount = document.getElementById('designRuntimeMount');
+            const liveHud = runtimeMount ? runtimeMount.querySelector('[data-atlas-hud="true"]') : null;
+            if (!liveHud) return;
+
+            const persona = document.getElementById('designPersona')?.value || 'hermes';
+            const userPrompt = document.getElementById('designPrompt')?.value?.trim() || DESIGN_TEMPLATES['ai-hud'];
+            const hudCode = buildHudDesignCode({
+                prompt: userPrompt,
+                persona,
+                scheme: selectedColorScheme,
+                shape: selectedShape,
+                background: selectedHudBackground
+            });
+            displayHudDesign(hudCode);
         }
 
         // Art Style Selection
@@ -7231,6 +7397,39 @@ Be concise. No fluff. Just the key concepts.`,
             document.querySelector(`[data-scheme="${scheme}"]`).classList.add('active');
         }
 
+        const HUD_BACKGROUNDS = {
+            offwhite: {
+                canvas: '#f4efe6',
+                panel: 'linear-gradient(145deg, #fcfaf5 0%, #e9e1d2 100%)',
+                frame: '#cbc0ae',
+                text: '#2a3442'
+            },
+            slate: {
+                canvas: '#d9e1e8',
+                panel: 'linear-gradient(145deg, #f4f7fb 0%, #c7d2de 100%)',
+                frame: '#9aa7b5',
+                text: '#223041'
+            },
+            graphite: {
+                canvas: '#1b2128',
+                panel: 'linear-gradient(145deg, #2b3340 0%, #171d25 100%)',
+                frame: '#4a5566',
+                text: '#dbe5f2'
+            },
+            'deep-space': {
+                canvas: '#070c15',
+                panel: 'linear-gradient(145deg, #151f33 0%, #080d16 100%)',
+                frame: '#30415f',
+                text: '#d3e2ff'
+            },
+            'teal-lab': {
+                canvas: '#d7ebe8',
+                panel: 'linear-gradient(145deg, #f4fffd 0%, #cce3df 100%)',
+                frame: '#81aaa3',
+                text: '#1f3d3d'
+            }
+        };
+
         const COLOR_SCHEMES = {
             // Solid
             dark: { bg: '#0a0a0f', primary: '#50ff88', secondary: '#1a1a2e' },
@@ -7263,6 +7462,383 @@ Be concise. No fluff. Just the key concepts.`,
             carbon: 'Add carbon fiber texture with dark woven pattern.'
         };
 
+        function hexToRgbaSafe(color, alpha) {
+            if (!color) return `rgba(80, 255, 136, ${alpha})`;
+            if (color.startsWith('rgba') || color.startsWith('rgb')) return color;
+            const normalized = color.replace('#', '');
+            const full = normalized.length === 3
+                ? normalized.split('').map(c => c + c).join('')
+                : normalized;
+            if (full.length !== 6) return `rgba(80, 255, 136, ${alpha})`;
+            const int = parseInt(full, 16);
+            const r = (int >> 16) & 255;
+            const g = (int >> 8) & 255;
+            const b = int & 255;
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function buildHudDesignCode({ prompt, persona, scheme, shape, background }) {
+            const palette = COLOR_SCHEMES[scheme] || COLOR_SCHEMES.dark;
+            const surface = HUD_BACKGROUNDS[background] || HUD_BACKGROUNDS.offwhite;
+            const accent = palette.primary || '#50ff88';
+            const accentSoft = hexToRgbaSafe(accent, 0.28);
+            const accentGlow = hexToRgbaSafe(accent, 0.45);
+            const title = (prompt || 'Atlas Core HUD').slice(0, 28).toUpperCase();
+            const personaLabel = (persona || 'hermes').toUpperCase();
+            const shapeClass = `hud-shape-${shape || 'sharp'}`;
+
+            return `
+<style>
+.atlas-hud-root {
+    --hud-canvas: ${surface.canvas};
+    --hud-panel: ${surface.panel};
+    --hud-frame: ${surface.frame};
+    --hud-text: ${surface.text};
+    --hud-accent: ${accent};
+    --hud-accent-soft: ${accentSoft};
+    --hud-accent-glow: ${accentGlow};
+    --hud-secondary: ${palette.secondary || '#1a1a2e'};
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at 25% 20%, rgba(255,255,255,0.65) 0%, transparent 40%),
+        radial-gradient(circle at 75% 80%, var(--hud-accent-soft) 0%, transparent 45%),
+        linear-gradient(145deg, var(--hud-canvas) 0%, color-mix(in srgb, var(--hud-canvas), #000 9%) 100%);
+    border: 1px solid color-mix(in srgb, var(--hud-frame), #000 15%);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+        0 20px 48px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255,255,255,0.45);
+}
+
+.atlas-hud-root .hud-shell {
+    width: 86%;
+    height: 86%;
+    position: relative;
+    transform-style: preserve-3d;
+    border: 1px solid color-mix(in srgb, var(--hud-frame), #fff 20%);
+    background: var(--hud-panel);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        inset 0 -24px 30px rgba(0,0,0,0.18),
+        0 16px 30px rgba(0,0,0,0.22);
+    overflow: hidden;
+}
+
+.atlas-hud-root .hud-shell::before {
+    content: "";
+    position: absolute;
+    inset: 6%;
+    border: 1px dashed color-mix(in srgb, var(--hud-accent), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.atlas-hud-root .hud-grid {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 23px, rgba(255,255,255,0.05) 23px 24px),
+      repeating-linear-gradient(90deg, transparent 0 23px, rgba(255,255,255,0.05) 23px 24px);
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+}
+
+.atlas-hud-root .hud-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    transform-style: preserve-3d;
+    cursor: grab;
+    transform: translate(-50%, -50%) translateZ(var(--z)) rotate(var(--ring-rot, 0deg));
+    transition: transform 120ms cubic-bezier(.2, .85, .28, 1.15);
+}
+
+.atlas-hud-root .hud-ring:active { cursor: grabbing; }
+
+.atlas-hud-root .hud-ring--outer {
+    --z: 10px;
+    width: 84%;
+    height: 84%;
+    border: 2px solid color-mix(in srgb, var(--hud-accent), #fff 18%);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--hud-accent), transparent 55%) inset,
+      0 0 22px var(--hud-accent-soft);
+}
+
+.atlas-hud-root .hud-ring--outer::before {
+    content: "";
+    position: absolute;
+    inset: 7%;
+    border-radius: 50%;
+    border: 2px dashed color-mix(in srgb, var(--hud-accent), transparent 56%);
+}
+
+.atlas-hud-root .hud-ring--mid {
+    --z: 16px;
+    width: 63%;
+    height: 63%;
+    border: 1px solid color-mix(in srgb, var(--hud-accent), #fff 10%);
+    background:
+      conic-gradient(from 40deg, transparent 0 18%, var(--hud-accent-soft) 18% 26%, transparent 26% 50%, var(--hud-accent-soft) 50% 58%, transparent 58% 100%);
+}
+
+.atlas-hud-root .hud-ring--inner {
+    --z: 20px;
+    width: 42%;
+    height: 42%;
+    border: 1px solid color-mix(in srgb, var(--hud-accent), #fff 24%);
+    background:
+      radial-gradient(circle at center, transparent 48%, color-mix(in srgb, var(--hud-accent), transparent 58%) 49% 52%, transparent 53%),
+      conic-gradient(from 0deg, color-mix(in srgb, var(--hud-accent), transparent 75%) 0 8%, transparent 8% 17%, color-mix(in srgb, var(--hud-accent), transparent 75%) 17% 22%, transparent 22% 100%);
+}
+
+.atlas-hud-root .hud-center {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+}
+
+.atlas-hud-root .hud-center-core {
+    width: 34%;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: translate3d(0,0,16px);
+    background:
+      radial-gradient(circle at 38% 34%, rgba(255,255,255,0.88) 0%, transparent 34%),
+      radial-gradient(circle at 70% 72%, color-mix(in srgb, var(--hud-accent), #000 24%) 0%, color-mix(in srgb, var(--hud-accent), transparent 35%) 42%, transparent 70%),
+      linear-gradient(145deg, color-mix(in srgb, var(--hud-secondary), #fff 10%), color-mix(in srgb, var(--hud-secondary), #000 18%));
+    border: 1px solid color-mix(in srgb, var(--hud-accent), transparent 40%);
+    box-shadow:
+      0 20px 30px rgba(0,0,0,0.3),
+      0 0 26px var(--hud-accent-soft),
+      inset 0 8px 16px rgba(255,255,255,0.35),
+      inset 0 -8px 18px rgba(0,0,0,0.35);
+}
+
+.atlas-hud-root .hud-center-core::before,
+.atlas-hud-root .hud-center-core::after {
+    content: "";
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--hud-accent), transparent 50%);
+}
+
+.atlas-hud-root .hud-center-core::after {
+    inset: 35%;
+    background: radial-gradient(circle at center, color-mix(in srgb, var(--hud-accent), #fff 20%) 0%, color-mix(in srgb, var(--hud-accent), transparent 65%) 55%, transparent 100%);
+    box-shadow: 0 0 20px var(--hud-accent-glow);
+}
+
+.atlas-hud-root .hud-center-label {
+    position: absolute;
+    bottom: -24%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--hud-text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.atlas-hud-root .hud-tag {
+    position: absolute;
+    top: 8%;
+    right: 7%;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--hud-text);
+    border: 1px solid color-mix(in srgb, var(--hud-accent), transparent 60%);
+    background: color-mix(in srgb, var(--hud-accent), transparent 88%);
+}
+
+.atlas-hud-root .hud-readout {
+    position: absolute;
+    left: 7%;
+    bottom: 8%;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--hud-text);
+    font-size: 10px;
+    line-height: 1.45;
+    opacity: 0.85;
+}
+
+.atlas-hud-root.hud-shape-sharp .hud-shell { border-radius: 8px; }
+.atlas-hud-root.hud-shape-rounded .hud-shell { border-radius: 24px; }
+.atlas-hud-root.hud-shape-pill .hud-shell { border-radius: 999px; }
+.atlas-hud-root.hud-shape-hexagon .hud-shell { border-radius: 0; clip-path: polygon(25% 5%, 75% 5%, 96% 50%, 75% 95%, 25% 95%, 4% 50%); }
+.atlas-hud-root.hud-shape-diamond .hud-shell { border-radius: 14px; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+.atlas-hud-root.hud-shape-organic .hud-shell { border-radius: 36% 64% 42% 58% / 48% 40% 60% 52%; }
+</style>
+<div class="atlas-hud-root layer-background ${shapeClass}" data-atlas-hud="true" data-hud-shape="${shape}">
+  <div class="hud-shell layer-container">
+    <div class="hud-grid layer-overlay"></div>
+    <div class="hud-ring hud-ring--outer layer-decorations" data-ring="outer"></div>
+    <div class="hud-ring hud-ring--mid layer-decorations" data-ring="mid"></div>
+    <div class="hud-ring hud-ring--inner layer-decorations" data-ring="inner"></div>
+    <div class="hud-center layer-content">
+      <div class="hud-center-core"></div>
+      <div class="hud-center-label">${title}</div>
+    </div>
+    <div class="hud-tag layer-header">${personaLabel}</div>
+    <div class="hud-readout layer-content">
+      MODE: ACTIVE<br/>
+      SHAPE: ${(shape || 'sharp').toUpperCase()}<br/>
+      BG: ${(background || 'offwhite').toUpperCase()}
+    </div>
+  </div>
+</div>`.trim();
+        }
+
+        function clearHudRuntime() {
+            if (hudCleanup) {
+                hudCleanup();
+                hudCleanup = null;
+            }
+            if (hudAnimationFrame) {
+                cancelAnimationFrame(hudAnimationFrame);
+                hudAnimationFrame = null;
+            }
+        }
+
+        function displayHudDesign(hudCode) {
+            clearHudRuntime();
+            const { placeholder, iframe, runtimeMount } = ensureDesignPreviewNodes();
+            const codeContent = document.getElementById('designCodeContent');
+
+            currentDesignCode = hudCode;
+            codeContent.textContent = hudCode;
+            placeholder.style.display = 'none';
+            iframe.style.display = 'none';
+            iframe.srcdoc = '';
+            runtimeMount.style.display = 'block';
+            runtimeMount.style.alignItems = '';
+            runtimeMount.style.justifyContent = '';
+            runtimeMount.innerHTML = hudCode;
+            document.getElementById('designAdjustments').style.display = 'block';
+            updateLayerPanel(hudCode);
+            initHudRuntime();
+        }
+
+        function initHudRuntime() {
+            clearHudRuntime();
+
+            const preview = document.getElementById('designPreview');
+            const root = preview.querySelector('.atlas-hud-root');
+            if (!root) return;
+
+            const shell = root.querySelector('.hud-shell');
+            const centerCore = root.querySelector('.hud-center-core');
+            const rings = {
+                outer: root.querySelector('[data-ring="outer"]'),
+                mid: root.querySelector('[data-ring="mid"]'),
+                inner: root.querySelector('[data-ring="inner"]')
+            };
+            const state = {
+                outer: 0,
+                mid: 18,
+                inner: -24,
+                drag: null,
+                lastTs: performance.now()
+            };
+            const setRing = (name, angle) => {
+                const ringSnap = Math.max(0.5, hudMotionSettings.snapDeg || 7.5);
+                const snapped = Math.round(angle / ringSnap) * ringSnap;
+                state[name] = snapped;
+                if (rings[name]) {
+                    rings[name].style.setProperty('--ring-rot', `${snapped}deg`);
+                }
+            };
+
+            const pointerAngle = (event, el) => {
+                const rect = el.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                return Math.atan2(event.clientY - cy, event.clientX - cx) * 180 / Math.PI;
+            };
+
+            Object.entries(rings).forEach(([name, ring]) => {
+                if (!ring) return;
+                const onPointerDown = (event) => {
+                    event.preventDefault();
+                    state.drag = {
+                        name,
+                        basePointer: pointerAngle(event, shell),
+                        baseRotation: state[name]
+                    };
+                    ring.setPointerCapture?.(event.pointerId);
+                };
+                ring.addEventListener('pointerdown', onPointerDown);
+                ring._onPointerDown = onPointerDown;
+            });
+
+            const onPointerMove = (event) => {
+                if (!state.drag || !shell) return;
+                const nowAngle = pointerAngle(event, shell);
+                const delta = nowAngle - state.drag.basePointer;
+                setRing(state.drag.name, state.drag.baseRotation + delta);
+            };
+
+            const onPointerUp = () => {
+                state.drag = null;
+            };
+
+            window.addEventListener('pointermove', onPointerMove);
+            window.addEventListener('pointerup', onPointerUp);
+
+            const animateHud = (ts) => {
+                const dt = Math.min((ts - state.lastTs) / 16.67, 3);
+                state.lastTs = ts;
+                const ringSpeed = Math.max(0, hudMotionSettings.ringSpeed || 1);
+
+                if (!state.drag) {
+                    setRing('outer', state.outer + 0.14 * ringSpeed * dt);
+                    setRing('mid', state.mid - 0.22 * ringSpeed * dt);
+                    setRing('inner', state.inner + 0.32 * ringSpeed * dt);
+                }
+
+                if (centerCore) {
+                    const centerAmp = Math.max(0, hudMotionSettings.centerAmp || 7);
+                    const centerSpeed = Math.max(0.2, hudMotionSettings.centerSpeed || 1);
+                    const t = ts * 0.001 * centerSpeed;
+                    const x = Math.sin(t * 1.2) * centerAmp;
+                    const y = Math.cos(t * 1.5) * Math.max(0, centerAmp - 2);
+                    const tiltX = Math.sin(t * 1.7) * (5 + centerAmp * 0.4);
+                    const tiltY = Math.cos(t * 1.1) * (7 + centerAmp * 0.4);
+                    centerCore.style.transform = `translate3d(${x}px, ${y}px, 16px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                }
+                hudAnimationFrame = requestAnimationFrame(animateHud);
+            };
+
+            hudAnimationFrame = requestAnimationFrame(animateHud);
+
+            hudCleanup = () => {
+                Object.values(rings).forEach((ring) => {
+                    if (ring && ring._onPointerDown) {
+                        ring.removeEventListener('pointerdown', ring._onPointerDown);
+                        delete ring._onPointerDown;
+                    }
+                });
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+            };
+        }
+
         // 3D Rotation
         function toggle3DRotation() {
             is3DEnabled = !is3DEnabled;
@@ -7283,12 +7859,15 @@ Be concise. No fluff. Just the key concepts.`,
         }
 
         function updateRotation() {
-            const x = document.getElementById('rotateX').value;
-            const y = document.getElementById('rotateY').value;
-            document.getElementById('rotationLabel').textContent = `X: ${x}° Y: ${y}°`;
+            const x = parseFloat(document.getElementById('rotateX').value);
+            const y = parseFloat(document.getElementById('rotateY').value);
+            const snapStep = 2.5;
+            const snapX = Math.round(x / snapStep) * snapStep;
+            const snapY = Math.round(y / snapStep) * snapStep;
+            document.getElementById('rotationLabel').textContent = `X: ${snapX}° Y: ${snapY}°`;
             
             const preview = document.getElementById('designPreview');
-            preview.style.transform = `rotateX(${x}deg) rotateY(${y}deg)`;
+            preview.style.transform = `rotateX(${snapX}deg) rotateY(${snapY}deg)`;
         }
 
         // Layer Panel
@@ -7392,7 +7971,8 @@ Be concise. No fluff. Just the key concepts.`,
 
         function updateIframeLayerVisibility() {
             const iframe = document.getElementById('designIframe');
-            if (!iframe || !iframe.contentDocument) return;
+            const preview = document.getElementById('designPreview');
+            if (!preview) return;
             
             const layerItems = document.querySelectorAll('.layer-item');
             layerItems.forEach((item, index) => {
@@ -7401,8 +7981,10 @@ Be concise. No fluff. Just the key concepts.`,
                 const isVisible = checkbox.checked;
                 
                 try {
-                    const iframeDoc = iframe.contentDocument;
-                    const elements = iframeDoc.querySelectorAll(`.${layerClass}`);
+                    const usingIframe = !!iframe && iframe.style.display !== 'none' && !!iframe.contentDocument;
+                    const elements = usingIframe
+                        ? iframe.contentDocument.querySelectorAll(`.${layerClass}`)
+                        : preview.querySelectorAll(`.${layerClass}`);
                     elements.forEach(el => {
                         el.style.opacity = isVisible ? '1' : '0';
                         el.style.transition = 'opacity 0.3s ease';
@@ -7692,18 +8274,8 @@ Be concise. No fluff. Just the key concepts.`,
             }
             
             const screens = screensInput.split(',').map(s => s.trim()).filter(s => s);
-            const preview = document.getElementById('designPreview');
-            const placeholder = document.getElementById('previewPlaceholder');
-            const iframe = document.getElementById('designIframe');
-            
-            placeholder.style.display = 'none';
-            iframe.style.display = 'none';
-            preview.innerHTML = `
-                <div class="design-loading">
-                    <div class="design-loading-spinner"></div>
-                    <span>Building prototype...</span>
-                </div>
-            `;
+            const { placeholder, runtimeMount } = ensureDesignPreviewNodes();
+            showDesignLoading('Building prototype...');
             
             try {
                 const response = await fetch('/magician/prototype', {
@@ -7718,12 +8290,14 @@ Be concise. No fluff. Just the key concepts.`,
                     document.getElementById('refinementTools').style.display = 'block';
                 } else {
                     placeholder.style.display = 'block';
-                    preview.querySelector('.design-loading')?.remove();
+                    runtimeMount.style.display = 'none';
+                    runtimeMount.innerHTML = '';
                     alert('Error: ' + (data.error || 'Failed to create prototype'));
                 }
             } catch (err) {
                 placeholder.style.display = 'block';
-                preview.querySelector('.design-loading')?.remove();
+                runtimeMount.style.display = 'none';
+                runtimeMount.innerHTML = '';
                 alert('Connection error');
             }
         }
@@ -7744,18 +8318,7 @@ Be concise. No fluff. Just the key concepts.`,
                 bigger: 'Increase the size and padding of elements'
             };
 
-            const preview = document.getElementById('designPreview');
-            const placeholder = document.getElementById('previewPlaceholder');
-            const iframe = document.getElementById('designIframe');
-            
-            placeholder.style.display = 'none';
-            iframe.style.display = 'none';
-            preview.innerHTML = `
-                <div class="design-loading">
-                    <div class="design-loading-spinner"></div>
-                    <span>Refining...</span>
-                </div>
-            `;
+            showDesignLoading('Refining...');
 
             try {
                 const response = await fetch('/design/refine', {
@@ -7782,8 +8345,56 @@ Be concise. No fluff. Just the key concepts.`,
             nav: 'Create a horizontal navigation bar with logo area, menu links, and action buttons.',
             form: 'Create a form with text input, email input, password input, and submit button. Styled labels.',
             dashboard: 'Create a dashboard panel with 4 stat cards showing numbers and icons.',
-            hero: 'Create a hero section with large heading, subtext, and call-to-action button.'
+            hero: 'Create a hero section with large heading, subtext, and call-to-action button.',
+            'ai-hud': 'Create an interactive sci-fi AI HUD with concentric rings, a dynamic center core, and layered depth.'
         };
+
+        function ensureDesignPreviewNodes() {
+            const preview = document.getElementById('designPreview');
+            let placeholder = document.getElementById('previewPlaceholder');
+            if (!placeholder) {
+                placeholder = document.createElement('div');
+                placeholder.className = 'preview-placeholder';
+                placeholder.id = 'previewPlaceholder';
+                placeholder.innerHTML = '<span style="font-size: 3rem;">🎨</span><p>Your design will appear here</p>';
+                preview.appendChild(placeholder);
+            }
+
+            let iframe = document.getElementById('designIframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'designIframe';
+                iframe.sandbox = 'allow-same-origin';
+                iframe.style.cssText = 'display:none;width:100%;height:280px;border:none;background:#0a0a0f;';
+                preview.appendChild(iframe);
+            }
+
+            let runtimeMount = document.getElementById('designRuntimeMount');
+            if (!runtimeMount) {
+                runtimeMount = document.createElement('div');
+                runtimeMount.id = 'designRuntimeMount';
+                runtimeMount.style.width = '100%';
+                runtimeMount.style.display = 'none';
+                preview.appendChild(runtimeMount);
+            }
+
+            return { preview, placeholder, iframe, runtimeMount };
+        }
+
+        function showDesignLoading(message) {
+            const { placeholder, iframe, runtimeMount } = ensureDesignPreviewNodes();
+            placeholder.style.display = 'none';
+            iframe.style.display = 'none';
+            runtimeMount.style.display = 'flex';
+            runtimeMount.style.alignItems = 'center';
+            runtimeMount.style.justifyContent = 'center';
+            runtimeMount.innerHTML = `
+                <div class="design-loading">
+                    <div class="design-loading-spinner"></div>
+                    <span>${message}</span>
+                </div>
+            `;
+        }
 
         const PERSONA_DESIGN_STYLES = {
             ajani: {
@@ -7804,29 +8415,25 @@ Be concise. No fluff. Just the key concepts.`,
             const template = document.getElementById('designTemplate').value;
             const persona = document.getElementById('designPersona').value;
             const userPrompt = document.getElementById('designPrompt').value.trim();
-            const preview = document.getElementById('designPreview');
-            const placeholder = document.getElementById('previewPlaceholder');
-            const iframe = document.getElementById('designIframe');
+            const { placeholder, runtimeMount } = ensureDesignPreviewNodes();
             
             if (!userPrompt && template === 'custom') {
                 alert('Please describe what you want to design');
                 return;
             }
 
-            const cacheKey = `${template}-${persona}-${userPrompt}-${selectedTexture}-${selectedColorScheme}-${selectedSkin}-${selectedShape}-${hdQuality}`;
+            const cacheKey = `${template}-${persona}-${userPrompt}-${selectedTexture}-${selectedColorScheme}-${selectedSkin}-${selectedShape}-${selectedHudBackground}-${hdQuality}`;
             if (designCache.has(cacheKey)) {
-                displayDesign(designCache.get(cacheKey));
+                const cached = designCache.get(cacheKey);
+                if (template === 'ai-hud') {
+                    displayHudDesign(cached);
+                } else {
+                    displayDesign(cached);
+                }
                 return;
             }
 
-            placeholder.style.display = 'none';
-            iframe.style.display = 'none';
-            preview.innerHTML = `
-                <div class="design-loading">
-                    <div class="design-loading-spinner"></div>
-                    <span>Forging ${hdQuality ? 'HD ' : ''}design...</span>
-                </div>
-            `;
+            showDesignLoading(`Forging ${hdQuality ? 'HD ' : ''}design...`);
 
             const basePrompt = template !== 'custom' ? DESIGN_TEMPLATES[template] : '';
             const styleGuide = PERSONA_DESIGN_STYLES[persona];
@@ -7878,6 +8485,20 @@ Be concise. No fluff. Just the key concepts.`,
                 enhancedPrompt += ' Use the reference image as inspiration for the layout and style.';
             }
 
+            if (template === 'ai-hud') {
+                const hudCode = buildHudDesignCode({
+                    prompt: enhancedPrompt,
+                    persona: persona,
+                    scheme: selectedColorScheme,
+                    shape: selectedShape,
+                    background: selectedHudBackground
+                });
+                designCache.set(cacheKey, hudCode);
+                displayHudDesign(hudCode);
+                document.getElementById('refinementTools').style.display = 'block';
+                return;
+            }
+
             try {
                 const response = await fetch('/design/generate', {
                     method: 'POST',
@@ -7901,19 +8522,21 @@ Be concise. No fluff. Just the key concepts.`,
                     document.getElementById('refinementTools').style.display = 'block';
                 } else {
                     placeholder.style.display = 'block';
-                    preview.querySelector('.design-loading')?.remove();
+                    runtimeMount.style.display = 'none';
+                    runtimeMount.innerHTML = '';
                     alert('Error: ' + (data.error || 'Failed to generate'));
                 }
             } catch (err) {
                 placeholder.style.display = 'block';
-                preview.querySelector('.design-loading')?.remove();
+                runtimeMount.style.display = 'none';
+                runtimeMount.innerHTML = '';
                 alert('Connection error');
             }
         }
 
         function displayDesign(html) {
-            const placeholder = document.getElementById('previewPlaceholder');
-            const iframe = document.getElementById('designIframe');
+            clearHudRuntime();
+            const { placeholder, iframe, runtimeMount } = ensureDesignPreviewNodes();
             const codeContent = document.getElementById('designCodeContent');
             
             currentDesignCode = html;
@@ -7921,6 +8544,8 @@ Be concise. No fluff. Just the key concepts.`,
             
             // Use sandboxed iframe for security - prevents script execution
             placeholder.style.display = 'none';
+            runtimeMount.style.display = 'none';
+            runtimeMount.innerHTML = '';
             iframe.style.display = 'block';
             
             // Create safe HTML document for iframe
@@ -7951,12 +8576,14 @@ body {
         }
 
         function clearDesign() {
-            const placeholder = document.getElementById('previewPlaceholder');
-            const iframe = document.getElementById('designIframe');
+            clearHudRuntime();
+            const { placeholder, iframe, runtimeMount } = ensureDesignPreviewNodes();
             
             placeholder.style.display = 'block';
             iframe.style.display = 'none';
             iframe.srcdoc = '';
+            runtimeMount.style.display = 'none';
+            runtimeMount.innerHTML = '';
             
             document.getElementById('designPrompt').value = '';
             document.getElementById('designCode').style.display = 'none';
@@ -8029,7 +8656,11 @@ body {
         function loadSavedDesign(index) {
             const design = savedDesigns[index];
             if (design) {
-                displayDesign(design.html);
+                if (design.html && design.html.includes('data-atlas-hud="true"')) {
+                    displayHudDesign(design.html);
+                } else {
+                    displayDesign(design.html);
+                }
             }
         }
 
@@ -8044,19 +8675,41 @@ body {
             document.getElementById('adjBorderRadiusVal').textContent = borderRadius + 'px';
             document.getElementById('adjPaddingVal').textContent = padding + 'px';
             document.getElementById('adjShadowVal').textContent = shadow;
-            
-            const firstChild = preview.firstElementChild;
-            if (firstChild && !firstChild.classList.contains('preview-placeholder')) {
-                firstChild.style.setProperty('--adj-primary', primaryColor);
-                firstChild.style.setProperty('--adj-bg', bgColor);
-                firstChild.style.borderRadius = borderRadius + 'px';
-                firstChild.style.padding = padding + 'px';
-                firstChild.style.boxShadow = `0 ${shadow/2}px ${shadow}px rgba(0,0,0,0.5)`;
+
+            const runtimeMount = document.getElementById('designRuntimeMount');
+            const hudRoot = runtimeMount ? runtimeMount.querySelector('.atlas-hud-root') : null;
+            if (hudRoot) {
+                hudRoot.style.setProperty('--hud-accent', primaryColor);
+                hudRoot.style.setProperty('--hud-canvas', bgColor);
+                const shell = hudRoot.querySelector('.hud-shell');
+                if (shell) {
+                    shell.style.borderRadius = borderRadius + 'px';
+                    shell.style.padding = padding + 'px';
+                    shell.style.boxShadow = `0 ${shadow / 2}px ${shadow}px rgba(0,0,0,0.45)`;
+                }
+                return;
+            }
+
+            const iframe = document.getElementById('designIframe');
+            if (iframe && iframe.style.display !== 'none' && iframe.contentDocument) {
+                const iframeDoc = iframe.contentDocument;
+                if (iframeDoc.body) {
+                    iframeDoc.body.style.background = bgColor;
+                }
+                const firstChild = iframeDoc.body ? iframeDoc.body.firstElementChild : null;
+                if (firstChild) {
+                    firstChild.style.setProperty('--adj-primary', primaryColor);
+                    firstChild.style.setProperty('--adj-bg', bgColor);
+                    firstChild.style.borderRadius = borderRadius + 'px';
+                    firstChild.style.padding = padding + 'px';
+                    firstChild.style.boxShadow = `0 ${shadow/2}px ${shadow}px rgba(0,0,0,0.5)`;
+                }
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             renderSavedDesigns();
+            applyHudMotionPreset('balanced');
         });
 
         // ===== INCOGNITO MODE =====
