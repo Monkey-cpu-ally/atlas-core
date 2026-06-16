@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * DialRing — slow luxury drag ring.
+ * DialRing — drag-rotate ring with snap-to-tile.
  *
- * ATLAS rings are not free-spinning wheels. They are home-anchored rings:
- * - drag slowly with weighted resistance
- * - select the nearest tile during the gesture
- * - release returns the ring to its original/home alignment
- *
- * This keeps the HUD organized while still letting the rings feel tactile.
+ * The ring rotates as you drag with weighted resistance. On release it
+ * snaps to the angle that places the nearest tile at the top (12 o'clock)
+ * AND selects that tile. The rotation persists — the ring doesn't snap
+ * back home. Selecting a different tile elsewhere also rotates the ring
+ * to put it on top.
  */
 export default function DialRing({
   items,
@@ -27,10 +26,21 @@ export default function DialRing({
 
   const dragRef = useRef({ active: false, startAngle: 0, startRot: 0, total: 0 });
 
-  // Rings always live at home when not being touched.
+  // When `selectedId` changes (e.g. from a click), rotate the ring so the
+  // selected tile sits at the top. We do this off the drag-end path so
+  // external selections (voice, etc.) also align.
   useEffect(() => {
-    if (!isDragging) setRotation(0);
-  }, [selectedId, isDragging]);
+    if (isDragging || !selectedId) return;
+    const it = items.find((i) => i.id === selectedId);
+    if (!it) return;
+    // We want effective angle (it.angle + rotation) ≡ -90 (top).
+    let target = -90 - it.angle;
+    // Normalise to nearest multiple of 360 relative to current.
+    const cur = rotationRef.current;
+    while (target - cur > 180) target -= 360;
+    while (cur - target > 180) target += 360;
+    setRotation(target);
+  }, [selectedId, items, isDragging]);
 
   const pointerAngle = useCallback((clientX, clientY) => {
     const rect = containerRef.current.getBoundingClientRect();
@@ -47,11 +57,10 @@ export default function DialRing({
       let delta = a - st.startAngle;
       delta = ((delta + 540) % 360) - 180;
 
-      // Weighted resistance: rings move, but never feel loose or fast.
-      const weightedDelta = delta * 0.42;
-      st.total = Math.max(st.total, Math.abs(weightedDelta));
+      // 1:1 rotation so dragging feels direct (not weighted/sluggish).
+      st.total = Math.max(st.total, Math.abs(delta));
       if (st.total > 3) setIsDragging(true);
-      setRotation(st.startRot + weightedDelta);
+      setRotation(st.startRot + delta);
     };
 
     const onUp = () => {
@@ -64,6 +73,7 @@ export default function DialRing({
       window.removeEventListener('pointerup', onUp);
 
       if (dragged) {
+        // Find the tile closest to the top (12 o'clock = -90°).
         let best = null;
         let bestDist = Infinity;
         for (const it of items) {
@@ -71,16 +81,18 @@ export default function DialRing({
           const d = Math.abs(((eff + 90 + 540) % 360) - 180);
           if (d < bestDist) { bestDist = d; best = it; }
         }
-        if (best && bestDist < slotAngle / 2 + 8) {
+        if (best) {
+          // Snap the ring so the chosen tile lands exactly at the top,
+          // taking the shortest rotational path from the current angle.
+          let target = -90 - best.angle;
+          while (target - releaseRotation > 180) target -= 360;
+          while (releaseRotation - target > 180) target += 360;
+          setRotation(target);
           setTimeout(() => onSelect && onSelect(best, 'drag-release'), 0);
         }
-
-        // Snap back home after the selection. This is intentional.
-        requestAnimationFrame(() => setRotation(0));
-        setTimeout(() => setIsDragging(false), 420);
+        setTimeout(() => setIsDragging(false), 380);
       } else {
         setIsDragging(false);
-        setRotation(0);
       }
     };
 
@@ -90,7 +102,7 @@ export default function DialRing({
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [items, slotAngle, selectedId, onSelect, pointerAngle, rotation]);
+  }, [items, slotAngle, selectedId, onSelect, pointerAngle]);
 
   const onPointerDown = (e) => {
     if (!containerRef.current) return;
@@ -98,7 +110,7 @@ export default function DialRing({
     const a = pointerAngle(e.clientX, e.clientY);
     dragRef.current.active = true;
     dragRef.current.startAngle = a;
-    dragRef.current.startRot = rotation;
+    dragRef.current.startRot = rotationRef.current;
     dragRef.current.total = 0;
     setIsDragging(false);
     window.addEventListener('pointermove', dragRef.current._onMove);
@@ -107,7 +119,6 @@ export default function DialRing({
 
   const handleTileClick = (item, e) => {
     if (isDragging) { e.preventDefault(); return; }
-    setRotation(0);
     onSelect && onSelect(item, 'click');
   };
 
