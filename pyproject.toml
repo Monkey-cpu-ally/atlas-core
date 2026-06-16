@@ -16,3 +16,6 @@ dependencies = [
     "feedparser",
     "httpx",
 ]
+
+[tool.setuptools.packages.find]
+include = ["atlas_core_new*", "umojaforge*", "doctrine*", "uws_workshop*", "pre_reality_engine*", "game*"]
