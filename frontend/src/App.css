@@ -3189,3 +3189,36 @@ body {
   .clean-hud-mode .dial-tile .tile-label { font-size: 6.4px; }
   .clean-hud-mode .tile-logo { width: 17px; height: 17px; }
 }
+
+/* --- Sound toggle (luxury HUD) -----------------------------------------
+   Tiny glass chip in the top-right. Matches the .ai-face-card aesthetic
+   so it feels native to the luxury HUD instead of bolted on. */
+.atlas-sound-toggle {
+  position: fixed;
+  top: 22px; right: 24px;
+  z-index: 50;
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 232, 220, 0.18);
+  background: rgba(14, 14, 18, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: rgba(244, 239, 228, 0.78);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 0 0 0 transparent, 0 6px 18px -8px rgba(0, 0, 0, 0.6);
+}
+.atlas-sound-toggle:hover {
+  color: rgba(244, 239, 228, 0.98);
+  border-color: rgba(240, 232, 220, 0.32);
+  box-shadow: 0 0 12px -2px rgba(240, 232, 220, 0.22), 0 6px 18px -8px rgba(0, 0, 0, 0.6);
+}
+.atlas-sound-toggle.off {
+  color: rgba(244, 239, 228, 0.4);
+  border-color: rgba(244, 239, 228, 0.1);
+}
+.atlas-sound-toggle.off:hover {
+  color: rgba(244, 239, 228, 0.7);
+}
+

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 import AtlasCore from './HUD/AtlasCore';
 import DialRing from './HUD/DialRing';
 import GhostRings from './HUD/GhostRings';
@@ -75,8 +76,8 @@ export default function HUDInterface() {
   const [selectedOuter, setSelectedOuter] = useState(null);
   const [panelContent, setPanelContent] = useState(null);
   const [coreTapPulse, setCoreTapPulse] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const soundEnabled = true;
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
   const audioReactive = useAudioReactive();
 
@@ -199,6 +200,17 @@ export default function HUDInterface() {
       <div className="atlas-startup-mark" aria-hidden="true">
         <img src={councilLogo} alt="" />
       </div>
+
+      <button
+        type="button"
+        className={`atlas-sound-toggle ${soundEnabled ? 'on' : 'off'}`}
+        onClick={() => setSoundEnabled((s) => !s)}
+        title={soundEnabled ? 'Mute HUD chimes' : 'Enable HUD chimes'}
+        aria-label={soundEnabled ? 'Mute HUD chimes' : 'Enable HUD chimes'}
+        data-testid="sound-toggle"
+      >
+        {soundEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
+      </button>
     </div>
   );
 }
