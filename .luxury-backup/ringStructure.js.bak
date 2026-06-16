@@ -13,25 +13,22 @@
 // Positive = clockwise.
 
 import {
+  // Inner ring (AIs)
+  User, Brain, Zap, Users,
   // Middle ring — operating system shell
   Book, BookMarked, Database, Settings, Layout,
   // Outer ring — knowledge / exploration
   BookOpen, FlaskConical, FolderOpen, FileCode, Archive, Compass,
 } from 'lucide-react';
 
-import ajaniLogo from '../assets/logos/ajani-logo.jpg';
-import minervaLogo from '../assets/logos/minerva-logo.jpg';
-import hermesLogo from '../assets/logos/hermes-logo.jpg';
-import councilLogo from '../assets/logos/atlas-council-logo.jpg';
-
 // --- Inner Orbit (4 AIs at compass cardinals) ---
 export const INNER_RING = {
   slotAngle: 90,
   items: [
-    { angle: -90, id: 'ajani',   label: 'AJANI',   logo: ajaniLogo,   color: '#F03246', type: 'ai' },
-    { angle:   0, id: 'minerva', label: 'MINERVA', logo: minervaLogo, color: '#28C8BE', type: 'ai' },
-    { angle:  90, id: 'hermes',  label: 'HERMES',  logo: hermesLogo,  color: '#F4EFE4', type: 'ai' },
-    { angle: 180, id: 'trinity', label: 'COUNCIL', logo: councilLogo, color: '#A878E6', type: 'ai' },
+    { angle: -90, id: 'ajani',   label: 'AJANI',   icon: User,  color: '#F03246', type: 'ai' },
+    { angle:   0, id: 'minerva', label: 'MINERVA', icon: Brain, color: '#28C8BE', type: 'ai' },
+    { angle:  90, id: 'hermes',  label: 'HERMES',  icon: Zap,   color: '#E0E0EA', type: 'ai' },
+    { angle: 180, id: 'trinity', label: 'COUNCIL', icon: Users, color: '#A878E6', type: 'ai' },
   ],
 };
 

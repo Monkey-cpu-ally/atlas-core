@@ -27,8 +27,8 @@ export const AI_PERSONAS = {
   },
   minerva: {
     name: 'Minerva',
-    title: 'Nature / Growth / Wisdom',
-    domain: 'Bio-Genesis / Living Systems',
+    title: 'Culture / Memory / Creativity',
+    domain: 'Bio-Genesis',
     color: '#20B2AA',
     coreBelief: 'Life is information that learned how to feel.',
     hardRule: 'No irreversible harm in the name of optimization. Period.',
@@ -50,9 +50,9 @@ export const AI_PERSONAS = {
   },
   hermes: {
     name: 'Hermes',
-    title: 'Knowledge / Communication / Exploration',
-    domain: 'Knowledge Streams / Systems Architecture',
-    color: '#F4EFE4',
+    title: 'Guardian / Logic / Safety',
+    domain: 'Nano-Synthesis',
+    color: '#C0C0C0',
     coreBelief: 'The smallest things decide the largest outcomes.',
     hardRule: 'Never design nanobots capable of self-replication. Ever.',
     pulseStyle: 'precise',
