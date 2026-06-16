@@ -24,8 +24,9 @@ uvicorn atlas_core_new.main:app --host 0.0.0.0 --port 8000 --reload
 - **PostgreSQL required**: The app needs a running PostgreSQL instance. The `DATABASE_URL` env var must be set. Without it, `SessionLocal` is `None` and DB-backed endpoints return fallback responses, but the app still starts.
 - **No test suite**: There are no automated tests in the repository.
 - **Lint**: No lint config is bundled. Use `ruff check atlas_core_new/` for quick linting. Critical-only: `ruff check atlas_core_new/ --select E9,F63,F7,F82`.
-- **PostgreSQL startup**: Run `sudo pg_ctlcluster 16 main start` before starting the app.
+- **PostgreSQL must be running before server start**: `design_engine/api.py` connects eagerly at import time. If PostgreSQL isn't up, the server crashes with `psycopg2.OperationalError`. Run `sudo pg_ctlcluster 16 main start` first.
 - **PATH**: `pip install --user` puts binaries in `~/.local/bin`, which may not be on PATH. Export it: `export PATH="$HOME/.local/bin:$PATH"`.
+- **PRISM-7 engine**: Available at `/prism7/process` (POST). No API key needed — uses internal heuristics. See `atlas_core_new/prism7/engine.py`.
 
 ### Known limitations
 
