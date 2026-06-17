@@ -35,6 +35,7 @@ from routes.learning import router as learning_router
 from routes.llm import router as llm_router
 from routes.memory import router as memory_router
 from routes.research import router as research_router
+from routes.twins import router as twins_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -108,6 +109,7 @@ app.include_router(learning_router)  # Full learning pipeline (lessons/projects/
 app.include_router(llm_router)  # Phase 1: multi-provider LLM (emergent + ollama + lmstudio)
 app.include_router(memory_router)  # Phase 2: memory bank + vector search + graph triples
 app.include_router(research_router)  # Phase 3: research pipeline (web + pdf + patent)
+app.include_router(twins_router)  # Phase 5: digital twin engine (registry + 6 simulators + council)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
