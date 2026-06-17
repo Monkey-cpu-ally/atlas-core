@@ -285,6 +285,20 @@ movement they snap to the nearest slot and stop. No auto-spin.
 
 
 
+### Phase 8a — Persona Chat API foundation (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `models/persona_models.py` — `ChatRequest`, `ChatResponse`, `ChatSession`, `ChatMessage`, `CouncilSubVoice`, `PersonaInfo` Pydantic models. Stable response shape for future HUD persona panels + voice integration.
+- [x] **NEW** `services/persona_chat.py` — orchestrator: per-turn pipeline (session lookup → persona-tagged memory pull → knowledge-bank pull → recent session turns → persona system-prompt assembly → `llm_provider.send()` → persist user+assistant → mirror assistant into Memory Bank with `category=agent` permanent). Council variant fans out to ajani/minerva/hermes in parallel then runs a synthesis call with all three sub-voices in context; each sub-voice also gets mirrored to Memory Bank (`category=agent`) and the synthesis to `category=council`. Single `PERSONAS` registry is the SHARED source of truth with `knowledge_distiller.py` — voice consistency guaranteed across distillation and chat.
+- [x] **NEW** `routes/persona.py` — REST surface: `GET /api/persona/list` (HUD discovery) · `POST /api/persona/{persona}/chat` · `GET /api/persona/{persona}/sessions` · `GET /api/persona/sessions/{id}` (returns session + full message transcript) · `DELETE /api/persona/sessions/{id}` (removes session+messages but LEAVES Memory Bank rows — architect contract: "persona keeps what it learned even if the chat log is wiped") · `GET /api/persona/sessions` (cross-persona listing).
+- [x] **NEW** `memory_bank.py PERMANENT_CATEGORIES` adds `agent` — the per-persona long-term-memory category referenced throughout the system reports.
+- [x] **NEW** `routes/memory.py` adds `GET /api/membank/by-tag?tag=&persona=&category=&limit=` — exact-tag lookup that bypasses cosine similarity; used by `persona_chat` tests for deterministic verification + by any future caller that knows the literal tag.
+- [x] **HUD-readiness:** `ChatResponse` shape is stable + JSON-serialisable (session_id · message_id · reply · cited_memory_ids · cited_knowledge_ids · provider_used · model_used · council_voices). All keys always present (null on fallback). Voice-transcript bar can consume it without schema change.
+- [x] Persona prompts (Ajani · Minerva · Hermes · Council) define voice + colour + domain + one-liner in one place, served by `GET /api/persona/list`.
+- [x] Server wiring: `routes/persona.py` mounted in `server.py`.
+- [x] **Brittleness fix surfaced by testing agent:** `_fetch_knowledge` now tokenises the user's natural-language message (drops stopwords, splits on whitespace, OR-chain across top 6 tokens) before calling `kbase.search`. Multi-sentence prompts now cite ingested records correctly (was returning `[]` for any query longer than a single keyword).
+- [x] **VERIFIED** `iteration_18.json` — 34/34 backend tests (9 original `test_persona_chat.py` + 8 extras `test_persona_chat_extras.py` + 17 robot/clear-safe-state regression). All 12 architect requirements (each persona pulls persona-specific memories · each persona pulls relevant Knowledge Bank entries · own prompt/personality · conversations saved into Memory Bank · voice-integration foundation · HUD panel foundation · 4-row council mirror · DELETE preserves Memory Bank · engineer-voice character · response-shape stability · regression intact) pass GREEN.
+
+
+
 ### Live functional tiles (Feb 2026)
 - [x] **MANUAL** → `/api/manual/sections` — 5 collapsible sections (Hard Rules, Personas, Rings, Lab, Voice)
 - [x] **CYCLOPEDIA** → `/api/knowledge/subjects` — searchable chip grid + per-subject detail

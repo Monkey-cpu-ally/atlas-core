@@ -154,23 +154,77 @@ async def _fetch_persona_memories(persona: Persona, query: str, top_k: int) -> L
     return rows
 
 
+_STOPWORDS = {
+    "the", "and", "for", "with", "what", "when", "where", "why", "how",
+    "this", "that", "these", "those", "are", "was", "were", "have", "has",
+    "had", "do", "does", "did", "can", "could", "should", "would", "you",
+    "your", "yours", "we", "they", "them", "our", "their", "but", "not",
+    "tell", "give", "say", "ask", "please", "briefly", "summarise",
+    "summarize", "explain", "about", "into", "from", "than", "then",
+    "very", "just", "really", "kind", "of", "in", "on", "at", "to", "by",
+    "or", "as", "is", "be", "it", "an", "a", "i", "me", "my", "mine",
+}
+
+
+def _keywords(text: str, max_tokens: int = 6) -> List[str]:
+    """Pull the few distinctive tokens out of a natural-language prompt.
+    Used to query the Knowledge Bank (whose search is a regex substring,
+    not a real text index — so a multi-sentence prompt would otherwise
+    match nothing). Lowercased, stop-words dropped, length ≥ 4."""
+    import re as _re
+    raw = _re.findall(r"[A-Za-z][A-Za-z0-9_\-]{3,}", text or "")
+    seen: set[str] = set()
+    out: List[str] = []
+    for tok in raw:
+        low = tok.lower()
+        if low in _STOPWORDS or low in seen:
+            continue
+        seen.add(low)
+        out.append(low)
+        if len(out) >= max_tokens:
+            break
+    return out
+
+
 async def _fetch_knowledge(query: str, persona: Persona, top_k: int) -> List[Dict[str, Any]]:
     """Pull the most relevant Knowledge Bank records.
 
     Knowledge Bank uses a regex/text index — fast but coarse. We bias toward
     records this persona is tagged on (`related_agents` contains the persona)
     and fall back to a global search when the per-persona slice is empty.
+
+    The user's natural-language message is tokenised first; we run one
+    kbase.search per top keyword and merge results (dedup-by-id, preserving
+    persona-filtered hits first). Without this, a multi-sentence prompt
+    would never match an ingested record.
     """
     if top_k <= 0:
         return []
+    tokens = _keywords(query) or [query.strip()[:40]]
+    seen: set[str] = set()
+    merged: List[Dict[str, Any]] = []
     try:
-        rows = await kbase.search(q=query, agent=persona, limit=top_k)
-        if not rows:
-            rows = await kbase.search(q=query, limit=top_k)
-        return rows
+        # Two passes: persona-filtered first, then global fallback if empty.
+        for use_persona_filter in (True, False):
+            if merged and use_persona_filter is False:
+                break  # already have hits — skip global pass
+            for tok in tokens:
+                rows = await kbase.search(
+                    q=tok,
+                    agent=persona if use_persona_filter else None,
+                    limit=top_k,
+                )
+                for r in rows:
+                    rid = r.get("id")
+                    if rid and rid not in seen:
+                        seen.add(rid)
+                        merged.append(r)
+                        if len(merged) >= top_k:
+                            return merged
+        return merged
     except Exception as exc:    # noqa: BLE001
         logger.warning("knowledge search failed for persona=%s: %s", persona, exc)
-        return []
+        return merged
 
 
 async def _recent_turns(session_id: str, limit: int = 6) -> List[Dict[str, Any]]:
