@@ -38,6 +38,7 @@ from routes.research import router as research_router
 from routes.twins import router as twins_router
 from routes.weaver import router as weaver_router
 from routes.kbase import router as kbase_router
+from routes.robot import router as robot_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -114,6 +115,7 @@ app.include_router(research_router)  # Phase 3: research pipeline (web + pdf + p
 app.include_router(twins_router)  # Phase 5: digital twin engine (registry + 6 simulators + council)
 app.include_router(weaver_router)  # Phase 6: weaver (parts library + blueprint planner + manufacturing)
 app.include_router(kbase_router)  # Knowledge Ingestion: distill external sources → MemoryRecords
+app.include_router(robot_router)  # Phase 7: robot control layer (devices + telemetry + sim-first command pipeline)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
@@ -175,6 +177,24 @@ from atlas_core.memory.memory import attach_mongo_on_startup as _atlas_attach_mo
 @app.on_event("startup")
 async def _wire_atlas_memory():
     await _atlas_attach_mongo()
+
+
+# Phase 7 — Seed POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH on first boot
+# (each auto-bound to its own Digital Twin via services/robot.py).
+from services import robot as _robot_service
+
+@app.on_event("startup")
+async def _seed_phase7_devices():
+    try:
+        inserted = await _robot_service.seed_if_needed()
+        if inserted:
+            logging.getLogger(__name__).info(
+                "Phase 7: seeded %d robot devices + twins", inserted
+            )
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            "Phase 7 seed skipped: %s", exc
+        )
 
 app.add_middleware(
     CORSMiddleware,

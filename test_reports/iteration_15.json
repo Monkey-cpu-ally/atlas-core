@@ -1,0 +1,40 @@
+{
+  "summary": "Phase 7 Robot Control Layer backend tested end-to-end against external preview URL. All 13/13 tests pass (10 existing + 3 new Memory Bank wiring tests). Every architect-spec requirement from the review request verified: roles enum + owner_only_commands, idempotent seeding of POSEIDON-BUOY/AETHER-STATION/SOIL-WATCH (all twin-bound), owner-only device registration, telemetry roundtrip + ONLINE flip + history, simulation-first pipeline (sim_score populated on owner ACTUATE against twin-bound device), guest ACTUATE rejection with 'owner-only' reason, trivial PING execution on non-twin-bound device, inbox delivery-once semantics, EMERGENCY_STOP role gate + SAFE_STATE blocking, and Phase-2 Memory Bank auto_store wiring confirmed via /api/membank/search?q=ROBOT.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_robot_phase7.py",
+    "/app/backend/tests/test_robot_membank_wiring.py",
+    "/app/test_reports/pytest/robot_phase7_full.xml",
+    "/app/test_reports/pytest/robot_phase7.xml",
+    "/app/test_reports/pytest/robot_membank_wiring.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes/robot.py: the POST /devices/{id}/command endpoint returns 200 even when the command is rejected for being owner-only. The docstring comment says 'Surface as 403' but the code still returns the body with 200. This is intentional (callers branch on cmd.status), but it is inconsistent with POST /devices and POST /emergency-stop which return 403. Worth standardising once the HUD lands.",
+    "services/robot.py: module-level `_SEEDED` boolean prevents re-seeding even if devices are wiped from the DB without a process restart. Minor — only matters in dev environments. Consider removing the in-memory cache and relying purely on the count_documents() check.",
+    "services/robot.py: emergency_stop() is called twice on EMERGENCY_STOP commands — once inline in submit_command() and again as a side-effect at the bottom of the pipeline. Currently idempotent but worth a noting comment.",
+    "models/robot_models.py: ALLOWED_COMMANDS is built from every CommandKind enum value, so the allow-list check in authorise() can never fail today. Either remove it or scope it to a subset to actually act as a gate.",
+    "services/robot.py: hardcoded MONGO_URL fallback 'mongodb://localhost:27017' and DB_NAME 'test_database' violate the env-only rule from the system prompt. Should use os.environ[...] without defaults so missing config fails fast (same pattern as server.py)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_robot_membank_wiring.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "skipped per request"
+  },
+  "test_credentials": "Not required — Phase 7 uses X-Atlas-Role header (owner / council / ajani / minerva / hermes / guest). No JWT/auth in v1.",
+  "seed_data_creation": "Seed devices POSEIDON-BUOY, AETHER-STATION, SOIL-WATCH already auto-seeded on startup (idempotent). Tests created additional throwaway devices prefixed TEST-DEV-, FIX-DEV-, MB-WIRE-, MB-REG-. Not cleaned up — Phase 7 has no DELETE endpoint by design (full audit trail).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 7 backend is fully green. /app/backend/tests/test_robot_phase7.py and /app/backend/tests/test_robot_membank_wiring.py together cover all 10 review-request items. When the HUD panel lands, add Playwright tests for the device list / command issuance UI and assert the X-Atlas-Role header is sent on writes. Note that POST /devices/{id}/command returns HTTP 200 even on rejection — UI should branch on response.status not status code.",
+  "rca_of_the_issue": "No issues found — clean pass across all 13 test cases."
+}
