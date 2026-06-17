@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import { Activity, Shield, Cpu, RefreshCw, Loader2 } from 'lucide-react';
+import RobotPanel from './RobotPanel';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -162,6 +163,8 @@ export default function DiagnosticsPanel() {
           </div>
         )}
       </div>
+      {/* --- Phase 7: Robot Control Layer --- */}
+      <RobotPanel />
     </div>
   );
 }

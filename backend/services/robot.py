@@ -40,8 +40,8 @@ from services import digital_twin as dt, memory_bank as mb
 
 logger = logging.getLogger("atlas.robot")
 
-MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
-DB_NAME = os.environ.get("DB_NAME", "test_database")
+MONGO_URL = os.environ['MONGO_URL']
+DB_NAME = os.environ['DB_NAME']
 _client: Optional[AsyncIOMotorClient] = None
 
 
