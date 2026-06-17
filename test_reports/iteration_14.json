@@ -1,0 +1,45 @@
+{
+  "summary": "Phase 6 (Weaver) end-to-end backend tests PASSED. 21/21 weaver tests green (12 fast + 8 extras + 1 LLM-bound council deliberation @ 43.96s). Phase 5 + Phase 2 regression also fully GREEN (60/60 in 195s). Grand total: 81/81 tests passing across Phase 6 + regression. All 23 review-request assertions verified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_weaver_phase6.py",
+    "/app/backend/tests/test_weaver_phase6_extras.py",
+    "/app/test_reports/pytest/weaver_phase6_fast.xml",
+    "/app/test_reports/pytest/weaver_phase6_extras.xml",
+    "/app/test_reports/pytest/weaver_phase6_slow.xml",
+    "/app/test_reports/pytest/regression_phase2_phase5.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes/weaver.py — static path /parts/categories and /parts/seed are correctly declared BEFORE the dynamic /parts/{part_id}, so categories/seed do not get intercepted by the catch-all. Good.",
+    "routes/weaver.py PlanRequest uses Field(min_length=2, max_length=140) on title and the ValueError-from-service is mapped to HTTPException(400) — both the 422 (title='x') and 400 (empty blueprint text) paths verified.",
+    "services/weaver.plan_from_blueprint chains parse → enrich → spawn DigitalTwin → 4 sims sequentially. The 4 sims are each <100ms so sequential is fine; LLM deliberation was already parallelised in Phase-5 polish per the task brief. Verified end-to-end in 43.96s including 3 persona LLM calls.",
+    "services/blueprint_parser._coerce_part contract — bad category 'nonsense' coerces to 'component' rather than raising 422. Confirmed.",
+    "services/parts_db.match_part uses token-overlap + substring scoring with threshold 0.5. With the pan/tilt fixture 5 of 6 fixture parts match (ESP32-S3, MPU6050, SG90, PLA, M3) and 'Custom carbon arm' is correctly flagged unknown (library_part_id=None). Confirmed.",
+    "Plan→memory wiring: a permanent blueprint memory is written into memory_bank with source_id == plan.id, confirmed via /api/membank/list?category=blueprint. The decay/freshness model is unaffected.",
+    "DELETE /api/weaver/plans/{id}?drop_twin=true cascades; without drop_twin the twin survives — both paths verified.",
+    "pytest.mark.slow is used in test_weaver_phase6.py but not registered. Cosmetic — produces a PytestUnknownMarkWarning. Recommend adding `markers = slow: long-running LLM-bound test` to pyproject/pytest.ini. Non-blocking.",
+    "Council deliberation returns verdict ∈ {approve, revise, reject, pending} with exactly 4 voices and a non-empty final_text. Verified."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_weaver_phase6_extras.py"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 Phase-6 + 60/60 Phase-2/5 regression = 81/81)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "test_credentials": "none required",
+  "seed_data_creation": "Tests create PYTEST_part_*, PYTEST_plan_*, PYTEST_listable_*, PYTEST_mem_*, PYTEST_tools_*, PYTEST_council_* rows. Each plan test cascades drop_twin=true at teardown; the standalone twin from test_plans_list_filter_and_delete is also cleaned. parts/seed is idempotent — second call returns {seeded:0}, verified.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 6 Weaver is fully GREEN end-to-end. Two test files cover the API surface: /app/backend/tests/test_weaver_phase6.py (13 tests, 1 slow) — the original fixture from main agent — plus /app/backend/tests/test_weaver_phase6_extras.py (8 tests) — pins the explicit review-request items not redundant in the original (q=imu tag match, unknown part_id 404, unknown plan_id 404, library_match_count+unknown_count arithmetic, tools_required Soldering iron union, Phase-5 categories regression, Phase-2 membank categories+search regression). Run fast suite: `pytest tests/test_weaver_phase6.py tests/test_weaver_phase6_extras.py -m 'not slow'` (~5s). Full incl. council: ~50s. Council deliberate=true LLM path now ~44s (was 30-60s); httpx client timeout fixture is 180s so safe headroom. The blueprint_parser regex/LLM free-text path was deliberately not exercised per the test brief — structured JSON is the primary path and the only one needed for E2E coverage of weaver pipeline. If next phase touches parts_db, re-run the seed idempotency assertion; if it touches digital_twin.spawn the twin_id-non-null assertion in test_plan_full_pipeline_no_council will catch regressions.",
+  "rca of the issue": "No bugs. All 23 review-request assertions verified positive: parts categories enum, idempotent seed, search-by-category, search-by-name, search-by-tag, parts CRUD + 404, analyze structured 5+1, analyze bad-category coerce, full plan no council (build/manufacturing/failure assertions all hold), 400 on empty blueprint, 422 on title='x', plan→twin spawn + blueprint memory wiring, plans list filter by owner_agent, plans get + 404, plans delete with/without drop_twin cascade, plan deliberate=true council 4-voices + verdict-enum, Phase-5 twin categories regression, Phase-2 membank categories+search regression."
+}
