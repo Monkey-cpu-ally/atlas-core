@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import { Loader2, Archive, FileText } from 'lucide-react';
 

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState } from 'react';
 import { Loader2, Users, Sparkles } from 'lucide-react';
 

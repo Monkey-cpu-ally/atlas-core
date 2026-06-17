@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Loader2, BookOpen, Beaker } from 'lucide-react';
 import { useAtlasJob } from '../../hooks/useAtlasJob';

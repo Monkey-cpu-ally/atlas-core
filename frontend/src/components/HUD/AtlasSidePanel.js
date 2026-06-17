@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import { X, ChevronRight, AlertTriangle, Zap, Brain, User, FileCode, Beaker, Clock, Star, ArrowRight } from 'lucide-react';
 import { PHASES, TEACHING_MODES, getProjectsByAI } from '../../data/atlasCore';

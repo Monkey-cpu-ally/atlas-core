@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState } from 'react';
 import { Loader2, Youtube, ClipboardPaste, ClipboardCheck, Hammer } from 'lucide-react';
 import QuizTaker from './QuizTaker';

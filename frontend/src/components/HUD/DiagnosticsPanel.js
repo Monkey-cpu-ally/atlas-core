@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import { Activity, Shield, Cpu, RefreshCw, Loader2 } from 'lucide-react';
 

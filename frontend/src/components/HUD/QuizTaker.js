@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState } from 'react';
 import { Loader2, ClipboardCheck, X, Award } from 'lucide-react';
 

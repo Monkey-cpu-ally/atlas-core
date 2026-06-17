@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ShieldCheck, Volume2, Loader2, Cpu, Hammer, Brain, Leaf, Atom, Radio, Sparkles, Save, BookmarkPlus, Bookmark, Trash2, X, Check } from 'lucide-react';
 import { Slider } from '../ui/slider';

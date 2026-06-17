@@ -1,3 +1,4 @@
+/* eslint-disable -- archived legacy component, see _legacy/README.md */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Folder, File, Download, Trash2, X, RefreshCw, BookOpen, Loader2, Library } from 'lucide-react';
 import { AI_PERSONAS } from '../data/atlasCore';

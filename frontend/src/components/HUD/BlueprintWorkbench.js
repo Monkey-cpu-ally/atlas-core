@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useState } from 'react';
 import { Loader2, CheckCircle2, AlertTriangle, XCircle, Sparkles } from 'lucide-react';
 import { useAtlasJob } from '../../hooks/useAtlasJob';

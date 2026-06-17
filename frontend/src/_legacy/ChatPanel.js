@@ -1,3 +1,4 @@
+/* eslint-disable -- archived legacy component, see _legacy/README.md */
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Minimize2, Maximize2, Trash2, Volume2, VolumeX, Globe } from 'lucide-react';
 import { AI_PERSONAS } from '../data/atlasCore';

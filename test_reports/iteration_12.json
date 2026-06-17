@@ -1,0 +1,39 @@
+{
+  "summary": "Phase 3 (Research Pipeline) + Phase 4 (Voice wake-word) verified end-to-end. Backend: 16/16 pytest cases PASSED in 24s — all /api/research/{web,pdf,patent} contracts, validation (422/400/413), auto-memory-write with category='research', /api/research/recent filtering, and Phase 2 /api/membank regression. Frontend: voice-toggle cycles off→push→wake→off with correct lucide icons (MicOff/Mic/Radio) and titles; voice-transcript correctly absent from DOM until a transcript exists; HUD geometry untouched (3 rings + AJANI/MINERVA/HERMES/COUNCIL face dock).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_research_phase3.py",
+    "/app/test_reports/pytest/research_phase3.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "research.py route: PDF size cap is enforced AFTER reading the entire upload into memory (await file.read() then len(blob) > 12MB → 413). For a public-facing API this is fine at 12MB but worth flagging — a streaming size check via file.size or Content-Length pre-check would avoid loading malicious oversize uploads into RAM. Current behaviour does correctly return 413, just slightly wastefully.",
+    "research_pipeline.research_web auto_store is called sequentially inside a `for hit in hits` loop and awaits both the page fetch AND the summary AND the memory write before moving to the next source. With top_n=5 and live LLM summaries this can serialise into 20-40s. Consider asyncio.gather for the per-source pipeline. (Not blocking — current latency is acceptable for HUD UX.)",
+    "research_pipeline.research_pdf writes one parent row + N chunk rows sequentially. With ~50-chunk PDFs this is ~50 memory writes serially; same gather() optimisation opportunity.",
+    "useVoiceRecognition.js: the SpeechRecognition instance is created once in a useEffect with empty deps [] — the eslint rule react-hooks/exhaustive-deps would flag this, but the design intent (don't re-create on every render) is correct and explicitly documented. Consider an eslint-disable-next-line comment to silence the warning permanently.",
+    "HUDInterface.js has /* eslint-disable */ at the top of the file — broad disable that hides real future bugs. Recommend narrowing to specific rules (react-hooks/exhaustive-deps, react/prop-types) or removing once the migration to typed props is complete.",
+    "research.py PatentRequest deep=false is the default — good; deep=true enrichment uses Ajani persona LLM calls which can be expensive. Consider adding rate limiting or a per-IP daily quota in a later phase.",
+    "All /api/research/* endpoints exclude Mongo _id correctly (via memory_bank list_memories projection). No ObjectId leakage observed in /recent payloads."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_research_phase3.py"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16)",
+    "frontend": "100% (voice cycle + geometry + transcript-absence checks)"
+  },
+  "test_credentials": "none required",
+  "seed_data_creation": "Tests create TEST_phase3*.pdf upload rows + TESTRUN_p3_<ts> markered memory_bank rows + a graph triple. memory_bank rows are auto-decayed by the freshness model; not actively cleaned up here. PDF uploads were synthesised in-test via reportlab; no fixture files written to disk.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 3 (research) + Phase 4 (voice) are GREEN. Test file: /app/backend/tests/test_research_phase3.py (16 cases, 24s). Frontend voice test approach: inject a fake SpeechRecognition + getUserMedia via page.add_init_script BEFORE page.goto — this lets the hook's `isSupported` flag flip true so the voice-toggle button renders, without ever needing real mic permission. The voice button's class transitions are atlas-voice-toggle {off|push|wake} and the inner lucide svg class is lucide-mic-off / lucide-mic / lucide-radio respectively. Web/Patent live calls may 503 on rate-limit — tests accept either 200-with-shape OR 503-with-skip. PDF tests fully synthesised (no external deps). Phase 2 membank/search uses min_score=0.3 by default; pass min_score=0.0 in regression tests if the query token is short/rare. Triple endpoint fields are from_node/to_node/relation, NOT subject/predicate/object.",
+  "rca of the issue": "No bugs found in Phase 3 or Phase 4 surfaces. Two intermediate test-script issues (wrong /membank/search response key + wrong /graph/triple field names) were on the test side and were fixed in the iteration."
+}

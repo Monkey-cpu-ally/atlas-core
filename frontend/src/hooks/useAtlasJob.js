@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;

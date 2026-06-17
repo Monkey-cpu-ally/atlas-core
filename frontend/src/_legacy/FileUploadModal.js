@@ -1,3 +1,4 @@
+/* eslint-disable -- archived legacy component, see _legacy/README.md */
 import React, { useState, useRef } from 'react';
 import { Upload, X, Check, AlertCircle, Loader } from 'lucide-react';
 
