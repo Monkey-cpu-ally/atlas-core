@@ -264,6 +264,16 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **VERIFIED** 13/13 backend tests passing (`iteration_15.json` — testing agent): 10 in `tests/test_robot_phase7.py` (roles, seed, owner-gate registration, telemetry roundtrip, guest-rejected actuate, owner ping, sim-first actuate, inbox once-delivery, emergency stop, command listing) + 3 in `tests/test_robot_membank_wiring.py` (Phase-2 memory bank auto-store wired for device/telemetry/command).
 - [x] Hardcoded MONGO_URL fallback removed per env-only rule (testing-agent review).
 
+### Phase 7+ Voice "Ingest <URL>" + Atlas Sentinel (Feb 2026) ✅ COMPLETE
+- [x] **UPDATED** `utils/voiceCommands.js` — new `ingest-url` intent: detects the verb "ingest" + any URL form (https://, http://, scheme-less, www., trailing punctuation tolerated). Survives transcript normalisation by running on the RAW transcript first. Works with or without a wake phrase.
+- [x] **UPDATED** `components/HUDInterface.js executeVoiceIntent` — on `ingest-url`, POSTs to `/api/kbase/ingest`, shows live transcript feedback ("Ingesting <url> …" → "Stored \"<title>\" · tags" or "Re-reinforced \"<title>\"") in the existing `.atlas-voice-transcript` ribbon.
+- [x] Voice → Knowledge Bank → Memory Bank → Graph Memory chain: every voice-ingested URL writes a `KnowledgeRecord` (summary, key_points, tags, concepts, source_url, source_type, related_agents, related_projects, memory_bank_id) + graph triples (concept↔tag · project↔concept · agent↔concept). Dedup-by-URL → reinforce-on-revisit.
+- [x] Permission verification (P1): curl-logged guest ACTUATE → REJECTED with `command 'actuate' is owner-only (got role=guest)`; owner ACTUATE → EXECUTED with full 4-step pipeline log (authorise → simulate sim_score=1.0 → validate → execute) on POSEIDON-BUOY.
+- [x] **NEW** `components/HUD/AtlasSentinel.js` — optional environmental ribbon at the bottom of the HUD. Polls `/api/robot/devices` + `/api/robot/devices/{id}/telemetry?limit=1` every 12s for the three seed devices. Each chip shows latest payload (WATER/AIR/SOIL), gains an `is-safe` red pulse class when device.status==`safe_state`. Click → popover with full payload + timestamp. Dismissible × button persists via `localStorage[atlas.sentinel.enabled]`.
+- [x] **NEW** CSS additions to `App.css` for `.atlas-sentinel*` selectors (glass-morphism pill, color-mix per chip-hue, pulse animation on safe state). HUD ring geometry untouched.
+- [x] **UPDATED** `/app/memory/ARCHITECTURE-REPORT.md` — new "System data flow" section diagramming Knowledge Bank → Memory Bank → Graph Memory ⇄ Digital Twin ⇄ Weaver ⇄ Robot Control with the voice-ingest entry point.
+- [x] **VERIFIED** 14/14 in `iteration_16.json`: 4/4 backend (`tests/test_iter16_voice_ingest_sentinel.py`), 10/10 voice-parser unit tests (`tests/voice_parser_iter16.cjs`), and full frontend regression (Sentinel render, popover, dismiss/persist, SAFE STATE visual, Robot Control panel still functional inside SYSTEMS).
+
 
 
 ### Live functional tiles (Feb 2026)
