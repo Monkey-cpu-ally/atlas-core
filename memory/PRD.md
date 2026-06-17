@@ -206,6 +206,23 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **VERIFIED** 29/29 backend tests pass (`/app/backend/tests/test_membank_phase2.py`, report `iteration_11.json`)
 - [x] Completion report: `/app/memory/PHASE2-REPORT.md`
 
+### Phase 3 — Research Pipeline (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `services/web_scraper.py` — DuckDuckGo HTML search + httpx+selectolax page fetch (no API key, raises ResearchUnreachable on cloud-IP blocks)
+- [x] **NEW** `services/pdf_reader.py` — pypdf extraction + paragraph-aware chunker with sentence overlap
+- [x] **NEW** `services/patent_client.py` — Google Patents public XHR search + detail-page scraper (no API key)
+- [x] **NEW** `services/research_pipeline.py` — orchestrates web/pdf/patent → optional Hermes/Ajani LLM summary → memory bank with category='research'
+- [x] **NEW** routes (`routes/research.py`): `POST /api/research/web`, `POST /api/research/pdf` (multipart), `POST /api/research/patent`, `GET /api/research/recent`
+- [x] **NEW** dep added to `requirements.txt`: `selectolax==0.4.10`
+- [x] **VERIFIED** 16/16 backend tests pass (`/app/backend/tests/test_research_phase3.py`, report `iteration_12.json`)
+- [x] All research outputs persist into Memory Bank Phase 2 (`category='research'`, decaying with reinforcement)
+
+### Phase 4 — Voice System & ATLAS HUD (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `hooks/useVoiceRecognition.js` — Web Speech API wrapper with 3 modes (`off`|`push`|`wake`), lazy mic permission, auto-restart in wake mode, callback-via-ref so the engine survives re-renders
+- [x] **NEW** `utils/voiceCommands.js` — `parseVoiceCommand(transcript, {requireWake})` → intent (`select-ai`/`open-section`/`close-panel`/`noop`). Recognises persona aliases (Ajani/Minerva/Hermes/Trinity-Council) + 11 tile aliases (subjects/lab/projects/blueprints/archive/explore/manual/encyclopedia/memory/systems/customization)
+- [x] **NEW** mic toggle in HUDInterface top-right (next to sound toggle) cycles off→push-to-talk→wake-word→off. Wake-word mode pulses the chip with persona accent. Live transcript chip slides in from top-right while listening.
+- [x] HUD visuals untouched per architect directive — new controls slot into the existing glass-chip aesthetic.
+- [x] **VERIFIED** voice cycle + DOM contract green in iteration_12.json (frontend Playwright)
+
 
 
 ### Live functional tiles (Feb 2026)

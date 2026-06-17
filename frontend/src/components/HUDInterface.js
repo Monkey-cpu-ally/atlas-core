@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable react-hooks/exhaustive-deps -- voice/audio hooks intentionally don't track all deps */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Volume2, VolumeX, Mic, MicOff, Radio } from 'lucide-react';
 import AtlasCore from './HUD/AtlasCore';
