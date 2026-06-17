@@ -1,10 +1,10 @@
 # ATLAS · Complete Architecture Report
 
-> **Status as of Feb 2026** — Phases 0-6 complete · Phase 7 awaiting hardware spec
+> **Status as of Feb 2026** — Phases 0-7 complete · Voice "Ingest <URL>" wired
 > **Backend** FastAPI + Motor + MongoDB · **Frontend** React (CRA) + Luxury HUD reskin
-> **Total backend tests passing** 81/81 (Phase-6 + Phase-2/5 regression) · `iteration_14.json`
+> **Total backend tests passing** 94/94 (81 prior + 13 Phase-7) · `iteration_15.json`
 
-This document is the architect's single source of truth before Phase 7. It supersedes individual phase reports for navigation purposes (phase reports remain authoritative for their own details).
+This document is the architect's single source of truth. It supersedes individual phase reports for navigation purposes (phase reports remain authoritative for their own details).
 
 ---
 
@@ -16,13 +16,104 @@ This document is the architect's single source of truth before Phase 7. It super
 | 1 | Real LLM Integration | ✅ | `services/llm_provider.py` (Emergent / Ollama / LMStudio, with fallback); `routes/llm.py`; per-persona model overrides stored in `atlas_settings._id="persona_models"` |
 | 2 | Knowledge / Memory Bank / Vector / Graph | ✅ | `services/memory_bank.py`; `routes/memory.py`; 11 memory categories (4 permanent, 7 decaying); MongoDB-internal hash embedding (default), Ollama/Emergent optional; graph triples; freshness decay + reinforcement |
 | 3 | Research Pipeline | ✅ | `services/web_scraper.py`, `pdf_reader.py`, `patent_client.py`, `research_pipeline.py`; `routes/research.py`; DuckDuckGo + Google Patents (no API key), pypdf; every result auto-stores into `category='research'` |
-| 4 | Voice System & ATLAS HUD | ✅ | `hooks/useVoiceRecognition.js` (3 modes: off / push-to-talk / wake-word); `utils/voiceCommands.js` (persona + tile aliases); mic chip in HUDInterface top-right; HUD geometry untouched |
+| 4 | Voice System & ATLAS HUD | ✅ | `hooks/useVoiceRecognition.js` (3 modes: off / push-to-talk / wake-word); `utils/voiceCommands.js` (persona + tile aliases + **ingest-url intent**); mic chip in HUDInterface top-right; HUD geometry untouched |
 | 5 | Digital Twin Engine | ✅ | `models/twin_models.py`, `services/twin_simulator.py` (6 engines), `services/digital_twin.py`, `routes/twins.py`; registry + state revisions + parallel council deliberation; auto-spawns project & research memories |
 | 6 | Weaver (manufacturing planning) | ✅ | `models/weaver_models.py`, `services/parts_db.py`, `blueprint_parser.py`, `weaver.py`, `routes/weaver.py`; 25-row starter library; full pipeline: parse → enrich → spawn twin → 4 sims → build/manufacturing/failure plans → optional council |
 | K | Knowledge Ingestion System | ✅ | `models/knowledge_models.py`, `services/source_fetchers.py`, `knowledge_distiller.py`, `knowledge_ingestion.py`, `routes/kbase.py`; ingests GitHub / YouTube / PDF / Web / Patent / Academic URLs; LLM-distilled MemoryRecords with dedup-by-URL + reinforce-on-revisit + graph triples |
-| 7 | Robot Control Layer | ⏳ | awaits target hardware spec |
+| 7 | Robot Control Layer | ✅ | `models/robot_models.py`, `services/robot.py`, `routes/robot.py`, `frontend/HUD/RobotPanel.js`; MQTT-style HTTP bridge; sim-first command pipeline; owner-locked actuators; idempotent seed of POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH each twin-bound |
 
-Detail: `/app/memory/PHASE2-REPORT.md`, `PHASE3-4-REPORT.md`, `PHASE5-REPORT.md`, `PHASE6-REPORT.md`, `PRD.md`.
+Detail: `/app/memory/PHASE2-REPORT.md`, `PHASE3-4-REPORT.md`, `PHASE5-REPORT.md`, `PHASE6-REPORT.md`, `PHASE7-REPORT.md`, `KNOWLEDGE-INGESTION-REPORT.md`, `PRD.md`.
+
+---
+
+## 1a · System data flow (Feb 2026)
+
+The seven major subsystems form one closed loop. Knowledge enters from URLs
+or hardware sensors, passes through distillation, lands in the Memory Bank +
+Graph Memory, and feeds simulation/planning/control out the other side.
+
+```
+                                ┌─────────────────────────────┐
+                                │   VOICE: "ingest <URL>"     │
+                                │   or POST /api/kbase/ingest │
+                                └─────────────┬───────────────┘
+                                              │
+                                              ▼
+                  ┌────────────────────────────────────────────────┐
+                  │             RESEARCH PIPELINE                  │
+                  │  (web · pdf · patent · academic · github · YT) │
+                  │  services/source_fetchers.py → research_*.py   │
+                  └─────────────────────┬──────────────────────────┘
+                                        │ raw text + metadata
+                                        ▼
+                  ┌────────────────────────────────────────────────┐
+                  │           KNOWLEDGE BANK (kbase)               │
+                  │  knowledge_distiller.py — LLM distillation     │
+                  │  → KnowledgeRecord (summary, key_points,       │
+                  │     tags, concepts, agents, projects,          │
+                  │     source_url, source_hash)                   │
+                  │  Dedup-by-URL · reinforce-on-revisit           │
+                  └─────────────────────┬──────────────────────────┘
+                                        │ persists into…
+                                        ▼
+                  ┌────────────────────────────────────────────────┐
+                  │           MEMORY BANK (membank)                │
+                  │  11 categories · 4 permanent · 7 decaying      │
+                  │  hash embeddings · freshness decay · reinforce │
+                  │  services/memory_bank.py · /api/membank/*      │
+                  └─────────┬──────────────────────────────┬───────┘
+                            │                              │
+                            ▼                              ▼
+              ┌──────────────────────────┐   ┌──────────────────────────┐
+              │   GRAPH MEMORY           │   │   AGENT / PROJECT INDEX  │
+              │   triples (concept ↔     │   │   ajani · minerva ·      │
+              │   tag · project ↔ concept│   │   hermes · council       │
+              │   · agent ↔ concept)     │   │   + project_id pivots    │
+              └─────────┬────────────────┘   └──────────┬───────────────┘
+                        │                               │
+                        │ reads…                        │ reads…
+                        ▼                               ▼
+       ┌────────────────────────────┐    ┌────────────────────────────────┐
+       │   DIGITAL TWIN ENGINE      │◄───┤   WEAVER (build planner)       │
+       │   6 sim engines · twins +  │    │   blueprint → parts → twin →   │
+       │   state revisions ·        │    │   4 sims → build / mfg / fail  │
+       │   /api/twins/*             │    │   /api/weaver/*                │
+       └─────────┬──────────────────┘    └──────────┬─────────────────────┘
+                 │                                  │
+                 │ simulates commands &             │
+                 │ failures for…                    │ produces blueprint
+                 ▼                                  ▼ memories
+       ┌─────────────────────────────────────────────────────────────────┐
+       │                  ROBOT CONTROL LAYER (Phase 7)                  │
+       │  authorise (role) → simulate (Phase-5 twin) → validate →        │
+       │  execute (MQTT-style HTTP bridge) → audit (Memory Bank)         │
+       │  Devices: POSEIDON-BUOY · AETHER-STATION · SOIL-WATCH (+ owner) │
+       │  /api/robot/*                                                   │
+       └─────────────────────────────────────────────────────────────────┘
+                                        │
+                                        ▼ telemetry feeds back
+                                  Memory Bank (research/decaying)
+```
+
+**Closed-loop properties:**
+- Every command executed on hardware writes a permanent project-memory entry.
+- Every telemetry burst writes a decaying research-memory entry — they age out
+  naturally if not reinforced.
+- Every URL ingested becomes a distilled record that can be reinforced on
+  revisit (the same URL re-ingested merges new tags/concepts instead of
+  duplicating).
+- The Graph Memory turns concept/tag/agent/project relations into queryable
+  edges so the Council can deliberate over the whole knowledge fabric, not
+  just the most recent record.
+- Digital Twins are the single safety surface — both Weaver (plan-time) and
+  Robot Control (run-time) gate their decisions on twin simulations.
+
+**Voice → Knowledge Bank shortcut (Feb 2026):** speaking *"ingest <URL>"* (or
+*"hey atlas ingest <URL>"*) goes through `utils/voiceCommands.js → parseVoiceCommand`
+which emits an `ingest-url` intent, then `HUDInterface.executeVoiceIntent`
+POSTs the URL to `/api/kbase/ingest`. The full distillation → Memory Bank →
+Graph Memory chain runs server-side; the HUD voice transcript bar shows the
+distilled title + tags as confirmation.
 
 ---
 

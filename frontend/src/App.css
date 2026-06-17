@@ -3304,3 +3304,154 @@ body {
   text-overflow: ellipsis;
 }
 
+
+
+/* ============================================================
+   Atlas Sentinel — Phase 7 environmental telemetry ribbon
+   Bottom-anchored, non-intrusive, sits above the AI face dock
+   ============================================================ */
+.atlas-sentinel {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  z-index: 47;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 120, 230, 0.22);
+  background: rgba(10, 12, 18, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: rgba(244, 239, 228, 0.86);
+  box-shadow: 0 10px 30px -16px rgba(0, 0, 0, 0.7);
+  animation: atlas-voice-fade-in 0.22s ease;
+}
+.atlas-sentinel-label {
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: rgba(168, 120, 230, 0.85);
+  padding-right: 6px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.atlas-sentinel-empty {
+  color: rgba(220, 230, 245, 0.4);
+  font-style: italic;
+}
+.atlas-sentinel-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chip-hue, #28C8BE) 35%, transparent);
+  background: color-mix(in srgb, var(--chip-hue, #28C8BE) 8%, transparent);
+  color: rgba(244, 239, 228, 0.92);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.atlas-sentinel-chip:hover {
+  background: color-mix(in srgb, var(--chip-hue, #28C8BE) 14%, transparent);
+  border-color: color-mix(in srgb, var(--chip-hue, #28C8BE) 55%, transparent);
+  transform: translateY(-1px);
+}
+.atlas-sentinel-chip.is-safe {
+  --chip-hue: #E63946;
+  animation: atlas-sentinel-pulse 1.4s ease-in-out infinite;
+}
+@keyframes atlas-sentinel-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.0); }
+  50%      { box-shadow: 0 0 0 6px rgba(230, 57, 70, 0.22); }
+}
+.atlas-sentinel-name {
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--chip-hue);
+}
+.atlas-sentinel-readings {
+  font-size: 10px;
+  color: rgba(220, 230, 245, 0.78);
+  font-variant-numeric: tabular-nums;
+}
+.atlas-sentinel-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 260px;
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--chip-hue, #28C8BE) 35%, transparent);
+  background: rgba(10, 12, 18, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+  font-size: 10.5px;
+  text-align: left;
+  cursor: default;
+  z-index: 5;
+  animation: atlas-voice-fade-in 0.16s ease;
+}
+.atlas-sentinel-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.atlas-sentinel-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: rgba(220, 230, 245, 0.86);
+  font-variant-numeric: tabular-nums;
+}
+.atlas-sentinel-popover-body .atlas-help-muted {
+  color: rgba(220, 230, 245, 0.5);
+  font-style: italic;
+}
+.atlas-sentinel-toggle {
+  background: none;
+  border: 1px solid rgba(168, 120, 230, 0.3);
+  color: rgba(168, 120, 230, 0.85);
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.atlas-sentinel-toggle.off {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  z-index: 47;
+  backdrop-filter: blur(10px);
+  background: rgba(10, 12, 18, 0.55);
+}
+.atlas-sentinel-toggle.off:hover {
+  background: rgba(168, 120, 230, 0.16);
+  color: rgba(244, 239, 228, 0.96);
+}
+.atlas-sentinel-toggle.on {
+  border: none;
+  color: rgba(244, 239, 228, 0.55);
+  font-size: 11px;
+  letter-spacing: 0;
+  padding: 0 4px;
+}
+.atlas-sentinel-toggle.on:hover { color: #E63946; }

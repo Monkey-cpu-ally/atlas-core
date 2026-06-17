@@ -5,6 +5,7 @@ import AtlasCore from './HUD/AtlasCore';
 import DialRing from './HUD/DialRing';
 import GhostRings from './HUD/GhostRings';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
+import AtlasSentinel from './HUD/AtlasSentinel';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -158,6 +159,37 @@ export default function HUDInterface() {
       setPanelContent(null);
       setSelectedMiddle(null);
       setSelectedOuter(null);
+      return;
+    }
+    if (intent.type === 'ingest-url') {
+      // Voice → Knowledge Ingestion → Memory Bank → Graph Memory
+      setCoreState(CORE_STATES.THINKING);
+      setVoiceTranscript(`Ingesting ${intent.url} …`);
+      const API_URL = process.env.REACT_APP_BACKEND_URL;
+      fetch(`${API_URL}/api/kbase/ingest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: intent.url }),
+      })
+        .then((r) => r.json().then((j) => ({ ok: r.ok, status: r.status, body: j })))
+        .then(({ ok, status, body }) => {
+          if (!ok) {
+            setVoiceTranscript(`Ingest failed (${status}): ${body.detail || 'error'}`);
+          } else {
+            const title = (body.record && body.record.title) || 'source';
+            const tags = ((body.record && body.record.tags) || []).slice(0, 3).join(', ');
+            setVoiceTranscript(
+              body.reinforced
+                ? `Re-reinforced "${title}"${tags ? ' · ' + tags : ''}`
+                : `Stored "${title}"${tags ? ' · ' + tags : ''}`
+            );
+          }
+        })
+        .catch((e) => setVoiceTranscript(`Ingest error: ${e.message || e}`))
+        .finally(() => {
+          setCoreState(CORE_STATES.IDLE);
+          setTimeout(() => setVoiceTranscript(''), 6000);
+        });
     }
   }, [activeAI, playGlide, playSnap, playTone]);
 
@@ -311,6 +343,8 @@ export default function HUDInterface() {
           <span className="atlas-voice-text">{voiceTranscript}</span>
         </div>
       )}
+
+      <AtlasSentinel />
     </div>
   );
 }
