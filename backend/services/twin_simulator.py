@@ -215,16 +215,21 @@ def _sim_failure(twin: DigitalTwin) -> Tuple[List[str], List[str], List[str], Di
         in_deg[d.to_component] += 1
         out_deg[d.from_component] += 1
 
+    # SPOF rule: a component that POWERS / MOUNTS / FEEDS many others is
+    # high-stakes if it fails. In our dep graph the arrow points from the
+    # provider to the consumer (e.g. battery→motor means battery powers
+    # motor), so a high *out-degree* indicates a high-fan-out single point
+    # of failure.
     name_by_id = {c.id: c.name for c in state.components}
-    spofs = [name_by_id[cid] for cid, deg in in_deg.items() if deg >= 2]
+    spofs = [name_by_id[cid] for cid, deg in out_deg.items() if deg >= 2]
     if spofs:
         warnings.append(
-            f"{len(spofs)} potential single-points-of-failure (≥2 dependents): "
+            f"{len(spofs)} potential single-points-of-failure (fan-out ≥ 2 dependents): "
             + ", ".join(spofs[:6])
         )
         metrics["spof_count"] = len(spofs)
     else:
-        findings.append("No high-fan-in single-points-of-failure detected.")
+        findings.append("No high-fan-out single-points-of-failure detected.")
         metrics["spof_count"] = 0
 
     if twin.category in _CATEGORIES_NEEDING_SENSORS and not state.sensor_inputs:

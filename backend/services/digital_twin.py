@@ -234,8 +234,10 @@ async def deliberate(
     context = _build_context(twin, sim_doc)
 
     from services.llm_provider import send as llm_send
-    voices: List[DeliberationVoice] = []
-    for persona, cfg in PERSONA_ROLES.items():
+    import asyncio
+
+    # Run all three personas concurrently — cuts deliberation latency ~3×.
+    async def _one(persona: str, cfg: Dict[str, str]) -> DeliberationVoice:
         try:
             res = await llm_send(persona, cfg["system"], context,
                                  session_id=f"twin-delib-{twin_id}-{persona}")
@@ -243,8 +245,13 @@ async def deliberate(
         except Exception as exc:    # noqa: BLE001
             logger.warning("twin deliberation %s failed: %s", persona, exc)
             text = f"(unable to reach {persona}: {exc})"
-        flags = _extract_flags(text)
-        voices.append(DeliberationVoice(persona=persona, role=cfg["role"], text=text, flags=flags))
+        return DeliberationVoice(persona=persona, role=cfg["role"],
+                                 text=text, flags=_extract_flags(text))
+
+    voices_parallel = await asyncio.gather(*[
+        _one(p, c) for p, c in PERSONA_ROLES.items()
+    ])
+    voices: List[DeliberationVoice] = list(voices_parallel)
 
     # Council verdict: simple aggregator. If any persona raised a *_FLAG
     # the council recommends revision; otherwise approve.

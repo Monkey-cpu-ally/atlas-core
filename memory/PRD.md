@@ -223,6 +223,16 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] HUD visuals untouched per architect directive — new controls slot into the existing glass-chip aesthetic.
 - [x] **VERIFIED** voice cycle + DOM contract green in iteration_12.json (frontend Playwright)
 
+### Phase 5 — Digital Twin Engine (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `models/twin_models.py` — Pydantic v2 models for `DigitalTwin`, `TwinState`, `Component`, `Dependency`, `SensorInput`, `SimulationResult`, `CouncilDeliberation`, `TwinCategory` enum (device/robot/vehicle/environment/building/manufacturing_system/power_system), `SimulationKind` enum
+- [x] **NEW** `services/twin_simulator.py` — 6 pure-Python simulation engines: blueprint (cycle + reference check), assembly (topological order), resource (BOM + energy budget), failure (fan-out SPOF + sensor gaps + transient power risk), timeline (critical-path DP), cost (materials + 20% labour). Deterministic, sub-100ms each.
+- [x] **NEW** `services/digital_twin.py` — registry CRUD + run_and_persist_simulation + parallel council deliberation (asyncio.gather over Ajani/Minerva/Hermes). Lazy MongoDB client; no startup hook.
+- [x] **NEW** `routes/twins.py` — full REST surface mounted at `/api/twins/*` (register, list, get, state PUT, simulate, simulations history, simulations by id, deliberate, delete with cascade)
+- [x] **NEW** auto-wired memory: register → permanent project memory; simulate → permanent project + decaying research memory tagged success/failure; deliberate → permanent council memory
+- [x] Forward-compat fields built-in: `state.integrations` (Weaver), `state.cad_refs` (CAD ingest), `state.hardware_binding` (Phase 7 robot control), `component.twin_ref` (twin composition)
+- [x] **VERIFIED** 76/76 backend tests passing (`iteration_13.json`): 31 Phase-5 + 45 Phase-2/3 regression
+- [x] Documentation + 3 example twins (Pollinator drone, Power Cell, Mother Box print farm) in `/app/memory/PHASE5-REPORT.md`
+
 
 
 ### Live functional tiles (Feb 2026)
