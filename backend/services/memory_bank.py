@@ -4,19 +4,24 @@ Memory Bank — Phase 2.
 Vector + graph memory for ATLAS, layered on top of MongoDB. Keeps
 everything in one place (no separate vector DB infrastructure):
 
-  * memory_bank          — content rows with a 1536-dim embedding,
-                            persona, source, freshness/decay metadata
+  * memory_bank          — content rows with an embedding,
+                            persona, category, source, freshness/decay
   * graph_triples         — {from, to, relation, source_id, weight}
                             light entity-relation memory
   * atlas_settings        — persona embedding-provider preferences
 
 Embedding providers per persona (Phase 2):
-  * 'emergent'  — OpenAI text-embedding-3-small via Emergent LLM Key
-  * 'ollama'    — Ollama `nomic-embed-text` or any compatible model
+  * 'hash'      — DEFAULT: dependency-free deterministic feature-hash
+                  (lexical+ngram). Works offline, never fails, no API key.
+  * 'ollama'    — Ollama `nomic-embed-text` (semantic; requires Ollama running)
+  * 'emergent'  — OpenAI embeddings via a real OpenAI key in OPENAI_API_KEY
+                  (the Emergent universal LLM key does NOT cover embeddings)
 """
+import hashlib
 import logging
 import math
 import os
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
@@ -30,20 +35,30 @@ load_dotenv()
 logger = logging.getLogger("atlas.memory_bank")
 
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.environ.get("DB_NAME", "test_database")
 
-EMBED_DIM = 1536  # text-embedding-3-small dimensionality
-DEFAULT_EMBED_PROVIDER = "emergent"
-DEFAULT_EMBED_MODEL = "text-embedding-3-small"
+EMBED_DIM = 384  # compact, fast cosine; matches all-MiniLM and the hash backend
+DEFAULT_EMBED_PROVIDER = "hash"
+DEFAULT_EMBED_MODEL = "atlas-hash-v1"
 DEFAULT_OLLAMA_EMBED = "nomic-embed-text"
+DEFAULT_OPENAI_EMBED = "text-embedding-3-small"
 
 # Freshness curve: every day reduces freshness by `DECAY_PER_DAY`; each
 # re-citation adds `REINFORCEMENT_BUMP` back. Pinned memories ignore decay.
 DECAY_PER_DAY = 0.05
 REINFORCEMENT_BUMP = 0.20
 MIN_FRESHNESS = 0.05  # never falls completely to zero
+
+# --- Memory categories (Phase 2) -------------------------------------------
+# Permanent categories never decay (pinned=True at insert time).
+# Decaying categories follow the freshness curve and can be re-surfaced
+# only when re-cited / reinforced.
+PERMANENT_CATEGORIES = {"user", "project", "blueprint", "council"}
+DECAY_CATEGORIES = {"research", "lesson", "intake", "chat", "temporary", "manual", "sandbox"}
+KNOWN_CATEGORIES = PERMANENT_CATEGORIES | DECAY_CATEGORIES
 
 
 # --- Mongo handles -----------------------------------------------------------
@@ -75,20 +90,17 @@ def _utc_now() -> str:
 
 
 def _emergent_client() -> AsyncOpenAI:
-    """Reuse one AsyncOpenAI client pointed at the Emergent proxy.
+    """Real OpenAI client for embeddings — uses OPENAI_API_KEY only.
 
-    Emergent LLM Key works as a bearer for OpenAI-compatible endpoints
-    on the emergentintegrations proxy. We use it directly here because
-    the embeddings API of emergentintegrations is not as ergonomic for
-    batch calls; AsyncOpenAI is faster and reuses connections.
+    The Emergent universal LLM key DOES NOT cover the /v1/embeddings
+    endpoint (chat completions only). If the architect wants semantic
+    OpenAI embeddings they must drop a real OpenAI key in OPENAI_API_KEY.
     """
     global _oa_client
     if _oa_client is None:
-        # Emergent gateway exposes the OpenAI embeddings endpoint at the
-        # standard /v1 path with the same key. If your proxy URL differs,
-        # set OPENAI_BASE_URL in the env.
+        key = OPENAI_API_KEY or EMERGENT_LLM_KEY    # graceful but will 401 if no real key
         base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        _oa_client = AsyncOpenAI(api_key=EMERGENT_LLM_KEY, base_url=base_url)
+        _oa_client = AsyncOpenAI(api_key=key, base_url=base_url)
     return _oa_client
 
 
@@ -110,7 +122,7 @@ async def get_embed_settings(persona: str) -> Tuple[str, str]:
 
 
 async def set_embed_settings(updates: Dict[str, Dict[str, str]]) -> Dict[str, Any]:
-    valid = {"emergent", "ollama"}
+    valid = {"hash", "emergent", "ollama"}
     clean: Dict[str, Dict[str, str]] = {}
     for persona, cfg in updates.items():
         if not isinstance(cfg, dict):
@@ -132,9 +144,44 @@ async def set_embed_settings(updates: Dict[str, Dict[str, str]]) -> Dict[str, An
 
 
 # --- Embedding generators ----------------------------------------------------
+_WORD_RE = re.compile(r"[a-z0-9]+")
+
+
+def _embed_hash(text: str) -> List[float]:
+    """Deterministic feature-hash embedding — no external dependencies.
+
+    Combines word-level and character-3-gram features hashed into a
+    fixed EMBED_DIM bucket, then L2-normalised. Cosine of two hash
+    embeddings approximates lexical + n-gram overlap, which is more
+    than enough for memory recall in the ~few-thousand-rows regime.
+    """
+    vec = [0.0] * EMBED_DIM
+    if not text:
+        return vec
+    lower = text.lower()
+    # word features
+    words = _WORD_RE.findall(lower)
+    for w in words:
+        h = int(hashlib.blake2b(w.encode(), digest_size=4).hexdigest(), 16)
+        sign = 1.0 if (h & 1) else -1.0
+        vec[h % EMBED_DIM] += sign
+    # char-3gram features (captures roots, partial matches, mistypes)
+    padded = f"  {lower}  "
+    for i in range(len(padded) - 2):
+        g = padded[i:i + 3]
+        h = int(hashlib.blake2b(g.encode(), digest_size=4).hexdigest(), 16)
+        sign = 1.0 if (h & 2) else -1.0
+        vec[h % EMBED_DIM] += sign * 0.3        # tri-grams weighted less than words
+    # L2 normalise so cosine == dot
+    norm = math.sqrt(sum(v * v for v in vec)) or 1.0
+    return [v / norm for v in vec]
+
+
 async def _embed_emergent(text: str, model: str) -> List[float]:
+    if not OPENAI_API_KEY:
+        raise EmbedError("OPENAI_API_KEY not set — Emergent universal key does not cover embeddings")
     client = _emergent_client()
-    resp = await client.embeddings.create(model=model or DEFAULT_EMBED_MODEL, input=text[:8000])
+    resp = await client.embeddings.create(model=model or DEFAULT_OPENAI_EMBED, input=text[:8000])
     return resp.data[0].embedding
 
 
@@ -160,21 +207,28 @@ class EmbedError(Exception): pass          # noqa: E701
 
 async def embed(text: str, persona: str = "default") -> Tuple[List[float], Dict[str, Any]]:
     """Return (embedding_vector, meta) for `text` using the persona's
-    preferred embedder. Falls back to Emergent on Ollama errors."""
+    preferred embedder. Falls back to the local hash embedder on any
+    upstream failure so the pipeline can never block on embeddings."""
     provider, model = await get_embed_settings(persona)
     meta: Dict[str, Any] = {"persona": persona, "provider_requested": provider, "model": model}
     try:
         if provider == "ollama":
             vec = await _embed_ollama(text, model)
             meta["provider_used"] = "ollama"
-        else:
+        elif provider == "emergent":
             vec = await _embed_emergent(text, model)
             meta["provider_used"] = "emergent"
-    except (EmbedUnreachable, EmbedError) as exc:
-        logger.warning("Embed fallback to emergent: %s", exc)
+        else:
+            vec = _embed_hash(text)
+            meta["provider_used"] = "hash"
+            meta["model"] = DEFAULT_EMBED_MODEL
+    except (EmbedUnreachable, EmbedError, Exception) as exc:    # noqa: BLE001
+        if provider == "hash":
+            raise
+        logger.warning("Embed fallback to hash: %s", exc)
         meta["fallback_reason"] = str(exc)[:200]
-        vec = await _embed_emergent(text, DEFAULT_EMBED_MODEL)
-        meta["provider_used"] = "emergent"
+        vec = _embed_hash(text)
+        meta["provider_used"] = "hash"
         meta["model"] = DEFAULT_EMBED_MODEL
     return vec, meta
 
@@ -200,22 +254,31 @@ async def store_memory(
     content: str,
     *,
     persona: str = "council",
+    category: str = "manual",          # see PERMANENT_CATEGORIES / DECAY_CATEGORIES
     source_type: str = "manual",     # 'manual' | 'lesson' | 'intake' | 'sandbox' | 'chat'
     source_id: Optional[str] = None,
     tags: Optional[List[str]] = None,
-    pinned: bool = False,
+    pinned: Optional[bool] = None,
 ) -> Dict[str, Any]:
     if not content or len(content.strip()) < 3:
         raise ValueError("content too short")
+    cat = (category or "manual").lower()
+    if cat not in KNOWN_CATEGORIES:
+        cat = "manual"
+    # Permanent categories are auto-pinned unless caller explicitly opts out.
+    if pinned is None:
+        pinned = cat in PERMANENT_CATEGORIES
     vec, embed_meta = await embed(content, persona=persona)
     doc = {
         "id": str(uuid4()),
         "content": content,
         "persona": persona.lower(),
+        "category": cat,
+        "permanent": cat in PERMANENT_CATEGORIES,
         "source_type": source_type,
         "source_id": source_id,
         "tags": tags or [],
-        "pinned": pinned,
+        "pinned": bool(pinned),
         "freshness": 1.0,
         "reinforce_count": 0,
         "created_at": _utc_now(),
@@ -225,6 +288,36 @@ async def store_memory(
     }
     await _memory().insert_one(doc.copy())
     return {k: v for k, v in doc.items() if k != "embedding"}    # don't echo the 1536-d vector
+
+
+async def auto_store(
+    content: str,
+    *,
+    persona: str = "council",
+    category: str = "temporary",
+    source_type: str = "manual",
+    source_id: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+) -> Optional[Dict[str, Any]]:
+    """Fire-and-forget store used by intake/learning/council hooks.
+
+    Wraps store_memory in a try/except so a failed embedding call never
+    aborts the parent pipeline. Returns the stored row (minus the
+    embedding) on success, None on failure."""
+    if not content or len(content.strip()) < 3:
+        return None
+    try:
+        return await store_memory(
+            content,
+            persona=persona,
+            category=category,
+            source_type=source_type,
+            source_id=source_id,
+            tags=tags,
+        )
+    except Exception as exc:    # noqa: BLE001 — intentional fire-and-forget
+        logger.warning("memory_bank.auto_store failed (category=%s): %s", category, exc)
+        return None
 
 
 async def _decay_score(memory_doc: Dict[str, Any]) -> float:
@@ -245,6 +338,7 @@ async def search_memory(
     query: str,
     *,
     persona: Optional[str] = None,
+    category: Optional[str] = None,
     top_k: int = 10,
     min_score: float = 0.30,
 ) -> List[Dict[str, Any]]:
@@ -255,6 +349,8 @@ async def search_memory(
     filt: Dict[str, Any] = {}
     if persona:
         filt["persona"] = persona.lower()
+    if category:
+        filt["category"] = category.lower()
     cursor = _memory().find(filt, {"_id": 0})
     rows = await cursor.to_list(length=2000)
     scored: List[Tuple[float, Dict[str, Any]]] = []
@@ -294,12 +390,15 @@ async def reinforce(memory_id: str) -> Optional[Dict[str, Any]]:
 
 async def list_memories(
     persona: Optional[str] = None,
+    category: Optional[str] = None,
     limit: int = 40,
     include_decayed: bool = False,
 ) -> List[Dict[str, Any]]:
     filt: Dict[str, Any] = {}
     if persona:
         filt["persona"] = persona.lower()
+    if category:
+        filt["category"] = category.lower()
     cursor = _memory().find(filt, {"_id": 0, "embedding": 0}).sort("last_referenced", -1).limit(limit)
     rows = await cursor.to_list(length=limit)
     out = []
@@ -334,7 +433,7 @@ async def add_triple(
         "relation": relation.strip().lower(),
     }
     set_ops = {**key, "source_id": source_id, "updated_at": _utc_now()}
-    res = await _graph().update_one(
+    await _graph().update_one(
         key,
         {"$set": set_ops, "$inc": {"weight": weight, "hits": 1}},
         upsert=True,

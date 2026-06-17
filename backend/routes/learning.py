@@ -221,6 +221,36 @@ async def persist_pipeline(*, topic: str, source: str, transcript: str,
         lessons_col.insert_one(lesson_doc.copy()),
         projects_col.insert_one(project_doc.copy()),
     )
+
+    # --- Phase 2: write to long-term memory bank ----------------------------
+    # Lesson + intake source are decaying knowledge (reinforced when the
+    # student revisits them); the spawned project is permanent.
+    from services import memory_bank as _mb     # local import to avoid cycle
+    lesson_body = (
+        f"{lesson_doc.get('topic', '')}\n\n"
+        f"{lesson_doc.get('lesson_text', '')}\n\n"
+        f"Reflection: {lesson_doc.get('reflection', '')}\n"
+        f"Nature: {lesson_doc.get('nature_connection', '')}"
+    ).strip()
+    project_body = (
+        f"PROJECT: {project_doc.get('project_name', '')}\n"
+        f"{project_doc.get('summary', '')}\n"
+        f"Outcome: {project_doc.get('expected_outcome', '')}"
+    ).strip()
+    intake_body = (
+        f"INTAKE [{source}] · {title or topic}\n{(summary or '')[:600]}"
+    ).strip()
+    await asyncio.gather(
+        _mb.auto_store(lesson_body, persona=persona, category="lesson",
+                       source_type="lesson", source_id=lesson_doc["id"],
+                       tags=[topic]),
+        _mb.auto_store(project_body, persona=persona, category="project",
+                       source_type="project", source_id=project_doc["id"],
+                       tags=[topic]),
+        _mb.auto_store(intake_body, persona=persona, category="intake",
+                       source_type="intake", source_id=knowledge_doc["id"],
+                       tags=[topic]),
+    )
     return {
         "knowledge_id": knowledge_doc["id"],
         "lesson_id": lesson_doc["id"],

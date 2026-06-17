@@ -412,8 +412,28 @@ async def generate_blueprint(req: BlueprintRequest):
     except Exception as exc:
         raise HTTPException(500, f"Blueprint generation failed: {exc}")
 
+    blueprint_doc = _extract_json_object(raw)
+
+    # --- Phase 2: persist as permanent blueprint memory --------------------
+    try:
+        from services import memory_bank as _mb
+        body = (
+            f"BLUEPRINT · {req.concept}\n"
+            f"Domain: {req.domain or 'unspecified'}\n\n"
+            f"{(raw or '')[:4000]}"
+        )
+        await _mb.auto_store(
+            body,
+            persona="ajani",
+            category="blueprint",
+            source_type="blueprint",
+            tags=[req.concept[:80]],
+        )
+    except Exception as exc:    # noqa: BLE001
+        logging.getLogger("atlas.ai_services").warning("Blueprint memory store failed: %s", exc)
+
     return {
-        "blueprint": _extract_json_object(raw),
+        "blueprint": blueprint_doc,
         "raw": raw,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }

@@ -116,6 +116,23 @@ async def deliberate(req: DeliberateRequest):
             "is_lead": (persona == lead),
         })
 
+    # --- Phase 2: store the council deliberation as permanent memory --------
+    try:
+        from services import memory_bank as _mb
+        deliberation_body = (
+            f"COUNCIL · {req.topic}\n\n"
+            + "\n\n".join(f"[{v['persona'].upper()}] {v['text']}" for v in voices)
+        )
+        await _mb.auto_store(
+            deliberation_body,
+            persona=lead if lead and lead != "council" else "council",
+            category="council",
+            source_type="council",
+            tags=[req.topic],
+        )
+    except Exception as exc:    # noqa: BLE001 — never fail the council on memory
+        logger.warning("Council memory store failed: %s", exc)
+
     return {
         "topic": req.topic,
         "lead": lead if lead != "council" else None,

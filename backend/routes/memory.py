@@ -32,10 +32,11 @@ router = APIRouter(prefix="/api/membank", tags=["Memory Bank"])
 class StoreRequest(BaseModel):
     content: str = Field(min_length=3, max_length=8000)
     persona: str = Field(default="council")
+    category: str = Field(default="manual")
     source_type: str = Field(default="manual")
     source_id: Optional[str] = None
     tags: Optional[List[str]] = None
-    pinned: bool = False
+    pinned: Optional[bool] = None
 
 
 @router.post("/store")
@@ -44,6 +45,7 @@ async def store(req: StoreRequest):
         doc = await mb.store_memory(
             req.content,
             persona=req.persona,
+            category=req.category,
             source_type=req.source_type,
             source_id=req.source_id,
             tags=req.tags,
@@ -60,21 +62,86 @@ async def store(req: StoreRequest):
 async def search(
     q: str = Query(min_length=2),
     persona: Optional[str] = None,
+    category: Optional[str] = None,
     top_k: int = Query(10, ge=1, le=50),
     min_score: float = Query(0.30, ge=0.0, le=1.0),
 ):
-    results = await mb.search_memory(q, persona=persona, top_k=top_k, min_score=min_score)
+    results = await mb.search_memory(
+        q, persona=persona, category=category, top_k=top_k, min_score=min_score,
+    )
     return {"q": q, "count": len(results), "results": results}
 
 
 @router.get("/list")
 async def list_endpoint(
     persona: Optional[str] = None,
+    category: Optional[str] = None,
     limit: int = Query(40, ge=1, le=200),
     include_decayed: bool = False,
 ):
-    rows = await mb.list_memories(persona=persona, limit=limit, include_decayed=include_decayed)
+    rows = await mb.list_memories(
+        persona=persona, category=category, limit=limit, include_decayed=include_decayed,
+    )
     return {"count": len(rows), "items": rows}
+
+
+@router.get("/categories")
+async def categories():
+    """Return the supported memory categories and which decay."""
+    return {
+        "permanent": sorted(mb.PERMANENT_CATEGORIES),
+        "decaying": sorted(mb.DECAY_CATEGORIES),
+        "all": sorted(mb.KNOWN_CATEGORIES),
+    }
+
+
+# --- User memory shortcut (permanent, architect notes) ---------------------
+class UserMemoryRequest(BaseModel):
+    content: str = Field(min_length=3, max_length=8000)
+    tags: Optional[List[str]] = None
+
+
+@router.post("/user")
+async def store_user_memory(req: UserMemoryRequest):
+    """Permanent user memory — the architect's own notes, preferences,
+    standing instructions. Always pinned, always category='user'."""
+    doc = await mb.store_memory(
+        req.content,
+        persona="council",
+        category="user",
+        source_type="user",
+        tags=req.tags or [],
+    )
+    return doc
+
+
+@router.get("/user")
+async def list_user_memory(limit: int = Query(50, ge=1, le=200)):
+    rows = await mb.list_memories(category="user", limit=limit, include_decayed=True)
+    return {"count": len(rows), "items": rows}
+
+
+# --- Research memory shortcut (reinforcement decay) ------------------------
+class ResearchMemoryRequest(BaseModel):
+    content: str = Field(min_length=3, max_length=8000)
+    persona: str = Field(default="hermes")
+    source_id: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+@router.post("/research")
+async def store_research_memory(req: ResearchMemoryRequest):
+    """Research memory — anything fetched/analysed via the Phase 3
+    research pipeline. Decays unless reinforced (re-cited)."""
+    doc = await mb.store_memory(
+        req.content,
+        persona=req.persona,
+        category="research",
+        source_type="research",
+        source_id=req.source_id,
+        tags=req.tags or [],
+    )
+    return doc
 
 
 @router.post("/reinforce/{memory_id}")
@@ -141,7 +208,13 @@ async def embed_settings():
         out[persona] = {"provider": provider, "model": model}
     return {
         "personas": out,
-        "providers_available": ["emergent", "ollama"],
+        "providers_available": ["hash", "ollama", "emergent"],
+        "notes": (
+            "Default: 'hash' — dependency-free deterministic feature-hash embedding "
+            "stored in MongoDB. Switch a persona to 'ollama' for semantic embeddings "
+            "via a local Ollama server. 'emergent' requires a real OPENAI_API_KEY — "
+            "the Emergent universal LLM key does NOT cover the embeddings endpoint."
+        ),
     }
 
 
@@ -153,5 +226,5 @@ class EmbedSettingsUpdate(BaseModel):
 async def update_embed_settings(req: EmbedSettingsUpdate):
     res = await mb.set_embed_settings(req.updates)
     if res.get("updated", 0) == 0:
-        raise HTTPException(400, "no valid updates (provider must be emergent or ollama)")
+        raise HTTPException(400, "no valid updates (provider must be hash, ollama, or emergent)")
     return res
