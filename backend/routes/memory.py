@@ -95,6 +95,27 @@ async def categories():
     }
 
 
+@router.get("/by-tag")
+async def by_tag(
+    tag: str = Query(min_length=1),
+    persona: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = Query(50, ge=1, le=200),
+):
+    """Exact-tag lookup — bypasses cosine similarity. Used by tests and
+    by any caller that knows the literal tag they're looking for (e.g.
+    'persona_chat', a session id, an emergency_stop audit marker)."""
+    filt = {"tags": tag.lower() if tag.islower() else tag}
+    if persona:
+        filt["persona"] = persona.lower()
+    if category:
+        filt["category"] = category.lower()
+    cur = mb._memory().find(filt, {"_id": 0, "embedding": 0}) \
+        .sort("created_at", -1).limit(limit)
+    rows = [r async for r in cur]
+    return {"count": len(rows), "items": rows}
+
+
 # --- User memory shortcut (permanent, architect notes) ---------------------
 class UserMemoryRequest(BaseModel):
     content: str = Field(min_length=3, max_length=8000)

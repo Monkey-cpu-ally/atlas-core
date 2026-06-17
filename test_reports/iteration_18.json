@@ -1,0 +1,49 @@
+{
+  "summary": "Phase 8a Persona Chat API fully verified against all 12 review_request bullets. 34/34 backend tests passed: 9 original persona tests + 8 new extras (KB wiring×2, council 4-row mirror, DELETE preserves Memory Bank, Ajani engineer-voice character, HUD response-shape stability, robot+membank regression) + 17 robot/clear-safe-state regression tests. End-to-end against the preview URL.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/persona/{p}/chat (KB wiring)",
+        "issue": "services/persona_chat.py::_fetch_knowledge passes the FULL user message verbatim into kbase.search(q=...). kbase.search re.escapes the query and matches as a SUBSTRING against title/summary/tags/concepts. Result: any multi-sentence prompt almost never matches an ingested record, so cited_knowledge_ids is empty unless the user types a single keyword. The contract (kbase called with persona filter, ids surfaced when matched) holds, but the matching is brittle. Suggest tokenising the query (split on whitespace, OR each token, drop stop-words) before passing to kbase.search, OR switch kbase.search to a Mongo text-index. Verified by curl: message='whisper' cites the seeded record, message='Briefly summarise what we know about whisper.' returns 0 hits."
+      },
+      {
+        "endpoint": "kbase ingestion (/api/kbase/ingest)",
+        "issue": "Egress to en.wikipedia.org returns 403 from this preview env, so first-run KB seeding from Wikipedia URLs fails. Not a Persona-Chat bug, but blocks self-bootstrapping demos. Github raw URLs work."
+      }
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_persona_chat.py",
+    "/app/backend/tests/test_persona_chat_extras.py",
+    "/app/test_reports/pytest/iter18_persona.xml",
+    "/app/test_reports/pytest/iter18_persona_extras.xml",
+    "/app/test_reports/pytest/iter18_full.xml"
+  ],
+  "action_items": [
+    "Optional polish: in services/persona_chat.py::_fetch_knowledge, tokenise the message before kbase.search to make cited_knowledge_ids work for natural-language prompts (currently only single-keyword prompts surface citations).",
+    "Optional: prefer a Mongo $text index in services/knowledge_ingestion.py::search to replace the re.escape substring regex — current implementation cannot find a record from a paraphrased query."
+  ],
+  "critical_code_review_comments": [
+    "persona_chat.py is clean and idiomatic: user turn is persisted BEFORE the LLM call so a provider failure still leaves an audit trail; assistant turn is mirrored to Memory Bank with category=agent (permanent), tags=[persona_chat, persona, session_id]. Tag scheme is consistent and the by-tag membank endpoint resolves rows deterministically.",
+    "Council fan-out correctly persists exactly 4 rows per turn: 3 sub-voices (category=agent, one per persona) + 1 synthesis (category=council). All 4 are permanent. Verified via GET /api/membank/by-tag?tag=<sid>&persona=<p>.",
+    "DELETE /api/persona/sessions/{id} correctly removes session+messages but leaves Memory Bank rows untouched — the architect's 'persona keeps what it learned' contract holds.",
+    "ChatResponse shape is stable and JSON-serialisable: session_id, message_id, reply, cited_memory_ids, cited_knowledge_ids, provider_used, model_used, council_voices. All keys present even on fallback (provider_used/model_used can be null). Safe for the HUD voice transcript bar.",
+    "Persona registry (PERSONAS dict) is the single source of truth and is shared between persona_chat.py and knowledge_distiller.py — voice consistency guaranteed.",
+    "Validation: unknown persona slugs return 400 with helpful detail listing the 4 valid slugs.",
+    "ISSUE — _fetch_knowledge passes raw user message into kbase.search. With a re.escape+substring search this matches almost nothing for real prompts. Functional in unit-test conditions; weak in production-style prompts.",
+    "Minor — _client (motor) handle is a module-level lazy singleton with no close hook; fine for FastAPI lifetime but worth documenting."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_persona_chat_extras.py (NEW — 8 supplementary tests)"
+  ],
+  "success_rate": {"backend": "100% (34/34)", "frontend": "skipped per request"},
+  "test_credentials": "None required. EMERGENT_LLM_KEY is in backend/.env. /api/persona is intentionally not role-gated.",
+  "seed_data_creation": "Each test creates ephemeral persona sessions (UUID-named); council test writes 4 mb rows; delete-test verifies mb rows survive after session deletion. No cleanup script — Memory Bank accumulates persona_chat tags over runs (each tagged with the test session_id so they're easy to sweep later via /api/membank/by-tag).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 12 review_request bullets are GREEN. New extras file at /app/backend/tests/test_persona_chat_extras.py — uses _pick_keyword() helper that selects a token guaranteed to be a substring of title/summary because kbase.search uses re.escape regex (NOT a real text index). If a future change tokenises kbase.search, the helper can be simplified. The KB wiring brittleness (multi-sentence prompts don't cite) is the only behavioural issue surfaced and is documented in backend_issues.minor[0]. The seeded Whisper record (id=691fa4b64ae84bd1a94754a3800feb54, related_agents=['hermes']) is the only kbase record at the moment, plus a freshly-ingested github record tagged ajani created by the extras test.",
+  "rca of the issue": "Knowledge-Bank citation brittleness — services/persona_chat.py line ~167: `rows = await kbase.search(q=query, agent=persona, limit=top_k)` where `query = req.message`. services/knowledge_ingestion.py line ~226 does `regex = {'$regex': re.escape(q), '$options': 'i'}` then matches as substring on title/summary/tags/concepts. Outcome: any query longer than a single distinctive keyword almost never matches an ingested record. Reproduction: POST /api/persona/hermes/chat with message='Briefly summarise what we know about whisper.' → cited_knowledge_ids=[]. POST with message='whisper' → cited_knowledge_ids=['691fa4b64ae84bd1a94754a3800feb54']. Mitigation: tokenise the query in _fetch_knowledge (split, lowercase, drop short tokens, join with '|') and either build a $regex OR-chain or switch knowledge_ingestion.search to a Mongo $text index."
+}

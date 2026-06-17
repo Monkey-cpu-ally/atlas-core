@@ -39,6 +39,7 @@ from routes.twins import router as twins_router
 from routes.weaver import router as weaver_router
 from routes.kbase import router as kbase_router
 from routes.robot import router as robot_router
+from routes.persona import router as persona_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -116,6 +117,7 @@ app.include_router(twins_router)  # Phase 5: digital twin engine (registry + 6 s
 app.include_router(weaver_router)  # Phase 6: weaver (parts library + blueprint planner + manufacturing)
 app.include_router(kbase_router)  # Knowledge Ingestion: distill external sources → MemoryRecords
 app.include_router(robot_router)  # Phase 7: robot control layer (devices + telemetry + sim-first command pipeline)
+app.include_router(persona_router)  # Phase 8a: persona chat (Ajani · Minerva · Hermes · Council)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")

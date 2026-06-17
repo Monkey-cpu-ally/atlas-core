@@ -56,7 +56,7 @@ MIN_FRESHNESS = 0.05  # never falls completely to zero
 # Permanent categories never decay (pinned=True at insert time).
 # Decaying categories follow the freshness curve and can be re-surfaced
 # only when re-cited / reinforced.
-PERMANENT_CATEGORIES = {"user", "project", "blueprint", "council"}
+PERMANENT_CATEGORIES = {"user", "project", "blueprint", "council", "agent"}
 DECAY_CATEGORIES = {"research", "lesson", "intake", "chat", "temporary", "manual", "sandbox"}
 KNOWN_CATEGORIES = PERMANENT_CATEGORIES | DECAY_CATEGORIES
 
