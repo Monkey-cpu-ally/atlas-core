@@ -274,6 +274,15 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **UPDATED** `/app/memory/ARCHITECTURE-REPORT.md` — new "System data flow" section diagramming Knowledge Bank → Memory Bank → Graph Memory ⇄ Digital Twin ⇄ Weaver ⇄ Robot Control with the voice-ingest entry point.
 - [x] **VERIFIED** 14/14 in `iteration_16.json`: 4/4 backend (`tests/test_iter16_voice_ingest_sentinel.py`), 10/10 voice-parser unit tests (`tests/voice_parser_iter16.cjs`), and full frontend regression (Sentinel render, popover, dismiss/persist, SAFE STATE visual, Robot Control panel still functional inside SYSTEMS).
 
+### Phase 7+ Clear Safe State (Feb 2026) ✅ COMPLETE
+- [x] **UPDATED** `models/robot_models.py` — `CommandKind.CLEAR_SAFE_STATE` added · `OWNER_ONLY_COMMANDS` extended.
+- [x] **UPDATED** `services/robot.py` — `clear_safe_state(device_id, role, confirm, agent?)` enforces (in this order): owner-only role check → device lookup → exact-name confirm match (anti-fat-finger) → device-must-already-be-in-safe-state guard (so this endpoint can NEVER bypass any other safety gate) → write `robot_commands` record with 4-step pipeline_log (authorise · confirm · verify_safe_state · execute) → flip device `safe_state → registered` → patch bound Digital Twin's `state.safety_history` (capped at 25) + `state.safe_state=false` + `state.last_safety_clear_at` → write permanent `council` Memory Bank entry tagged `['robot','safety','clear_safe_state',<device_name>]`.
+- [x] **UPDATED** `routes/robot.py` — new `POST /api/robot/devices/{id}/clear-safe-state` accepting `ClearSafeStateRequest{ confirm: str }`; route-level role gate as defence-in-depth (403/400/409/404 mapped from service result).
+- [x] **UPDATED** `frontend/HUD/RobotPanel.js` — new "Clear Safe State" button (lime-green outline, `ShieldCheck` icon, `data-testid="robot-cmd-clear-safe-state"`) rendered ONLY when selected device.status==='safe_state'. Click → browser `window.confirm()` with device name surfaced + plain-English warning that Emergency Stop remains the highest-priority safety control → POST with `confirm: <device_name>`. Backend double-gates regardless.
+- [x] **NEW** `backend/tests/test_robot_clear_safe_state.py` — 7 hard-guarantee tests (owner-only / wrong-confirm / missing-confirm / cannot-clear-healthy / full-success path with twin+memory+command audit / second-clear rejected / unknown device 404).
+- [x] **VERIFIED** `iteration_17.json` — 10/10 backend (7 + 3 testing-agent extras: membank tagging, pipeline-log step ordering, e-stop+actuate regression) · 13/13 prior Phase-7 regression intact · 5/5 HUD assertions (button conditional render + window.confirm + post-clear device flip).
+- [x] **NEW** `/app/memory/ATLAS_SYSTEM_REPORT.md` — full system report with completed phases, DB schemas, API endpoints, memory/knowledge schemas, all flows (Research/Twin/Weaver/Robot), remaining work, known limitations, recommended Phase 8 roadmap.
+
 
 
 ### Live functional tiles (Feb 2026)
