@@ -189,6 +189,23 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **VERIFIED** fallback path live-tested: set Ajani → Ollama (unreachable) → POST /api/llm/test → response from Emergent gpt-5.2 with `fallback_reason` recorded
 - [x] Env vars (optional): `OLLAMA_HOST` (default `http://localhost:11434`), `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`)
 
+### Phase 2 — Knowledge / Memory Bank (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `services/memory_bank.py` — vector + graph memory layered on MongoDB
+- [x] **NEW** 11 memory categories with permanent/decay policy:
+   - Permanent (auto-pinned): `user`, `project`, `blueprint`, `council`
+   - Decay (reinforcement curve): `research`, `temporary`, `lesson`, `intake`, `chat`, `sandbox`, `manual`
+- [x] **NEW** dependency-free `hash` embedding (blake2b feature-hash, 384 dims) is the default — zero external deps, never fails. Switchable per-persona to `ollama` (semantic) or `emergent` (real OpenAI key) via PUT `/api/membank/embed-settings`
+- [x] **NEW** routes (`routes/memory.py`): `/api/membank/store`, `/search`, `/list`, `/reinforce/{id}`, `/{id}` DELETE, `/categories`, `/user`, `/research`, `/graph/triple`, `/graph/list`, `/graph/around`, `/embed-settings` GET/PUT
+- [x] **NEW** auto-wired pipelines (fire-and-forget via `auto_store`):
+   - Intake → 3 memories (lesson + project + intake)
+   - Council deliberation → 1 council memory
+   - Blueprint generate → 1 blueprint memory
+- [x] **NEW** freshness curve: 0.05/day decay, +0.20 per reinforcement, MIN_FRESHNESS=0.05; permanent rows skip decay entirely
+- [x] **NEW** search score = 0.85·cosine + 0.15·freshness (default min_score=0.30, top_k=10)
+- [x] **NEW** graph triples: upsert on (from,to,relation) with $inc weight+hits; BFS `around` to depth 3
+- [x] **VERIFIED** 29/29 backend tests pass (`/app/backend/tests/test_membank_phase2.py`, report `iteration_11.json`)
+- [x] Completion report: `/app/memory/PHASE2-REPORT.md`
+
 
 
 ### Live functional tiles (Feb 2026)
