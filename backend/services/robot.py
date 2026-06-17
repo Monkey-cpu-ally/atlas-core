@@ -129,6 +129,122 @@ async def emergency_stop(device_id: str, *, role: Role) -> Optional[Dict[str, An
     return await get_device(device_id)
 
 
+async def clear_safe_state(
+    device_id: str, *, role: Role, confirm: str, agent: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Owner-only release of a device from SAFE_STATE back to ONLINE/REGISTERED.
+
+    Safety contract (architect spec):
+      * Owner-only — guest/council/agents always rejected.
+      * Requires explicit confirmation: caller must pass the device's exact
+        name in `confirm` (anti-fat-finger guard).
+      * NEVER bypasses an active EMERGENCY_STOP — the device must already
+        BE in SAFE_STATE. If it isn't (e.g. an emergency-stop never fired),
+        we refuse so the operator cannot use this endpoint as a backdoor
+        actuator on a healthy device.
+      * Writes a Command record (kind=clear_safe_state, status=executed).
+      * Writes a Memory Bank entry (council/permanent).
+      * Updates the bound Digital Twin state with a clearance marker so
+        downstream simulations see the chronology.
+
+    Returns a dict carrying the new device snapshot + the audit Command id.
+    Raises HTTPException-like dict (callers map to 4xx) on policy failures.
+    """
+    # 1. Role gate (defence-in-depth — caller already checked once)
+    if role != Role.OWNER:
+        return {"ok": False, "status": 403, "reason": "clear_safe_state is owner-only"}
+
+    # 2. Look up the device
+    device = await get_device(device_id)
+    if not device:
+        return {"ok": False, "status": 404, "reason": "device not found"}
+
+    # 3. Confirmation must match the device's exact name (case-sensitive)
+    if not confirm or confirm != device.get("name"):
+        return {
+            "ok": False, "status": 400,
+            "reason": f"confirmation mismatch — pass confirm='{device.get('name')}' to release",
+        }
+
+    # 4. Device must actually BE in safe state. Refusing to "clear" a
+    #    non-safe device prevents this endpoint from being used as a
+    #    bypass for any other safety gate.
+    if device.get("status") != DeviceStatus.SAFE_STATE.value:
+        return {
+            "ok": False, "status": 409,
+            "reason": (
+                f"device is not in safe_state (current={device.get('status')}) — "
+                f"clear_safe_state cannot bypass an unrelated state"
+            ),
+        }
+
+    cleared_at = _now()
+
+    # 5. Audit command (status executed, full pipeline log)
+    cmd = Command(
+        device_id=device_id,
+        kind=CommandKind.CLEAR_SAFE_STATE,
+        payload={"confirm": confirm},
+        issued_by_role=role.value,
+        issued_by_agent=agent,
+        status=CommandStatus.EXECUTED,
+        pipeline_log=[
+            {"step": "authorise", "ok": True, "ts": cleared_at, "note": "owner"},
+            {"step": "confirm",   "ok": True, "ts": cleared_at, "note": f"confirm={confirm}"},
+            {"step": "verify_safe_state", "ok": True, "ts": cleared_at,
+             "note": "device was in safe_state, clear authorised"},
+            {"step": "execute",   "ok": True, "ts": cleared_at,
+             "note": "device released to registered; twin marked cleared"},
+        ],
+        executed_at=cleared_at,
+    )
+    await _commands().insert_one(cmd.model_dump())
+
+    # 6. Flip device back to REGISTERED (the next telemetry burst will
+    #    promote it to ONLINE — we don't fake that.)
+    await _devices().update_one(
+        {"id": device_id},
+        {"$set": {"status": DeviceStatus.REGISTERED.value, "updated_at": cleared_at}},
+    )
+
+    # 7. Update the bound Digital Twin's state with a clearance marker so
+    #    Phase-5/6 simulators can see the chronology.
+    twin_id = device.get("twin_id")
+    if twin_id:
+        twin = await dt.get_twin(twin_id)
+        if twin:
+            state = twin.get("state") or {}
+            history = list(state.get("safety_history") or [])
+            history.append({
+                "event": "clear_safe_state",
+                "ts": cleared_at,
+                "by_role": role.value,
+                "command_id": cmd.id,
+            })
+            state["safety_history"] = history[-25:]   # cap
+            state["safe_state"] = False
+            state["last_safety_clear_at"] = cleared_at
+            state["updated_at"] = cleared_at
+            await dt._twins().update_one({"id": twin_id}, {"$set": {"state": state}})
+
+    # 8. Memory Bank — permanent council entry (parity with emergency_stop)
+    await mb.auto_store(
+        f"CLEAR SAFE STATE · device={device['name']} ({device_id}) · role=owner "
+        f"· cleared at {cleared_at}",
+        persona="council", category="council",
+        source_type="robot_command", source_id=cmd.id,
+        tags=["robot", "safety", "clear_safe_state", device["name"]],
+    )
+
+    return {
+        "ok": True,
+        "device": await get_device(device_id),
+        "command_id": cmd.id,
+        "cleared_at": cleared_at,
+    }
+
+
 # --- Telemetry --------------------------------------------------------------
 async def ingest_telemetry(device_id: str, payload: Dict[str, Any], *, source: str = "mqtt") -> Dict[str, Any]:
     rec = TelemetryRecord(device_id=device_id, payload=payload, source=source)

@@ -171,3 +171,33 @@ async def stop(device_id: str, role: Role = Depends(_role_from_header)):
     if not d:
         raise HTTPException(404, "device not found")
     return d
+
+
+class ClearSafeStateRequest(BaseModel):
+    confirm: str = Field(..., description="Must equal the device's exact name as anti-fat-finger guard")
+
+
+@router.post("/devices/{device_id}/clear-safe-state")
+async def clear_safe_state(
+    device_id: str,
+    body: ClearSafeStateRequest,
+    role: Role = Depends(_role_from_header),
+):
+    """Owner-only release of a device from SAFE_STATE.
+
+    Hard rules (architect spec):
+      * Owner role required (otherwise 403)
+      * Body must include `confirm` equal to the device's exact `name`
+        (anti-fat-finger; otherwise 400)
+      * Device must already be in `safe_state` (otherwise 409 — this
+        endpoint never bypasses any other safety gate)
+      * Emits a Command record (kind=clear_safe_state, status=executed)
+      * Patches the bound Digital Twin's `state.safety_history`
+      * Writes a permanent council Memory Bank entry
+    """
+    if role != Role.OWNER:
+        raise HTTPException(403, "CLEAR_SAFE_STATE is owner-only")
+    res = await robot.clear_safe_state(device_id, role=role, confirm=body.confirm)
+    if not res.get("ok"):
+        raise HTTPException(res.get("status", 400), res.get("reason", "clear failed"))
+    return res

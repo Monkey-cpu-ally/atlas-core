@@ -62,6 +62,7 @@ class CommandKind(str, Enum):
     BIND_TWIN         = "bind_twin"
     FIRMWARE_UPDATE   = "firmware_update"
     EMERGENCY_STOP    = "emergency_stop"
+    CLEAR_SAFE_STATE  = "clear_safe_state"
 
 
 # --- Allow-list + per-command policy ---------------------------------------
@@ -70,6 +71,7 @@ OWNER_ONLY_COMMANDS = {
     CommandKind.MOTION,
     CommandKind.BIND_TWIN,
     CommandKind.FIRMWARE_UPDATE,
+    CommandKind.CLEAR_SAFE_STATE,
 }
 # Read + ping are always allowed; configure is owner-only too, just less
 # critical. Emergency stop is owner-only by design.

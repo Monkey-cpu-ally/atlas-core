@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useState, useCallback } from 'react';
-import { Bot, Wifi, AlertOctagon, Send, Loader2, RefreshCw, ShieldAlert } from 'lucide-react';
+import { Bot, Wifi, AlertOctagon, Send, Loader2, RefreshCw, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -111,6 +111,43 @@ export default function RobotPanel({ aiColor }) {
       } else {
         const body = await r.json();
         setLastCmd({ status: 'executed', kind: 'emergency_stop', device_id: body.id });
+        await loadDevices();
+        await loadDeviceDetail(selectedId);
+      }
+    } catch (err) {
+      setError(String(err.message || err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const triggerClearSafeState = async (deviceName) => {
+    if (!selectedId || busy) return;
+    // Browser-native confirm so we don't add a modal to the locked HUD.
+    // The backend ALSO requires confirm===deviceName so this is double-gated.
+    const ok = window.confirm(
+      `Clear SAFE_STATE on ${deviceName}?\n\n` +
+      `Type the device name to confirm — this will release the safety lock ` +
+      `and the device will be allowed to receive ACTUATE/MOTION commands again.\n\n` +
+      `Emergency Stop remains the highest-priority safety control.`
+    );
+    if (!ok) return;
+    setBusy(true); setError(null);
+    try {
+      const r = await fetch(`${API_URL}/api/robot/devices/${selectedId}/clear-safe-state`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Atlas-Role': role },
+        body: JSON.stringify({ confirm: deviceName }),
+      });
+      const body = await r.json();
+      if (!r.ok) {
+        setError(body.detail || `clear failed (${r.status})`);
+      } else {
+        setLastCmd({
+          status: 'executed',
+          kind: 'clear_safe_state',
+          device_id: selectedId,
+        });
         await loadDevices();
         await loadDeviceDetail(selectedId);
       }
@@ -243,6 +280,21 @@ export default function RobotPanel({ aiColor }) {
             >
               <AlertOctagon size={11} /> e-stop
             </button>
+            {selected.status === 'safe_state' && (
+              <button
+                className="bp-btn"
+                onClick={() => triggerClearSafeState(selected.name)}
+                disabled={busy}
+                data-testid="robot-cmd-clear-safe-state"
+                style={{
+                  flex: 'none', minWidth: 'auto', padding: '4px 10px', fontSize: 11,
+                  borderColor: '#A0E66E', color: '#A0E66E',
+                }}
+                title="Owner-only — releases SAFE_STATE. Requires confirmation. Cannot bypass an active emergency stop on a non-safe device."
+              >
+                <ShieldCheck size={11} /> clear safe state
+              </button>
+            )}
           </div>
 
           {lastCmd && (
