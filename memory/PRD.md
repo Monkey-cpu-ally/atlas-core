@@ -233,6 +233,17 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **VERIFIED** 76/76 backend tests passing (`iteration_13.json`): 31 Phase-5 + 45 Phase-2/3 regression
 - [x] Documentation + 3 example twins (Pollinator drone, Power Cell, Mother Box print farm) in `/app/memory/PHASE5-REPORT.md`
 
+### Phase 6 — Weaver (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `models/weaver_models.py` — Pydantic v2 models: `Part`, `BlueprintInput`, `ExtractedPart`, `BuildPlan`, `ManufacturingPlan`, `FailurePrediction`, `CouncilOutcome`, `WeaverPlan`; enums `PartCategory` (component/material/fastener/electronic/sensor/actuator/tool/consumable), `Difficulty`, `BlueprintFormat`
+- [x] **NEW** `services/parts_db.py` — MongoDB-backed parts library with idempotent 25-row starter seed. Token-overlap + substring matching (threshold 0.5) via `match_part(name)`.
+- [x] **NEW** `services/blueprint_parser.py` — structured-JSON parser + Hermes LLM free-text parser (`llm_provider.send('hermes', …)`) + regex fallback. Enriches every extracted part with `library_part_id` + confidence.
+- [x] **NEW** `services/weaver.py` — full pipeline `plan_from_blueprint`: parse → enrich → spawn Phase-5 twin → run 4 sims → compose build/manufacturing/failure plans → optional council deliberation → persist → write permanent blueprint memory
+- [x] **NEW** `routes/weaver.py` — REST surface mounted at `/api/weaver/*`: `/parts` CRUD + search + seed + categories, `/analyze`, `/plan`, `/plans` CRUD with optional `?drop_twin=true` cascade
+- [x] Difficulty heuristic (trivial/easy/medium/hard/expert), tools-required union from category hints, risk = (1−sim_score) + 0.05·|missing_parts|
+- [x] Memory wiring: blueprint plan → permanent blueprint memory (10 memory rows total per deliberated plan, all queryable via `/api/membank/search`)
+- [x] **VERIFIED** 81/81 backend tests passing (`iteration_14.json`): 21 Phase-6 + 60 Phase-2/5 regression. `pytest.ini` registers the `slow` marker.
+- [x] Documentation + pan/tilt example in `/app/memory/PHASE6-REPORT.md`
+
 
 
 ### Live functional tiles (Feb 2026)
