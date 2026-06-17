@@ -19,6 +19,7 @@ This document is the architect's single source of truth before Phase 7. It super
 | 4 | Voice System & ATLAS HUD | ✅ | `hooks/useVoiceRecognition.js` (3 modes: off / push-to-talk / wake-word); `utils/voiceCommands.js` (persona + tile aliases); mic chip in HUDInterface top-right; HUD geometry untouched |
 | 5 | Digital Twin Engine | ✅ | `models/twin_models.py`, `services/twin_simulator.py` (6 engines), `services/digital_twin.py`, `routes/twins.py`; registry + state revisions + parallel council deliberation; auto-spawns project & research memories |
 | 6 | Weaver (manufacturing planning) | ✅ | `models/weaver_models.py`, `services/parts_db.py`, `blueprint_parser.py`, `weaver.py`, `routes/weaver.py`; 25-row starter library; full pipeline: parse → enrich → spawn twin → 4 sims → build/manufacturing/failure plans → optional council |
+| K | Knowledge Ingestion System | ✅ | `models/knowledge_models.py`, `services/source_fetchers.py`, `knowledge_distiller.py`, `knowledge_ingestion.py`, `routes/kbase.py`; ingests GitHub / YouTube / PDF / Web / Patent / Academic URLs; LLM-distilled MemoryRecords with dedup-by-URL + reinforce-on-revisit + graph triples |
 | 7 | Robot Control Layer | ⏳ | awaits target hardware spec |
 
 Detail: `/app/memory/PHASE2-REPORT.md`, `PHASE3-4-REPORT.md`, `PHASE5-REPORT.md`, `PHASE6-REPORT.md`, `PRD.md`.

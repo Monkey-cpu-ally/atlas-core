@@ -244,6 +244,17 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **VERIFIED** 81/81 backend tests passing (`iteration_14.json`): 21 Phase-6 + 60 Phase-2/5 regression. `pytest.ini` registers the `slow` marker.
 - [x] Documentation + pan/tilt example in `/app/memory/PHASE6-REPORT.md`
 
+### Knowledge Ingestion System (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `models/knowledge_models.py` — Pydantic `KnowledgeRecord` schema (title, summary, key_points, tags, source_type, source_url, source_hash, source_author, confidence_score, related_agents, related_projects, concepts, memory_bank_id, reinforce_count, timestamps) + `SourceType` enum (github · youtube · pdf · web · patent · academic) + `IngestRequest`/`FetchedSource`/`Distillation`
+- [x] **NEW** `services/source_fetchers.py` — single `fetch(url)` dispatcher that picks `_fetch_github` (api.github.com, no token), `_fetch_youtube` (yt-transcript-api 1.x with graceful cloud-IP-block 503), `_fetch_pdf` (Phase-3 pdf_reader; remote URL or base64 blob), `_fetch_patent`/`_fetch_academic`/`_fetch_web` (Phase-3 reuse)
+- [x] **NEW** `services/knowledge_distiller.py` — keyword-density `route_agent()` + persona-voiced LLM distillation via Phase-1 llm_provider. Strict JSON schema, anti-copyright system prompt ("rewrite in your own wording, no >15 consecutive verbatim words"), graceful fallback record (confidence=0.20) on LLM failure
+- [x] **NEW** `services/knowledge_ingestion.py` — orchestrator: fetch → distill → dedup by `sha256(normalised_url)` → reinforce-on-revisit (merges tags/concepts/agents/projects, calls `mb.reinforce`) OR persist new → wire graph triples (concept↔tag · project↔concept · agent↔concept)
+- [x] **NEW** `routes/kbase.py` — `/api/kbase/{ingest, search, by-url, classify, agents/route, {id}, {id} DELETE}` (prefix `/api/kbase` to avoid conflict with legacy `/api/knowledge` 22-subject teaching routes)
+- [x] **NEW** memory category routing: project_id → category=project (PERMANENT) · agent=council → category=council (PERMANENT) · else → category=research (decaying, reinforce-able)
+- [x] Anti-copyright safeguards: distilled content only in persistence; raw fetched text lives only in-request memory; source URL + author + confidence always preserved for citation
+- [x] **VERIFIED** 10/10 tests passing in 22s (`tests/test_knowledge_ingestion.py`) — includes GitHub Whisper README example, YouTube cloud-IP-block tolerance, dedup + reinforce, graph wiring, anti-leakage
+- [x] Documentation: `/app/memory/KNOWLEDGE-INGESTION-REPORT.md`
+
 
 
 ### Live functional tiles (Feb 2026)
