@@ -456,21 +456,35 @@ async def list_triples(
     return await cursor.to_list(length=limit)
 
 
-async def neighborhood(node: str, depth: int = 1, limit_per_layer: int = 12) -> Dict[str, Any]:
+async def neighborhood(
+    node: str,
+    depth: int = 1,
+    limit_per_layer: int = 12,
+    min_weight: float = 0.0,
+) -> Dict[str, Any]:
     """BFS up to `depth` hops away from `node`. Returns a compact view
-    suitable for a UI graph render: {nodes:[], edges:[]}."""
+    suitable for a UI graph render: {nodes:[], edges:[]}.
+
+    `min_weight` filters out low-confidence edges (default 0.0 → include
+    every edge). Useful for HUD graph viz where you only want the
+    strongest associations.
+    """
     seen_nodes = {node}
     edges_out: List[Dict[str, Any]] = []
     frontier = {node}
     for _ in range(max(1, depth)):
         if not frontier:
             break
-        cursor = _graph().find(
-            {"$or": [
+        filt: Dict[str, Any] = {
+            "$or": [
                 {"from_node": {"$in": list(frontier)}},
                 {"to_node":   {"$in": list(frontier)}},
-            ]},
-            {"_id": 0},
+            ],
+        }
+        if min_weight > 0:
+            filt["weight"] = {"$gte": float(min_weight)}
+        cursor = _graph().find(
+            filt, {"_id": 0},
         ).sort("weight", -1).limit(limit_per_layer * len(frontier))
         layer = await cursor.to_list(length=limit_per_layer * len(frontier))
         next_frontier = set()
@@ -484,6 +498,7 @@ async def neighborhood(node: str, depth: int = 1, limit_per_layer: int = 12) -> 
     return {
         "root": node,
         "depth": depth,
+        "min_weight": float(min_weight),
         "nodes": sorted(seen_nodes),
         "edges": edges_out,
     }

@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useState, useRef } from 'react';
-import { Waves, Cloud, Sprout, AlertOctagon } from 'lucide-react';
+import { Waves, Cloud, Sprout, AlertOctagon, AlertTriangle, MessagesSquare, Loader2 } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -119,12 +119,27 @@ export default function AtlasSentinel() {
         const v = SENTINEL_VISUAL[device.name];
         const Icon = v.Icon;
         const isSafe = device.status === 'safe_state';
+        const anomaly = (device.state && device.state.anomaly) || null;
+        const isAnomaly = !!anomaly && !isSafe;
         const isOpen = openId === device.id;
+        const stateLabel = isSafe
+          ? 'SAFE STATE'
+          : isAnomaly
+            ? `ANOMALY · ${(anomaly.drifting_keys || []).slice(0, 2).join(', ')}`
+            : (latest ? formatReadings(latest.payload, device.name) : 'no data yet');
+        const StatusIcon = isSafe ? AlertOctagon : isAnomaly ? AlertTriangle : Icon;
+        const chipClass = [
+          'atlas-sentinel-chip',
+          isSafe && 'is-safe',
+          isAnomaly && 'is-anomaly',
+          isOpen && 'is-open',
+        ].filter(Boolean).join(' ');
         return (
           <div
             key={device.id}
-            className={`atlas-sentinel-chip ${isSafe ? 'is-safe' : ''} ${isOpen ? 'is-open' : ''}`}
+            className={chipClass}
             data-testid={`sentinel-chip-${device.name}`}
+            data-anomaly={isAnomaly ? 'true' : 'false'}
             style={{ '--chip-hue': v.hue }}
             onClick={() => setOpenId(isOpen ? null : device.id)}
             role="button"
@@ -133,36 +148,132 @@ export default function AtlasSentinel() {
               if (e.key === 'Enter' || e.key === ' ') setOpenId(isOpen ? null : device.id);
             }}
           >
-            {isSafe ? <AlertOctagon size={11} /> : <Icon size={11} />}
+            <StatusIcon size={11} />
             <span className="atlas-sentinel-name">{v.label}</span>
-            <span className="atlas-sentinel-readings">
-              {isSafe ? 'SAFE STATE' : (latest ? formatReadings(latest.payload, device.name) : 'no data yet')}
-            </span>
+            <span className="atlas-sentinel-readings">{stateLabel}</span>
             {isOpen && (
-              <div className="atlas-sentinel-popover" data-testid={`sentinel-popover-${device.name}`}>
-                <div className="atlas-sentinel-popover-head">
-                  <strong>{device.name}</strong>
-                  <span style={{ color: isSafe ? '#E63946' : v.hue }}>{device.status}</span>
-                </div>
-                <div className="atlas-sentinel-popover-body">
-                  {latest ? (
-                    <>
-                      <div>last seen · {new Date(latest.received_at).toLocaleString()}</div>
-                      {Object.entries(latest.payload).map(([k, val]) => (
-                        <div key={k}><span className="bp-key">{k}</span>: {String(val)}</div>
-                      ))}
-                    </>
-                  ) : (
-                    <div className="atlas-help-muted">
-                      No telemetry yet. POST a reading to <code>/api/robot/devices/{device.id}/telemetry</code> from the device firmware.
-                    </div>
-                  )}
-                </div>
-              </div>
+              <SentinelPopover
+                device={device}
+                latest={latest}
+                anomaly={anomaly}
+                visual={v}
+              />
             )}
           </div>
         );
       })}
+    </div>
+  );
+}
+
+
+function SentinelPopover({ device, latest, anomaly, visual }) {
+  const [askLoading, setAskLoading] = useState(false);
+  const [council, setCouncil] = useState(null);
+  const [askError, setAskError] = useState(null);
+
+  const askCouncil = async (e) => {
+    e.stopPropagation();
+    setAskLoading(true); setAskError(null); setCouncil(null);
+    try {
+      const r = await fetch(`${API_URL}/api/robot/devices/${device.id}/ask-council`, {
+        method: 'POST',
+      });
+      const body = await r.json();
+      if (!r.ok) throw new Error(body.detail || 'council call failed');
+      setCouncil(body);
+    } catch (err) {
+      setAskError(String(err.message || err));
+    } finally {
+      setAskLoading(false);
+    }
+  };
+
+  const isSafe = device.status === 'safe_state';
+  const headColor = isSafe ? '#E63946' : (anomaly ? '#E8B845' : visual.hue);
+
+  return (
+    <div
+      className="atlas-sentinel-popover"
+      data-testid={`sentinel-popover-${device.name}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="atlas-sentinel-popover-head">
+        <strong>{device.name}</strong>
+        <span style={{ color: headColor }}>{anomaly ? 'anomaly' : device.status}</span>
+      </div>
+      {anomaly && (
+        <div className="atlas-sentinel-anomaly-block" data-testid={`sentinel-anomaly-${device.name}`}>
+          <div className="atlas-sentinel-anomaly-head">
+            <AlertTriangle size={10} /> drifting: {(anomaly.drifting_keys || []).join(', ')}
+          </div>
+          {Object.entries(anomaly.z_scores || {}).map(([k, z]) => (
+            <div key={k} className="atlas-sentinel-anomaly-row">
+              <span className="bp-key">{k}</span>: z = {Number(z).toFixed(2)}
+            </div>
+          ))}
+          <button
+            type="button"
+            className="atlas-sentinel-ask"
+            onClick={askCouncil}
+            disabled={askLoading}
+            data-testid={`sentinel-ask-council-${device.name}`}
+          >
+            {askLoading
+              ? <><Loader2 size={10} className="spin" /> asking council…</>
+              : <><MessagesSquare size={10} /> ask the council</>}
+          </button>
+          {askError && <div className="bp-error" style={{ fontSize: 10 }}>{askError}</div>}
+          {council && (
+            <div className="atlas-sentinel-council" data-testid={`sentinel-council-reply-${device.name}`}>
+              <div className="atlas-sentinel-council-head">
+                COUNCIL · {council.council?.model_used || 'reply'}
+              </div>
+              <div className="atlas-sentinel-council-body">
+                {council.council?.reply || '(no reply)'}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      <div className="atlas-sentinel-popover-body">
+        {latest ? (
+          <>
+            <div>last seen · {new Date(latest.received_at).toLocaleString()}</div>
+            {Object.entries(latest.payload).map(([k, val]) => (
+              <div key={k}><span className="bp-key">{k}</span>: {String(val)}</div>
+            ))}
+          </>
+        ) : (
+          <div className="atlas-help-muted">
+            No telemetry yet. POST a reading to <code>/api/robot/devices/{device.id}/telemetry</code> from the device firmware.
+          </div>
+        )}
+        {!anomaly && !isSafe && (
+          <button
+            type="button"
+            className="atlas-sentinel-ask"
+            onClick={askCouncil}
+            disabled={askLoading}
+            data-testid={`sentinel-ask-council-${device.name}`}
+            style={{ marginTop: 6 }}
+          >
+            {askLoading
+              ? <><Loader2 size={10} className="spin" /> asking council…</>
+              : <><MessagesSquare size={10} /> ask the council</>}
+          </button>
+        )}
+        {!anomaly && council && (
+          <div className="atlas-sentinel-council" data-testid={`sentinel-council-reply-${device.name}`}>
+            <div className="atlas-sentinel-council-head">
+              COUNCIL · {council.council?.model_used || 'reply'}
+            </div>
+            <div className="atlas-sentinel-council-body">
+              {council.council?.reply || '(no reply)'}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

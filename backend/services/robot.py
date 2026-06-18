@@ -254,12 +254,29 @@ async def ingest_telemetry(device_id: str, payload: Dict[str, Any], *, source: s
         {"$set": {"last_seen": rec.received_at, "status": DeviceStatus.ONLINE.value,
                   "updated_at": rec.received_at}},
     )
+    # Phase 8b — feed Sentinel anomaly detection. update_and_score reads
+    # the device doc we just touched, runs Welford's, and writes the
+    # envelope + anomaly flag back. Safe to fail open — anomaly detection
+    # never blocks telemetry intake.
+    try:
+        from services import anomaly  # local import to avoid circular load
+        _, drifting, z_scores = await anomaly.update_and_score(device_id, payload)
+    except Exception as exc:    # noqa: BLE001
+        logger.warning("anomaly scoring failed for %s: %s", device_id, exc)
+        drifting, z_scores = [], {}
     # Telemetry is decaying research memory by design.
+    extra_tags = ["anomaly"] if drifting else []
+    drift_line = ""
+    if drifting:
+        drift_line = "\nANOMALY · drifting=" + ",".join(
+            f"{k}(z={z_scores.get(k):.1f})" for k in drifting
+        )
     await mb.auto_store(
-        f"TELEMETRY · {device_id}\n" + ", ".join(f"{k}={v}" for k, v in payload.items()),
+        f"TELEMETRY · {device_id}\n" + ", ".join(f"{k}={v}" for k, v in payload.items())
+        + drift_line,
         persona="hermes", category="research",
         source_type="robot_telemetry", source_id=rec.id,
-        tags=["robot", "telemetry", device_id[:8]],
+        tags=["robot", "telemetry", device_id[:8]] + extra_tags,
     )
     return _strip(rec.model_dump())
 
@@ -345,6 +362,16 @@ async def submit_command(
     cmd.pipeline_log.append({"step": "execute", "ok": True,
                              "topic": device.get("mqtt_topic") or f"devices/{device_id}/down"})
     await _commands().insert_one(cmd.model_dump())
+
+    # Phase 8c — best-effort MQTT publish. Dormant when MQTT_BROKER_HOST
+    # is unset; failure never blocks the HTTP-poll inbox path.
+    try:
+        from services import mqtt_bridge
+        pub = mqtt_bridge.publish_command(device, cmd.model_dump())
+        if pub.get("published"):
+            cmd.pipeline_log.append({"step": "mqtt_publish", "ok": True, "topic": pub.get("topic")})
+    except Exception as exc:    # noqa: BLE001
+        logger.debug("mqtt publish skipped: %s", exc)
 
     # 5. Side effect: emergency_stop changes device state
     if kind == CommandKind.EMERGENCY_STOP:

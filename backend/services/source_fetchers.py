@@ -220,7 +220,95 @@ async def _fetch_patent(url: str) -> FetchedSource:
 
 
 # --- Academic (arxiv etc) ---------------------------------------------------
-async def _fetch_academic(url: str) -> FetchedSource:
+# ---------------------------------------------------------------------------
+# arXiv — Phase 8d
+# arXiv's free Atom-XML API (no key required): http://export.arxiv.org/api/query
+# Accept either an abstract URL (https://arxiv.org/abs/<id>) or the bare id.
+# ---------------------------------------------------------------------------
+_ARXIV_ID_RE = re.compile(r"(\d{4}\.\d{4,5})(v\d+)?")
+_ARXIV_OLD_ID_RE = re.compile(r"([a-z\-]+/\d{7})(v\d+)?", re.IGNORECASE)
+
+
+def _extract_arxiv_id(url: str) -> Optional[str]:
+    m = _ARXIV_ID_RE.search(url) or _ARXIV_OLD_ID_RE.search(url)
+    return (m.group(1) + (m.group(2) or "")) if m else None
+
+
+def _parse_arxiv_entry(xml_text: str) -> dict:
+    """Minimal Atom parser — pulls title, authors, summary from the first
+    <entry>. We avoid feedparser (extra dep) and do a lightweight regex
+    pass; arXiv's Atom is well-formed and stable."""
+    def _grab(tag: str) -> str:
+        m = re.search(
+            rf"<{tag}[^>]*>(.*?)</{tag}>", xml_text, re.DOTALL | re.IGNORECASE,
+        )
+        return (m.group(1) if m else "").strip()
+
+    # multiple <author><name>… in feedparser-friendly order
+    authors = re.findall(
+        r"<author>\s*<name>(.*?)</name>", xml_text, re.DOTALL | re.IGNORECASE,
+    )
+    return {
+        "title": re.sub(r"\s+", " ", _grab("title")).strip(),
+        "summary": re.sub(r"\s+", " ", _grab("summary")).strip(),
+        "authors": [a.strip() for a in authors if a.strip()],
+        "published": _grab("published"),
+        "updated": _grab("updated"),
+    }
+
+
+async def _fetch_arxiv(url: str) -> FetchedSource:
+    arxiv_id = _extract_arxiv_id(url)
+    if not arxiv_id:
+        # Not actually arXiv — fall back to generic academic page scrape.
+        return await _fetch_academic_generic(url)
+    api = f"http://export.arxiv.org/api/query?id_list={arxiv_id}"
+    try:
+        async with httpx.AsyncClient(
+            timeout=15.0, follow_redirects=True,
+            headers={"User-Agent": "ATLAS/1.0 (arXiv fetcher)"},
+        ) as client:
+            resp = await client.get(api)
+            resp.raise_for_status()
+            entry = _parse_arxiv_entry(resp.text)
+    except Exception as exc:    # noqa: BLE001
+        logger.warning("arXiv fetch failed for %s (%s) — falling back to web scrape",
+                       arxiv_id, exc)
+        return await _fetch_academic_generic(url)
+
+    title = entry["title"] or f"arXiv:{arxiv_id}"
+    summary = entry["summary"]
+    authors = entry["authors"]
+    author_line = (", ".join(authors[:6]) + (" et al." if len(authors) > 6 else "")) or None
+
+    # The text we hand to the distiller: title + abstract + authors. The
+    # distiller does anti-copyright rewriting, so passing arXiv's verbatim
+    # abstract is safe — it never lands in persistence raw.
+    text_body = (
+        f"# {title}\n\n"
+        f"AUTHORS: {author_line or 'unknown'}\n"
+        f"ARXIV ID: {arxiv_id}\n"
+        f"PUBLISHED: {entry.get('published')}\n\n"
+        f"ABSTRACT:\n{summary}\n"
+    )
+    return FetchedSource(
+        source_type=SourceType.ACADEMIC,
+        source_url=f"https://arxiv.org/abs/{arxiv_id}",
+        title=title[:240],
+        author=author_line,
+        text=text_body,
+        extra={
+            "arxiv_id": arxiv_id,
+            "authors": authors,
+            "published": entry.get("published"),
+            "updated": entry.get("updated"),
+        },
+    )
+
+
+async def _fetch_academic_generic(url: str) -> FetchedSource:
+    """Original generic page-scrape path. Used for non-arXiv academic hosts
+    (nature.com, sciencedirect.com, etc.) and as the arXiv fallback."""
     src = await fetch_page(url)
     return FetchedSource(
         source_type=SourceType.ACADEMIC,
@@ -230,6 +318,15 @@ async def _fetch_academic(url: str) -> FetchedSource:
         text=src.get("text") or "",
         extra={"host": src.get("host"), "word_count": src.get("word_count")},
     )
+
+
+async def _fetch_academic(url: str) -> FetchedSource:
+    """Academic dispatcher — arXiv gets its own structured fetcher;
+    everything else falls back to the generic page scrape."""
+    host = (urlparse(url).hostname or "").lower()
+    if "arxiv.org" in host:
+        return await _fetch_arxiv(url)
+    return await _fetch_academic_generic(url)
 
 
 # --- Generic web ------------------------------------------------------------

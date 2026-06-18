@@ -1,0 +1,59 @@
+{
+  "summary": "Phase 8 P2–P5 end-to-end verification. 41 backend tests GREEN (11 phase8_quad + 26 regression [robot_phase7 10, robot_clear_safe_state 7, persona_chat 9] + 4 new phase8_extras). Frontend HUD Sentinel smoke test GREEN against the preview URL: AETHER-STATION chip has data-anomaly='true' with 'ANOMALY · co2' label, popover opens with z=132.71 anomaly block, ask-council button triggers a real gpt-5.2 council fan-out (3 sub-voices + synthesis) and the reply renders in the sub-block.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/kbase/ingest (arXiv reinforce path)",
+        "issue": "services/knowledge_ingestion.py::_reinforce does NOT refresh `source_author` on re-ingest. The arXiv fetcher correctly parses authors into `FetchedSource.author` and `FetchedSource.extra.authors`, but neither is updated on reinforce — only tags/concepts/related_agents/reinforce_count/updated_at are merged. Result: a record first ingested before authors parsing was added will permanently show `source_author=null`. Also: `KnowledgeRecord` has no `extra` field at all, so the parsed authors LIST (extra.authors) is dropped on first ingest too — only the comma-joined `source_author` line survives."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "HUD bottom Sentinel ribbon",
+        "issues": [
+          "Review_request states the ribbon should show 3 chips (POSEIDON-BUOY/AETHER-STATION/SOIL-WATCH). In the live env only AETHER-STATION exists in the device list, so only 1 chip renders. The visual filter `SENTINEL_VISUAL[d.name]` in AtlasSentinel.js correctly drops non-seed devices; the gap is missing seed data, not a frontend bug. If the architect wants all 3 chips visible, the seed_devices script (or first-run boot) must register POSEIDON-BUOY and SOIL-WATCH alongside AETHER-STATION."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase8_quad.py",
+    "/app/backend/tests/test_phase8_extras.py",
+    "/app/test_reports/pytest/iter19_phase8.xml",
+    "/app/test_reports/pytest/iter19_regression.xml",
+    "/app/test_reports/pytest/iter19_extras.xml"
+  ],
+  "action_items": [
+    "[OPTIONAL] knowledge_ingestion._reinforce should refresh source_author when the new source.author is non-null and the existing one is empty (so legacy arXiv records eventually gain authors after re-ingest).",
+    "[OPTIONAL] Add an `extra` (Dict[str, Any]) field to KnowledgeRecord and propagate FetchedSource.extra through ingest+reinforce so the parsed authors LIST (not just the joined string) survives.",
+    "[OPTIONAL] Seed POSEIDON-BUOY and SOIL-WATCH devices on first boot so the Sentinel ribbon renders all 3 chips as advertised."
+  ],
+  "critical_code_review_comments": [
+    "Welford streaming envelope in services/anomaly.py is correct: M2 accumulator → variance via M2/(n-1); 10-sample warmup gate; |z| >= 3.0 trips anomaly. Verified end-to-end: 12 baseline + 1 outlier flips device.state.anomaly and tags the membank row with 'anomaly'.",
+    "MQTT bridge is properly dormant when MQTT_BROKER_HOST is unset: GET /api/robot/mqtt/status returns enabled=false / broker_host=null / connected=false / last_error in (null,''); command pipeline still emits 'execute' step without a noisy 'mqtt_publish' step. The HTTP-poll REST surface is unchanged, satisfying the P4 contract.",
+    "Graph BFS in services/memory_bank.py::neighborhood honours min_weight as a strict filter: edge w=1.0 is excluded at min_weight=2.0 while w=3.0 and w=5.0 pass; depth grows the neighbourhood and unknown subjects return root-only {nodes:[subject], edges:[]} — vis-network-ready and predictable.",
+    "ask-council endpoint correctly delegates to persona/council/chat: both anomaly-state (drifting_keys-aware question) and healthy-state (general check-in question) branches produce a 4-row council fan-out (ajani/minerva/hermes + synthesis). gpt-5.2 model used end-to-end. Frontend correctly renders the synthesis reply with model_used label.",
+    "arXiv Atom parser (services/source_fetchers.py::_parse_arxiv_entry) cleanly extracts title/authors/summary via regex without feedparser. Unknown arXiv ids fall back without crashing (verified 99999.99999 returns a graceful response).",
+    "ISSUE — reinforce path silently drops new author metadata; legacy whisper record (id=691fa4b6…) still has source_author=null even though the arXiv fetcher now parses authors correctly. A fresh URL (1706.03762) does populate source_author=‘Vaswani, Shazeer, Parmar, …’.",
+    "Frontend AtlasSentinel.js is clean: data-testid coverage is complete (sentinel-chip-{name}, sentinel-popover-{name}, sentinel-anomaly-{name}, sentinel-ask-council-{name}, sentinel-council-reply-{name}). Popover stops click propagation so the chip doesn’t collapse when interacting inside it. Ask-council disables itself while pending and surfaces askError if the call fails."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase8_extras.py (NEW — 4 supplementary tests covering anomaly→membank tag, ask-council healthy branch, arXiv source_author on fresh ingest, arXiv unknown-id graceful fallback)"
+  ],
+  "success_rate": {
+    "backend": "100% (41/41)",
+    "frontend": "100% (Sentinel smoke flow — chip, popover, anomaly block, ask-council, council reply)"
+  },
+  "test_credentials": "None required. X-Atlas-Role: owner header used for owner-gated calls (device register, envelope reset, command). EMERGENT_LLM_KEY in backend/.env powers the ask-council fan-out.",
+  "seed_data_creation": "test_phase8_extras module-scope fixtures create one HEALTHY-TEST-* and one ANOM-EX-* device per run (the latter gets 12 baseline + 1 outlier so it ends in anomaly state). Older runs have left ~20 TEST-DEV/HEALTHY-/CLEAR-TEST devices in the DB — none of them are referenced by the seed Sentinel chips, so they don’t leak into the HUD. Whisper KB record from iteration_18 still present.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All P2–P5 Phase 8 features are GREEN end-to-end. 41/41 backend tests pass against the preview URL; Sentinel HUD smoke test passes including the multi-second gpt-5.2 council fan-out. The only behavioural finding is the reinforce path in knowledge_ingestion.py not refreshing source_author — minor, optional. The Sentinel ribbon only shows the AETHER-STATION chip in the live env because POSEIDON-BUOY/SOIL-WATCH are not seeded; if the architect wants all 3 chips visible, that's a seeder change, not a frontend fix. New test file /app/backend/tests/test_phase8_extras.py is module-scoped and self-cleaning conceptually (fresh device per run); the chosen arXiv author test rotates through 4 candidate papers to avoid the reinforce blind-spot.",
+  "rca of the issue": "Reinforce drops source_author: services/knowledge_ingestion.py::_reinforce builds the `updates` dict from {reinforce_count, updated_at, confidence_score, tags?, concepts?, related_agents?, related_projects?} only. `source.author` is never compared to `existing['source_author']`, so an arXiv URL re-ingested after the Atom parser landed never picks up the newly-available authors. Repro: existing whisper record id=691fa4b6… returns source_author=null even after re-POSTing /api/kbase/ingest with url='https://arxiv.org/abs/2212.04356'. Fresh URL https://arxiv.org/abs/1706.03762 returns source_author='Ashish Vaswani, Noam Shazeer, …'. Mitigation: in _reinforce, add `if source.author and not existing.get('source_author'): updates['source_author'] = source.author` (and similarly for any other source-derived metadata that is currently set only on first insert)."
+}

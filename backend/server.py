@@ -216,3 +216,9 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+    # Phase 8c — clean MQTT bridge shutdown (no-op when dormant)
+    try:
+        from services import mqtt_bridge
+        mqtt_bridge.shutdown()
+    except Exception:    # noqa: BLE001
+        pass

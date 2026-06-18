@@ -3365,9 +3365,85 @@ body {
   --chip-hue: #E63946;
   animation: atlas-sentinel-pulse 1.4s ease-in-out infinite;
 }
+.atlas-sentinel-chip.is-anomaly {
+  --chip-hue: #E8B845;
+  animation: atlas-sentinel-pulse-amber 1.8s ease-in-out infinite;
+}
 @keyframes atlas-sentinel-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.0); }
   50%      { box-shadow: 0 0 0 6px rgba(230, 57, 70, 0.22); }
+}
+@keyframes atlas-sentinel-pulse-amber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 184, 69, 0.0); }
+  50%      { box-shadow: 0 0 0 5px rgba(232, 184, 69, 0.20); }
+}
+.atlas-sentinel-anomaly-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  margin: 6px 0 8px;
+  border: 1px solid rgba(232, 184, 69, 0.4);
+  background: rgba(232, 184, 69, 0.08);
+  border-radius: 6px;
+  font-size: 10px;
+  color: rgba(232, 184, 69, 0.95);
+}
+.atlas-sentinel-anomaly-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+.atlas-sentinel-anomaly-row {
+  font-variant-numeric: tabular-nums;
+  color: rgba(244, 239, 228, 0.86);
+}
+.atlas-sentinel-ask {
+  margin-top: 4px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(168, 120, 230, 0.14);
+  border: 1px solid rgba(168, 120, 230, 0.4);
+  color: rgba(244, 239, 228, 0.92);
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+  font-family: inherit;
+}
+.atlas-sentinel-ask:hover:not(:disabled) {
+  background: rgba(168, 120, 230, 0.24);
+  border-color: rgba(168, 120, 230, 0.65);
+}
+.atlas-sentinel-ask:disabled { opacity: 0.6; cursor: progress; }
+.atlas-sentinel-council {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(168, 120, 230, 0.06);
+  border: 1px solid rgba(168, 120, 230, 0.25);
+  border-radius: 6px;
+  font-size: 10.5px;
+  color: rgba(244, 239, 228, 0.92);
+  max-height: 180px;
+  overflow-y: auto;
+}
+.atlas-sentinel-council-head {
+  font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: rgba(168, 120, 230, 0.85);
+  margin-bottom: 4px;
+}
+.atlas-sentinel-council-body {
+  line-height: 1.45;
+  white-space: pre-wrap;
 }
 .atlas-sentinel-name {
   font-family: 'Orbitron', monospace, sans-serif;

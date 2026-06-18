@@ -220,6 +220,33 @@ async def around(
     return await mb.neighborhood(node, depth=depth, limit_per_layer=limit_per_layer)
 
 
+@router.get("/graph/expand")
+async def expand(
+    subject: str = Query(min_length=1, description="Root node (concept · tag · project · agent)"),
+    depth: int = Query(2, ge=1, le=4),
+    min_weight: float = Query(0.0, ge=0.0, description="Drop edges with weight < min_weight"),
+    limit_per_layer: int = Query(20, ge=1, le=60),
+):
+    """BFS-bounded neighbourhood as `{nodes, edges}` ready for a
+    force-directed layout (vis-network / sigma.js / d3-force).
+
+    `subject` is the root node — concept slug, tag, project_id, or agent
+    name. `depth` controls how many BFS hops to expand. `min_weight`
+    drops low-confidence edges (Hebbian weight increments on each
+    revisit, so weight > 1 means the edge has been reinforced).
+    """
+    nb = await mb.neighborhood(
+        subject, depth=depth, limit_per_layer=limit_per_layer, min_weight=min_weight,
+    )
+    # vis-network-friendly aliases — keeps the existing /around shape too.
+    return {
+        **nb,
+        "subject": subject,
+        "node_count": len(nb["nodes"]),
+        "edge_count": len(nb["edges"]),
+    }
+
+
 # --- Embedding-provider settings (per persona) ------------------------------
 @router.get("/embed-settings")
 async def embed_settings():

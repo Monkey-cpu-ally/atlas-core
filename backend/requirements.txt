@@ -29,3 +29,4 @@ elevenlabs==2.50.0
 pypdf==6.11.0
 youtube-transcript-api==1.2.4
 selectolax==0.4.10
+paho-mqtt==2.1.0
