@@ -198,6 +198,19 @@ async def _seed_phase7_devices():
             "Phase 7 seed skipped: %s", exc
         )
 
+
+# Phase 8h — Sentinel Autonomic Watcher (loops at SENTINEL_AUTONOMIC_INTERVAL_S
+# seconds, fires Council on every newly-detected anomaly).
+@app.on_event("startup")
+async def _start_sentinel_watcher():
+    try:
+        from services import sentinel_watcher
+        await sentinel_watcher.start()
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            "Sentinel autonomic watcher failed to start: %s", exc
+        )
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -220,5 +233,11 @@ async def shutdown_db_client():
     try:
         from services import mqtt_bridge
         mqtt_bridge.shutdown()
+    except Exception:    # noqa: BLE001
+        pass
+    # Phase 8h — stop the Sentinel autonomic loop
+    try:
+        from services import sentinel_watcher
+        await sentinel_watcher.stop()
     except Exception:    # noqa: BLE001
         pass

@@ -288,6 +288,26 @@ async def mqtt_status():
     return mqtt_bridge.status()
 
 
+@router.get("/sentinel/watcher/status")
+async def watcher_status():
+    """Operational view of the Sentinel autonomic watcher (Phase 8h).
+    Tells the HUD whether the cron is running, when it last ticked, how
+    many anomalies it has auto-handled."""
+    from services import sentinel_watcher
+    return sentinel_watcher.status()
+
+
+@router.post("/sentinel/watcher/fire-now")
+async def watcher_fire_now(role: Role = Depends(_role_from_header)):
+    """Owner-only — kick the watcher manually (useful in dev / when the
+    architect wants the council to look at the current state without
+    waiting for the next tick)."""
+    if role != Role.OWNER:
+        raise HTTPException(403, "fire-now is owner-only")
+    from services import sentinel_watcher
+    return await sentinel_watcher.tick()
+
+
 # ---------------------------------------------------------------------------
 # Phase 8b — Sentinel anomaly endpoints
 # ---------------------------------------------------------------------------

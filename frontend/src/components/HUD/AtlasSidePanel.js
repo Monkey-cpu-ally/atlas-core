@@ -107,7 +107,17 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
 
     return (
       <div className="panel-operation-info">
-        <h3 style={{ margin: '0 0 12px', fontFamily: 'Orbitron', fontSize: '13px' }}>{data.title}</h3>
+        <h3 style={{ margin: '0 0 4px', fontFamily: 'Orbitron', fontSize: '13px' }}>{data.title}</h3>
+        <div style={{
+          display: 'inline-block', marginBottom: 12,
+          fontSize: 9, letterSpacing: '0.12em',
+          padding: '2px 7px', borderRadius: 999,
+          background: 'rgba(232, 184, 69, 0.12)',
+          border: '1px solid rgba(232, 184, 69, 0.4)',
+          color: 'rgba(232, 184, 69, 0.95)',
+        }} data-testid="atlas-sidepanel-demo-badge">
+          DEMO CONTENT · not wired to live data
+        </div>
         {data.items && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {data.items.map((item, i) => (

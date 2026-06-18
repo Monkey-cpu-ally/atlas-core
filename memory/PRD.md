@@ -310,6 +310,17 @@ movement they snap to the nearest slot and stop. No auto-spin.
 
 
 
+### Phase 8h — Sentinel Autonomic Watcher + housekeeping (Feb 2026) ✅ COMPLETE
+- [x] **NEW** `services/sentinel_watcher.py` — background asyncio loop fires `persona_chat.chat_any('council', ...)` automatically whenever a device's anomaly block changes. Dedupe key = `(device_id, anomaly.since, sorted(drifting_keys))` persisted in collection `sentinel_autonomic_fires`; same anomaly never fires twice. 5-minute cooldown per device (configurable). Council reply persisted as permanent `category=council` Memory Bank entry tagged `autonomic_council` + device name + every drifting key.
+- [x] **NEW** `GET /api/robot/sentinel/watcher/status` — running flag, ticks counter, fires_total, last_fire_at, last_error. **`POST /api/robot/sentinel/watcher/fire-now`** — owner-only manual tick (for dev + demos).
+- [x] Env config: `SENTINEL_AUTONOMIC=true` (default off — set to true in this env), `SENTINEL_AUTONOMIC_INTERVAL_S=60`, `SENTINEL_AUTONOMIC_COOLDOWN_S=300`. Lifecycle wired into FastAPI `@app.on_event("startup"|"shutdown")`.
+- [x] Failure mode: dedupe record is INSERTED BEFORE the LLM call, so a council outage doesn't loop us. Errors counted + last_error surfaced; ticks continue regardless.
+- [x] **NEW** `backend/scripts/cleanup_test_devices.py` — wipes ephemeral robot devices created by pytest runs (prefix-matched: `TEST-`, `FIX-DEV-`, `CLEAR-TEST-`, `HEALTHY-`, `MTLS-TEST-`, `ANOMALY-TEST-`, `AUTONOMIC-`). Dry-run by default; `--commit` to actually delete. Protected names list (POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH) is hardcoded; **never deletes a twin that a protected device references** (fix landed after first run accidentally orphaned POSEIDON-BUOY's twin by deleting a shared test-fixture twin reference).
+- [x] **HUD honesty: DEMO CONTENT badge** added to `AtlasSidePanel.js` operation-info panels — every tile that surfaces a hardcoded list ("Connected Devices", "Blueprint Gallery", etc.) now displays an amber pill saying "DEMO CONTENT · not wired to live data". Tiles backed by real APIs (Memory, Research, Twins, Weaver, Cyclopedia, Diagnostics, Robot Control) are unaffected.
+- [x] **VERIFIED** 48/48 backend tests passing across all suites: `test_sentinel_watcher.py` (4 new) + `test_mtls_phase8f.py` (7) + `test_phase8_quad.py` (11) + `test_robot_phase7.py` (10) + `test_robot_clear_safe_state.py` (7) + `test_persona_chat.py` (9). Includes full anomaly→fire-now→council→Memory Bank chain + dedupe verification + cooldown.
+
+
+
 ### Live functional tiles (Feb 2026)
 - [x] **MANUAL** → `/api/manual/sections` — 5 collapsible sections (Hard Rules, Personas, Rings, Lab, Voice)
 - [x] **CYCLOPEDIA** → `/api/knowledge/subjects` — searchable chip grid + per-subject detail
