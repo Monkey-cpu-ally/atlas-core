@@ -85,76 +85,35 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
     if (opName === 'explore')       return <IntakePanel aiColor={aiColor} />;
     if (opName === 'projects')      return <ProjectsPanel aiColor={aiColor} />;
 
-    const opData = {
-      // Ring 2 - System
-      'settings': { title: 'Settings', items: ['Display Preferences', 'Notification Settings', 'Privacy Controls', 'Data Management'] },
-      'skins': { title: 'UI Skins', items: ['Dark Void', 'Light Crystal', 'Midnight Blue', 'Forest Green', 'Custom Theme'] },
-      'voice': { title: 'Voice Modes', items: ['Natural Speech', 'Technical Mode', 'Storytelling', 'Whisper Mode'] },
-      'devices': { title: 'Connected Devices', items: ['Primary Display', 'Audio Interface', 'Input Controller', 'External Sensors'] },
-      'memory': { title: 'Memory Bank', items: ['Recent Sessions (24)', 'Saved Contexts (12)', 'Bookmarks (8)', 'Pinned Items (5)'] },
-      'health': { title: 'System Health', stats: [{ name: 'Core Status', value: 'Online', good: true }, { name: 'Ring Sync', value: '100%', good: true }, { name: 'Memory Usage', value: '42%', good: true }] },
-      // Ring 3 - Learning
-      'subjects': { title: 'AI Subjects', items: ['Aerospace Engineering', 'Architecture', 'Artificial Intelligence', 'Biology', 'Business', 'Chemistry', 'Creative Writing', 'Physics', 'Robotics', 'Game Design'] },
-      'lab': { title: 'Research Lab', items: ['Pattern Recognition — Running', 'Data Synthesis — Complete', 'Model Training — Queued', 'Analysis Pipeline — Running', 'Experiment Archive'] },
-      'blueprints': { title: 'Blueprint Gallery', items: ['System Architecture v3.2', 'Data Flow Model v2.1', 'Interface Layout v4.0', 'AI Integration v1.8', 'Neural Pathway Map'] },
-      'weaver': { title: 'Story Weaver', items: ['Active Narratives', 'Character Profiles', 'World Building', 'Plot Threads', 'Mythology System'] },
-      'hyperaxel': { title: 'Hyper Axel', items: ['Velocity Simulations', 'Kinetic Models', 'Energy Flow Charts', 'Motion Capture Data'] },
-      'worlds': { title: 'Creative Worlds', items: ['Pantheon Prime', 'Neo-Terra', 'Quantum Realm', 'Bio-Sphere Alpha', 'Create New World'] },
-      'archives': { title: 'Archives', items: ['Session Logs — 2.4 GB', 'Research Data — 8.1 GB', 'Media Library — 12.7 GB', 'Backup Store — 45.2 GB'] },
-      'projects': { title: 'Active Projects', items: ['Project Aurora ★', 'Data Nexus ★', 'Mind Map v2', 'Archive Rebuild', 'Neural Bridge'] },
-    };
-    const data = opData[opName] || { title: opName, items: [] };
-
+    // Any op that isn't routed above is, by definition, not yet wired to a
+    // real backend. Per the operational rule "every visible HUD element
+    // must perform a real function", we refuse to render fake content.
     return (
-      <div className="panel-operation-info">
-        <h3 style={{ margin: '0 0 4px', fontFamily: 'Orbitron', fontSize: '13px' }}>{data.title}</h3>
+      <div className="panel-operation-info" data-testid="atlas-sidepanel-not-implemented">
         <div style={{
-          display: 'inline-block', marginBottom: 12,
-          fontSize: 9, letterSpacing: '0.12em',
-          padding: '2px 7px', borderRadius: 999,
-          background: 'rgba(232, 184, 69, 0.12)',
-          border: '1px solid rgba(232, 184, 69, 0.4)',
-          color: 'rgba(232, 184, 69, 0.95)',
-        }} data-testid="atlas-sidepanel-demo-badge">
-          DEMO CONTENT · not wired to live data
+          display: 'flex', flexDirection: 'column', gap: 14,
+          padding: '20px 18px',
+          background: 'rgba(220, 38, 38, 0.06)',
+          border: '1px solid rgba(220, 38, 38, 0.45)',
+          borderRadius: 8,
+        }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            color: '#F87171',
+            fontFamily: 'Orbitron', fontSize: 13, letterSpacing: '0.08em',
+          }}>
+            <AlertTriangle size={14} />
+            🔴 NOT IMPLEMENTED
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--hud-text-dim)', lineHeight: 1.6 }}>
+            Specification pending
+            <br />
+            Reserved for future ATLAS modules.
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--hud-text-dim)', opacity: 0.6, letterSpacing: '0.04em' }}>
+            operation: <span style={{ color: '#F87171' }}>{opName}</span>
+          </div>
         </div>
-        {data.items && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {data.items.map((item, i) => (
-              <div key={i} style={{ padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', fontSize: '11px' }}>{item}</div>
-            ))}
-          </div>
-        )}
-        {data.stats && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {data.stats.map((stat, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--hud-text-dim)' }}>{stat.name}</span>
-                <span style={{ fontSize: '11px', color: stat.good ? '#4ADE80' : '#FCD34D', fontFamily: 'Orbitron' }}>{stat.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {data.options && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {data.options.map((opt, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
-                <span style={{ fontSize: '11px' }}>{opt.name}</span>
-                <span style={{ fontSize: '11px', color: aiColor }}>{opt.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {data.zones && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {data.zones.map((zone, i) => (
-              <div key={i} style={{ padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', opacity: zone.status === 'locked' ? 0.5 : 1 }}>
-                <div style={{ fontSize: '12px' }}>{zone.name}</div>
-                <div style={{ fontSize: '9px', color: 'var(--hud-text-dim)', textTransform: 'uppercase' }}>{zone.status}</div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     );
   };

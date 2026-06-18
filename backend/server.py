@@ -228,6 +228,22 @@ async def _start_sentinel_watcher():
             "Sentinel autonomic watcher failed to start: %s", exc
         )
 
+
+# Phase 8c.2 — MQTT bidirectional bridge: capture the running event loop
+# and wire the device→Atlas telemetry uplink subscriber. Dormant if
+# MQTT_BROKER_HOST is unset.
+@app.on_event("startup")
+async def _start_mqtt_uplink():
+    try:
+        import asyncio as _asyncio
+        from services import mqtt_bridge
+        mqtt_bridge.set_loop(_asyncio.get_running_loop())
+        if mqtt_bridge.is_enabled():
+            status = mqtt_bridge.enable_uplink()
+            logging.getLogger(__name__).info("MQTT uplink: %s", status)
+    except Exception as exc:    # noqa: BLE001
+        logging.getLogger(__name__).warning("MQTT uplink wire failed: %s", exc)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

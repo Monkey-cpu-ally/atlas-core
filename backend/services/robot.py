@@ -126,6 +126,30 @@ async def emergency_stop(device_id: str, *, role: Role) -> Optional[Dict[str, An
         source_type="robot_command", source_id=device_id,
         tags=["robot", "safety", "emergency_stop"],
     )
+
+    # CRITICAL: also enqueue an `emergency_stop` command so the device's
+    # next inbox poll learns to halt locally (motors → 0, LEDs off, etc.).
+    # Without this, the server state diverges from the physical state and
+    # actuators keep running until power-cycle.
+    stop_cmd = Command(
+        device_id=device_id,
+        kind=CommandKind.EMERGENCY_STOP,
+        payload={},
+        issued_by_role=Role.OWNER,
+        status=CommandStatus.EXECUTED,
+        executed_at=_now(),
+        pipeline_log=[{"step": "emergency_stop", "by": "owner", "at": _now()}],
+    )
+    await _commands().insert_one(stop_cmd.model_dump())
+    # Best-effort MQTT push (no-op when dormant).
+    try:
+        from services import mqtt_bridge
+        dev = await get_device(device_id)
+        if dev:
+            mqtt_bridge.publish_command(dev, stop_cmd.model_dump())
+    except Exception:    # noqa: BLE001
+        pass
+
     return await get_device(device_id)
 
 
@@ -249,11 +273,18 @@ async def clear_safe_state(
 async def ingest_telemetry(device_id: str, payload: Dict[str, Any], *, source: str = "mqtt") -> Dict[str, Any]:
     rec = TelemetryRecord(device_id=device_id, payload=payload, source=source)
     await _telemetry().insert_one(rec.model_dump())
-    await _devices().update_one(
-        {"id": device_id},
-        {"$set": {"last_seen": rec.received_at, "status": DeviceStatus.ONLINE.value,
-                  "updated_at": rec.received_at}},
-    )
+
+    # SAFETY: only promote to ONLINE if the device isn't already in a
+    # sticky safety state (safe_state / quarantined). Otherwise telemetry
+    # from the device would silently undo emergency_stop or an owner's
+    # quarantine — and motors would keep running.
+    cur = await _devices().find_one({"id": device_id}, {"_id": 0, "status": 1})
+    cur_status = (cur or {}).get("status")
+    sticky = {DeviceStatus.SAFE_STATE.value, DeviceStatus.QUARANTINED.value}
+    update = {"last_seen": rec.received_at, "updated_at": rec.received_at}
+    if cur_status not in sticky:
+        update["status"] = DeviceStatus.ONLINE.value
+    await _devices().update_one({"id": device_id}, {"$set": update})
     # Phase 8b — feed Sentinel anomaly detection. update_and_score reads
     # the device doc we just touched, runs Welford's, and writes the
     # envelope + anomaly flag back. Safe to fail open — anomaly detection

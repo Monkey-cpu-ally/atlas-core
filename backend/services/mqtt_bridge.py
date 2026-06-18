@@ -142,3 +142,89 @@ def shutdown() -> None:
             pass
     _client = None
     _started = False
+
+
+# ===========================================================================
+# Phase 8c.2 — Telemetry UPLINK subscriber
+# ---------------------------------------------------------------------------
+# When devices publish telemetry to `<prefix>/devices/<id>/telemetry`, the
+# bridge ingests them into the same `robot.ingest_telemetry` pipeline that
+# HTTP POSTs use. This closes the bidirectional loop:
+#   downlink:  Atlas → device  via `<prefix>/devices/<id>/cmd`
+#   uplink:    device → Atlas  via `<prefix>/devices/<id>/telemetry`
+# ===========================================================================
+import asyncio as _asyncio
+import re as _re
+
+_UPLINK_RE = _re.compile(r"/devices/([A-Za-z0-9_\-]+)/telemetry$")
+_loop_ref: Optional[Any] = None    # main asyncio loop captured at startup
+
+
+def set_loop(loop: Any) -> None:
+    """Capture the FastAPI event loop so the MQTT thread can submit
+    coroutine work back via `loop.call_soon_threadsafe`."""
+    global _loop_ref
+    _loop_ref = loop
+
+
+def _on_uplink_message(_client_unused, _userdata, msg) -> None:
+    """paho callback running on the MQTT network thread. We extract the
+    device_id from the topic, parse JSON, and bounce into the asyncio
+    loop to call `robot.ingest_telemetry`."""
+    try:
+        topic = getattr(msg, "topic", "") or ""
+        m = _UPLINK_RE.search(topic)
+        if not m:
+            return
+        device_id = m.group(1)
+        try:
+            payload = json.loads(msg.payload.decode("utf-8") or "{}")
+        except Exception:    # noqa: BLE001
+            payload = {"raw": (msg.payload or b"").decode("utf-8", "ignore")}
+        if not isinstance(payload, dict):
+            payload = {"raw": payload}
+
+        if _loop_ref is None:
+            logger.warning("MQTT uplink received but no loop captured")
+            return
+        from services import robot as _robot
+
+        async def _run():
+            try:
+                await _robot.ingest_telemetry(device_id, payload, source="mqtt")
+            except Exception as exc:    # noqa: BLE001
+                logger.warning("uplink ingest failed (%s): %s", device_id, exc)
+
+        _asyncio.run_coroutine_threadsafe(_run(), _loop_ref)
+    except Exception as exc:    # noqa: BLE001
+        logger.warning("MQTT uplink dispatch failed: %s", exc)
+
+
+def _subscribe_uplink_after_connect(_client_unused, _userdata, _flags, _rc, _props=None) -> None:
+    """on_connect callback — subscribe to the wildcard telemetry topic
+    so every device's uplink lands here without per-device config."""
+    try:
+        topic = f"{_TOPIC_PREFIX}/devices/+/telemetry"
+        rc, _mid = _client_unused.subscribe(topic, qos=1)
+        logger.info("MQTT uplink subscribed: topic=%s rc=%s", topic, rc)
+    except Exception as exc:    # noqa: BLE001
+        logger.warning("MQTT subscribe failed: %s", exc)
+
+
+def enable_uplink() -> Dict[str, Any]:
+    """Wire the uplink callbacks onto the running client. Idempotent —
+    safe to call multiple times. Returns operational status."""
+    cli = _ensure_started()
+    if cli is None:
+        return {"uplink_enabled": False, "reason": "mqtt_dormant"}
+    try:
+        cli.on_message = _on_uplink_message
+        cli.on_connect = _subscribe_uplink_after_connect
+        # If already connected, subscribe directly (on_connect won't refire).
+        if getattr(cli, "is_connected", lambda: False)():
+            topic = f"{_TOPIC_PREFIX}/devices/+/telemetry"
+            cli.subscribe(topic, qos=1)
+            logger.info("MQTT uplink subscribed (post-connect): %s", topic)
+        return {"uplink_enabled": True, "topic": f"{_TOPIC_PREFIX}/devices/+/telemetry"}
+    except Exception as exc:    # noqa: BLE001
+        return {"uplink_enabled": False, "error": str(exc)[:200]}
