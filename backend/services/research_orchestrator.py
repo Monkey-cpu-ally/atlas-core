@@ -59,7 +59,8 @@ def _utc(): return datetime.now(timezone.utc).isoformat()
 
 # Explicit state machine
 STATES = ["discovered", "queued", "investigating", "analyzed",
-          "verified", "stored", "linked"]
+          "verified", "stored", "linked",
+          "lesson_generated", "blueprint_generated", "project_created"]
 
 
 # --- Evidence envelope contract ------------------------------------------
@@ -265,14 +266,83 @@ async def run_cycle(*,
                         title=rec.get("title") or item["title"],
                         concepts=concepts,
                         agent=item["agent"],
+                        mode=mode,
                     )
                     lesson_id = lesson["id"]
                     await _queue().update_one(
                         {"id": item["id"]},
                         {"$push": {"lesson_ids": lesson_id}},
                     )
+                    await _set_state(item["id"], "lesson_generated",
+                                     by="cycle_phase7")
                 except Exception as exc:    # noqa: BLE001
                     proof["errors"].append({"phase": 7, "msg": str(exc)[:160]})
+
+            # Phase 8: optional Council review for low-confidence items
+            council_id = None
+            if conf < 0.7:
+                try:
+                    from services.persona_chat import chat_any
+                    from models.persona_models import ChatRequest
+                    question = (
+                        f"This research item has confidence {conf:.2f}. "
+                        f"Should ATLAS prioritise it? Title: {rec.get('title') or item['title']}. "
+                        f"Concepts: {', '.join(concepts[:5])}."
+                    )
+                    cresp = await chat_any(
+                        "council",
+                        ChatRequest(message=question, session_id=None,
+                                    persona_filter="council"),
+                    )
+                    council_id = getattr(cresp, "message_id", None)
+                    await _queue().update_one(
+                        {"id": item["id"]},
+                        {"$set": {"council_review_message_id": council_id}},
+                    )
+                except Exception as exc:    # noqa: BLE001
+                    proof["errors"].append({"phase": 8, "msg": str(exc)[:160]})
+
+            # Phase 9: auto-project for verification=automated AND lesson exists
+            project_id = None
+            if forge_blueprints and verification == "automated" and lesson_id:
+                try:
+                    from services import blueprint_forge as bf
+                    forge_res = await bf.forge_from_queue(item["id"])
+                    if forge_res.get("ok"):
+                        await _set_state(item["id"], "blueprint_generated",
+                                         by="cycle_phase9")
+                        # Create a project record from the blueprint
+                        project_id = uuid4().hex
+                        await _db()["projects_queue"].insert_one({
+                            "id": project_id,
+                            "title": item["title"],
+                            "queue_item_id": item["id"],
+                            "knowledge_id": kb_id,
+                            "blueprint_id": forge_res.get("id"),
+                            "lesson_id": lesson_id,
+                            "agent": item["agent"],
+                            "status": "proposed",
+                            "evidence": {
+                                "source": "orchestrator_auto",
+                                "confidence": conf,
+                                "evidence_refs": [
+                                    {"kind": "queue", "id": item["id"]},
+                                    {"kind": "blueprint", "id": forge_res.get("id")},
+                                    {"kind": "lesson", "id": lesson_id},
+                                ],
+                                "date": _utc(),
+                                "verification_status": "automated",
+                            },
+                            "created_at": _utc(),
+                        })
+                        await _queue().update_one(
+                            {"id": item["id"]},
+                            {"$set": {"project_id": project_id}},
+                        )
+                        await _set_state(item["id"], "project_created",
+                                         by="cycle_phase10")
+                except Exception as exc:    # noqa: BLE001
+                    proof["errors"].append({"phase": 9, "msg": str(exc)[:160]})
 
             investigated.append({
                 "queue_id": item["id"],
@@ -283,6 +353,8 @@ async def run_cycle(*,
                 "verification": verification,
                 "concepts_count": len(concepts),
                 "lesson_id": lesson_id,
+                "council_review_message_id": council_id,
+                "project_id": project_id,
             })
         except Exception as exc:    # noqa: BLE001
             proof["errors"].append({"phase": "investigate",
