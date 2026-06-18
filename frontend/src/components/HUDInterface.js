@@ -8,7 +8,10 @@ import AtlasSidePanel from './HUD/AtlasSidePanel';
 import AtlasSentinel from './HUD/AtlasSentinel';
 import PersonaChatPanel from './HUD/PersonaChatPanel';
 import TranscriptIngestPanel from './HUD/TranscriptIngestPanel';
-import { Youtube } from 'lucide-react';
+import SelfImprovementPanel from './HUD/SelfImprovementPanel';
+import GraphMemoryPanel from './HUD/GraphMemoryPanel';
+import WorldWatchPanel from './HUD/WorldWatchPanel';
+import { Youtube, Code2, Network, Globe2 } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -93,6 +96,9 @@ export default function HUDInterface() {
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [chatPersona, setChatPersona] = useState(null); // null | 'ajani' | 'minerva' | 'hermes' | 'trinity'
   const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [selfImproveOpen, setSelfImproveOpen] = useState(false);
+  const [graphOpen, setGraphOpen] = useState(false);
+  const [worldWatchOpen, setWorldWatchOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -379,9 +385,39 @@ export default function HUDInterface() {
         <span>Ingest transcript</span>
       </button>
 
+      <div className="atlas-launchers">
+        <button type="button" className="si"
+          onClick={() => setSelfImproveOpen(true)}
+          title="Review ATLAS self-improvement proposals"
+          data-testid="si-launch-btn"
+        ><Code2 size={12} /><span>Self-Improve</span></button>
+        <button type="button" className="gv"
+          onClick={() => setGraphOpen(true)}
+          title="Open Graph Memory visualizer"
+          data-testid="graph-launch-btn"
+        ><Network size={12} /><span>Graph</span></button>
+        <button type="button" className="ww"
+          onClick={() => setWorldWatchOpen(true)}
+          title="See what changed in the world"
+          data-testid="ww-launch-btn"
+        ><Globe2 size={12} /><span>World Watch</span></button>
+      </div>
+
       <TranscriptIngestPanel
         open={transcriptOpen}
         onClose={() => setTranscriptOpen(false)}
+      />
+      <SelfImprovementPanel
+        open={selfImproveOpen}
+        onClose={() => setSelfImproveOpen(false)}
+      />
+      <GraphMemoryPanel
+        open={graphOpen}
+        onClose={() => setGraphOpen(false)}
+      />
+      <WorldWatchPanel
+        open={worldWatchOpen}
+        onClose={() => setWorldWatchOpen(false)}
       />
     </div>
   );

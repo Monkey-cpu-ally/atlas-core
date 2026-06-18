@@ -34,6 +34,7 @@ from uuid import uuid4
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from services import llm_provider, memory_bank as mb
+from services import adaptation as ad
 
 logger = logging.getLogger("atlas.lesson_generator")
 
@@ -92,13 +93,35 @@ async def generate_lesson(
     *, knowledge_id: str, source_url: str, title: str,
     concepts: List[str], agent: str,
 ) -> Dict[str, Any]:
-    """Generate + persist a lesson plan for the given knowledge entry."""
+    """Generate + persist a lesson plan for the given knowledge entry.
+    Bias the prompt with the user's learning profile (Step 2 integration)."""
+    profile = await ad.get_learning_profile()
+    bias_lines = []
+    level = profile.get("preferred_explanation_level", "6-9grade")
+    if level == "6-9grade":
+        bias_lines.append("USER PREFERENCE · Open with a 6th-9th grade analogy BEFORE the technical depth.")
+    elif level == "advanced":
+        bias_lines.append("USER PREFERENCE · Go straight to advanced — skip beginner framing.")
+    else:
+        bias_lines.append("USER PREFERENCE · Intermediate level. Brief beginner setup, then technical.")
+    fmt = profile.get("preferred_lesson_format", "lego_steps")
+    if fmt == "lego_steps":
+        bias_lines.append("USER PREFERENCE · Use Lego-style step breakdowns in the hands-on project.")
+    if profile.get("hands_on_examples", True):
+        bias_lines.append("USER PREFERENCE · Hands-on project must be tangible & executable, not abstract.")
+    confusing = profile.get("confusing_topics") or []
+    if confusing:
+        names = ", ".join(c.get("topic", "")[:60] for c in confusing[-5:])
+        bias_lines.append(f"USER STRUGGLES WITH (re-explain especially clearly if relevant): {names}")
+    bias_block = "\n".join(bias_lines)
+
     user_msg = (
         f"Write a hands-on lesson plan grounded in this source:\n\n"
         f"Title: {title}\n"
         f"Source URL: {source_url}\n"
         f"Key concepts: {', '.join(concepts[:8]) or 'general'}\n"
         f"Agent persona: {agent}\n\n"
+        f"{bias_block}\n\n"
         f"Pick a skill level (beginner/intermediate/advanced) based on the concepts.\n"
         f"Make the hands-on project something a curious teen could actually try.\n"
         f"Quiz: 3-5 questions, each with why-it-matters.\n"
@@ -135,6 +158,12 @@ async def generate_lesson(
         "provider_used": result.get("provider_used"),
         "created_at": _utc(),
         "updated_at": _utc(),
+        "profile_bias": {
+            "explanation_level": level,
+            "lesson_format": fmt,
+            "hands_on": profile.get("hands_on_examples", True),
+            "confusing_topics_count": len(confusing),
+        },
     }
     await _lessons().insert_one(doc)
 
