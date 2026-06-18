@@ -92,9 +92,11 @@ Return STRICT JSON matching this schema. No prose outside the JSON.
 async def generate_lesson(
     *, knowledge_id: str, source_url: str, title: str,
     concepts: List[str], agent: str,
+    mode: str = "default",
 ) -> Dict[str, Any]:
     """Generate + persist a lesson plan for the given knowledge entry.
-    Bias the prompt with the user's learning profile (Step 2 integration)."""
+    Bias the prompt with the user's learning profile (Step 2 integration).
+    `mode` ∈ {default, adhd, lego, beginner, professional, certification}."""
     profile = await ad.get_learning_profile()
     bias_lines = []
     level = profile.get("preferred_explanation_level", "6-9grade")
@@ -113,6 +115,19 @@ async def generate_lesson(
     if confusing:
         names = ", ".join(c.get("topic", "")[:60] for c in confusing[-5:])
         bias_lines.append(f"USER STRUGGLES WITH (re-explain especially clearly if relevant): {names}")
+
+    # Mode-specific styling overlay (Autonomous Research Orchestrator phase)
+    MODE_OVERLAYS = {
+        "adhd":         "MODE · ADHD-FRIENDLY: short paragraphs, 1 idea per chunk, frequent bolded keywords, no walls of text.",
+        "lego":         "MODE · LEGO-STEPS: every step builds on the previous; explicit 'snap-this-onto-the-last-one' framing.",
+        "beginner":     "MODE · BEGINNER: assume zero prior knowledge; analogies before vocabulary.",
+        "professional": "MODE · PROFESSIONAL: terse, jargon-allowed, references-driven.",
+        "certification": "MODE · CERTIFICATION-PREP: cover the test domain explicitly, end with a 5-question mock exam.",
+        "default":      "",
+    }
+    overlay = MODE_OVERLAYS.get(mode, "")
+    if overlay:
+        bias_lines.append(overlay)
     bias_block = "\n".join(bias_lines)
 
     user_msg = (
@@ -163,6 +178,7 @@ async def generate_lesson(
             "lesson_format": fmt,
             "hands_on": profile.get("hands_on_examples", True),
             "confusing_topics_count": len(confusing),
+            "mode": mode,
         },
     }
     await _lessons().insert_one(doc)
