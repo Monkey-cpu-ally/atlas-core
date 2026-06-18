@@ -448,3 +448,53 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [ ] P3 — Real solver integration (FEniCS / OpenFOAM) for Twin/Weaver.
 - [ ] P3 — ESP32 hardware dry-run / physical flashing instructions.
 - [ ] P3 — Phase 8 V2 V2 project modules (Green Robots / Power Cell / NIR Scanner / Mother Box).
+
+---
+
+## 2026-06-18 · Phase A/B/C HUD Audit + Phase D1 ESP32 + Phase D2 Twin Environments
+
+### Phase A — Live AtlasSidePanel API integration ✅
+- Removed dead `opData` demo dict from `AtlasSidePanel.js` (17 hardcoded static lists).
+- Removed dead `atlas-sidepanel-demo-badge` testid surface.
+- Unknown operation ids now render the explicit `🔴 NOT IMPLEMENTED` block at testid `atlas-sidepanel-not-implemented`. **Reserved for future ATLAS modules** — no fake content.
+- `worlds` and `hyperaxel` confirmed absent from `ringStructure.js` — unreachable from UI.
+
+### Phase B — HUD panel audit ✅
+- 25/25 HUD components verified — every panel reads from real backend or is render-only.
+- 23/23 sampled endpoints return non-empty real data.
+- Full Ring → Panel → Backend matrix captured in `/app/memory/HUD_AUDIT.md`.
+
+### Phase C — Button/endpoint matrix ✅
+- testing_agent_v3 iter21: 24/24 backend pytest GREEN + frontend smoke GREEN (15/15 ring tiles render, 0 forbidden tokens).
+
+### Phase D1 — ESP32 hardware bridge ✅
+- `/app/backend/services/mqtt_bridge.py` — added `_on_uplink_message`, `enable_uplink`, `set_loop`. Subscribes to `<prefix>/devices/+/telemetry` and bounces ingestion into `robot.ingest_telemetry`. Dormant when MQTT_BROKER_HOST unset.
+- `/app/backend/server.py` startup hook `_start_mqtt_uplink` captures the running asyncio loop for cross-thread MQTT callbacks.
+- `/app/hardware/esp32/atlas_node/atlas_node.ino` — reference Arduino firmware (WiFi + HTTP poll inbox + telemetry POST + handlers for ping/read_telemetry/actuate/motion/emergency_stop/clear_safe_state).
+- `/app/hardware/esp32/sim/atlas_node_sim.py` — Python ESP32 simulator with identical command surface (drop-in for CI / no-hardware testing).
+- `/app/hardware/esp32/README.md` — architect quickstart (register device → flash → verify).
+- **TWO LATENT SAFETY BUGS FIXED:**
+  - `robot.emergency_stop` now ALSO enqueues an `emergency_stop` command to the device's inbox — without this, server state diverged from physical state (motors kept running).
+  - `robot.ingest_telemetry` no longer unconditionally flips status to `online` — `safe_state` and `quarantined` are now sticky. Without this, telemetry from a device silently undid emergency-stop.
+
+### Phase D2 — Digital Twin engineering stack ✅
+- `/app/backend/models/environment_models.py` — `TwinEnvironment` + `EnvironmentCategory` (14 categories incl. lunar/martian/orbital) + `Obstacle` AABB.
+- `/app/backend/services/environments.py` — registry + compatibility checker (gravity / O2 / temperature / footprint mismatch detection) + bind/unbind + 5 seed environments (lab, outdoor, aerial, aquatic, lunar).
+- `/app/backend/routes/environments.py` — REST `/api/environments/*`.
+- Startup seed hook in `server.py`.
+- 4/4 pytest GREEN: `test_iter22_twin_environments.py` (seed, list, create-delete, compat-block-then-force).
+- `/app/memory/TWIN_SOLVER_EVALUATION.md` — OpenFOAM / FEniCSx engineering memo. **Verdict:** do NOT bundle real solvers into the ATLAS pod (disk/RAM/kernel limits) — use external solver pod + ATLAS `twin_simulations` contract when CFD/FEM fidelity is actually demanded.
+
+### Test inventory
+- iter21 (ESP32 + HUD audit): 24/24
+- iter22 (Twin Environments): 4/4
+- Total in-repo regression: 28/28 GREEN.
+
+## Backlog (post 2026-06-18)
+- [ ] D3 — Weaver integration: surface `/api/weaver/plans` + `/api/weaver/parts` in a HUD panel.
+- [ ] D4 — NIR Scanner integration.
+- [ ] D5 — Green Robot architecture (twin spec + sample blueprint).
+- [ ] D6 — Power Cell architecture (twin spec + battery thermal ODE engine).
+- [ ] P3 — External solver pod (only when first real CFD/FEM case arrives).
+- [ ] P3 — `useAtlasTheme()` hook (deferred — cosmetics last per architect).
+
