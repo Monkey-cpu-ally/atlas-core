@@ -4112,3 +4112,35 @@ body {
 .ww-bullets { margin: 4px 0 0 12px; padding: 0; color: rgba(244,239,228,0.7); font-size: 10.5px; line-height: 1.45; }
 .ww-bullets li { margin-bottom: 2px; }
 .ww-card-foot { display: flex; gap: 8px; margin-top: 6px; color: rgba(244,239,228,0.4); font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+
+
+/* ============================================================
+   Learning Hub Panel
+   ============================================================ */
+.lh-shell { position: fixed; inset: 0; pointer-events: none; z-index: 69; }
+.lh-panel { pointer-events: auto; position: fixed; top: 24px; right: 24px; bottom: 24px; width: min(820px, calc(100vw - 48px)); display: grid; grid-template-rows: auto auto 1fr; background: rgba(8,10,16,0.94); border: 1px solid rgba(46,196,182,0.4); border-radius: 14px; backdrop-filter: blur(20px); box-shadow: 0 24px 60px -24px rgba(0,0,0,0.85); color: rgba(244,239,228,0.92); font-size: 12px; animation: persona-chat-in 0.18s ease; }
+.lh-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.lh-title { display: inline-flex; align-items: center; gap: 8px; color: #82DCD2; font-family: 'Orbitron', monospace; font-size: 12px; letter-spacing: 0.14em; }
+.lh-close { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(244,239,228,0.7); border-radius: 6px; padding: 4px 6px; cursor: pointer; }
+.lh-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(46,196,182,0.05); }
+.lh-tab { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: rgba(244,239,228,0.7); border-radius: 6px; padding: 4px 10px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.lh-tab em { background: rgba(46,196,182,0.18); color: #82DCD2; padding: 1px 6px; border-radius: 999px; font-style: normal; font-size: 9px; }
+.lh-tab.active { background: rgba(46,196,182,0.18); border-color: rgba(46,196,182,0.55); color: #fff; }
+.lh-refresh { margin-left: auto; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(244,239,228,0.7); border-radius: 6px; padding: 4px 8px; cursor: pointer; }
+.lh-err { padding: 6px 16px; color: #FF8B8B; background: rgba(255,107,107,0.08); font-size: 11px; }
+.lh-body { padding: 12px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.lh-empty { color: rgba(244,239,228,0.45); padding: 24px; text-align: center; }
+.lh-card { background: rgba(14,17,26,0.92); border: 1px solid rgba(244,239,228,0.08); border-radius: 8px; padding: 10px 12px; }
+.lh-card h4 { font-size: 13px; color: #fff; margin: 4px 0; line-height: 1.35; }
+.lh-card p { font-size: 11px; color: rgba(244,239,228,0.75); margin: 4px 0; line-height: 1.5; }
+.lh-card-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 10px; color: rgba(244,239,228,0.55); margin-bottom: 4px; }
+.lh-state { padding: 1px 8px; border-radius: 999px; background: rgba(46,196,182,0.18); color: #82DCD2; letter-spacing: 0.05em; text-transform: uppercase; }
+.lh-state-linked, .lh-state-lesson_generated, .lh-state-blueprint_generated, .lh-state-project_created { background: rgba(102,226,160,0.18); color: #66E2A0; }
+.lh-state-queued, .lh-state-discovered { background: rgba(240,182,99,0.18); color: #FFD18B; }
+.lh-state-proposed { background: rgba(155,107,216,0.18); color: #C9B0FF; }
+.lh-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 10px; color: rgba(244,239,228,0.55); font-family: 'JetBrains Mono', monospace; }
+.lh-evidence { font-size: 10px; color: rgba(244,239,228,0.55); margin-top: 4px; }
+.lh-evidence summary { cursor: pointer; }
+.lh-evidence pre { background: rgba(0,0,0,0.35); padding: 6px; border-radius: 4px; max-height: 140px; overflow: auto; font-size: 9.5px; }
+.atlas-launchers button.lh { border-color: rgba(102,226,160,0.5); color: #66E2A0; }
+.atlas-launchers button.lh:hover { background: rgba(102,226,160,0.18); color: #fff; }

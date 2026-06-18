@@ -57,6 +57,33 @@ async def curiosity_scan():
     return await ro.curiosity_scan()
 
 
+@router.post("/projects/evaluate")
+async def projects_evaluate():
+    """Project Improvement Loop. Reads `projects_queue` + recent linked
+    queue items + asks Council whether each project should be updated."""
+    return await ro.evaluate_projects()
+
+
+@router.get("/projects")
+async def projects_list(limit: int = Query(50, ge=1, le=200)):
+    from motor.motor_asyncio import AsyncIOMotorClient
+    import os
+    cli = AsyncIOMotorClient(os.environ.get("MONGO_URL"))
+    db = cli[os.environ.get("DB_NAME", "test_database")]
+    items = await db["projects_queue"].find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(length=limit)
+    return {"count": len(items), "items": items}
+
+
+@router.get("/project-recommendations")
+async def project_recommendations(limit: int = Query(50, ge=1, le=200)):
+    from motor.motor_asyncio import AsyncIOMotorClient
+    import os
+    cli = AsyncIOMotorClient(os.environ.get("MONGO_URL"))
+    db = cli[os.environ.get("DB_NAME", "test_database")]
+    items = await db["project_recommendations"].find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(length=limit)
+    return {"count": len(items), "items": items}
+
+
 @router.get("/missions")
 async def missions_list(status: Optional[str] = "open"):
     items = await ro.list_missions(status=status)

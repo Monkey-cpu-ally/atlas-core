@@ -11,7 +11,8 @@ import TranscriptIngestPanel from './HUD/TranscriptIngestPanel';
 import SelfImprovementPanel from './HUD/SelfImprovementPanel';
 import GraphMemoryPanel from './HUD/GraphMemoryPanel';
 import WorldWatchPanel from './HUD/WorldWatchPanel';
-import { Youtube, Code2, Network, Globe2 } from 'lucide-react';
+import LearningHubPanel from './HUD/LearningHubPanel';
+import { Youtube, Code2, Network, Globe2, GraduationCap } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -99,6 +100,7 @@ export default function HUDInterface() {
   const [selfImproveOpen, setSelfImproveOpen] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
   const [worldWatchOpen, setWorldWatchOpen] = useState(false);
+  const [learningHubOpen, setLearningHubOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -401,6 +403,11 @@ export default function HUDInterface() {
           title="See what changed in the world"
           data-testid="ww-launch-btn"
         ><Globe2 size={12} /><span>World Watch</span></button>
+        <button type="button" className="lh"
+          onClick={() => setLearningHubOpen(true)}
+          title="Open Learning Hub (Minerva's workspace)"
+          data-testid="lh-launch-btn"
+        ><GraduationCap size={12} /><span>Learning Hub</span></button>
       </div>
 
       <TranscriptIngestPanel
@@ -418,6 +425,10 @@ export default function HUDInterface() {
       <WorldWatchPanel
         open={worldWatchOpen}
         onClose={() => setWorldWatchOpen(false)}
+      />
+      <LearningHubPanel
+        open={learningHubOpen}
+        onClose={() => setLearningHubOpen(false)}
       />
     </div>
   );

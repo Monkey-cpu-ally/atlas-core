@@ -70,13 +70,62 @@ def make_evidence(
 ) -> Dict[str, Any]:
     """User rule: every conclusion must include source / confidence /
     evidence / date / verification status."""
+    if not source:
+        raise ValueError("evidence.source is required")
+    if not isinstance(evidence_refs, list) or len(evidence_refs) == 0:
+        raise ValueError("evidence.evidence_refs must be a non-empty list")
     return {
         "source": source,
         "confidence": max(0.0, min(1.0, float(confidence))),
         "evidence_refs": evidence_refs,
         "date": _utc(),
-        "verification_status": verification_status,   # unverified | manual | automated
+        "verification_status": verification_status,   # unverified | manual | automated | weak | llm_simulated
     }
+
+
+def assert_envelope(env: Optional[Dict[str, Any]]) -> bool:
+    """Strict verification gate. Returns True iff envelope is complete."""
+    if not env: return False
+    needed = ("source", "confidence", "evidence_refs", "date", "verification_status")
+    return all(k in env for k in needed) and len(env.get("evidence_refs") or []) > 0
+
+
+# --- Council 4-voice review chain ----------------------------------------
+async def _council_review_chain(item: Dict[str, Any], concepts: List[str],
+                                title: str, conf: float) -> Dict[str, Any]:
+    """Ajani (strategy) → Minerva (knowledge) → Hermes (engineering) →
+    Council (final synthesis). Each voice persists a real persona_chat
+    message. Returns the chain manifest with all message_ids."""
+    from services.persona_chat import chat_any
+    from models.persona_models import ChatRequest
+
+    chain: Dict[str, Any] = {"started_at": _utc(), "voices": [], "errors": []}
+    base_q = (
+        f"Research item — title: {title} · confidence: {conf:.2f} · "
+        f"concepts: {', '.join(concepts[:6])}."
+    )
+    voices = [
+        ("ajani",   "STRATEGY review: should ATLAS prioritise this item? What strategic angle?"),
+        ("minerva", "KNOWLEDGE review: what gaps does this fill in ATLAS memory? What overlaps existing knowledge?"),
+        ("hermes",  "ENGINEERING review: feasibility, risks, prerequisites, build-cost class."),
+        ("council", "FINAL SYNTHESIS of the three voices above into a single recommendation: accept / hold / reject + 1-sentence why."),
+    ]
+    for persona, prompt in voices:
+        try:
+            resp = await chat_any(
+                persona,
+                ChatRequest(message=f"{base_q}\n\n{prompt}",
+                            session_id=None),
+            )
+            chain["voices"].append({
+                "persona": persona,
+                "message_id": getattr(resp, "message_id", None),
+                "reply_excerpt": (getattr(resp, "reply", "") or "")[:280],
+            })
+        except Exception as exc:    # noqa: BLE001
+            chain["errors"].append({"persona": persona, "msg": str(exc)[:200]})
+    chain["ended_at"] = _utc()
+    return chain
 
 
 # --- Discovery → enqueue --------------------------------------------------
@@ -278,29 +327,16 @@ async def run_cycle(*,
                 except Exception as exc:    # noqa: BLE001
                     proof["errors"].append({"phase": 7, "msg": str(exc)[:160]})
 
-            # Phase 8: optional Council review for low-confidence items
-            council_id = None
+            # Phase 8: Council 4-voice review chain for low-confidence items
+            council_chain = None
             if conf < 0.7:
-                try:
-                    from services.persona_chat import chat_any
-                    from models.persona_models import ChatRequest
-                    question = (
-                        f"This research item has confidence {conf:.2f}. "
-                        f"Should ATLAS prioritise it? Title: {rec.get('title') or item['title']}. "
-                        f"Concepts: {', '.join(concepts[:5])}."
-                    )
-                    cresp = await chat_any(
-                        "council",
-                        ChatRequest(message=question, session_id=None,
-                                    persona_filter="council"),
-                    )
-                    council_id = getattr(cresp, "message_id", None)
-                    await _queue().update_one(
-                        {"id": item["id"]},
-                        {"$set": {"council_review_message_id": council_id}},
-                    )
-                except Exception as exc:    # noqa: BLE001
-                    proof["errors"].append({"phase": 8, "msg": str(exc)[:160]})
+                council_chain = await _council_review_chain(
+                    item, concepts, rec.get("title") or item["title"], conf,
+                )
+                await _queue().update_one(
+                    {"id": item["id"]},
+                    {"$set": {"council_review_chain": council_chain}},
+                )
 
             # Phase 9: auto-project for verification=automated AND lesson exists
             project_id = None
@@ -353,8 +389,9 @@ async def run_cycle(*,
                 "verification": verification,
                 "concepts_count": len(concepts),
                 "lesson_id": lesson_id,
-                "council_review_message_id": council_id,
+                "council_chain": council_chain,
                 "project_id": project_id,
+                "envelope_verified": assert_envelope(evidence),
             })
         except Exception as exc:    # noqa: BLE001
             proof["errors"].append({"phase": "investigate",
@@ -455,6 +492,81 @@ async def list_missions(status: Optional[str] = None) -> List[Dict[str, Any]]:
         q["status"] = status
     cur = _missions().find(q, {"_id": 0}).sort("created_at", -1)
     return [d async for d in cur]
+
+
+# --- Project Improvement Loop --------------------------------------------
+async def evaluate_projects() -> Dict[str, Any]:
+    """For each active project, find recent worldwatch updates / queue items
+    in the same domain and ask Council whether the project should be
+    updated. Persists recommendations on each project."""
+    db = _db()
+    started_at = _utc()
+    recommendations: List[Dict[str, Any]] = []
+    projects = await db["projects_queue"].find({"status": "proposed"}, {"_id": 0}).to_list(length=50)
+    if not projects:
+        return {"started_at": started_at, "ended_at": _utc(),
+                "recommendations": [], "projects_checked": 0,
+                "note": "no projects in 'proposed' status"}
+
+    for proj in projects:
+        # Find recent updates that share a queue agent/domain with this project
+        agent = proj.get("agent")
+        recent = await db["research_queue"].find(
+            {"state": "linked", "agent": agent},
+            {"_id": 0, "id": 1, "title": 1, "domain": 1},
+        ).sort("created_at", -1).limit(5).to_list(length=5)
+
+        if not recent:
+            continue
+
+        # 1-shot Council ask
+        try:
+            from services.persona_chat import chat_any
+            from models.persona_models import ChatRequest
+            ctx = "; ".join(f"{r['title'][:80]} ({r['domain']})" for r in recent[:3])
+            prompt = (
+                f"Project: {proj['title']} (status={proj['status']}). "
+                f"Recent related findings: {ctx}. "
+                f"Should we update the project? Accept / Hold / Reject + reason."
+            )
+            resp = await chat_any(
+                "council",
+                ChatRequest(message=prompt, session_id=None),
+            )
+            rec = {
+                "project_id": proj["id"],
+                "project_title": proj["title"],
+                "council_message_id": getattr(resp, "message_id", None),
+                "council_reply_excerpt": (getattr(resp, "reply", "") or "")[:280],
+                "considered_queue_items": [r["id"] for r in recent],
+                "evidence": make_evidence(
+                    source="project_improvement_loop",
+                    confidence=0.7,
+                    evidence_refs=[{"kind": "project", "id": proj["id"]}] +
+                                  [{"kind": "queue", "id": r["id"]} for r in recent],
+                    verification_status="automated",
+                ),
+                "created_at": _utc(),
+            }
+            await db["project_recommendations"].insert_one(rec.copy())
+            await db["projects_queue"].update_one(
+                {"id": proj["id"]},
+                {"$push": {"recommendation_ids": rec["council_message_id"]}},
+            )
+            recommendations.append({
+                "project_id": proj["id"],
+                "council_message_id": rec["council_message_id"],
+                "reply_excerpt": rec["council_reply_excerpt"],
+            })
+        except Exception as exc:    # noqa: BLE001
+            recommendations.append({"project_id": proj["id"],
+                                     "error": str(exc)[:200]})
+
+    return {
+        "started_at": started_at, "ended_at": _utc(),
+        "projects_checked": len(projects),
+        "recommendations": recommendations,
+    }
 
 
 # --- Queue read APIs -----------------------------------------------------
