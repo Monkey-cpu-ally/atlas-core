@@ -48,7 +48,7 @@ export default function RobotPanel({ aiColor }) {
   const loadDevices = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const r = await fetch(`${API_URL}/api/robot/devices`);
+      const r = await fetch(`${API_URL}/api/robot/devices?limit=200`);
       const data = await r.json();
       setDevices(data.items || []);
       if (!selectedId && (data.items || []).length) {

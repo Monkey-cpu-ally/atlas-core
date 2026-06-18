@@ -446,19 +446,21 @@ SEED_DEVICES = [
      "mqtt_topic": "devices/soil-watch/up"},
 ]
 
-_SEEDED = False
+_SEED_LOCK = None  # reserved — kept for future concurrent-seed guard
 
 
 async def seed_if_needed() -> int:
-    global _SEEDED
-    if _SEEDED:
-        return 0
-    count = await _devices().count_documents({})
-    if count > 0:
-        _SEEDED = True
-        return 0
+    """Idempotently provision the architect's three seed devices.
+
+    Previously gated on `count_documents({}) > 0`, which broke after tests
+    left non-seed devices behind. Now we check by-name and insert only the
+    seeds that are actually missing. Safe to call any number of times.
+    """
     inserted = 0
     for spec in SEED_DEVICES:
+        existing = await _devices().find_one({"name": spec["name"]}, {"id": 1})
+        if existing:
+            continue
         dev = Device(**spec)
         await register_device(dev)
         # Auto-spawn a twin per device (environment category — matches the spec)
@@ -482,5 +484,4 @@ async def seed_if_needed() -> int:
         await dt.register_twin(twin)
         await bind_twin(dev.id, twin.id)
         inserted += 1
-    _SEEDED = True
     return inserted

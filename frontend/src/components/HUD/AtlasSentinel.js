@@ -52,7 +52,7 @@ export default function AtlasSentinel() {
 
     const tick = async () => {
       try {
-        const dRes = await fetch(`${API_URL}/api/robot/devices`);
+        const dRes = await fetch(`${API_URL}/api/robot/devices?limit=200`);
         const dData = await dRes.json();
         const seeds = (dData.items || []).filter((d) => SENTINEL_VISUAL[d.name]);
         const enriched = await Promise.all(

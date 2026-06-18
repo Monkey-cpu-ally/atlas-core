@@ -141,6 +141,14 @@ async def _reinforce(
         "confidence_score": _max(existing.get("confidence_score", 0.0),
                                  distilled.confidence_score),
     }
+    # Back-fill source metadata that landed AFTER the record was first
+    # ingested (e.g. arXiv author parsing arrived later — existing records
+    # have source_author=null). Only fill EMPTY fields so we never overwrite
+    # a value the user / a better parser already provided.
+    if source.author and not existing.get("source_author"):
+        updates["source_author"] = source.author
+    if source.title and not (existing.get("title") or "").strip():
+        updates["title"] = source.title
     merged_tags = list({*(existing.get("tags") or []), *distilled.tags, *extra_tags})
     if merged_tags != (existing.get("tags") or []):
         updates["tags"] = merged_tags

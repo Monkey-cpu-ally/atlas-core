@@ -53,7 +53,7 @@ def test_seed_devices_present():
     r = httpx.post(f"{API}/seed", timeout=TIMEOUT)
     assert r.status_code == 200
 
-    r = httpx.get(f"{API}/devices", timeout=TIMEOUT)
+    r = httpx.get(f"{API}/devices?limit=200", timeout=TIMEOUT)
     assert r.status_code == 200
     names = {d["name"] for d in r.json()["items"]}
     assert {"POSEIDON-BUOY", "AETHER-STATION", "SOIL-WATCH"} <= names
@@ -102,7 +102,7 @@ def owner_device():
 @pytest.fixture(scope="module")
 def twin_bound_device():
     """Use the seeded POSEIDON-BUOY (twin-bound)."""
-    r = httpx.get(f"{API}/devices", timeout=TIMEOUT)
+    r = httpx.get(f"{API}/devices?limit=200", timeout=TIMEOUT)
     assert r.status_code == 200
     for d in r.json()["items"]:
         if d["name"] == "POSEIDON-BUOY":
