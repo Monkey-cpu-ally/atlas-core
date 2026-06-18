@@ -1,0 +1,64 @@
+{
+  "id": "atlas_layout_tokens",
+  "name": "ATLAS V2 Layout Tokens",
+  "kind": "tokens_layout",
+  "version": "2.0.0",
+  "viewport_baseline": { "width": 1920, "height": 1080 },
+  "spacing_px": {
+    "xxs": 4, "xs": 8, "sm": 12, "md": 16, "lg": 24, "xl": 32, "xxl": 48, "xxxl": 72
+  },
+  "z_indexes": {
+    "void_background": 0,
+    "ring_field":      10,
+    "tile_layer":      20,
+    "ai_face_dock":    30,
+    "sentinel_ribbon": 40,
+    "transcript_launch": 55,
+    "persona_panel":   60,
+    "transcript_panel": 65,
+    "modal":           80,
+    "toast":           90,
+    "voice_indicator": 95
+  },
+  "panel_geometry": {
+    "right_dock_top_px":      24,
+    "right_dock_right_px":    24,
+    "right_dock_bottom_px":   24,
+    "right_dock_width_px":    820,
+    "right_dock_max_vw_pct":  92,
+    "ai_face_dock_bottom_px": 24,
+    "sentinel_ribbon_bottom_px": 92
+  },
+  "ring_geometry": {
+    "inner_radius_pct":  18,
+    "middle_radius_pct": 34,
+    "outer_radius_pct":  52,
+    "tile_size_px":      52,
+    "tile_inner_count":  4,
+    "tile_middle_count": 6,
+    "tile_outer_count":  10
+  },
+  "feature_panels": {
+    "memory_bank":        { "anchor": "right_dock", "min_width_px": 540 },
+    "knowledge_bank":     { "anchor": "right_dock", "min_width_px": 540 },
+    "graph_memory":       { "anchor": "right_dock", "min_width_px": 720 },
+    "world_watch":        { "anchor": "right_dock", "min_width_px": 620 },
+    "self_improvement":   { "anchor": "right_dock", "min_width_px": 560 },
+    "digital_twin":       { "anchor": "right_dock", "min_width_px": 680 },
+    "weaver":             { "anchor": "right_dock", "min_width_px": 700 },
+    "robot_control":      { "anchor": "right_dock", "min_width_px": 540 },
+    "sentinel_alert":     { "anchor": "bottom_ribbon", "min_width_px": 0 },
+    "transcript_ingest":  { "anchor": "right_dock", "min_width_px": 820 }
+  },
+  "responsive_breakpoints_px": {
+    "mobile_max":  760,
+    "tablet_max":  1180,
+    "desktop_min": 1181
+  },
+  "anti_patterns": [
+    "fixed-pixel-only layouts (must use pct + clamp)",
+    "ai face dock INSIDE the rings (must be OUTSIDE)",
+    "panel widths > 90vw on desktop",
+    "central core obscured by foreground panels"
+  ]
+}

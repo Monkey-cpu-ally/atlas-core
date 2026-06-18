@@ -7,6 +7,8 @@ import GhostRings from './HUD/GhostRings';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
 import AtlasSentinel from './HUD/AtlasSentinel';
 import PersonaChatPanel from './HUD/PersonaChatPanel';
+import TranscriptIngestPanel from './HUD/TranscriptIngestPanel';
+import { Youtube } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -90,6 +92,7 @@ export default function HUDInterface() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [chatPersona, setChatPersona] = useState(null); // null | 'ajani' | 'minerva' | 'hermes' | 'trinity'
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -363,6 +366,22 @@ export default function HUDInterface() {
         open={!!chatPersona}
         persona={chatPersona || 'ajani'}
         onClose={() => setChatPersona(null)}
+      />
+
+      <button
+        type="button"
+        className="transcript-launch"
+        onClick={() => setTranscriptOpen(true)}
+        title="Paste a YouTube transcript to teach ATLAS"
+        data-testid="transcript-launch-btn"
+      >
+        <Youtube size={12} />
+        <span>Ingest transcript</span>
+      </button>
+
+      <TranscriptIngestPanel
+        open={transcriptOpen}
+        onClose={() => setTranscriptOpen(false)}
       />
     </div>
   );

@@ -1,0 +1,48 @@
+{
+  "id": "atlas_motion_tokens",
+  "name": "ATLAS V2 Motion Tokens",
+  "kind": "tokens_motion",
+  "version": "2.0.0",
+  "principles": [
+    "Slow ambient drift on rings (24-48s loop)",
+    "Snap-back on release after manual drag",
+    "Breathing on core sphere (5-8s period)",
+    "Hover pulses use agent color, 1.4-2.6s",
+    "Panel entrance: 180ms ease, 8px translateX, 0.985 → 1 scale",
+    "Sentinel anomaly chip: 600ms gentle pulse (red), not flashing"
+  ],
+  "durations_ms": {
+    "instant":        80,
+    "snappy":         140,
+    "panel_enter":    180,
+    "ring_snap_back": 520,
+    "core_breathing": 6000,
+    "ring_idle":      36000,
+    "ai_pulse_ajani":   1800,
+    "ai_pulse_minerva": 2200,
+    "ai_pulse_hermes":  1400,
+    "ai_pulse_council": 2600
+  },
+  "easings": {
+    "snap_back":   "cubic-bezier(0.18, 0.9, 0.22, 1.02)",
+    "panel_in":    "cubic-bezier(0.16, 1, 0.3, 1)",
+    "panel_out":   "cubic-bezier(0.7, 0, 0.84, 0)",
+    "ring_idle":   "linear",
+    "breathing":   "cubic-bezier(0.42, 0, 0.58, 1)"
+  },
+  "physics": {
+    "ring_drag_friction":     0.86,
+    "ring_drag_max_velocity": 5.0,
+    "ring_drag_threshold":    0.05,
+    "core_breath_amplitude":  0.04
+  },
+  "reduced_motion": {
+    "honors_prefers_reduced_motion": true,
+    "fallback_durations_ms": {
+      "snap_back": 0,
+      "core_breathing": 0,
+      "ring_idle": 0,
+      "ai_pulse": 0
+    }
+  }
+}

@@ -3696,3 +3696,180 @@ body {
   background: color-mix(in srgb, var(--persona-accent, #F4EFE4) 26%, transparent);
 }
 
+
+
+/* ============================================================
+   Transcript Ingest Panel
+   ============================================================ */
+.transcript-panel-shell {
+  position: fixed; inset: 0; pointer-events: none; z-index: 65;
+}
+.transcript-panel {
+  pointer-events: auto;
+  position: fixed; top: 24px; right: 24px; bottom: 24px;
+  width: min(820px, calc(100vw - 48px));
+  display: grid; grid-template-rows: auto auto 1fr;
+  background: rgba(8, 10, 16, 0.92);
+  border: 1px solid rgba(244, 239, 228, 0.18);
+  border-radius: 14px;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.85);
+  color: rgba(244, 239, 228, 0.92);
+  font-size: 12px;
+  animation: persona-chat-in 0.18s ease;
+}
+.transcript-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.transcript-title {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: #FF6B6B; font-family: 'Orbitron', monospace, sans-serif;
+  font-size: 12px; letter-spacing: 0.14em;
+}
+.transcript-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(244, 239, 228, 0.7);
+  border-radius: 6px; padding: 4px 6px; cursor: pointer;
+}
+.transcript-close:hover { background: rgba(255, 107, 107, 0.18); color: #fff; }
+.transcript-verdict {
+  padding: 8px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 107, 107, 0.06);
+  font-size: 11px;
+}
+.transcript-verdict-line { font-weight: 600; letter-spacing: 0.02em; }
+.transcript-verdict-counts {
+  display: inline-flex; align-items: center; gap: 14px;
+  color: rgba(244, 239, 228, 0.75);
+}
+.transcript-verdict-counts span {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.transcript-body {
+  display: grid; grid-template-columns: 1.05fr 1fr;
+  overflow: hidden;
+}
+@media (max-width: 760px) {
+  .transcript-body { grid-template-columns: 1fr; }
+}
+.transcript-form, .transcript-result {
+  padding: 14px 16px; overflow-y: auto; height: 100%;
+}
+.transcript-form { border-right: 1px solid rgba(255, 255, 255, 0.05); }
+.t-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.t-row > span {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(244, 239, 228, 0.55);
+}
+.t-row > span em {
+  text-transform: none; font-style: normal; letter-spacing: 0;
+  color: rgba(244, 239, 228, 0.4); font-size: 10px; margin-left: 4px;
+}
+.t-row input, .t-row textarea, .t-row select {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f4efe4;
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+.t-row input:focus, .t-row textarea:focus, .t-row select:focus {
+  border-color: rgba(255, 107, 107, 0.55);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.12);
+}
+.t-row textarea { resize: vertical; min-height: 120px; line-height: 1.45; }
+.t-row-inline { display: flex; gap: 8px; align-items: center; }
+.t-row-inline input { flex: 1; }
+.t-resolve-btn {
+  background: rgba(255, 107, 107, 0.16);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  color: #FF8B8B;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 4px;
+  cursor: pointer;
+}
+.t-resolve-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.t-resolve-btn:hover:not(:disabled) { background: rgba(255, 107, 107, 0.32); }
+.t-row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.t-row-counter {
+  font-size: 10px; color: rgba(244, 239, 228, 0.5); margin-top: 2px;
+}
+.t-row-warn { color: #FF8B8B; }
+.t-actions {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 6px; flex-wrap: wrap;
+}
+.t-submit {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.32), rgba(255, 107, 107, 0.18));
+  border: 1px solid rgba(255, 107, 107, 0.6);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.t-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.t-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(255, 107, 107, 0.25); }
+.t-spin { animation: spin 0.85s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.t-err {
+  color: #FF8B8B; font-size: 11px;
+  background: rgba(255, 107, 107, 0.08); padding: 4px 8px; border-radius: 4px;
+}
+.t-result-empty {
+  color: rgba(244, 239, 228, 0.45);
+  font-size: 12px; line-height: 1.6;
+}
+.t-result-line {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; letter-spacing: 0.04em;
+}
+.t-ok { color: #66E2A0; }
+.transcript-result h4 {
+  font-size: 14px; margin: 8px 0; color: #fff; line-height: 1.35;
+}
+.t-ids {
+  display: grid; grid-template-columns: max-content 1fr;
+  gap: 4px 12px; margin: 8px 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px;
+}
+.t-ids dt { color: rgba(244, 239, 228, 0.5); }
+.t-ids dd {
+  color: rgba(244, 239, 228, 0.9); margin: 0; word-break: break-all;
+}
+.t-lesson-preview {
+  margin-top: 10px; padding: 8px 10px;
+  background: rgba(102, 226, 160, 0.08);
+  border: 1px solid rgba(102, 226, 160, 0.3);
+  border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 8px;
+  color: rgba(244, 239, 228, 0.92); font-size: 11px;
+}
+.t-lesson-preview svg { color: #66E2A0; }
+
+/* Floating launcher button */
+.transcript-launch {
+  position: fixed; right: 24px; bottom: 96px; z-index: 55;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(8, 10, 16, 0.72);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  color: #FFB8B8;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer; backdrop-filter: blur(12px);
+  transition: background 150ms ease, color 150ms ease;
+}
+.transcript-launch:hover { background: rgba(255, 107, 107, 0.18); color: #fff; }

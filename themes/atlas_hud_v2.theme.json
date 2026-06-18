@@ -1,0 +1,82 @@
+{
+  "id": "atlas_hud_v2",
+  "name": "ATLAS HUD v2 — Holographic Tactical",
+  "kind": "hud_theme",
+  "version": "2.0.0",
+  "extends": null,
+  "description": "Futuristic holographic transparent ATLAS HUD with tactical blueprint overlays, luxury sci-fi panels, and living organic motion. Influences: JARVIS precision · Wakanda layered tech · Horizon Zero Dawn organic-machine · Pragmata industrial sci-fi · luxury car dashboard polish.",
+  "principles": [
+    "Central transparent rotating core",
+    "Slow ring motion (24-48s idle drift)",
+    "Snap-back animation after interaction",
+    "Small side-by-side AI face panels OUTSIDE the rings",
+    "Agent color pulses on hover and on receive-of-data",
+    "Never plain. Never messy. Never cartoonish. Never flat-basic."
+  ],
+  "tokens_ref": {
+    "colors": "atlas_color_tokens.json",
+    "motion": "atlas_motion_tokens.json",
+    "layout": "atlas_layout_tokens.json"
+  },
+  "agents": {
+    "ajani":   { "color": "#E63946", "domain": "engineering · robotics", "pulse_ms": 1800 },
+    "minerva": { "color": "#2EC4B6", "domain": "science · biology",      "pulse_ms": 2200 },
+    "hermes":  { "color": "#F4EFE4", "domain": "math · logic · code",    "pulse_ms": 1400 },
+    "council": { "color": "#9B6BD8", "domain": "deliberation",            "pulse_ms": 2600 }
+  },
+  "rings": {
+    "inner_radius_pct":  18,
+    "middle_radius_pct": 34,
+    "outer_radius_pct":  52,
+    "stroke_inner":  "rgba(244, 239, 228, 0.22)",
+    "stroke_middle": "rgba(244, 239, 228, 0.16)",
+    "stroke_outer":  "rgba(244, 239, 228, 0.10)",
+    "rotation_idle_seconds": 36,
+    "rotation_drag_friction": 0.86,
+    "snap_back_ms": 520,
+    "snap_back_easing": "cubic-bezier(0.18, 0.9, 0.22, 1.02)"
+  },
+  "core_sphere": {
+    "type": "transparent_plasma",
+    "ambient_color": "rgba(230, 57, 70, 0.18)",
+    "highlight_color": "rgba(155, 107, 216, 0.32)",
+    "breathing_amplitude_pct": 4,
+    "breathing_period_s": 6
+  },
+  "panels": {
+    "surface": "rgba(8, 10, 16, 0.86)",
+    "border": "1px solid rgba(244, 239, 228, 0.18)",
+    "border_radius_px": 14,
+    "backdrop_blur_px": 20,
+    "shadow": "0 24px 60px -24px rgba(0, 0, 0, 0.8)",
+    "blueprint_overlay_opacity": 0.06,
+    "blueprint_grid_px": 32
+  },
+  "ai_face_dock": {
+    "position": "outside_rings",
+    "layout": "side_by_side",
+    "size_px": 56,
+    "spacing_px": 12
+  },
+  "feature_panels_registered": [
+    "memory_bank",
+    "knowledge_bank",
+    "graph_memory",
+    "world_watch",
+    "self_improvement",
+    "digital_twin",
+    "weaver",
+    "robot_control",
+    "sentinel_alert_ribbon",
+    "transcript_ingest"
+  ],
+  "anti_patterns": [
+    "purple-violet-gradient-on-white",
+    "Inter/Roboto everywhere",
+    "centered grid of identical cards",
+    "neon emoji icons",
+    "ALL CAPS for body text",
+    "flat 2D with no depth cue"
+  ],
+  "verdict_on_v1": "v1 stays. v2 is additive only. Themes are swap-able via /api/themes/{id}."
+}

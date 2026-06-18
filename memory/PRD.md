@@ -331,6 +331,22 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **COUNCIL** → `/api/council/route` + `/api/council/deliberate` — keyword routing (AJANI · MINERVA · HERMES · COUNCIL) + tri-AI deliberation in voice (gpt-5.2)
 - [x] Topic router (`/app/backend/routing/topic_router.py`) — first-match scan: AJANI → MINERVA → HERMES → COUNCIL fallback
 
+### ATLAS V2 build — Parts 1-5 (Feb 2026 · Session continuation)
+- [x] **Part 1 · World Update Watcher** — `services/worldwatch.py` · 12 curated RSS/Atom feeds covering AI/robotics/SE/electronics/batteries/green-tech/manufacturing/design/architecture/medicine/agriculture/aerospace · `/api/worldwatch/{status,seed,run,updates,feeds}` · live test: 10/11 feeds ingested (1 BOM error captured) · 10 real "what changed" notes via gpt-5.2 with novelty classification · KB+MB+graph triple-write per entry · domain→agent routing (AI/medicine/agriculture→Minerva, robotics/electronics/manufacturing/design/architecture/aerospace→Ajani, SE→Hermes)
+- [x] **Part 2 · Self-Code Improvement** — `services/self_code.py` · AST + regex detectors (TODO/FIXME, bare except:pass, hardcoded HUD lists, module > 550 lines, missing route tests) · `/api/self-code/{proposals,scan,approve,reject}` · live scan: 63 files · 29 findings · 27 new pending proposals (dedupes against existing) · STRICT "approval-first" rule honoured (zero auto-apply)
+- [x] **Part 3 · Personal Learning Adaptation** — `services/adaptation.py` · single-doc `user_learning_profile` keyed `id="default"` · default 6-9grade explanation + lego_steps lesson format + 6 explanation rules · `/api/learning/{profile,log-confusion,log-success}` · NOT yet consumed by lesson generator (integration gap documented)
+- [x] **Part 4 · HUD V2 theme foundation** — 4 JSON theme files at `/app/themes/` (theme manifest + color + motion + layout tokens) · `/api/themes/{list,{id}}` · agent colors locked: Ajani #E63946 · Minerva #2EC4B6 · Hermes #F4EFE4 · Council #9B6BD8 · anti-pattern list enforced · full HUD reskin deferred to follow-up design pass
+- [x] **Part 5 · Visual Style Memory** — `services/adaptation.py` style section · single-doc `visual_style_memory` · `/api/style/{preferences,note,warning}` · too_plain / too_messy counters · live test: counter incremented
+- [x] `ATLAS_WORLDWATCH_REPORT.md` · `ATLAS_V2_SELF_IMPROVEMENT_REPORT.md` · `ATLAS_HUD_V2_STYLE_GUIDE.md`
+
+**Rules honoured.** v1 untouched · no major code rewrites · every proposal pending until approved · themes are JSON-swappable · NO new feature was applied silently (only the system that COLLECTS them was built).
+
+**Carry-forward blockers from prior steps.**
+- 🟠 Step 3 from prior priority — `sentence-transformers` Memory Bank upgrade — install was killed mid-flight by the bash gateway twice. NOT installed. Memory Bank remains 🟠 PARTIAL.
+- 🟠 Step 4 from prior priority — HUD Graph Visualization — backend `/api/membank/graph/expand` is live; UI panel NOT yet built. Captured as a Part 4 next-step.
+- 🟠 HUD V2 visual reskin — theme tokens shipped; CSS-variable hook + per-panel reskin NOT yet implemented.
+- 🟠 Dezeen RSS BOM parse error — 1 of 11 feeds currently failing. Captured as a worldwatch TODO.
+
 ### YouTube Learning subsystem (Feb 2026 · Session continuation)
 - [x] **Channel RSS Resolver** — `GET /api/youtube/resolve-channel?url=&n=3` · resolves any channel form (`/channel/UC*`, `/user/X`, `/c/X`, `/@h`) into latest N videos via public Atom feed
 - [x] **Manual Transcript Ingestion** — `POST /api/youtube/ingest-transcript` · sidesteps cloud-IP block · full KB → MB → Graph → Lesson chain · transcript body stored ONLY in private `youtube_transcripts_private` collection (consent=user_supplied)

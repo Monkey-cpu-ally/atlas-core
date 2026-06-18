@@ -1,0 +1,40 @@
+{
+  "id": "atlas_color_tokens",
+  "name": "ATLAS V2 Color Tokens",
+  "kind": "tokens_color",
+  "version": "2.0.0",
+  "agents": {
+    "ajani":   { "primary": "#E63946", "soft": "rgba(230, 57, 70, 0.18)",  "edge": "rgba(230, 57, 70, 0.55)" },
+    "minerva": { "primary": "#2EC4B6", "soft": "rgba(46, 196, 182, 0.18)", "edge": "rgba(46, 196, 182, 0.55)" },
+    "hermes":  { "primary": "#F4EFE4", "soft": "rgba(244, 239, 228, 0.10)", "edge": "rgba(244, 239, 228, 0.40)" },
+    "council": { "primary": "#9B6BD8", "soft": "rgba(155, 107, 216, 0.18)", "edge": "rgba(155, 107, 216, 0.55)" }
+  },
+  "surfaces": {
+    "void":            "#05060A",
+    "panel_base":      "rgba(8, 10, 16, 0.86)",
+    "panel_elevated":  "rgba(14, 17, 26, 0.92)",
+    "glass_thin":      "rgba(244, 239, 228, 0.04)",
+    "glass_strong":    "rgba(244, 239, 228, 0.12)",
+    "ring_active":     "rgba(244, 239, 228, 0.22)",
+    "ring_idle":       "rgba(244, 239, 228, 0.10)",
+    "ring_drag":       "rgba(255, 255, 255, 0.45)"
+  },
+  "semantic": {
+    "ok":      "#66E2A0",
+    "warn":    "#F0B663",
+    "alert":   "#FF6B6B",
+    "info":    "#88C8FF",
+    "muted":   "rgba(244, 239, 228, 0.55)"
+  },
+  "text": {
+    "primary":   "rgba(244, 239, 228, 0.95)",
+    "secondary": "rgba(244, 239, 228, 0.7)",
+    "tertiary":  "rgba(244, 239, 228, 0.45)",
+    "ghost":     "rgba(244, 239, 228, 0.25)"
+  },
+  "blueprint": {
+    "ink":     "rgba(180, 220, 255, 0.55)",
+    "ghost":   "rgba(180, 220, 255, 0.10)",
+    "grid":    "rgba(180, 220, 255, 0.06)"
+  }
+}

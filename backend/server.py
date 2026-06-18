@@ -46,6 +46,8 @@ from routes.lessons import router as lessons_router
 from routes.self_improve import router as self_improve_router
 # YouTube channel-RSS resolver + manual transcript ingest + dashboard
 from routes.youtube import router as youtube_router
+# ATLAS V2: World Watch + Self-Code + Adaptation + Style + Themes
+from routes.atlas_v2 import router as atlas_v2_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -129,6 +131,7 @@ app.include_router(kbase_helper_router)  # /api/kbase/sources/github helper
 app.include_router(lessons_router)  # Lesson plans generated from watcher runs
 app.include_router(self_improve_router)  # ATLAS Self-Improvement Watcher
 app.include_router(youtube_router)  # YouTube Learning subsystem (resolver + manual transcript + dashboard)
+app.include_router(atlas_v2_router)  # ATLAS V2: worldwatch + self-code + learning + style + themes
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
