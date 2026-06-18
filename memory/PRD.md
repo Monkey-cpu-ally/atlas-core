@@ -331,6 +331,16 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **COUNCIL** → `/api/council/route` + `/api/council/deliberate` — keyword routing (AJANI · MINERVA · HERMES · COUNCIL) + tri-AI deliberation in voice (gpt-5.2)
 - [x] Topic router (`/app/backend/routing/topic_router.py`) — first-match scan: AJANI → MINERVA → HERMES → COUNCIL fallback
 
+### YouTube Learning subsystem (Feb 2026 · Session continuation)
+- [x] **Channel RSS Resolver** — `GET /api/youtube/resolve-channel?url=&n=3` · resolves any channel form (`/channel/UC*`, `/user/X`, `/c/X`, `/@h`) into latest N videos via public Atom feed
+- [x] **Manual Transcript Ingestion** — `POST /api/youtube/ingest-transcript` · sidesteps cloud-IP block · full KB → MB → Graph → Lesson chain · transcript body stored ONLY in private `youtube_transcripts_private` collection (consent=user_supplied)
+- [x] **Lesson Generator** — already built, now triggered by manual-transcript ingest
+- [x] **Verification Dashboard** — `GET /api/youtube/dashboard` · live verdict computed from DB (`🟢 Verified` requires ≥1 MANUAL_PROVIDED + ≥1 lesson)
+- [x] **Live proof against Sebastian Lague channel** — `UCmtyQOKKmrMVaKuRXz02jbQ` resolved · 3 latest videos returned · 1 transcript ingested · `knowledge_id=29e6257c479443eea2c2e3898b3192ff` · `lesson_id=e3b15139552f4baab8619506a13608fc` · 36 graph triples · 6 vocabulary terms · 4 quiz questions
+- [x] `ATLAS_YOUTUBE_LEARNING_PROOF.md` — every ID + raw DB readback documented
+
+**Verdict (per database):** 🟢 **Verified end-to-end via manual transcript ingest** (was 🔴 Not Verified). Direct YouTube transcript fetch remains 🔴 Blocked by cloud-IP — fix is out-of-environment.
+
 ### Watcher Systems pass (Feb 2026 · Session continuation)
 - [x] **GitHub Knowledge Watcher** — `/api/watchers/{sources,github/register,github/run,github/status,proof/{id}}` + helper `/api/kbase/sources/github`
 - [x] **Lesson generator** — gpt-5.2-backed lesson plans persisted in `lessons` collection; `/api/lessons/{generated,by-source,{lesson_id}}`
