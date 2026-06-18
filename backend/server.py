@@ -40,6 +40,10 @@ from routes.weaver import router as weaver_router
 from routes.kbase import router as kbase_router
 from routes.robot import router as robot_router
 from routes.persona import router as persona_router
+# Watchers — GitHub link-list ingester + lessons + self-improvement
+from routes.watchers import router as watchers_router, kbase_helper_router
+from routes.lessons import router as lessons_router
+from routes.self_improve import router as self_improve_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -118,6 +122,10 @@ app.include_router(weaver_router)  # Phase 6: weaver (parts library + blueprint 
 app.include_router(kbase_router)  # Knowledge Ingestion: distill external sources → MemoryRecords
 app.include_router(robot_router)  # Phase 7: robot control layer (devices + telemetry + sim-first command pipeline)
 app.include_router(persona_router)  # Phase 8a: persona chat (Ajani · Minerva · Hermes · Council)
+app.include_router(watchers_router)  # Knowledge Watcher (GitHub link-list ingester)
+app.include_router(kbase_helper_router)  # /api/kbase/sources/github helper
+app.include_router(lessons_router)  # Lesson plans generated from watcher runs
+app.include_router(self_improve_router)  # ATLAS Self-Improvement Watcher
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")

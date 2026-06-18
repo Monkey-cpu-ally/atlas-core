@@ -331,6 +331,16 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **COUNCIL** → `/api/council/route` + `/api/council/deliberate` — keyword routing (AJANI · MINERVA · HERMES · COUNCIL) + tri-AI deliberation in voice (gpt-5.2)
 - [x] Topic router (`/app/backend/routing/topic_router.py`) — first-match scan: AJANI → MINERVA → HERMES → COUNCIL fallback
 
+### Watcher Systems pass (Feb 2026 · Session continuation)
+- [x] **GitHub Knowledge Watcher** — `/api/watchers/{sources,github/register,github/run,github/status,proof/{id}}` + helper `/api/kbase/sources/github`
+- [x] **Lesson generator** — gpt-5.2-backed lesson plans persisted in `lessons` collection; `/api/lessons/{generated,by-source,{lesson_id}}`
+- [x] **Self-Improvement Watcher** — `/api/self-improve/{proposals,propose,approve/{id},reject/{id},history,weekly-report}` · strict "never silently rewrite" contract (no code path touches anything outside `self_improvements` collection)
+- [x] Live test against `https://github.com/PrejudiceNeutrino/YouTube_Channels` — source_id `a2f334e53c8f49a3bbbdb4e1e3b28611` · run_id `705e6a1c30cd45adbbebaf3f41009680` · **15 links / 15 KB-records / 15 MB-rows / 24 graph edges / 1 lesson / 0 errors**
+- [x] `ATLAS_WATCHER_SYSTEM_REPORT.md` — real evidence + simulated/key/transcript/hardware/incomplete sections
+- [x] `ATLAS_REALITY_AUDIT.md` — 22-subsystem REAL/PARTIAL/SIMULATED/PLACEHOLDER/UNTESTED audit · roll-up: 🟢 8 · 🟡 5 · 🟠 5 · 🔴 3 · ⚫ 1
+
+**Honest caveats from this session.** Ollama embed-provider switch attempted but **the `/usr/local/bin/ollama` binary is wiped between bash sessions in this cloud container** (verified empirically twice). `sentence-transformers` fallback install was cut off by bash-gateway instability. HUD legacy-tile replacement + graph-viz panel were deferred when the user redirected to Watcher Systems build. YouTube channel-URL → video-URL resolver is captured as Self-Improvement proposal `410a020f53e34e3997c96e70664eda24` (approved, implementation pending).
+
 ### Verification documentation pass (Feb 2026 · Session continuation)
 - [x] `ATLAS_VERIFICATION_RESULTS.md` — raw 11-test results from `/tmp/atlas_verify.log` (PASS/SIMULATED/observations, no summarization)
 - [x] `ATLAS_INTEGRATION_PLAN.md` — 5 end-to-end flows (Research→Knowledge · Persona→Graph · Twin→Weaver · Robot→Sentinel · HUD→Live APIs)
