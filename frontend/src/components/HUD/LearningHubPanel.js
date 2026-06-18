@@ -42,7 +42,21 @@ export default function LearningHubPanel({ open, onClose }) {
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.detail || `HTTP ${r.status}`);
-      setLastLoop(j);
+      // Server returns { job_id, status:'running', requested_cycles, poll_url }
+      // and runs the cycles in the background. Poll until status==='done'.
+      setLastLoop({ ...j, totals: {}, runs: [] });
+      const jobId = j.job_id;
+      const start = Date.now();
+      while (Date.now() - start < 5 * 60 * 1000) {   // hard cap 5 min
+        await new Promise((res) => setTimeout(res, 3500));
+        try {
+          const pr = await fetch(`${API}/api/research-orch/orchestrator/loop/${jobId}`);
+          const pj = await pr.json();
+          if (!pr.ok) break;
+          setLastLoop(pj);
+          if (pj.status === 'done' || pj.status === 'errored') break;
+        } catch (_e) { /* keep polling */ }
+      }
       await load(tab);
     } catch (e) { setError(String(e.message || e)); }
     finally { setLooping(false); }
@@ -110,7 +124,8 @@ export default function LearningHubPanel({ open, onClose }) {
           <div className="lh-empty" data-testid="lh-loop-result"
                style={{ fontSize: 11, padding: '6px 12px', background: 'rgba(0,255,200,0.04)',
                         borderTop: '1px solid rgba(0,255,200,0.15)' }}>
-            loop · cycles {lastLoop.executed_cycles}/{lastLoop.requested_cycles} ·
+            loop · {lastLoop.status || 'queued'} ·
+            cycles {lastLoop.executed_cycles ?? 0}/{lastLoop.requested_cycles ?? 0} ·
             examined {lastLoop.totals?.examined ?? 0} ·
             processed {lastLoop.totals?.fully_processed ?? 0} ·
             enqueued {lastLoop.totals?.enqueued ?? 0} ·

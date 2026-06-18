@@ -52,6 +52,125 @@ def _db():
 def _queue():    return _db()["research_queue"]
 def _missions(): return _db()["research_missions"]
 def _cycles():   return _db()["research_cycles"]
+def _loops():    return _db()["orchestrator_loops"]
+
+
+# --- Background multi-cycle jobs -----------------------------------------
+async def start_loop_job(
+    *, cycles: int, discover_per_feed: int, max_investigate: int,
+    generate_lessons: bool, mode: str, forge_blueprints: bool,
+    pause_seconds: float, stop_on_empty: bool,
+) -> str:
+    """Kick off a multi-cycle orchestration in the background and return
+    the job_id immediately. Per-cycle proof + roll-up is appended to the
+    orchestrator_loops record as it progresses, so the UI can poll for
+    incremental results without holding a request open beyond the edge
+    timeout."""
+    job_id = uuid4().hex
+    started_at = _utc()
+    await _loops().insert_one({
+        "id": job_id,
+        "status": "running",
+        "requested_cycles": cycles,
+        "executed_cycles": 0,
+        "totals": {"examined": 0, "fully_processed": 0,
+                   "ww_new_entries": 0, "enqueued": 0, "errors": 0},
+        "runs": [],
+        "started_at": started_at,
+        "ended_at": None,
+        "params": {
+            "cycles": cycles, "discover_per_feed": discover_per_feed,
+            "max_investigate": max_investigate,
+            "generate_lessons": generate_lessons, "mode": mode,
+            "forge_blueprints": forge_blueprints,
+            "pause_seconds": pause_seconds, "stop_on_empty": stop_on_empty,
+        },
+    })
+
+    # Spawn the worker. We deliberately don't `await` — FastAPI lets the
+    # request return immediately so the ingress proxy doesn't time out.
+    asyncio.create_task(_run_loop_job(
+        job_id, cycles=cycles, discover_per_feed=discover_per_feed,
+        max_investigate=max_investigate,
+        generate_lessons=generate_lessons, mode=mode,
+        forge_blueprints=forge_blueprints,
+        pause_seconds=pause_seconds, stop_on_empty=stop_on_empty,
+    ))
+    return job_id
+
+
+async def _run_loop_job(
+    job_id: str, *, cycles: int, discover_per_feed: int, max_investigate: int,
+    generate_lessons: bool, mode: str, forge_blueprints: bool,
+    pause_seconds: float, stop_on_empty: bool,
+) -> None:
+    for i in range(cycles):
+        try:
+            proof = await run_cycle(
+                discover_per_feed=discover_per_feed,
+                max_investigate=max_investigate,
+                generate_lessons=generate_lessons,
+                mode=mode,
+                forge_blueprints=forge_blueprints,
+            )
+        except Exception as exc:    # noqa: BLE001
+            await _loops().update_one(
+                {"id": job_id},
+                {"$set": {"status": "errored", "ended_at": _utc(),
+                          "error": str(exc)[:300]}},
+            )
+            logger.exception("loop job %s failed at cycle %s", job_id, i + 1)
+            return
+
+        ph1 = proof.get("phases", {}).get("1_discover") or {}
+        ph2 = proof.get("phases", {}).get("2-7_investigate_to_lessons") or {}
+        run_entry = {
+            "cycle_index": i + 1,
+            "cycle_id": proof.get("cycle_id"),
+            "status": proof.get("status"),
+            "phase1": ph1,
+            "phase2_7": {k: v for k, v in ph2.items() if k != "investigated"},
+            "errors": len(proof.get("errors") or []),
+        }
+        # Detect early-bail
+        bailed = (stop_on_empty
+                  and (ph2.get("examined") or 0) == 0
+                  and (ph1.get("enqueued") or 0) == 0)
+        if bailed:
+            run_entry["bailed"] = True
+
+        await _loops().update_one(
+            {"id": job_id},
+            {
+                "$push": {"runs": run_entry},
+                "$inc": {
+                    "executed_cycles": 1,
+                    "totals.ww_new_entries": int(ph1.get("ww_new_entries") or 0),
+                    "totals.enqueued": int(ph1.get("enqueued") or 0),
+                    "totals.examined": int(ph2.get("examined") or 0),
+                    "totals.fully_processed": int(ph2.get("fully_processed") or 0),
+                    "totals.errors": len(proof.get("errors") or []),
+                },
+            },
+        )
+        if bailed:
+            break
+        if pause_seconds and i < cycles - 1:
+            await asyncio.sleep(pause_seconds)
+
+    await _loops().update_one(
+        {"id": job_id},
+        {"$set": {"status": "done", "ended_at": _utc()}},
+    )
+
+
+async def get_loop_job(job_id: str) -> Optional[Dict[str, Any]]:
+    return await _loops().find_one({"id": job_id}, {"_id": 0})
+
+
+async def list_loop_jobs(limit: int = 20) -> List[Dict[str, Any]]:
+    cur = _loops().find({}, {"_id": 0, "runs": 0}).sort("started_at", -1).limit(limit)
+    return [d async for d in cur]
 
 
 def _utc(): return datetime.now(timezone.utc).isoformat()

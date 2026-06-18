@@ -60,51 +60,37 @@ class LoopReq(CycleReq):
 
 @router.post("/orchestrator/loop")
 async def orchestrator_loop(req: Optional[LoopReq] = None):
-    """Multi-cycle orchestration. Runs `cycles` sequential cycles and
-    returns the per-cycle proof plus a roll-up. Bails out early if
-    `stop_on_empty=True` and a cycle yields zero processed items."""
-    import asyncio as _asyncio
+    """Multi-cycle orchestration. Kicks off `cycles` sequential cycles
+    in the background and returns a `job_id` immediately so the request
+    never exceeds the ingress edge timeout. Poll progress via
+    `GET /api/research-orch/orchestrator/loop/{job_id}`."""
     p = req or LoopReq()
-    runs: list = []
-    totals = {"examined": 0, "fully_processed": 0,
-              "ww_new_entries": 0, "enqueued": 0,
-              "errors": 0}
-    for i in range(p.cycles):
-        proof = await ro.run_cycle(
-            discover_per_feed=p.discover_per_feed,
-            max_investigate=p.max_investigate,
-            generate_lessons=p.generate_lessons,
-            mode=p.mode,
-            forge_blueprints=p.forge_blueprints,
-        )
-        runs.append({
-            "cycle_index": i + 1,
-            "cycle_id": proof.get("cycle_id"),
-            "status": proof.get("status"),
-            "phase1": proof.get("phases", {}).get("1_discover"),
-            "phase2_7": proof.get("phases", {}).get("2-7_investigate_to_lessons"),
-            "errors": len(proof.get("errors") or []),
-        })
-        ph1 = proof.get("phases", {}).get("1_discover") or {}
-        ph2 = proof.get("phases", {}).get("2-7_investigate_to_lessons") or {}
-        totals["ww_new_entries"] += int(ph1.get("ww_new_entries") or 0)
-        totals["enqueued"] += int(ph1.get("enqueued") or 0)
-        totals["examined"] += int(ph2.get("examined") or 0)
-        totals["fully_processed"] += int(ph2.get("fully_processed") or 0)
-        totals["errors"] += len(proof.get("errors") or [])
+    job_id = await ro.start_loop_job(
+        cycles=p.cycles,
+        discover_per_feed=p.discover_per_feed,
+        max_investigate=p.max_investigate,
+        generate_lessons=p.generate_lessons,
+        mode=p.mode,
+        forge_blueprints=p.forge_blueprints,
+        pause_seconds=p.pause_seconds,
+        stop_on_empty=p.stop_on_empty,
+    )
+    return {"job_id": job_id, "status": "running",
+            "requested_cycles": p.cycles,
+            "poll_url": f"/api/research-orch/orchestrator/loop/{job_id}"}
 
-        # Early-bail condition: nothing new and nothing to investigate.
-        if p.stop_on_empty and (ph2.get("examined") or 0) == 0 and (ph1.get("enqueued") or 0) == 0:
-            runs[-1]["bailed"] = True
-            break
-        if p.pause_seconds and i < p.cycles - 1:
-            await _asyncio.sleep(p.pause_seconds)
-    return {
-        "requested_cycles": p.cycles,
-        "executed_cycles": len(runs),
-        "totals": totals,
-        "runs": runs,
-    }
+
+@router.get("/orchestrator/loop/{job_id}")
+async def orchestrator_loop_status(job_id: str):
+    job = await ro.get_loop_job(job_id)
+    if not job:
+        raise HTTPException(404, "job not found")
+    return job
+
+
+@router.get("/orchestrator/loops")
+async def orchestrator_loops_list(limit: int = Query(20, ge=1, le=100)):
+    return {"count": 0, "items": await ro.list_loop_jobs(limit=limit)}
 
 
 @router.post("/curiosity/scan")

@@ -407,3 +407,44 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [ ] ElevenLabs key with full `text_to_speech` + `voices_read` scopes (current key has neither — system runs in OpenAI fallback)
 - [ ] Save sandbox configurations + replay
 - [ ] AI-suggested next slider tweak ("try angle = 35 to maximise solar output")
+
+
+---
+
+## 2026-06-18 · P1 Multi-Cycle Orchestration + Quick Fixes
+
+### Implemented
+- ✅ **Multi-cycle orchestrator (background)**
+  - `POST /api/research-orch/orchestrator/loop` returns `{job_id, status, poll_url}` immediately and runs N cycles in `asyncio.create_task` so the request never exceeds the ~100 s edge timeout.
+  - `GET /api/research-orch/orchestrator/loop/{job_id}` returns live progress (status, executed_cycles, totals, runs[]).
+  - `GET /api/research-orch/orchestrator/loops` lists recent jobs.
+  - New collection: `orchestrator_loops`.
+  - Frontend (LearningHubPanel.js) — `Loop` button (`data-testid="lh-run-loop"`) kicks the job and polls until `status==='done'`; live counters render in `lh-loop-result`.
+- ✅ **Patents in WorldWatch**
+  - 6 new seed feeds with `source_type:"patent"` (LLM agents, humanoid robotics, solid-state batteries, neuromorphic, carbon capture, electric aviation).
+  - `_fetch_patent_entries` dispatch in `worldwatch.py:run()` reuses `patent_client.search_patents` and shapes results into the same RSS entry contract.
+  - WorldWatchPanel.js shows a `patent` badge (`data-testid="ww-badge-patent"`) per patent item.
+- ✅ **Patent ingestion graceful degradation**
+  - `services/research_orchestrator._ingest_from_queue_payload` synthesises a `KnowledgeRecord` from the queue item's `payload.what_changed` + worldwatch `summary_excerpt` when `ki.ingest_url` 503s on Google Patents detail pages.
+  - Fixed `_PATENT_ID_RE` in `source_fetchers.py` so it stops at `/` and doesn't capture trailing `/en`.
+- ✅ **Dezeen RSS BOM/whitespace strip** in `worldwatch._fetch_feed_entries` (`xml.lstrip("\ufeff").lstrip()` before `ET.fromstring`).
+- ✅ **Sentence-Transformers memory bank embeddings**
+  - Installed CPU torch + `sentence-transformers==4.1.0` + `transformers==4.57.6` (newer 5.x has known nn-import bug).
+  - New provider `"st"` in `services/memory_bank.embed()`; lazy-loaded `all-MiniLM-L6-v2` (384-dim, same as hash dim).
+  - All 5 personas switched to `provider=st` via PUT `/api/membank/embed-settings`.
+  - Verified semantic recall: query `"lithium battery chemistry"` against `"Solid-state lithium battery achieves 400 Wh/kg"` → cosine ≥ 0.55.
+
+### Verified
+- testing_agent_v3 iteration 20 — 8/8 backend pytest GREEN + frontend smoke GREEN (Learning Hub 6 tabs + Loop button; WorldWatch 26 cards + 6 patent badges).
+- Background loop pattern verified locally: `POST /loop` returns `< 100 ms`, job completes asynchronously, polling returns `status:"done"` with full per-cycle proof.
+
+### Known External Limits
+- Google Patents XHR search may 503 when the cluster's egress IP is rate-limited. The 6 patent items already in DB validate the rest of the pipeline.
+- Sentence-transformers first encode pays ~5-10 s model-load tax after a backend restart.
+
+## Backlog (post 2026-06-18)
+- [ ] P2 — `useAtlasTheme()` React hook to wire `atlas_hud_v2.theme.json` into CSS variables.
+- [ ] P2 — Replace hardcoded "Connected Devices" / "Blueprint Gallery" lists in `AtlasSidePanel.js` with live API fetches (`/api/robot/devices` + `/api/research-orch/blueprints`).
+- [ ] P3 — Real solver integration (FEniCS / OpenFOAM) for Twin/Weaver.
+- [ ] P3 — ESP32 hardware dry-run / physical flashing instructions.
+- [ ] P3 — Phase 8 V2 V2 project modules (Green Robots / Power Cell / NIR Scanner / Mother Box).
