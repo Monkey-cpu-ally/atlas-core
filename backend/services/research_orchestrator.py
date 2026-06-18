@@ -63,6 +63,89 @@ STATES = ["discovered", "queued", "investigating", "analyzed",
           "lesson_generated", "blueprint_generated", "project_created"]
 
 
+# --- Fallback ingestion (used when ki.ingest_url fails on cloud-IP blocks) ---
+async def _ingest_from_queue_payload(
+    item: Dict[str, Any], reason: str,
+) -> Optional[Dict[str, Any]]:
+    """Synthesise a minimal knowledge_record from a queue item's existing
+    payload — used when the upstream detail page blocks the cloud IP
+    (e.g. Google Patents 503). Pulls the matching worldwatch_update for
+    a richer abstract when available. Returns a dict shaped like
+    `ki.ingest_url`'s return value so the orchestrator can carry on."""
+    from models.knowledge_models import KnowledgeRecord, SourceType, url_hash
+
+    payload = item.get("payload") or {}
+    what = payload.get("what_changed") or {}
+    one_line = (what.get("one_line") or "")[:1000]
+    bullets = what.get("bullets") or []
+
+    # Pull the matching worldwatch update for abstract + already-saved mb_id
+    ww_doc = await _db()["worldwatch_updates"].find_one(
+        {"url": item["url"]}, {"_id": 0},
+    ) or {}
+    abstract = ww_doc.get("summary_excerpt") or ""
+    existing_mb_id = ww_doc.get("memory_bank_id")
+
+    # Concepts: borrow from bullets (one sentence = one concept) — small
+    # sample, enough to wire graph triples.
+    concepts: List[str] = []
+    for b in (bullets or [])[:5]:
+        c = (b or "").strip()
+        if not c:
+            continue
+        # Use the first ~6 words as the concept slug
+        concepts.append(" ".join(c.split()[:6])[:80])
+
+    title = item.get("title") or ""
+    summary = one_line or abstract[:600] or title
+    body = (
+        f"{title}\n\nWHAT CHANGED: {one_line}\n\n"
+        f"DETAILS:\n- " + "\n- ".join(bullets[:5]) + "\n\n"
+        f"ABSTRACT/EXCERPT:\n{abstract[:2000]}\n\n"
+        f"NOTE: synthesised from queue payload — upstream blocked: {reason[:120]}"
+    )
+
+    mb_id = existing_mb_id
+    try:
+        if not mb_id:
+            mb_row = await mb.auto_store(
+                body, persona=item.get("agent", "minerva"),
+                category="research",
+                source_type=item.get("source_type", "queue"),
+                tags=["research_queue", "fallback_ingest",
+                      f"domain:{item.get('domain', '?')}",
+                      f"agent:{item.get('agent', '?')}"],
+            )
+            mb_id = (mb_row or {}).get("id")
+    except Exception as exc:    # noqa: BLE001
+        logger.warning("fallback MB write failed: %s", exc)
+
+    h = url_hash(item["url"])
+    rec = KnowledgeRecord(
+        title=title[:280],
+        summary=summary[:1200],
+        key_points=bullets[:5],
+        tags=["research_queue", "fallback_ingest",
+              f"domain:{item.get('domain', '?')}"],
+        source_type=SourceType.WEB,
+        source_url=item["url"],
+        source_hash=h,
+        confidence_score=0.45,
+        related_agents=[item.get("agent", "minerva")],
+        concepts=concepts,
+        memory_bank_id=mb_id,
+    )
+    # Persist (with on-conflict-noop): if a record with the same source_hash
+    # already exists, return that one — we don't want to duplicate rows.
+    existing_rec = await _db()["knowledge_records"].find_one(
+        {"source_hash": h}, {"_id": 0},
+    )
+    if existing_rec:
+        return {"record": existing_rec, "reused": True, "memory_bank_id": existing_rec.get("memory_bank_id") or mb_id}
+    await _db()["knowledge_records"].insert_one(rec.model_dump())
+    return {"record": rec.model_dump(), "reused": False, "memory_bank_id": mb_id}
+
+
 # --- Evidence envelope contract ------------------------------------------
 def make_evidence(
     *, source: str, confidence: float, evidence_refs: List[Dict[str, Any]],
@@ -253,11 +336,22 @@ async def run_cycle(*,
     for item in items:
         try:
             await _set_state(item["id"], "investigating", by="cycle_phase2")
-            ingest_result = await ki.ingest_url(
-                item["url"],
-                extra_tags=["research_queue", f"agent:{item['agent']}",
-                            f"domain:{item['domain']}"],
-            )
+            try:
+                ingest_result = await ki.ingest_url(
+                    item["url"],
+                    extra_tags=["research_queue", f"agent:{item['agent']}",
+                                f"domain:{item['domain']}"],
+                )
+            except Exception as ingest_exc:    # noqa: BLE001
+                # Graceful degradation for sources that block cloud IPs
+                # (e.g. patent detail pages return 503). We already have
+                # rich data captured during discovery (title + abstract +
+                # LLM-generated `what_changed` payload) so we synthesise a
+                # knowledge record from the queue payload instead of
+                # losing the item to the error pile.
+                ingest_result = await _ingest_from_queue_payload(item, str(ingest_exc))
+                if not ingest_result:
+                    raise
             rec = ingest_result.get("record") or {}
             kb_id = rec.get("id")
             mb_id = ingest_result.get("memory_bank_id")

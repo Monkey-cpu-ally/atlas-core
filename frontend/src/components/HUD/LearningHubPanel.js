@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  X, GraduationCap, ListTodo, Hammer, FolderKanban, Award, Users, RefreshCw, Loader2,
+  X, GraduationCap, ListTodo, Hammer, FolderKanban, Award, Users, RefreshCw, Loader2, Play,
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -25,6 +25,28 @@ export default function LearningHubPanel({ open, onClose }) {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [looping, setLooping] = useState(false);
+  const [lastLoop, setLastLoop] = useState(null);
+
+  const runLoop = useCallback(async () => {
+    setLooping(true); setError(null);
+    try {
+      const r = await fetch(`${API}/api/research-orch/orchestrator/loop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cycles: 3, discover_per_feed: 1, max_investigate: 3,
+          generate_lessons: true, mode: 'lego', stop_on_empty: true,
+          pause_seconds: 0.2,
+        }),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.detail || `HTTP ${r.status}`);
+      setLastLoop(j);
+      await load(tab);
+    } catch (e) { setError(String(e.message || e)); }
+    finally { setLooping(false); }
+  }, [tab]);
 
   const load = useCallback(async (k) => {
     setLoading(true); setError(null);
@@ -76,9 +98,25 @@ export default function LearningHubPanel({ open, onClose }) {
           <button className="lh-refresh" onClick={() => load(tab)} disabled={loading} data-testid="lh-refresh">
             {loading ? <Loader2 size={11} className="t-spin" /> : <RefreshCw size={11} />}
           </button>
+          <button className="lh-refresh" onClick={runLoop} disabled={looping}
+                  data-testid="lh-run-loop" title="Run 3 orchestrator cycles">
+            {looping ? <Loader2 size={11} className="t-spin" /> : <Play size={11} />}
+            <span style={{ marginLeft: 4 }}>Loop</span>
+          </button>
         </nav>
 
         {error && <div className="lh-err">{error}</div>}
+        {lastLoop && (
+          <div className="lh-empty" data-testid="lh-loop-result"
+               style={{ fontSize: 11, padding: '6px 12px', background: 'rgba(0,255,200,0.04)',
+                        borderTop: '1px solid rgba(0,255,200,0.15)' }}>
+            loop · cycles {lastLoop.executed_cycles}/{lastLoop.requested_cycles} ·
+            examined {lastLoop.totals?.examined ?? 0} ·
+            processed {lastLoop.totals?.fully_processed ?? 0} ·
+            enqueued {lastLoop.totals?.enqueued ?? 0} ·
+            errors {lastLoop.totals?.errors ?? 0}
+          </div>
+        )}
 
         <div className="lh-body" data-testid={`lh-body-${tab}`}>
           {block.note && <div className="lh-empty">{block.note}</div>}

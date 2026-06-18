@@ -274,5 +274,5 @@ class EmbedSettingsUpdate(BaseModel):
 async def update_embed_settings(req: EmbedSettingsUpdate):
     res = await mb.set_embed_settings(req.updates)
     if res.get("updated", 0) == 0:
-        raise HTTPException(400, "no valid updates (provider must be hash, ollama, or emergent)")
+        raise HTTPException(400, "no valid updates (provider must be hash, ollama, st, or emergent)")
     return res

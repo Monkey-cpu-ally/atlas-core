@@ -113,6 +113,12 @@ export default function WorldWatchPanel({ open, onClose }) {
                       {u.agent}
                     </span>
                     <span className="ww-novelty">{wc.novelty || 'incremental'}</span>
+                    {u.source_type === 'patent' && (
+                      <span className="ww-novelty"
+                            style={{ background: 'rgba(255,200,80,0.12)', color: '#FFC850',
+                                     borderColor: 'rgba(255,200,80,0.4)' }}
+                            data-testid="ww-badge-patent">patent</span>
+                    )}
                     <span className="ww-feed">{u.feed_label}</span>
                   </header>
                   <a href={u.url} target="_blank" rel="noreferrer" className="ww-title-link">

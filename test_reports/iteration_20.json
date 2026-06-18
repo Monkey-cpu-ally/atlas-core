@@ -1,0 +1,59 @@
+{
+  "summary": "Iteration 20 — P1 multi-cycle orchestrator + WorldWatch patent feeds + Dezeen BOM fix + sentence-transformers embeddings. 8/8 backend pytest GREEN (test_iter20_p1.py); frontend smoke GREEN on the preview URL — HUD boot, Learning Hub panel with all 6 tabs + new lh-run-loop button, WorldWatch panel with 26 ww-card-* tiles and 6 ww-badge-patent badges.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/worldwatch/run (patent search)",
+        "issue": "Google Patents XHR search endpoint returns 503 from the cloud-IP egress, so all 6 patent feeds fail at fetch stage every run. This is a KNOWN external block (called out in agent_to_agent_context_note) — patent items present in DB from earlier successful runs still validate the rest of the pipeline. No code fix possible; needs proxy/static IP or backoff retry."
+      },
+      {
+        "endpoint": "POST /api/research-orch/orchestrator/loop",
+        "issue": "End-to-end latency for 2 cycles is ~120–130s, which exceeds the Cloudflare/ingress edge timeout (~100s) and returns 502 on the public preview URL. Local backend call (http://localhost:8001) returns 200 correctly. Frontend Loop button will hit the same 502 wall for cycles≥2. Suggest either streaming/SSE response, background-task pattern, or per-cycle endpoint that the UI polls."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Learning Hub → Loop button",
+        "issue": "lh-run-loop button is present and clickable, but the underlying POST /api/research-orch/orchestrator/loop call will 502 via the public ingress for cycles≥2 (see backend minor #2). Smoke check did NOT execute the actual loop; this is the predicted outcome based on edge-timeout test.",
+        "affected_selectors": ["[data-testid=\"lh-run-loop\"]", "[data-testid=\"lh-loop-result\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter20_p1.py",
+    "/app/test_reports/pytest/iter20.xml"
+  ],
+  "action_items": [
+    "[INFRA] Move the /orchestrator/loop endpoint to a background/job-queue pattern (or stream per-cycle progress via SSE) so cycles≥2 don't hit the ~100s Cloudflare edge timeout. Currently 2 cycles ≈ 132s which 502s the preview URL. Backend logic is otherwise correct.",
+    "[INFRA / OPTIONAL] Patent search 503 — Google Patents blocks cloud-IP egress. Either add a residential-proxy fallback in patent_client.search_patents or accept that the 6 patent feeds will only succeed when traffic egresses an allowed IP. The downstream fallback (_ingest_from_queue_payload) is verified working: 6 patent items reached state='linked' in research_queue.",
+    "[CODE — TRIVIAL] SEED_FEEDS has 18 entries but one duplicate URL (https://export.arxiv.org/rss/cs.RO appears in both `robotics` and `manufacturing` domains) → list_feeds returns 17. Either change the manufacturing URL or drop the entry; current state is benign but the seed_feeds() return value (total_seed=18) doesn't match the live count (17)."
+  ],
+  "critical_code_review_comments": [
+    "LoopReq inherits CycleReq cleanly; multi-cycle orchestrator/loop endpoint correctly aggregates totals across cycles and supports stop_on_empty bail. Per-cycle proof object (cycle_index, cycle_id, status, phase1, phase2_7, errors) is well structured and easy to consume from the UI.",
+    "memory_bank.embed() dispatcher routes provider='st' to sentence-transformers/all-MiniLM-L6-v2 via lazy SentenceTransformer load + asyncio.to_thread offload. First store after model load adds ~5–10s warm-up; subsequent embeds are sub-second. Cosine recall for 'lithium battery chemistry' against stored 'Solid-state lithium battery achieves 400 Wh/kg' returns score ≥ 0.55 — semantic recall confirmed real (not lexical).",
+    "Dezeen BOM strip (xml.lstrip('\\ufeff').lstrip()) is the right fix and verified — no Dezeen entry in errors[] of /worldwatch/run any more.",
+    "Patent ingestion fallback (research_orchestrator._ingest_from_queue_payload) is the right architectural defence: when the Google Patents detail page 503s, the orchestrator synthesises a knowledge record from the queue payload (one_line + bullets + summary_excerpt) so the queue advances state→linked instead of jamming. Verified: 6 patent items in research_queue are in state='linked'.",
+    "SEED_FEEDS has a duplicate URL (cs.RO listed under both robotics and manufacturing) — de-duplicated by source_hash at insert. Cosmetic; does not affect functionality.",
+    "set_embed_settings whitelist correctly includes 'st' alongside hash/emergent/ollama — verified via PUT /api/membank/embed-settings setting minerva to st.",
+    "Frontend Learning Hub renders all 6 tabs (Lessons/Research Queue/Blueprints/Projects/Council Recs/Certifications) + the new Loop button (testid lh-run-loop) in the top-right of the panel header. World Watch panel shows 26 cards with 6 ww-badge-patent badges all containing the text 'patent'."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter20_p1.py (NEW — 8 tests covering WorldWatch seed/feeds/run/updates, orchestrator/loop x2, memory bank ST store+search)"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 — pytest); patent search to Google Patents has a known external 503 block which is documented + does NOT fail any test because the orchestrator fallback keeps the pipeline flowing",
+    "frontend": "100% smoke — HUD boots, Learning Hub panel opens with all 6 tabs + lh-run-loop button, WorldWatch panel opens with 26 cards + 6 patent badges"
+  },
+  "test_credentials": "None required. EMERGENT_LLM_KEY in backend/.env covers gpt-5.2/Claude/Gemini.",
+  "seed_data_creation": "test_iter20_p1.py stored 1 minerva memory ('Solid-state lithium battery achieves 400 Wh/kg…') with tag TEST_iter20. The PUT /api/membank/embed-settings call switched the minerva persona to provider=st permanently — main agent may want to keep this or reset to 'hash' if cold-start latency on the 384-dim model is a concern. Orchestrator/loop tests created 4 examined+fully_processed items in research_queue across 2 cycles (now in state=linked).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All P1 + fix items are verified GREEN. Two infra-level limitations to be aware of: (1) /orchestrator/loop for cycles≥2 exceeds the Cloudflare ~100s edge timeout — tests pass via localhost fallback, but the frontend Loop button will 502 on the public URL until the endpoint is moved to background/SSE. (2) Google Patents search returns 503 from the cluster's egress IP — the 6 patent feeds in /worldwatch/run fail at fetch every cycle, but earlier successful runs left 6 patent items in worldwatch_updates so list_updates + ww-badge-patent rendering still validate. The orchestrator fallback (_ingest_from_queue_payload) is confirmed working — all 6 patent queue items reached state=linked. Sentence-transformers/all-MiniLM-L6-v2 is now the embedder for the minerva persona; first store after backend restart pays a ~10s model-load tax.",
+  "rca of the issue": "Loop 502 RCA: orchestrator_loop(cycles=2) calls ro.run_cycle() sequentially; each cycle is ~60s when max_investigate=2 (Phase 2 dispatches a 4-voice Council chain per item), so 2 cycles ≈ 120s. Cloudflare in front of the preview URL returns 502 once the upstream response exceeds ~100s. Backend itself returns 200 correctly (verified via http://localhost:8001 — 132s end-to-end, all asserts pass). Mitigation: convert the loop endpoint to a fire-and-forget pattern that stores per-cycle proof to a 'orchestrator_runs' collection + return a job_id immediately, then poll GET /orchestrator/run/{job_id} from the UI. Alternatively use Server-Sent Events to stream per-cycle proofs."
+}

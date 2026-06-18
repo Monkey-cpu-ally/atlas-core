@@ -122,7 +122,7 @@ async def get_embed_settings(persona: str) -> Tuple[str, str]:
 
 
 async def set_embed_settings(updates: Dict[str, Dict[str, str]]) -> Dict[str, Any]:
-    valid = {"hash", "emergent", "ollama"}
+    valid = {"hash", "emergent", "ollama", "st"}
     clean: Dict[str, Dict[str, str]] = {}
     for persona, cfg in updates.items():
         if not isinstance(cfg, dict):
@@ -201,6 +201,41 @@ async def _embed_ollama(text: str, model: str) -> List[float]:
     return vec
 
 
+# --- Sentence-Transformers (local, CPU) ------------------------------------
+# Loaded lazily once, kept in-process. Returns 384-dim L2-normalised vectors
+# from `all-MiniLM-L6-v2` (same EMBED_DIM as the hash backend so existing
+# rows + new ST rows remain cosine-comparable on dim).
+_ST_MODEL = None
+_ST_LOAD_LOCK = None
+DEFAULT_ST_EMBED = "sentence-transformers/all-MiniLM-L6-v2"
+
+
+def _ensure_st_model(model_name: str):
+    """Load the sentence-transformer model lazily. Heavy import is local
+    so the rest of memory_bank doesn't pay the cost at module import."""
+    global _ST_MODEL
+    if _ST_MODEL is not None:
+        return _ST_MODEL
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError as exc:
+        raise EmbedError(f"sentence-transformers not installed: {exc}") from exc
+    logger.info("Loading sentence-transformer model: %s", model_name)
+    _ST_MODEL = SentenceTransformer(model_name or DEFAULT_ST_EMBED, device="cpu")
+    logger.info("ST model ready: dim=%s", _ST_MODEL.get_sentence_embedding_dimension())
+    return _ST_MODEL
+
+
+async def _embed_st(text: str, model: str) -> List[float]:
+    import asyncio as _asyncio
+
+    def _run():
+        m = _ensure_st_model(model or DEFAULT_ST_EMBED)
+        vec = m.encode(text[:8000], normalize_embeddings=True)
+        return [float(x) for x in vec.tolist()]
+    return await _asyncio.to_thread(_run)
+
+
 class EmbedUnreachable(Exception): pass    # noqa: E701
 class EmbedError(Exception): pass          # noqa: E701
 
@@ -218,6 +253,10 @@ async def embed(text: str, persona: str = "default") -> Tuple[List[float], Dict[
         elif provider == "emergent":
             vec = await _embed_emergent(text, model)
             meta["provider_used"] = "emergent"
+        elif provider == "st":
+            vec = await _embed_st(text, model)
+            meta["provider_used"] = "st"
+            meta["model"] = model or DEFAULT_ST_EMBED
         else:
             vec = _embed_hash(text)
             meta["provider_used"] = "hash"

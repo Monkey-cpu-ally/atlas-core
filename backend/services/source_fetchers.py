@@ -196,14 +196,14 @@ async def _fetch_pdf(
 
 
 # --- Patent -----------------------------------------------------------------
-_PATENT_ID_RE = re.compile(r"/patent/([A-Z0-9\-/]{4,40})", re.IGNORECASE)
+_PATENT_ID_RE = re.compile(r"/patent/([A-Z0-9\-]{4,40})(?=/|$|\?)", re.IGNORECASE)
 
 
 async def _fetch_patent(url: str) -> FetchedSource:
     m = _PATENT_ID_RE.search(url)
     if not m:
         raise IngestError(f"could not extract patent id from {url}")
-    detail = await fetch_patent_detail(m.group(1))
+    detail = await fetch_patent_detail(m.group(1).upper())
     text = (
         f"{detail.get('title', '')}\n\n"
         f"ABSTRACT:\n{detail.get('abstract', '')}\n\n"

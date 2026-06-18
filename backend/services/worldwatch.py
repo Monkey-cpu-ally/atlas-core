@@ -69,7 +69,7 @@ DOMAINS = [
     "agriculture", "aerospace",
 ]
 
-SEED_FEEDS: List[Dict[str, str]] = [
+SEED_FEEDS: List[Dict[str, Any]] = [
     # AI
     {"domain": "AI",
      "url": "https://export.arxiv.org/rss/cs.AI",
@@ -130,6 +130,38 @@ SEED_FEEDS: List[Dict[str, str]] = [
      "url": "https://www.nasa.gov/feed/",
      "label": "NASA news",
      "agent": "ajani"},
+
+    # ----- Patent feeds (source_type=patent, url is the search query) -----
+    {"domain": "AI",
+     "url": "patent:large language model agent",
+     "label": "Patents · LLM agents",
+     "agent": "minerva",
+     "source_type": "patent"},
+    {"domain": "robotics",
+     "url": "patent:humanoid robot manipulation",
+     "label": "Patents · humanoid robotics",
+     "agent": "ajani",
+     "source_type": "patent"},
+    {"domain": "batteries",
+     "url": "patent:solid-state battery electrolyte",
+     "label": "Patents · solid-state batteries",
+     "agent": "minerva",
+     "source_type": "patent"},
+    {"domain": "electronics",
+     "url": "patent:neuromorphic chip",
+     "label": "Patents · neuromorphic compute",
+     "agent": "ajani",
+     "source_type": "patent"},
+    {"domain": "green_tech",
+     "url": "patent:direct air capture sorbent",
+     "label": "Patents · carbon capture",
+     "agent": "minerva",
+     "source_type": "patent"},
+    {"domain": "aerospace",
+     "url": "patent:electric aircraft propulsion",
+     "label": "Patents · electric aviation",
+     "agent": "ajani",
+     "source_type": "patent"},
 ]
 
 USER_AGENT = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
@@ -153,6 +185,7 @@ async def seed_feeds() -> Dict[str, Any]:
             "url": f["url"],
             "label": f["label"],
             "agent": f["agent"],
+            "source_type": f.get("source_type", "rss"),
             "registered_at": _utc(),
             "last_run_at": None,
             "run_count": 0,
@@ -215,8 +248,12 @@ async def run(*, max_per_feed: int = 3) -> Dict[str, Any]:
 
     for f in feeds:
         proof["feeds_processed"] += 1
+        src_type = f.get("source_type", "rss")
         try:
-            entries = await _fetch_feed_entries(f["url"], max_per_feed)
+            if src_type == "patent":
+                entries = await _fetch_patent_entries(f["url"], max_per_feed)
+            else:
+                entries = await _fetch_feed_entries(f["url"], max_per_feed)
         except Exception as exc:    # noqa: BLE001
             proof["errors"].append({
                 "feed_id": f["id"], "url": f["url"], "stage": "fetch",
@@ -257,6 +294,10 @@ async def _fetch_feed_entries(url: str, n: int) -> List[Dict[str, Any]]:
         r.raise_for_status()
         xml = r.text
 
+    # Some feeds (Dezeen) ship a BOM/leading whitespace before <?xml; strict
+    # ET.fromstring rejects anything before the prolog, so normalise first.
+    xml = xml.lstrip("\ufeff").lstrip()
+
     try:
         root = ET.fromstring(xml)
     except ET.ParseError as exc:
@@ -281,6 +322,39 @@ async def _fetch_feed_entries(url: str, n: int) -> List[Dict[str, Any]]:
             "summary": (desc or "").strip()[:6000],
             "published": (pub or "").strip(),
             "guid": guid.strip(),
+        })
+    return out
+
+
+async def _fetch_patent_entries(url_or_query: str, n: int) -> List[Dict[str, Any]]:
+    """For source_type=patent feeds the `url` field is `patent:<query>`.
+    We re-use `patent_client.search_patents` to discover new filings and
+    shape them into the same entry contract used by the RSS path so the
+    rest of the ingestion pipeline stays unchanged."""
+    from services import patent_client as pc
+
+    query = url_or_query.split("patent:", 1)[-1].strip() if "patent:" in url_or_query else url_or_query
+    try:
+        results = await pc.search_patents(query, top_n=n)
+    except pc.PatentUnreachable as exc:
+        raise RuntimeError(f"patents unreachable: {exc}") from exc
+
+    out: List[Dict[str, Any]] = []
+    for p in results[:n]:
+        if not (p.get("id") and p.get("url")):
+            continue
+        out.append({
+            "title": (p.get("title") or p["id"])[:300],
+            "link": p["url"],
+            "summary": (
+                f"Patent {p['id']}"
+                + (f" · assignee: {p.get('assignee')}" if p.get("assignee") else "")
+                + (f" · filed: {p.get('filed')}" if p.get("filed") else "")
+                + "\n\n"
+                + (p.get("abstract") or "")
+            )[:6000],
+            "published": p.get("filed", ""),
+            "guid": p["id"],
         })
     return out
 
@@ -355,6 +429,7 @@ async def _ingest_entry(feed: Dict[str, Any], entry: Dict[str, Any]) -> Dict[str
         "agent": feed["agent"],
         "feed_label": feed["label"],
         "feed_id": feed["id"],
+        "source_type": feed.get("source_type", "rss"),
         "title": entry["title"],
         "url": entry["link"],
         "published": entry["published"],
