@@ -62,7 +62,83 @@ async def register(req: RegisterDeviceRequest, role: Role = Depends(_role_from_h
     if role != Role.OWNER:
         raise HTTPException(403, "device registration is owner-only")
     dev = Device(**req.model_dump())
-    return await robot.register_device(dev)
+    persisted = await robot.register_device(dev)
+
+    # Phase 8f — mint an mTLS cert pack for this device. The CA is local
+    # to /app/backend/_data/mtls/. The PRIVATE KEY is returned ONCE in
+    # this response and never stored server-side; the architect must
+    # capture it now (this is the same UX as AWS/GCP TLS issuance).
+    try:
+        from services import mtls
+        pack = mtls.issue_device_cert(persisted["id"], persisted["name"])
+        # Persist just the cert fingerprint so future requests can be
+        # checked when MTLS_ENFORCE=true is set.
+        await robot._devices().update_one(
+            {"id": persisted["id"]},
+            {"$set": {
+                "mtls_fingerprint": pack["fingerprint_sha256"],
+                "mtls_serial": pack["serial_number"],
+                "mtls_not_after": pack["not_after"],
+            }},
+        )
+        persisted["mtls"] = {
+            "cert_pem": pack["cert_pem"],
+            "key_pem": pack["key_pem"],
+            "ca_pem": pack["ca_pem"],
+            "fingerprint_sha256": pack["fingerprint_sha256"],
+            "not_after": pack["not_after"],
+            "warning": (
+                "Save these now — the private key will NOT be shown again. "
+                "Flash cert_pem + key_pem onto the device; trust ca_pem in "
+                "the device's mbedtls store. Enforcement is dormant in v1 "
+                "(set MTLS_ENFORCE=true to require client certs on "
+                "telemetry + inbox)."
+            ),
+        }
+    except Exception as exc:    # noqa: BLE001
+        # Cert issuance failure must NOT block device registration —
+        # operator can re-issue via /mtls/issue later.
+        import logging
+        logging.getLogger("atlas.robot").warning(
+            "mTLS issuance failed for %s: %s", persisted["id"], exc,
+        )
+        persisted["mtls"] = {"error": str(exc)[:200]}
+    return persisted
+
+
+@router.post("/devices/{device_id}/mtls/issue")
+async def reissue_cert(device_id: str, role: Role = Depends(_role_from_header)):
+    """Owner-only — re-mint the cert pack for an existing device (rotation
+    or after a private-key loss). Returns the same envelope as the
+    register endpoint's `mtls` block."""
+    if role != Role.OWNER:
+        raise HTTPException(403, "mTLS re-issue is owner-only")
+    dev = await robot.get_device(device_id)
+    if not dev:
+        raise HTTPException(404, "device not found")
+    from services import mtls
+    pack = mtls.issue_device_cert(dev["id"], dev["name"])
+    await robot._devices().update_one(
+        {"id": dev["id"]},
+        {"$set": {
+            "mtls_fingerprint": pack["fingerprint_sha256"],
+            "mtls_serial": pack["serial_number"],
+            "mtls_not_after": pack["not_after"],
+        }},
+    )
+    return pack
+
+
+@router.get("/mtls/ca")
+async def mtls_ca():
+    """Return the ATLAS root CA in PEM so devices can trust the server
+    (when the inbox is moved behind HTTPS) and operators can sanity-check
+    the chain."""
+    from services import mtls
+    return {
+        "ca_pem": mtls.get_ca_pem(),
+        "enforced": mtls.is_enforced(),
+    }
 
 
 @router.get("/devices")

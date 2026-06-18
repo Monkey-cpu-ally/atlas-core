@@ -6,6 +6,7 @@ import DialRing from './HUD/DialRing';
 import GhostRings from './HUD/GhostRings';
 import AtlasSidePanel from './HUD/AtlasSidePanel';
 import AtlasSentinel from './HUD/AtlasSentinel';
+import PersonaChatPanel from './HUD/PersonaChatPanel';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -28,7 +29,7 @@ const AI_LOGOS = {
   trinity: councilLogo,
 };
 
-function AIFaceDock({ activeAI, aiPersonas, onSelect }) {
+function AIFaceDock({ activeAI, aiPersonas, onSelect, onOpenChat }) {
   const aiOrder = ['ajani', 'minerva', 'hermes'];
   return (
     <div className="ai-face-dock" aria-label="AI face HUDs">
@@ -42,6 +43,9 @@ function AIFaceDock({ activeAI, aiPersonas, onSelect }) {
             className={`ai-face-card ${active ? 'active' : ''}`}
             style={{ '--ai-color': ai.color }}
             onClick={() => onSelect(aiKey)}
+            onDoubleClick={() => onOpenChat(aiKey)}
+            data-testid={`ai-face-${aiKey}`}
+            title={`Click: select ${ai.name} · Double-click: open chat`}
           >
             <span className="ai-face-window">
               <img src={AI_LOGOS[aiKey]} alt="" />
@@ -56,6 +60,9 @@ function AIFaceDock({ activeAI, aiPersonas, onSelect }) {
         className={`ai-face-card council-card ${activeAI === 'trinity' ? 'active' : ''}`}
         style={{ '--ai-color': AI_PERSONAS.trinity.color }}
         onClick={() => onSelect('trinity')}
+        onDoubleClick={() => onOpenChat('trinity')}
+        data-testid="ai-face-trinity"
+        title="Click: select Council · Double-click: open chat"
       >
         <span className="ai-face-window">
           <img src={AI_LOGOS.trinity} alt="" />
@@ -82,6 +89,7 @@ export default function HUDInterface() {
   const [coreTapPulse, setCoreTapPulse] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [chatPersona, setChatPersona] = useState(null); // null | 'ajani' | 'minerva' | 'hermes' | 'trinity'
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -290,7 +298,12 @@ export default function HUDInterface() {
         </div>
       </div>
 
-      <AIFaceDock activeAI={activeAI} aiPersonas={AI_PERSONAS} onSelect={selectAI} />
+      <AIFaceDock
+        activeAI={activeAI}
+        aiPersonas={AI_PERSONAS}
+        onSelect={selectAI}
+        onOpenChat={setChatPersona}
+      />
 
       <AtlasSidePanel
         content={panelContent}
@@ -345,6 +358,12 @@ export default function HUDInterface() {
       )}
 
       <AtlasSentinel />
+
+      <PersonaChatPanel
+        open={!!chatPersona}
+        persona={chatPersona || 'ajani'}
+        onClose={() => setChatPersona(null)}
+      />
     </div>
   );
 }
