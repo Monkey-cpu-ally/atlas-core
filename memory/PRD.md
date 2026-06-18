@@ -331,6 +331,19 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [x] **COUNCIL** → `/api/council/route` + `/api/council/deliberate` — keyword routing (AJANI · MINERVA · HERMES · COUNCIL) + tri-AI deliberation in voice (gpt-5.2)
 - [x] Topic router (`/app/backend/routing/topic_router.py`) — first-match scan: AJANI → MINERVA → HERMES → COUNCIL fallback
 
+### Verification documentation pass (Feb 2026 · Session continuation)
+- [x] `ATLAS_VERIFICATION_RESULTS.md` — raw 11-test results from `/tmp/atlas_verify.log` (PASS/SIMULATED/observations, no summarization)
+- [x] `ATLAS_INTEGRATION_PLAN.md` — 5 end-to-end flows (Research→Knowledge · Persona→Graph · Twin→Weaver · Robot→Sentinel · HUD→Live APIs)
+- [x] `ATLAS_DATA_FLOW.md` — collection-level data movement, schemas, write/read fan-out, egress/ingress, retention
+- [x] `ATLAS_TRUTH_REPORT.md` — REAL / SIMULATED / PARTIAL / PLACEHOLDER / UNTESTED classification for all 20 subsystems with file-path & test-ID evidence
+
+**Roll-up from truth report.** 🟢 6 · 🟡 5 · 🟠 4 · 🔴 3 · ⚫ 1
+- 🟢 REAL: Council · Knowledge Bank · Graph Memory · Research Pipeline · Sentinel ribbon · Sentinel Watcher
+- 🟡 SIMULATED: Ajani · Minerva · Hermes (prompt-driven) · Digital Twin (heuristic) · Weaver (heuristic costs)
+- 🟠 PARTIAL: Memory Bank (hash embedding) · Voice (string-match wake-word) · HUD (legacy hardcoded tiles) · Robot Control (execute is dispatch-only) · mTLS (issuance-only)
+- 🔴 PLACEHOLDER: MQTT (dormant) · ElevenLabs TTS (cloud-IP block) · YouTube ingestion (cloud-IP block)
+- ⚫ UNTESTED: ESP32 firmware (real source code, zero hardware contact)
+
 ### Vibrancy pass (Feb 2026, additive only, HUD geometry untouched)
 - [x] Subtle radial vignette + ambient scan-line sweep behind the HUD frame (9s period)
 - [x] Brighter dial-ring drop-shadow, active ring saturated glow
