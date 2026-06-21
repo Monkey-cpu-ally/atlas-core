@@ -12,7 +12,9 @@ import SelfImprovementPanel from './HUD/SelfImprovementPanel';
 import GraphMemoryPanel from './HUD/GraphMemoryPanel';
 import WorldWatchPanel from './HUD/WorldWatchPanel';
 import LearningHubPanel from './HUD/LearningHubPanel';
-import { Youtube, Code2, Network, Globe2, GraduationCap } from 'lucide-react';
+import WeaverPanel from './HUD/WeaverPanel';
+import NIRScannerPanel from './HUD/NIRScannerPanel';
+import { Youtube, Code2, Network, Globe2, GraduationCap, Hammer, Scan } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -101,6 +103,8 @@ export default function HUDInterface() {
   const [graphOpen, setGraphOpen] = useState(false);
   const [worldWatchOpen, setWorldWatchOpen] = useState(false);
   const [learningHubOpen, setLearningHubOpen] = useState(false);
+  const [weaverOpen, setWeaverOpen] = useState(false);
+  const [nirOpen, setNirOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -408,6 +412,16 @@ export default function HUDInterface() {
           title="Open Learning Hub (Minerva's workspace)"
           data-testid="lh-launch-btn"
         ><GraduationCap size={12} /><span>Learning Hub</span></button>
+        <button type="button" className="lh"
+          onClick={() => setWeaverOpen(true)}
+          title="Open Weaver build planner"
+          data-testid="weaver-launch-btn"
+        ><Hammer size={12} /><span>Weaver</span></button>
+        <button type="button" className="lh"
+          onClick={() => setNirOpen(true)}
+          title="Open NIR Scanner"
+          data-testid="nir-launch-btn"
+        ><Scan size={12} /><span>NIR</span></button>
       </div>
 
       <TranscriptIngestPanel
@@ -429,6 +443,14 @@ export default function HUDInterface() {
       <LearningHubPanel
         open={learningHubOpen}
         onClose={() => setLearningHubOpen(false)}
+      />
+      <WeaverPanel
+        open={weaverOpen}
+        onClose={() => setWeaverOpen(false)}
+      />
+      <NIRScannerPanel
+        open={nirOpen}
+        onClose={() => setNirOpen(false)}
       />
     </div>
   );

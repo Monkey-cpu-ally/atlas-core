@@ -48,6 +48,7 @@ def simulate(twin: DigitalTwin, kind: SimulationKind) -> SimulationResult:
         SimulationKind.FAILURE:   _sim_failure,
         SimulationKind.TIMELINE:  _sim_timeline,
         SimulationKind.COST:      _sim_cost,
+        SimulationKind.THERMAL:   _sim_thermal,
     }
     engine = dispatch[kind]
     findings, warnings, failures, metrics, extras = engine(twin)
@@ -407,3 +408,145 @@ def _score(failures: List[str], warnings: List[str], metrics: Dict[str, Any]) ->
        1 = no warnings, no failures; each failure −0.4, each warning −0.10."""
     s = 1.0 - 0.4 * len(failures) - 0.10 * len(warnings)
     return max(0.0, min(1.0, round(s, 3)))
+
+
+# --- Engine: THERMAL (scipy.integrate.solve_ivp ODE) -----------------------
+def _sim_thermal(twin: DigitalTwin) -> Tuple[List[str], List[str], List[str], Dict, Dict]:
+    """Lumped-mass thermal simulation for power-cell / battery twins.
+
+    State: temperature T(t) of the cell core, single lumped node.
+    ODE:   dT/dt = (I²·R_int + Q_self) / (m·Cp) - h·A·(T - T_amb) / (m·Cp)
+
+    Inputs (read from twin.state.integrations.thermal, with safe defaults):
+        I_amps          discharge current     (default 2.0)
+        R_int_ohm       internal resistance   (default 0.04 — typical Li-ion 18650 cell)
+        m_kg            cell mass             (default 0.046 — 18650)
+        Cp_j_kg_k       specific heat         (default 900  — Li-ion average)
+        h_w_m2_k        convective coefficient (default 15 — natural air)
+        A_m2            surface area          (default 0.0042 — 18650)
+        T_amb_c         ambient temperature   (default 25)
+        T_init_c        starting cell temp    (default 25)
+        Q_self_w        side-reaction heat    (default 0.0  — non-zero for Li-S, SS)
+        chemistry       'li_ion' | 'solid_state' | 'lis'
+        thermal_runaway_threshold_c   (default 80 for li_ion, 100 for solid_state)
+        duration_s      (default 1800 — 30 min)
+    """
+    import numpy as _np
+    try:
+        from scipy.integrate import solve_ivp
+    except ImportError:
+        return ([], [], ["scipy not installed — THERMAL sim unavailable"], {}, {})
+
+    findings: List[str] = []
+    warnings: List[str] = []
+    failures: List[str] = []
+
+    integrations = (twin.state.integrations or {}) if hasattr(twin.state, "integrations") else {}
+    cfg = dict(integrations.get("thermal") or {})
+
+    chem = cfg.get("chemistry", "li_ion")
+    defaults_by_chem = {
+        "li_ion":      {"R_int_ohm": 0.04,  "Cp_j_kg_k": 900,  "Q_self_w": 0.0,
+                        "thermal_runaway_threshold_c": 80.0},
+        "solid_state": {"R_int_ohm": 0.025, "Cp_j_kg_k": 850,  "Q_self_w": 0.0,
+                        "thermal_runaway_threshold_c": 100.0},
+        "lis":         {"R_int_ohm": 0.07,  "Cp_j_kg_k": 950,  "Q_self_w": 0.05,
+                        "thermal_runaway_threshold_c": 90.0},
+    }
+    chem_def = defaults_by_chem.get(chem, defaults_by_chem["li_ion"])
+
+    p = {
+        "I_amps":   float(cfg.get("I_amps", 2.0)),
+        "R_int":    float(cfg.get("R_int_ohm", chem_def["R_int_ohm"])),
+        "m_kg":     float(cfg.get("m_kg", 0.046)),
+        "Cp":       float(cfg.get("Cp_j_kg_k", chem_def["Cp_j_kg_k"])),
+        "h":        float(cfg.get("h_w_m2_k", 15.0)),
+        "A":        float(cfg.get("A_m2", 0.0042)),
+        "T_amb":    float(cfg.get("T_amb_c", 25.0)),
+        "T_init":   float(cfg.get("T_init_c", 25.0)),
+        "Q_self":   float(cfg.get("Q_self_w", chem_def["Q_self_w"])),
+        "runaway":  float(cfg.get("thermal_runaway_threshold_c",
+                                  chem_def["thermal_runaway_threshold_c"])),
+    }
+    duration = float(cfg.get("duration_s", 1800.0))
+
+    # Heat capacity total
+    C = p["m_kg"] * p["Cp"]
+    if C <= 0:
+        failures.append("invalid thermal mass × Cp — must be > 0")
+        return findings, warnings, failures, {}, {}
+
+    # ODE: dT/dt = (I²·R + Q_self - h·A·(T - T_amb)) / C
+    Q_joule = p["I_amps"] ** 2 * p["R_int"]                 # W
+    def rhs(_t: float, T_arr: _np.ndarray) -> _np.ndarray:
+        T = T_arr[0]
+        dTdt = (Q_joule + p["Q_self"] - p["h"] * p["A"] * (T - p["T_amb"])) / C
+        return [dTdt]
+
+    # Integrate
+    t_span = (0.0, duration)
+    sol = solve_ivp(
+        rhs, t_span, [p["T_init"]],
+        max_step=max(1.0, duration / 200.0),
+        dense_output=False, rtol=1e-4, atol=1e-3,
+    )
+    if not sol.success:
+        failures.append(f"ODE solver failed: {sol.message}")
+        return findings, warnings, failures, {}, {}
+
+    T_traj = sol.y[0]
+    T_final = float(T_traj[-1])
+    T_max = float(T_traj.max())
+    t_at_max = float(sol.t[int(T_traj.argmax())])
+    T_steady_state = p["T_amb"] + (Q_joule + p["Q_self"]) / (p["h"] * p["A"])
+
+    metrics = {
+        "chemistry": chem,
+        "duration_s": duration,
+        "joule_heat_w": round(Q_joule, 3),
+        "side_reaction_w": p["Q_self"],
+        "convective_loss_max_w": round(p["h"] * p["A"] * (T_max - p["T_amb"]), 3),
+        "T_init_c": p["T_init"],
+        "T_amb_c": p["T_amb"],
+        "T_final_c": round(T_final, 2),
+        "T_max_c": round(T_max, 2),
+        "t_at_max_s": round(t_at_max, 1),
+        "T_steady_state_c": round(T_steady_state, 2),
+        "thermal_runaway_threshold_c": p["runaway"],
+        "headroom_to_runaway_c": round(p["runaway"] - T_max, 2),
+        "ode_points": int(sol.t.size),
+    }
+
+    if T_max >= p["runaway"]:
+        failures.append(
+            f"THERMAL RUNAWAY · T_max {T_max:.1f} °C ≥ threshold {p['runaway']} °C "
+            f"at t={t_at_max:.0f}s (chemistry={chem})"
+        )
+    elif T_max >= p["runaway"] - 10:
+        warnings.append(
+            f"Thermal headroom low · T_max {T_max:.1f} °C, threshold {p['runaway']} °C — "
+            "consider larger heatsink or lower duty cycle."
+        )
+    if T_steady_state > 60:
+        warnings.append(
+            f"Steady-state {T_steady_state:.0f} °C is high — long missions at this load "
+            "will degrade cycle life."
+        )
+
+    findings.append(
+        f"ODE-integrated thermal sim · chemistry={chem} · {duration:.0f}s · "
+        f"T_init={p['T_init']}°C → T_max={T_max:.1f}°C → T_final={T_final:.1f}°C"
+    )
+
+    # Compact timeline sample (10 evenly-spaced points)
+    n = T_traj.size
+    if n > 10:
+        idx = _np.linspace(0, n - 1, 10).astype(int)
+    else:
+        idx = list(range(n))
+    timeline = [
+        {"t_s": round(float(sol.t[i]), 1), "T_c": round(float(T_traj[i]), 2)}
+        for i in idx
+    ]
+
+    return findings, warnings, failures, metrics, {"timeline": timeline}

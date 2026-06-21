@@ -51,6 +51,7 @@ class SimulationKind(str, Enum):
     FAILURE = "failure"       # single-points-of-failure, risk
     TIMELINE = "timeline"     # critical-path schedule
     COST = "cost"             # rolled-up cost estimate
+    THERMAL = "thermal"       # ODE-based thermal sim (scipy.integrate.solve_ivp)
 
 
 # --- Sub-documents ----------------------------------------------------------

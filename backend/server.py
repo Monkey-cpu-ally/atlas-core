@@ -135,8 +135,10 @@ app.include_router(self_improve_router)  # ATLAS Self-Improvement Watcher
 app.include_router(youtube_router)  # YouTube Learning subsystem (resolver + manual transcript + dashboard)
 app.include_router(atlas_v2_router)  # ATLAS V2: worldwatch + self-code + learning + style + themes
 app.include_router(research_orch_router)  # Autonomous Research Orchestrator (Phase 9)
-from routes.environments import router as environments_router  # Phase D2: Digital Twin Environments
+from routes.environments import router as environments_router  # Phase D2
 app.include_router(environments_router)
+from routes.nir import router as nir_router  # Phase D4: NIR Scanner
+app.include_router(nir_router)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
@@ -242,6 +244,36 @@ async def _seed_twin_environments():
             logging.getLogger(__name__).info("Twin environments seeded: %s new", n)
     except Exception as exc:    # noqa: BLE001
         logging.getLogger(__name__).warning("environment seed failed: %s", exc)
+
+
+# Phase D4 — NIR Scanner: seed a 12-entry NIR library (plastics, agri,
+# materials) on first boot. Idempotent.
+@app.on_event("startup")
+async def _seed_nir_library():
+    try:
+        from services import nir as nir_svc
+        n = await nir_svc.seed_library_if_needed()
+        if n:
+            logging.getLogger(__name__).info("NIR library seeded: %s new entries", n)
+    except Exception as exc:    # noqa: BLE001
+        logging.getLogger(__name__).warning("NIR seed failed: %s", exc)
+
+
+# Phases D5 + D6 — Reference twins: AGRI-ROVER-01 (Green Robot),
+# ATLAS-CELL-V1 (Li-ion power cell), ATLAS-CELL-SS-V1 (Solid-state).
+# Each twin is also mirrored as a reference blueprint stub.
+@app.on_event("startup")
+async def _seed_reference_twins():
+    try:
+        from services import reference_twins
+        r = await reference_twins.seed_if_needed()
+        if r["inserted_twins"]:
+            logging.getLogger(__name__).info(
+                "Reference twins seeded: %s · blueprints: %s",
+                r["inserted_twins"], r["inserted_blueprints"],
+            )
+    except Exception as exc:    # noqa: BLE001
+        logging.getLogger(__name__).warning("reference twin seed failed: %s", exc)
 
 
 # Phase 8c.2 — MQTT bidirectional bridge: capture the running event loop
