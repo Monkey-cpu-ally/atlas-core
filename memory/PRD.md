@@ -542,3 +542,48 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [ ] P3 — External solver pod (when CFD/FEM is needed; current ODE engine + 6 heuristics cover everything else).
 - [ ] P3 — `useAtlasTheme()` hook + cosmetic polish (explicitly deferred per architect).
 
+
+---
+
+## 2026-06-21 (later) · Knowledge Bank Architecture + Full System Audit
+
+### Documents produced
+- `/app/memory/ATLAS_ARCHITECTURE_AUDIT.md` — full read-only inventory (42 collections, 25 routers, 27 services, 28 HUD components) with status (🟢/🟡/🔴) per data source, dependency graph, and the explicit list of single-source-of-truth gaps.
+- `/app/memory/ATLAS_KB_ROADMAP.md` — prioritised build order, with each item mapped to the architect's 8 KB requirements + 8 ATLAS goals.
+
+### 8 Knowledge Bank items — final status
+| # | Item | Status |
+|---|---|---|
+| 1 | Research Sources table | ✅ Unified view via `services/research_sources.py` + `routes/research_sources.py` — read-only aggregation over the 3 existing registries (`worldwatch_feeds`, `watchers`, `youtube_channels`). |
+| 2 | YouTube Sources table | ✅ `youtube_transcripts_private` (existed) + new `youtube_channels` collection. |
+| 3 | Channel Watchlists | ✅ `services/youtube_channels.py` (register/list/get/delete/poll/poll-all/runs) wired into `/api/youtube/channels/*`. Verified end-to-end with MIT OpenCourseWare → 15 real videos pulled into `worldwatch_updates`. |
+| 4 | Subject Categories (22) | ✅ `services/subjects.py` + `routes/subjects.py` — 22 canonical subjects seeded across 4 families (science/engineering/humanities/craft) and 3 primary-agent owners. |
+| 5 | Knowledge Embeddings storage | ✅ already running (ST `all-MiniLM-L6-v2`, 384-dim, on `memory_bank.embedding`). |
+| 6 | Agent-specific memory partitions | ✅ new `/api/membank/agents` (summary) + `/api/membank/agents/{persona}` (detail with by-category breakdown). |
+| 7 | Shared Atlas Memory Bank | ✅ `memory_bank` collection (1502 rows, ST embeddings, persona partitioning). |
+| 8 | Council recommendation pipeline | ✅ already running (4-voice deliberation, auto-invoke on confidence<0.7). |
+
+### Live numbers (post-seed verification)
+- Subjects: **22 / 22**
+- Research sources unified: **18** (11 RSS + 6 patent + 1 YouTube channel)
+- Memory bank: **1502 rows** across 5 personas (council 425, ajani 349, minerva 218, hermes 507, system 3)
+- MIT OpenCourseWare channel registered + polled: **15 new videos** surfaced into `worldwatch_updates` via `source_type=youtube_channel`
+- Test suite: `tests/test_iter24_knowledge_bank.py` — **11/11 GREEN**
+
+### New collections added (real, populated, indexed by app)
+- `subjects` (22)
+- `youtube_channels` (≥ 1 after registration)
+- `youtube_channel_runs` (per-poll proof envelopes)
+
+### Explicit non-mocks
+- Every new endpoint reads/writes real MongoDB rows.
+- Channel-poll uses the actual YouTube uploads Atom feed (no synthetic data).
+- Unified research-sources view is computed from the 3 real registries, not a copy.
+- 22 subjects are seeded once and persist across restarts.
+
+## Backlog (post 2026-06-21 later)
+- [ ] HUD panel for Knowledge Bank — surface `/api/subjects`, `/api/research-sources`, `/api/youtube/channels`, `/api/membank/agents` in one place. Currently each is reachable via curl only.
+- [ ] Subject-tagging auto-categoriser — when content is ingested by intake/youtube/worldwatch, run `services/ai_categorizer` to add a `subject:<slug>` tag automatically. The taxonomy is now in DB; only the wiring is left.
+- [ ] Channel poll worker — periodic `poll-all` (currently manual trigger only).
+- [ ] Promote the `knowledge` legacy collection's rows into `knowledge_records` once and retire it (6 rows of YouTube-shaped legacy data).
+

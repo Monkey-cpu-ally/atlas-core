@@ -139,6 +139,10 @@ from routes.environments import router as environments_router  # Phase D2
 app.include_router(environments_router)
 from routes.nir import router as nir_router  # Phase D4: NIR Scanner
 app.include_router(nir_router)
+from routes.subjects import router as subjects_router  # Knowledge Bank Phase A
+app.include_router(subjects_router)
+from routes.research_sources import router as research_sources_router  # Knowledge Bank Phase C
+app.include_router(research_sources_router)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
@@ -257,6 +261,18 @@ async def _seed_nir_library():
             logging.getLogger(__name__).info("NIR library seeded: %s new entries", n)
     except Exception as exc:    # noqa: BLE001
         logging.getLogger(__name__).warning("NIR seed failed: %s", exc)
+
+
+# Knowledge Bank Phase A — Seed 22 subjects on first boot. Idempotent.
+@app.on_event("startup")
+async def _seed_subjects():
+    try:
+        from services import subjects as subj_svc
+        n = await subj_svc.seed_if_needed()
+        if n:
+            logging.getLogger(__name__).info("Subjects seeded: %s new", n)
+    except Exception as exc:    # noqa: BLE001
+        logging.getLogger(__name__).warning("subject seed failed: %s", exc)
 
 
 # Phases D5 + D6 — Reference twins: AGRI-ROVER-01 (Green Robot),

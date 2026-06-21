@@ -72,3 +72,67 @@ async def ingest_transcript(req: ManualTranscriptReq) -> Dict[str, Any]:
 @router.get("/dashboard")
 async def dashboard():
     return await yp.dashboard()
+
+
+
+# --- 4. Channel watchlist (Knowledge Bank Phase B) -------------------------
+from services import youtube_channels as ytc
+
+
+class RegisterChannelReq(BaseModel):
+    channel_url: str
+    name: Optional[str] = None
+    subject_slug: Optional[str] = None
+    agent: str = "minerva"
+    tags: list = Field(default_factory=list)
+    enabled: bool = True
+    notes: Optional[str] = None
+
+
+@router.post("/channels")
+async def register_channel(req: RegisterChannelReq):
+    return await ytc.register(ytc.YouTubeChannel(**req.model_dump()))
+
+
+@router.get("/channels")
+async def list_channels(enabled_only: bool = True,
+                        agent: Optional[str] = None):
+    items = await ytc.list_channels(enabled_only=enabled_only, agent=agent)
+    return {"count": len(items), "items": items}
+
+
+@router.get("/channels/stats")
+async def channels_stats():
+    return await ytc.stats()
+
+
+@router.get("/channels/{channel_id}")
+async def get_channel(channel_id: str):
+    doc = await ytc.get_channel(channel_id)
+    if not doc:
+        raise HTTPException(404, "channel not found")
+    return doc
+
+
+@router.delete("/channels/{channel_id}")
+async def delete_channel(channel_id: str):
+    n = await ytc.delete_channel(channel_id)
+    if not n:
+        raise HTTPException(404, "channel not found")
+    return {"deleted": n}
+
+
+@router.post("/channels/{channel_id}/poll")
+async def poll_channel(channel_id: str):
+    return await ytc.poll_channel(channel_id)
+
+
+@router.post("/channels/poll-all")
+async def poll_all(limit: int = Query(50, ge=1, le=200)):
+    return await ytc.poll_all(limit=limit)
+
+
+@router.get("/channels/{channel_id}/runs")
+async def channel_runs(channel_id: str, limit: int = Query(30, ge=1, le=100)):
+    items = await ytc.list_runs(channel_id=channel_id, limit=limit)
+    return {"count": len(items), "items": items}

@@ -95,6 +95,53 @@ async def categories():
     }
 
 
+
+# --- Agent partition views (Knowledge Bank Phase D) ------------------------
+@router.get("/agents")
+async def agents_summary():
+    """Aggregate counts per persona — useful for the HUD to show
+    each agent's memory footprint at a glance."""
+    db = mb._db()
+    pipeline = [
+        {"$group": {"_id": "$persona",
+                    "total": {"$sum": 1},
+                    "pinned": {"$sum": {"$cond": [{"$eq": ["$pinned", True]}, 1, 0]}},
+                    "permanent": {"$sum": {"$cond": [{"$eq": ["$permanent", True]}, 1, 0]}}}},
+        {"$sort": {"total": -1}},
+    ]
+    rows = []
+    async for r in db["memory_bank"].aggregate(pipeline):
+        rows.append({
+            "persona": r["_id"] or "unknown",
+            "total": r["total"],
+            "pinned": r["pinned"],
+            "permanent": r["permanent"],
+            "decaying": r["total"] - r["permanent"],
+        })
+    grand = sum(r["total"] for r in rows)
+    return {"count": len(rows), "items": rows, "grand_total": grand}
+
+
+@router.get("/agents/{persona}")
+async def agent_detail(persona: str, limit: int = Query(40, ge=1, le=200)):
+    """Get a single agent's memory window — most-recent first."""
+    rows = await mb.list_memories(persona=persona.lower(), limit=limit)
+    db = mb._db()
+    by_cat: dict = {}
+    cur = db["memory_bank"].aggregate([
+        {"$match": {"persona": persona.lower()}},
+        {"$group": {"_id": "$category", "n": {"$sum": 1}}},
+    ])
+    async for r in cur:
+        by_cat[r["_id"] or "uncategorised"] = r["n"]
+    return {
+        "persona": persona.lower(),
+        "by_category": by_cat,
+        "recent_count": len(rows),
+        "items": rows,
+    }
+
+
 @router.get("/by-tag")
 async def by_tag(
     tag: str = Query(min_length=1),
