@@ -498,3 +498,47 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [ ] P3 — External solver pod (only when first real CFD/FEM case arrives).
 - [ ] P3 — `useAtlasTheme()` hook (deferred — cosmetics last per architect).
 
+
+---
+
+## 2026-06-21 · Phase D3 / D4 / D5 / D6 — Weaver · NIR · Green Robot · Power Cell
+
+### D3 — Weaver HUD panel ✅
+- `/app/frontend/src/components/HUD/WeaverPanel.js` — 2 tabs (Plans, Parts), category-chip filter on parts, expandable blueprint view per plan.
+- Surfaces existing `/api/weaver/plans` (2) + `/api/weaver/parts` (25, 8 categories).
+- Launcher button (`data-testid="weaver-launch-btn"`) in HUD top-right rail.
+
+### D4 — NIR Scanner ✅
+- Models: `/app/backend/models/nir_models.py` (NIRSpectrum, MaterialMatch, ScanResult, LibraryEntry, NIRSource).
+- Service: `/app/backend/services/nir.py` — Savitzky-Golay smoothing → rolling-min baseline → scipy `find_peaks` → cosine-similarity match against library.
+- 12-entry seed library: 5 plastics (PET/HDPE/PP/PVC/PLA), 3 biological (leaf-healthy/leaf-drought-stress, cotton), 2 agrichem (soil/NPK), 2 organics (water, ethanol).
+- Routes: `POST /api/nir/scan`, `POST /api/nir/scan/synthetic`, `GET /api/nir/scans`, `GET /api/nir/results`, `GET /api/nir/library`, `POST /api/nir/library/seed`.
+- HUD panel: `/app/frontend/src/components/HUD/NIRScannerPanel.js` — 3 tabs (Scans, Library, Synthesise) with a one-click PET/HDPE/PP/PVC/PLA/leaf/soil/etc. generator-and-analyse button.
+- Verified: synthetic PET scan → 5 peaks → PET match with cosine 1.00 confidence.
+
+### D5 — Green Robot reference twin ✅
+- `AGRI-ROVER-01` — autonomous garden/farm rover (4-wheel chassis, ESP32-S3, ATLAS-CELL-V1 4S2P pack, NIR mini-spectrometer AS7263, OV2640 cam, peristaltic water pump, 1L tank, solar trickle).
+- 14 components, 16 dependencies, full state.dimensions/energy/sensor_inputs/outputs.
+- Reference blueprint mirrored into `blueprints` collection.
+- Targets `outdoor_terrain` environment with explicit `needs` for compat checker.
+
+### D6 — Power Cell + scipy ODE thermal engine ✅
+- New `SimulationKind.THERMAL` in `twin_models.py`.
+- `_sim_thermal` in `twin_simulator.py` — `scipy.integrate.solve_ivp` lumped-mass ODE:
+  `dT/dt = (I²·R + Q_self - h·A·(T - T_amb)) / (m·Cp)`
+- Detects thermal runaway (chemistry-aware threshold: 80°C Li-ion, 100°C solid-state, 90°C Li-S).
+- Returns metrics: joule_heat_w, T_max_c, t_at_max_s, T_steady_state_c, headroom_to_runaway_c, ode_points, + 10-point timeline sample.
+- Two reference twins seeded: `ATLAS-CELL-V1` (LFP 18650, 9.6 Wh) and `ATLAS-CELL-SS-V1` (solid-state Li-metal NMC, 14.8 Wh — supply chain note: 45-day lead time).
+- Tested: nominal 3 A discharge → T_max 30.3°C (49.7°C headroom). Stress 25 A + reduced convection → T_max 337°C → THERMAL RUNAWAY failure correctly raised.
+
+### Verification
+- `tests/test_iter23_d3_d6.py` — 11/11 GREEN.
+- Full regression iter21+22+23 — **39/39 GREEN** (ESP32 lifecycle, Twin Environments, D3-D6).
+- testing_agent_v3 iter22 — frontend smoke GREEN (Weaver/NIR panels open; PET synthetic scan end-to-end works in the UI).
+
+## Backlog (post 2026-06-21)
+- [ ] ESP32 firmware extension for D4 — add real NIR USB-serial bridge sketch (AS7263 driver). Backend contract is ready.
+- [ ] Inventory check — `AGRI-ROVER-01`'s components list contains a `twin_ref: "ATLAS-CELL-V1"` link; consider a future "twin-composition graph" view (which twin contains which other twin).
+- [ ] P3 — External solver pod (when CFD/FEM is needed; current ODE engine + 6 heuristics cover everything else).
+- [ ] P3 — `useAtlasTheme()` hook + cosmetic polish (explicitly deferred per architect).
+
