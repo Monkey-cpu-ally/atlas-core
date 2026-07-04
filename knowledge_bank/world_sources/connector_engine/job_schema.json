@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "description": "Research/sync job schema for the ATLAS World Knowledge Connector Engine.",
+  "job_fields": {
+    "job_id": "unique job identifier",
+    "source_id": "source_registry.json id",
+    "source_name": "human-readable source name",
+    "ai_owner": "Ajani | Hermes | Minerva | Council",
+    "mission": "what the job is trying to learn",
+    "connector_type": "rss | api | web_metadata | github | youtube | patent | paper | book_archive | museum_archive | personal_notes",
+    "status": "queued | running | completed | failed | needs_review",
+    "priority": "low | normal | high | critical",
+    "created_at": "ISO timestamp",
+    "started_at": "ISO timestamp or null",
+    "completed_at": "ISO timestamp or null",
+    "items_found": "number",
+    "items_processed": "number",
+    "knowledge_records_created": "number",
+    "knowledge_records_updated": "number",
+    "errors": "array of errors",
+    "requires_council_review": "boolean",
+    "related_projects": "array of project ids or names"
+  }
+}
