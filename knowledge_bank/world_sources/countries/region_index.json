@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "regions": {
+    "North America": ["USA", "Canada", "Mexico"],
+    "Europe": ["United Kingdom", "European Union", "Germany", "France", "Switzerland", "Netherlands", "Sweden", "Finland", "Italy"],
+    "Asia": ["Japan", "South Korea", "China", "Singapore", "India", "Taiwan", "Thailand", "Vietnam", "Malaysia"],
+    "Oceania": ["Australia", "New Zealand"],
+    "Africa": ["South Africa", "Kenya", "Nigeria", "Egypt", "Ghana", "Ethiopia"],
+    "South America": ["Brazil", "Argentina", "Chile", "Colombia", "Peru"],
+    "Middle East": ["United Arab Emirates", "Saudi Arabia", "Israel", "Qatar", "Turkey"],
+    "Global": ["Global", "International"]
+  },
+  "note": "This is a starter index. Add sources gradually and preserve country, region, and language metadata on every source record."
+}
