@@ -1,8 +1,8 @@
 """ATLAS Knowledge Network routes.
 
 Unified read/plan layer for the World Knowledge Network. These endpoints expose
-registered sources and dry-run sync planning without breaking existing
-research_sources, kbase, youtube, or memory routes.
+registered sources, dry-run sync planning, and safe live metadata previews
+without breaking existing research_sources, kbase, youtube, or memory routes.
 """
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from services import world_knowledge_connector as wkc
+from services import world_knowledge_live as wkl
 
 router = APIRouter(prefix="/api/knowledge-network", tags=["ATLAS Knowledge Network"])
 
@@ -88,6 +89,24 @@ async def plan_sync(source_id: str, req: SyncPlanRequest | None = None):
         return wkc.plan_sync_job(source_id, mission=req.mission if req else None)
     except wkc.WorldKnowledgeError as exc:
         raise HTTPException(404, str(exc)) from exc
+
+
+@router.post("/sync/{source_id}/preview")
+async def preview_source(
+    source_id: str,
+    limit: int = Query(5, ge=1, le=20),
+):
+    """Safely preview a source with metadata/snippets only.
+
+    This is the first live-connector endpoint. It does not write to the
+    Knowledge Bank and does not store full source content.
+    """
+    try:
+        return await wkl.preview_source(source_id, limit=limit)
+    except wkl.LiveConnectorError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(502, f"source preview failed safely: {exc}") from exc
 
 
 class KnowledgeRecordTemplateRequest(BaseModel):
