@@ -1,12 +1,11 @@
 """ATLAS Research Lab Engine.
 
 This service gives Ajani, Hermes, Minerva, and the Council a stable mission
-queue model. It is intentionally lightweight for v1: deterministic in-memory
-records, schemas aligned with `research_bank/`, and no autonomous external
-execution yet.
+queue model. It supports deterministic in-memory behavior for tests and optional
+MongoDB persistence when the backend attaches a database on startup.
 
-Next layer: persist missions to MongoDB and connect completed discoveries to
-Knowledge Bank + Council review.
+Next layer: connect approved discoveries to Knowledge Bank write-through and
+World Knowledge source previews.
 """
 from __future__ import annotations
 
@@ -26,6 +25,7 @@ VALID_PRIORITIES = {"low", "normal", "high", "critical"}
 
 _MISSIONS: Dict[str, Dict[str, Any]] = {}
 _DISCOVERIES: Dict[str, Dict[str, Any]] = {}
+_DB: Any = None
 
 
 class ResearchLabError(RuntimeError):
@@ -34,6 +34,12 @@ class ResearchLabError(RuntimeError):
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _strip_mongo_id(doc: Dict[str, Any]) -> Dict[str, Any]:
+    cleaned = dict(doc)
+    cleaned.pop("_id", None)
+    return cleaned
 
 
 def normalize_ai(owner_ai: str) -> str:
@@ -206,6 +212,76 @@ def council_review(discovery_id: str, decision: str, notes: str = "") -> Dict[st
     if decision == "approved":
         discovery["verification_status"] = "council_verified"
     return discovery
+
+
+def attach_mongo(db: Any) -> None:
+    """Attach a MongoDB database for persistence.
+
+    The in-memory API remains available for tests and local operation. When a
+    DB is attached, async persistence helpers mirror data into MongoDB.
+    """
+    global _DB
+    _DB = db
+
+
+def persistence_enabled() -> bool:
+    return _DB is not None
+
+
+async def hydrate_from_mongo() -> Dict[str, int]:
+    """Load persisted missions and discoveries into the in-memory queues."""
+    if _DB is None:
+        return {"missions": 0, "discoveries": 0}
+
+    missions = await _DB.research_lab_missions.find({}, {"_id": 0}).to_list(5000)
+    discoveries = await _DB.research_lab_discoveries.find({}, {"_id": 0}).to_list(5000)
+
+    _MISSIONS.clear()
+    _DISCOVERIES.clear()
+    for mission in missions:
+        _MISSIONS[mission["mission_id"]] = _strip_mongo_id(mission)
+    for discovery in discoveries:
+        _DISCOVERIES[discovery["discovery_id"]] = _strip_mongo_id(discovery)
+    return {"missions": len(_MISSIONS), "discoveries": len(_DISCOVERIES)}
+
+
+async def persist_mission(mission: Dict[str, Any]) -> None:
+    if _DB is None:
+        return
+    await _DB.research_lab_missions.update_one(
+        {"mission_id": mission["mission_id"]},
+        {"$set": mission},
+        upsert=True,
+    )
+
+
+async def persist_discovery(discovery: Dict[str, Any]) -> None:
+    if _DB is None:
+        return
+    await _DB.research_lab_discoveries.update_one(
+        {"discovery_id": discovery["discovery_id"]},
+        {"$set": discovery},
+        upsert=True,
+    )
+
+
+async def persist_all() -> None:
+    if _DB is None:
+        return
+    for mission in _MISSIONS.values():
+        await persist_mission(mission)
+    for discovery in _DISCOVERIES.values():
+        await persist_discovery(discovery)
+
+
+async def create_indexes() -> None:
+    """Create MongoDB indexes for Research Lab lookups."""
+    if _DB is None:
+        return
+    await _DB.research_lab_missions.create_index("mission_id", unique=True)
+    await _DB.research_lab_missions.create_index([("owner_ai", 1), ("status", 1)])
+    await _DB.research_lab_discoveries.create_index("discovery_id", unique=True)
+    await _DB.research_lab_discoveries.create_index([("owner_ai", 1), ("mission_id", 1)])
 
 
 def reset_in_memory_state() -> None:
