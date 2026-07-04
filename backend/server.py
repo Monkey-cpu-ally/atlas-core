@@ -149,6 +149,14 @@ app.include_router(transcripts_router)
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
 
+# --- Packet-aligned API aliases -------------------------------------------
+# Mirrors the endpoint prefixes expected by EMERGENT_MASTER_PROMPT.md
+# (Release 1 / Release 2) without touching any existing routes the HUD is
+# already wired to. See routes/packet_aliases.py for the full mapping.
+from routes.packet_aliases import register_packet_aliases  # noqa: E402
+_ALIAS_COUNTS = register_packet_aliases(app)
+logging.getLogger(__name__).info("packet aliases mounted: %s", _ALIAS_COUNTS)
+
 
 # --- Exports — let the architect download the AI architecture zip --------
 EXPORTS_DIR = Path("/app/exports")

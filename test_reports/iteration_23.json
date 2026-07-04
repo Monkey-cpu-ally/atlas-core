@@ -1,0 +1,22 @@
+{
+  "summary": "Iteration 27 packet-aligned API aliases: ran /app/backend/tests/test_iter27_packet_aliases.py — 18/18 tests passed. All packet-aligned prefixes respond 200, all HUD-critical original routes still operational, and both /api/teaching and /api/atlas/teach are present in /openapi.json. Additionally spot-checked /api/memory/agents which also returns 200.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter27_packet_aliases.py",
+    "/app/test_reports/pytest/iter27_packet_aliases.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "packet_aliases.mount_alias() correctly clones APIRoute handlers (not duplicated logic) so upstream fixes propagate to aliases automatically.",
+    "register_packet_aliases() is invoked after all original routers are mounted (server.py L155-157) — correct ordering; alias cloning depends on source_router.routes being populated.",
+    "Intelligence status/personas/providers endpoints swallow exceptions and return best-effort payloads — acceptable for introspection but consider surfacing HTTP 503 if persona/llm registries are down for observability.",
+    "mount_alias uses `include_in_schema=True` so both original + aliased paths appear in OpenAPI; this is what the teaching alias test relies on."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "not tested (backend only per request)"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 27 alias layer (routes/packet_aliases.py) is stable. Original routes (/api/membank, /api/research-sources, /api/research-orch, /api/subjects, /api/transcripts, /api/knowledge/subjects, /api/atlas/teach) all still respond 200. Never POST /api/teaching or /api/atlas/teach in test suites — kicks off long-running LLM jobs. Verify only via /openapi.json + GET->405 probe."
+}
