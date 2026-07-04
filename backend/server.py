@@ -212,6 +212,22 @@ async def _wire_atlas_memory():
     await _atlas_attach_mongo()
 
 
+# Research Labs — attach MongoDB so missions/discoveries persist across restarts.
+@app.on_event("startup")
+async def _wire_research_labs():
+    try:
+        from services import research_lab_engine as _research_labs
+        _research_labs.attach_mongo(db)
+        await _research_labs.create_indexes()
+        counts = await _research_labs.hydrate_from_mongo()
+        logging.getLogger(__name__).info(
+            "Research Labs hydrated: %s missions · %s discoveries",
+            counts["missions"], counts["discoveries"],
+        )
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("Research Lab persistence skipped: %s", exc)
+
+
 # Phase 7 — Seed POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH on first boot
 # (each auto-bound to its own Digital Twin via services/robot.py).
 from services import robot as _robot_service
