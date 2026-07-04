@@ -56,6 +56,8 @@ from routes.knowledge_network import router as knowledge_network_router
 from routes.research_labs import router as research_labs_router
 # ATLAS Knowledge Graph — connected concepts, projects, discoveries, sources
 from routes.knowledge_graph import router as knowledge_graph_router
+# ATLAS Autonomous Knowledge — source selection + research mission orchestration
+from routes.autonomous_knowledge import router as autonomous_knowledge_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -144,6 +146,7 @@ app.include_router(research_orch_router)  # Autonomous Research Orchestrator (Ph
 app.include_router(knowledge_network_router)  # ATLAS Knowledge Network: sources + dry-run sync planning
 app.include_router(research_labs_router)  # ATLAS Research Labs: missions + discoveries + Council review
 app.include_router(knowledge_graph_router)  # ATLAS Knowledge Graph: nodes, edges, neighborhoods
+app.include_router(autonomous_knowledge_router)  # ATLAS Autonomous Knowledge: coordinated research jobs
 from routes.environments import router as environments_router  # Phase D2
 app.include_router(environments_router)
 from routes.nir import router as nir_router  # Phase D4: NIR Scanner
@@ -245,6 +248,22 @@ async def _wire_knowledge_graph():
         )
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning("Knowledge Graph persistence skipped: %s", exc)
+
+
+# Autonomous Knowledge — attach MongoDB so coordinated knowledge jobs persist.
+@app.on_event("startup")
+async def _wire_autonomous_knowledge():
+    try:
+        from services import autonomous_knowledge_engine as _ake
+        _ake.attach_mongo(db)
+        await _ake.create_indexes()
+        counts = await _ake.hydrate_from_mongo()
+        logging.getLogger(__name__).info(
+            "Autonomous Knowledge hydrated: %s jobs",
+            counts["jobs"],
+        )
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("Autonomous Knowledge persistence skipped: %s", exc)
 
 
 # Phase 7 — Seed POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH on first boot
