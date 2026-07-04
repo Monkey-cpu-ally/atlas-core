@@ -1,0 +1,20 @@
+{
+  "summary": "Backend-only validation of ATLAS Knowledge Network v1 (iter28) via public ingress URL. Ran pytest suite tests/test_iter28_knowledge_network.py against https://youthful-archimedes-7.preview.emergentagent.com — 19/19 PASS in 15.2s. Confirmed all 3 new endpoints (/stats, /by-agent/{agent}, /by-country/{country}) return 200 with correct shapes; new metadata fields source_language + culture_tag default and PATCH-persist correctly; dashboard now exposes sources_by_language + sources_by_culture facets; filter params honoured on /sources. No regressions across the 9 legacy endpoints listed in the request. /api/dev/pipeline/status has zero 'needs_runtime_check' strings — live probes are real.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter28_knowledge_network.py",
+    "/app/test_reports/pytest/iter28_kn_ingress.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Test module uses ATLAS_BACKEND_URL env var (not REACT_APP_BACKEND_URL). Documented for next agent — export ATLAS_BACKEND_URL=$REACT_APP_BACKEND_URL to test against ingress."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (19/19 iter28 + 13 raw ingress spot-checks)", "frontend": "not tested (backend-only request)"},
+  "seed_data_creation": "Test suite self-seeds/cleans disposable rows in 'watchers' collection for /by-country filter test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "iter28 KN v1 + Engineering Console fully green via ingress. To rerun: ATLAS_BACKEND_URL=$REACT_APP_BACKEND_URL pytest backend/tests/test_iter28_knowledge_network.py -v. Note: /api/kbase and /api/youtube bare-roots return 404 by design — real paths are /api/kbase/search and /api/youtube/dashboard (both 200).",
+  "rca of the issue": "N/A — no bugs found."
+}

@@ -37,6 +37,7 @@ def _metadata_block(doc: Dict[str, Any], defaults: Dict[str, Any]) -> Dict[str, 
     return {
         "country":           doc.get("country") or defaults.get("country"),
         "region":            doc.get("region")  or defaults.get("region"),
+        "source_language":   doc.get("source_language") or defaults.get("source_language", "en"),
         "source_type":       doc.get("source_type") or defaults.get("source_type"),
         "trust_level":       doc.get("trust_level") or defaults.get("trust_level", "unverified"),
         "ai_owner":          doc.get("ai_owner") or doc.get("agent") or defaults.get("ai_owner"),
@@ -44,6 +45,7 @@ def _metadata_block(doc: Dict[str, Any], defaults: Dict[str, Any]) -> Dict[str, 
         "access_method":     doc.get("access_method") or defaults.get("access_method", "public"),
         "auto_sync":         bool(doc.get("auto_sync", defaults.get("auto_sync", False))),
         "private_source":    bool(doc.get("private_source", defaults.get("private_source", False))),
+        "culture_tag":       doc.get("culture_tag") or defaults.get("culture_tag"),
     }
 
 
@@ -208,6 +210,7 @@ async def stats() -> Dict[str, Any]:
 KN_METADATA_FIELDS = (
     "country",
     "region",
+    "source_language",
     "source_type",
     "trust_level",
     "ai_owner",
@@ -215,6 +218,7 @@ KN_METADATA_FIELDS = (
     "access_method",
     "auto_sync",
     "private_source",
+    "culture_tag",
 )
 
 _KN_REGISTRIES = ("worldwatch_feeds", "watchers", "youtube_channels")

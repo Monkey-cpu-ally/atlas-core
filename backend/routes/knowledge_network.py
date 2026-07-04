@@ -71,19 +71,25 @@ async def dashboard() -> Dict[str, Any]:
     # Fan out metadata roll-ups so the HUD can render facet chips.
     by_country: Dict[str, int] = {}
     by_region: Dict[str, int] = {}
+    by_language: Dict[str, int] = {}
     by_trust: Dict[str, int] = {}
     by_ai_owner: Dict[str, int] = {}
+    by_culture: Dict[str, int] = {}
     auto_sync_on = 0
     private_count = 0
     for row in items:
         c = row.get("country") or "unknown"
         r = row.get("region") or "unknown"
+        lang = row.get("source_language") or "unknown"
         t = row.get("trust_level") or "unverified"
         o = row.get("ai_owner") or "unassigned"
+        ct = row.get("culture_tag") or "unspecified"
         by_country[c] = by_country.get(c, 0) + 1
         by_region[r] = by_region.get(r, 0) + 1
+        by_language[lang] = by_language.get(lang, 0) + 1
         by_trust[t] = by_trust.get(t, 0) + 1
         by_ai_owner[o] = by_ai_owner.get(o, 0) + 1
+        by_culture[ct] = by_culture.get(ct, 0) + 1
         if row.get("auto_sync"):
             auto_sync_on += 1
         if row.get("private_source"):
@@ -105,8 +111,10 @@ async def dashboard() -> Dict[str, Any]:
         "counts": counts,
         "sources_by_country": by_country,
         "sources_by_region": by_region,
+        "sources_by_language": by_language,
         "sources_by_trust": by_trust,
         "sources_by_ai_owner": by_ai_owner,
+        "sources_by_culture": by_culture,
         "auto_sync_enabled": auto_sync_on,
         "private_sources": private_count,
         "subsystems": {
@@ -128,7 +136,9 @@ async def kn_list_sources(
     agent: Optional[str] = Query(None),
     country: Optional[str] = Query(None),
     region: Optional[str] = Query(None),
+    source_language: Optional[str] = Query(None),
     trust_level: Optional[str] = Query(None),
+    culture_tag: Optional[str] = Query(None),
     auto_sync: Optional[bool] = Query(None),
     private_source: Optional[bool] = Query(None),
     enabled_only: bool = Query(True),
@@ -138,13 +148,79 @@ async def kn_list_sources(
         items = [i for i in items if (i.get("country") or "") == country]
     if region is not None:
         items = [i for i in items if (i.get("region") or "") == region]
+    if source_language is not None:
+        items = [i for i in items if (i.get("source_language") or "") == source_language]
     if trust_level is not None:
         items = [i for i in items if (i.get("trust_level") or "") == trust_level]
+    if culture_tag is not None:
+        items = [i for i in items if (i.get("culture_tag") or "") == culture_tag]
     if auto_sync is not None:
         items = [i for i in items if bool(i.get("auto_sync")) == auto_sync]
     if private_source is not None:
         items = [i for i in items if bool(i.get("private_source")) == private_source]
     return {"count": len(items), "items": items}
+
+
+@router.get("/stats")
+async def kn_stats() -> Dict[str, Any]:
+    """Root Knowledge Network stats — aggregates the wrapped registries
+    plus a metadata-facet breakdown for the HUD dashboard.
+    """
+    src_stats = await rs_svc.stats()
+    items = await rs_svc.list_sources(enabled_only=False)
+    by_country: Dict[str, int] = {}
+    by_region: Dict[str, int] = {}
+    by_language: Dict[str, int] = {}
+    by_trust: Dict[str, int] = {}
+    by_ai_owner: Dict[str, int] = {}
+    by_culture: Dict[str, int] = {}
+    auto_sync_on = 0
+    private_count = 0
+    for row in items:
+        by_country[row.get("country") or "unknown"] = by_country.get(row.get("country") or "unknown", 0) + 1
+        by_region[row.get("region") or "unknown"] = by_region.get(row.get("region") or "unknown", 0) + 1
+        by_language[row.get("source_language") or "unknown"] = by_language.get(row.get("source_language") or "unknown", 0) + 1
+        by_trust[row.get("trust_level") or "unverified"] = by_trust.get(row.get("trust_level") or "unverified", 0) + 1
+        by_ai_owner[row.get("ai_owner") or "unassigned"] = by_ai_owner.get(row.get("ai_owner") or "unassigned", 0) + 1
+        ct = row.get("culture_tag") or "unspecified"
+        by_culture[ct] = by_culture.get(ct, 0) + 1
+        if row.get("auto_sync"):
+            auto_sync_on += 1
+        if row.get("private_source"):
+            private_count += 1
+    return {
+        "by_kind":       src_stats.get("by_kind", {}),
+        "by_country":    by_country,
+        "by_region":     by_region,
+        "by_language":   by_language,
+        "by_trust":      by_trust,
+        "by_ai_owner":   by_ai_owner,
+        "by_culture":    by_culture,
+        "auto_sync_enabled": auto_sync_on,
+        "private_sources":   private_count,
+        "total_sources":     len(items),
+    }
+
+
+@router.get("/by-agent/{agent}")
+async def kn_by_agent(agent: str, enabled_only: bool = Query(False)) -> Dict[str, Any]:
+    """All sources owned by (or tagged to) a specific AI persona."""
+    items = await rs_svc.list_sources(agent=agent, enabled_only=enabled_only)
+    # rs_svc.list_sources filters by the source's `agent` field. Some rows
+    # were re-owned via `ai_owner` on the KN metadata block, so keep any
+    # row whose EITHER field matches the requested agent.
+    if not items:
+        all_items = await rs_svc.list_sources(enabled_only=enabled_only)
+        items = [i for i in all_items if (i.get("ai_owner") or "") == agent]
+    return {"agent": agent, "count": len(items), "items": items}
+
+
+@router.get("/by-country/{country}")
+async def kn_by_country(country: str, enabled_only: bool = Query(False)) -> Dict[str, Any]:
+    """All sources whose metadata `country` matches."""
+    items = await rs_svc.list_sources(enabled_only=enabled_only)
+    items = [i for i in items if (i.get("country") or "") == country]
+    return {"country": country, "count": len(items), "items": items}
 
 
 @router.get("/sources/stats")
@@ -161,9 +237,10 @@ async def kn_get_source(source_id: str) -> Dict[str, Any]:
 
 
 class SourceMetadataPatch(BaseModel):
-    """Partial update — any subset of the 9 KN metadata fields."""
+    """Partial update — any subset of the KN metadata fields."""
     country:          Optional[str]  = Field(default=None, max_length=80)
     region:           Optional[str]  = Field(default=None, max_length=80)
+    source_language:  Optional[str]  = Field(default=None, max_length=16)
     source_type:      Optional[str]  = Field(default=None, max_length=80)
     trust_level:      Optional[str]  = Field(default=None, max_length=40)
     ai_owner:         Optional[str]  = Field(default=None, max_length=40)
@@ -171,6 +248,7 @@ class SourceMetadataPatch(BaseModel):
     access_method:    Optional[str]  = Field(default=None, max_length=40)
     auto_sync:        Optional[bool] = None
     private_source:   Optional[bool] = None
+    culture_tag:      Optional[str]  = Field(default=None, max_length=80)
 
 
 @router.patch("/sources/{source_id}/metadata")

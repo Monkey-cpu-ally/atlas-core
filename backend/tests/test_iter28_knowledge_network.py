@@ -72,9 +72,10 @@ def test_kn_sources_expose_full_metadata_block():
         return
     row = items[0]
     required = {
-        "source_name", "source_type", "country", "region", "trust_level",
-        "ai_owner", "update_frequency", "access_method", "auto_sync",
-        "private_source", "enabled", "last_sync", "tags",
+        "source_name", "source_type", "country", "region", "source_language",
+        "trust_level", "ai_owner", "update_frequency", "access_method",
+        "auto_sync", "private_source", "culture_tag", "enabled", "last_sync",
+        "tags",
     }
     missing = required - set(row.keys())
     assert not missing, f"source row missing fields: {missing}"
@@ -118,12 +119,14 @@ def test_kn_patch_metadata_persists_new_fields():
         payload = {
             "country": "US",
             "region": "North America",
+            "source_language": "en",
             "trust_level": "high",
             "ai_owner": "hermes",
             "update_frequency": "daily",
             "access_method": "public",
             "auto_sync": True,
             "private_source": False,
+            "culture_tag": "western_scientific",
         }
         r = requests.patch(f"{KN}/sources/{sid}/metadata", json=payload, timeout=TIMEOUT)
         assert r.status_code == 200, r.text
@@ -226,3 +229,96 @@ def test_all_wrapped_originals_still_respond():
     ):
         r = requests.get(f"{BACKEND}{path}", timeout=TIMEOUT)
         assert r.status_code == 200, f"original {path} broke: {r.status_code}"
+
+
+# ---------------------------------------------------------------------------
+# KN v1 spec — /stats, /by-agent, /by-country + source_language + culture_tag
+# ---------------------------------------------------------------------------
+def test_kn_stats_root_returns_facet_breakdown():
+    r = requests.get(f"{KN}/stats", timeout=TIMEOUT)
+    assert r.status_code == 200
+    body = r.json()
+    for key in (
+        "by_kind", "by_country", "by_region", "by_language",
+        "by_trust", "by_ai_owner", "by_culture",
+        "auto_sync_enabled", "private_sources", "total_sources",
+    ):
+        assert key in body, f"KN /stats missing facet: {key}"
+    # by_kind must expose the same 5-kind + total shape as source_stats.
+    for kind in ("rss", "patent", "web", "git", "youtube_channel", "total"):
+        assert kind in body["by_kind"]
+
+
+def test_kn_by_agent_returns_matching_sources():
+    # Every source should have an ai_owner (defaults to persona), so at
+    # least one agent bucket must be non-empty.
+    r_all = requests.get(f"{KN}/sources?enabled_only=false", timeout=TIMEOUT)
+    all_items = r_all.json().get("items") or []
+    if not all_items:
+        return  # No sources yet — skip
+    owner = next((i.get("ai_owner") for i in all_items if i.get("ai_owner")), None)
+    if not owner:
+        return
+    r = requests.get(f"{KN}/by-agent/{owner}", timeout=TIMEOUT)
+    assert r.status_code == 200
+    body = r.json()
+    assert body.get("agent") == owner
+    assert body.get("count") >= 1
+    for row in body.get("items", []):
+        assert (row.get("agent") == owner) or (row.get("ai_owner") == owner)
+
+
+def test_kn_by_country_filters_correctly():
+    # Seed a source with a distinctive country and then look it up.
+    db = MongoClient(MONGO_URL)[DB_NAME]
+    sid = _seed_watcher(db)
+    try:
+        marker = f"KN-{uuid.uuid4().hex[:6]}"
+        requests.patch(
+            f"{KN}/sources/{sid}/metadata",
+            json={"country": marker},
+            timeout=TIMEOUT,
+        )
+        r = requests.get(f"{KN}/by-country/{marker}", timeout=TIMEOUT)
+        assert r.status_code == 200
+        body = r.json()
+        assert body.get("country") == marker
+        assert body.get("count") == 1
+        assert body["items"][0].get("id") == sid
+    finally:
+        db["watchers"].delete_one({"id": sid})
+
+
+def test_kn_source_language_field_defaults_to_en():
+    r = requests.get(f"{KN}/sources?enabled_only=false", timeout=TIMEOUT)
+    items = r.json().get("items") or []
+    if not items:
+        return
+    # Every row must carry the field (default 'en').
+    for row in items:
+        assert "source_language" in row
+        assert row["source_language"] is not None
+
+
+def test_kn_culture_tag_patch_persists():
+    db = MongoClient(MONGO_URL)[DB_NAME]
+    sid = _seed_watcher(db)
+    try:
+        r = requests.patch(
+            f"{KN}/sources/{sid}/metadata",
+            json={"culture_tag": "west_african_scholarly", "source_language": "yo"},
+            timeout=TIMEOUT,
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body.get("culture_tag") == "west_african_scholarly"
+        assert body.get("source_language") == "yo"
+    finally:
+        db["watchers"].delete_one({"id": sid})
+
+
+def test_kn_dashboard_now_includes_language_and_culture_facets():
+    r = requests.get(f"{KN}/dashboard", timeout=TIMEOUT)
+    body = r.json()
+    for facet in ("sources_by_language", "sources_by_culture"):
+        assert facet in body, f"dashboard missing {facet}"
