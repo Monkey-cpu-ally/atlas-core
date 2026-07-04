@@ -33,12 +33,20 @@ def _db():
 
 def _metadata_block(doc: Dict[str, Any], defaults: Dict[str, Any]) -> Dict[str, Any]:
     """Pull the Knowledge Network metadata fields off a raw registry doc,
-    falling back to per-registry defaults so every source has a full shape."""
+    falling back to per-registry defaults so every source has a full shape.
+
+    Notes:
+      * KN's `source_type` is a SEMANTIC classification (government_agency,
+        editorial_design, academic_preprint, etc). It is stored on the raw
+        doc in the `content_type` field to avoid colliding with
+        `worldwatch_feeds.source_type` which is a KIND discriminator
+        (`rss` / `patent`) used by `list_sources()` / `stats()`.
+    """
     return {
         "country":           doc.get("country") or defaults.get("country"),
         "region":            doc.get("region")  or defaults.get("region"),
         "source_language":   doc.get("source_language") or defaults.get("source_language", "en"),
-        "source_type":       doc.get("source_type") or defaults.get("source_type"),
+        "source_type":       doc.get("content_type") or defaults.get("source_type"),
         "trust_level":       doc.get("trust_level") or defaults.get("trust_level", "unverified"),
         "ai_owner":          doc.get("ai_owner") or doc.get("agent") or defaults.get("ai_owner"),
         "update_frequency":  doc.get("update_frequency") or defaults.get("update_frequency", "on_demand"),
@@ -247,10 +255,16 @@ async def update_source_metadata(
 
     Returns the newly shaped row, or None if the id was not found.
     Only keys in `KN_METADATA_FIELDS` are honoured.
+
+    Note: `source_type` writes are stored under `content_type` on the raw
+    doc so we never collide with `worldwatch_feeds.source_type` (which is
+    the kind discriminator: rss | patent).
     """
     clean = {k: v for k, v in metadata.items() if k in KN_METADATA_FIELDS}
     if not clean:
         return await find_source(source_id)
+    if "source_type" in clean:
+        clean["content_type"] = clean.pop("source_type")
     db = _db()
     for reg in _KN_REGISTRIES:
         raw = await db[reg].find_one({"id": source_id})

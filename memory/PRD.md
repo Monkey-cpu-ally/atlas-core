@@ -786,11 +786,35 @@ private_source · culture_tag` (plus friendly aliases `source_name`,
 `last_sync`, and native `enabled`, `tags`).
 
 **Testing:**
-- Local pytest iter28: **19/19 pass** (1.07s).
-- Cumulative iter21–iter28: **102/102 pass**.
-- `testing_agent_v3_fork` iteration_25.json: **19/19 pass via public
-  ingress**, `failed_tests: []`, zero regressions across the 9 wrapped
-  legacy endpoints.
+- Local pytest iter28: **21/21 pass** (6.21 s)
+- Cumulative iter21–iter28: **104/104 pass**
+- `testing_agent_v3_fork` iteration_25.json: 19/19 pass via public
+  ingress; iteration_24.json: 6+13 pass; zero regressions.
+
+## Iter-28b · KN metadata enrichment (2026-02)
+
+**Files added:**
+- `/app/backend/scripts/enrich_kn_metadata.py` — one-shot idempotent
+  migration that populates `country / region / source_language /
+  culture_tag / trust_level / access_method / update_frequency` on the
+  19 seeded sources.
+
+**Files changed:**
+- `/app/backend/services/research_sources.py` — refactored to store the
+  semantic `source_type` under `content_type` on the raw doc so it never
+  collides with `worldwatch_feeds.source_type` (which is the rss/patent
+  kind discriminator used by `list_sources()` / `stats()`).
+- `/app/backend/tests/test_iter28_knowledge_network.py` — 2 new
+  regression-guard tests: enrichment produces non-default facets AND the
+  worldwatch kind discriminator stays `{rss, patent}` even after enrichment.
+
+**Migration result (19 sources):**
+- Countries: US=16 · UK=1 · International=2
+- Trust: high=8 · official=7 · editorial=3 · community=1
+- Culture: academic_open_science=7 · industrial_ip=6 · academic_open_learning=1 · western_scientific=1 · global_architecture=1 · european_design=1 · maker_hacker=1 · community_curated=1
+- Regions: Global=15 · North America=3 · Europe=1
+- Language: en=19 (all seeded feeds are English)
+
 
 
 

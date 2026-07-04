@@ -322,3 +322,43 @@ def test_kn_dashboard_now_includes_language_and_culture_facets():
     body = r.json()
     for facet in ("sources_by_language", "sources_by_culture"):
         assert facet in body, f"dashboard missing {facet}"
+
+
+# ---------------------------------------------------------------------------
+# Enrichment migration — verify /stats returns meaningful populated facets
+# after the one-shot `scripts.enrich_kn_metadata` job runs. The migration is
+# idempotent so we can invoke it here to guarantee state before asserting.
+# ---------------------------------------------------------------------------
+def test_kn_stats_reflect_populated_metadata_after_enrichment():
+    import subprocess
+    subprocess.run(
+        ["python", "-m", "scripts.enrich_kn_metadata"],
+        cwd="/app/backend",
+        capture_output=True,
+        check=True,
+        timeout=30,
+    )
+    body = requests.get(f"{KN}/stats", timeout=TIMEOUT).json()
+    # At least one country other than 'unknown' should be present.
+    non_unknown_countries = [c for c in body["by_country"] if c and c != "unknown"]
+    assert non_unknown_countries, f"enrichment did not populate country: {body['by_country']}"
+    # Trust facet must include at least one graded value.
+    graded_trust = [t for t in body["by_trust"] if t in {"high", "official", "editorial", "community"}]
+    assert graded_trust, f"enrichment did not populate trust_level: {body['by_trust']}"
+    # Culture facet must include at least one non-default value.
+    non_default_culture = [c for c in body["by_culture"] if c and c != "unspecified"]
+    assert non_default_culture, f"enrichment did not populate culture_tag: {body['by_culture']}"
+
+
+def test_kn_worldwatch_kind_discriminator_intact_after_enrichment():
+    # Regression guard: `worldwatch_feeds.source_type` MUST stay {rss|patent},
+    # never the semantic classification (which now lives in content_type).
+    r = requests.get(f"{KN}/sources?enabled_only=false", timeout=TIMEOUT).json()
+    rss_kinds = {i.get("kind") for i in r["items"] if i.get("registry") == "worldwatch_feeds"}
+    assert rss_kinds.issubset({"rss", "patent"}), (
+        f"worldwatch kind discriminator polluted: {rss_kinds}"
+    )
+    # And /stats should still show non-zero rss and patent counts.
+    stats = requests.get(f"{KN}/stats", timeout=TIMEOUT).json()["by_kind"]
+    assert stats["rss"] >= 1
+    assert stats["patent"] >= 1
