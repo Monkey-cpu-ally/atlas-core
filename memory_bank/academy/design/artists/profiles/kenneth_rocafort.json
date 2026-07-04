@@ -1,0 +1,27 @@
+{
+  "id": "ART-0001",
+  "name": "Kenneth Rocafort",
+  "category": "comic_artist",
+  "disciplines": ["comic art", "character design", "costume design", "science fiction design", "armor design"],
+  "study_focus": ["layered armor", "dynamic anatomy", "futuristic fashion", "mechanical costume details", "heroic silhouettes"],
+  "visual_principles": ["High-detail surfaces can still read clearly if the silhouette is strong.", "Costume design can merge fashion, armor, and technology.", "Mechanical detail should support motion and identity, not become noise."],
+  "shape_language": ["Angular armor sections", "lean athletic proportions", "asymmetrical mechanical details", "fast directional linework"],
+  "color_language": ["Study contrast between armor panels, undersuits, glowing tech accents, and character identity colors."],
+  "materials_and_textures": ["layered metals", "flexible undersuits", "armor plates", "energy accents", "techwear surfaces"],
+  "storytelling_methods": ["Clothing and armor communicate role, power level, movement style, and future technology."],
+  "atlas_applications": ["robot armor", "exosuits", "engineering uniforms", "hero product silhouettes", "vehicle paneling", "ATLAS tactical gear"],
+  "ai_role_relevance": {
+    "minerva": "Study shape language, visual hierarchy, and how layered detail supports identity.",
+    "ajani": "Use principles for leadership uniforms, tactical clothing, armor, gloves, boots, and personal style.",
+    "hermes": "Use principles for robot shells, exosuit armor, mechanical panel layering, and functional tech aesthetics."
+  },
+  "related_creators": ["Rafa Sandoval", "Nick Dragotta", "Hayden Sherman"],
+  "study_priority": "foundational",
+  "confidence": "medium",
+  "originality_rules": {
+    "copy_finished_work": false,
+    "copy_characters_or_costumes": false,
+    "learn_principles": true,
+    "synthesize_into_atlas_style": true
+  }
+}
