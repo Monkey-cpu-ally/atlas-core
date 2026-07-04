@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "subjects": {
+    "engineering": {"owner": "Ajani", "related": ["manufacturing", "energy", "materials", "aerospace"]},
+    "robotics": {"owner": "Hermes", "related": ["automation", "mechatronics", "sensors", "digital_twins"]},
+    "biology": {"owner": "Minerva", "related": ["medicine", "genetics", "ecology", "plants"]},
+    "computer_science": {"owner": "Hermes", "related": ["software", "ai", "cybersecurity", "databases"]},
+    "aerospace": {"owner": "Ajani", "related": ["space", "materials", "propulsion", "robotics"]},
+    "energy": {"owner": "Ajani", "related": ["batteries", "hydrogen", "solar", "grid_systems"]},
+    "medicine": {"owner": "Minerva", "related": ["biology", "clinical_research", "public_health", "genetics"]},
+    "chemistry": {"owner": "Minerva", "related": ["materials", "medicine", "energy", "biology"]},
+    "agriculture": {"owner": "Minerva", "related": ["plants", "ecology", "food", "environment"]},
+    "history": {"owner": "Council", "related": ["culture", "archives", "books", "museums"]},
+    "business": {"owner": "Council", "related": ["economics", "strategy", "law", "finance"]},
+    "design": {"owner": "Hermes", "related": ["industrial_design", "ui_ux", "architecture", "vehicles"]}
+  }
+}
