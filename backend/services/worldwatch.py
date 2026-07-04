@@ -372,6 +372,14 @@ async def _ingest_entry(feed: Dict[str, Any], entry: Dict[str, Any]) -> Dict[str
     note = await _what_changed_note(entry, feed["domain"])
 
     upd_id = uuid4().hex
+    # Auto-tag with subject slugs (deterministic keyword match against the
+    # 22-subject taxonomy). Runs before ingest_url so the tags land on both
+    # the knowledge_record AND the MB row.
+    from services import subject_autotag
+    subject_tags = subject_autotag.tag_content(
+        f"{entry['title']}\n{entry.get('summary') or ''}",
+    )
+
     # Try the existing kbase pipeline for the underlying link
     kb_id: Optional[str] = None
     mb_id: Optional[str] = None
@@ -381,7 +389,7 @@ async def _ingest_entry(feed: Dict[str, Any], entry: Dict[str, Any]) -> Dict[str
             extra_tags=[
                 "worldwatch", f"domain:{feed['domain']}",
                 f"agent:{feed['agent']}", f"feed:{feed['label'][:32]}",
-            ],
+            ] + subject_tags,
         )
         kb_id = (result.get("record") or {}).get("id")
         mb_id = result.get("memory_bank_id")
@@ -399,7 +407,7 @@ async def _ingest_entry(feed: Dict[str, Any], entry: Dict[str, Any]) -> Dict[str
                 body, persona=feed["agent"], category="research",
                 source_type="worldwatch",
                 tags=["worldwatch", f"domain:{feed['domain']}",
-                      f"agent:{feed['agent']}"],
+                      f"agent:{feed['agent']}"] + subject_tags,
             )
             mb_id = (mb_row or {}).get("id")
         except Exception as exc2:    # noqa: BLE001

@@ -14,7 +14,8 @@ import WorldWatchPanel from './HUD/WorldWatchPanel';
 import LearningHubPanel from './HUD/LearningHubPanel';
 import WeaverPanel from './HUD/WeaverPanel';
 import NIRScannerPanel from './HUD/NIRScannerPanel';
-import { Youtube, Code2, Network, Globe2, GraduationCap, Hammer, Scan } from 'lucide-react';
+import KnowledgeBankPanel from './HUD/KnowledgeBankPanel';
+import { Youtube, Code2, Network, Globe2, GraduationCap, Hammer, Scan, BookOpen } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -105,6 +106,7 @@ export default function HUDInterface() {
   const [learningHubOpen, setLearningHubOpen] = useState(false);
   const [weaverOpen, setWeaverOpen] = useState(false);
   const [nirOpen, setNirOpen] = useState(false);
+  const [kbOpen, setKbOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -422,6 +424,11 @@ export default function HUDInterface() {
           title="Open NIR Scanner"
           data-testid="nir-launch-btn"
         ><Scan size={12} /><span>NIR</span></button>
+        <button type="button" className="lh"
+          onClick={() => setKbOpen(true)}
+          title="Open Knowledge Bank"
+          data-testid="kb-launch-btn"
+        ><BookOpen size={12} /><span>Knowledge</span></button>
       </div>
 
       <TranscriptIngestPanel
@@ -451,6 +458,10 @@ export default function HUDInterface() {
       <NIRScannerPanel
         open={nirOpen}
         onClose={() => setNirOpen(false)}
+      />
+      <KnowledgeBankPanel
+        open={kbOpen}
+        onClose={() => setKbOpen(false)}
       />
     </div>
   );

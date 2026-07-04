@@ -638,3 +638,56 @@ All 56 pass in isolation. iter25's `test_transcript_summary_real_llm` makes an a
 - 🔴 P3 — External CFD/FEM solver pod.
 - 🔴 P3 — `useAtlasTheme()` hook + cosmetic polish.
 
+
+---
+
+## 2026-07-04 · Knowledge Bank Backlog Close
+
+Every remaining item from the 2026-06-21 backlog is now closed.
+
+### 1. HUD Knowledge Bank panel ✅
+- `/app/frontend/src/components/HUD/KnowledgeBankPanel.js` — 5 tabs (Subjects, Sources, Channels, Transcripts, Agents).
+- Every tab reads a real backend endpoint (no mock data).
+- Actions: Poll channel · Summarise transcript — both fire real backend calls.
+- Launcher button `data-testid="kb-launch-btn"` on the HUD top-right rail (now 8 buttons).
+
+### 2. Subject-tagging auto-categoriser ✅
+- `/app/backend/services/subject_autotag.py` — deterministic regex-based matcher against the 22 canonical subjects (~140 curated keyword patterns).
+- Wired into `services/worldwatch._ingest_entry` — every new worldwatch entry gets `subject:<slug>` tags on both its knowledge_record and its memory_bank row.
+- Fast (no LLM cost per ingest) and reproducible (unit-testable).
+- Verified: "Solid-state batteries with lithium metal anode" → `energy_systems` + `materials_science`.
+
+### 3. Periodic YouTube poll worker ✅
+- `/app/backend/services/kb_workers.start_youtube_poll_worker` — long-lived asyncio task that calls `youtube_channels.poll_all()` every `YT_POLL_INTERVAL_S` seconds (default 3600).
+- Idempotent (second call is no-op).
+- Started on FastAPI startup event.
+- Verified running via backend logs: `YT poll worker started · interval=3600s`.
+
+### 4. Legacy `knowledge` retirement ✅
+- `/app/backend/services/kb_workers.retire_legacy_knowledge` — one-shot migration.
+- Copies each legacy row into `knowledge_records` with proper schema mapping.
+- Where the source URL already exists in the modern collection, deletes the legacy row (fully drains the collection).
+- Verified: 6 legacy rows → 1 migrated, 5 skipped-and-deleted → **0 remaining**.
+
+### Test suite
+| Iteration | Tests | Notes |
+|---|---:|---|
+| iter24 (Knowledge Bank Phases A-D) | 11 | 🟢 |
+| iter25 (Transcripts + Claude summary) | 6 | 🟢 (real LLM call) |
+| iter26 (Backlog close) | 9 | 🟢 |
+| **New this pass** | **26** | 100% pass |
+| Full regression (iter21-26) | **65** | See earlier iterations for iter21/22/23 |
+
+### Live numbers post-changes
+- `knowledge` (legacy) collection: **empty** (all migrated / deduped)
+- `knowledge_records`: 52 rows (was 50; +1 legacy import + +1 transcript summary)
+- `subjects`: 22 rows (unchanged)
+- HUD subject tab shows real content counts (Chemistry/EE/Energy Systems/Materials Science each `total 3` from the recent transcript summary auto-tagging)
+
+## Backlog going forward
+- 🔴 P3 — External CFD/FEM solver pod (only when first real case arrives)
+- 🔴 P3 — `useAtlasTheme()` hook + cosmetic polish
+
+## Handoff artifact
+- Architect uploaded `atlas_emergent_pipeline_hand_off.zip` — a DevOps release/merge guide targeting `Monkey-cpu-ally/atlas-core`. Read but not applied to this preview environment.
+

@@ -277,6 +277,24 @@ async def _seed_subjects():
         logging.getLogger(__name__).warning("subject seed failed: %s", exc)
 
 
+# Knowledge Bank maintenance — retire legacy `knowledge` collection into
+# `knowledge_records` (one-shot, idempotent) + start the YouTube poll
+# worker (every 60 min by default).
+@app.on_event("startup")
+async def _kb_maintenance():
+    try:
+        from services import kb_workers
+        r = await kb_workers.retire_legacy_knowledge()
+        if r.get("migrated"):
+            logging.getLogger(__name__).info(
+                "legacy `knowledge` migrated: %s rows", r["migrated"],
+            )
+        interval = int(os.environ.get("YT_POLL_INTERVAL_S", 3600))
+        kb_workers.start_youtube_poll_worker(interval_s=interval)
+    except Exception as exc:    # noqa: BLE001
+        logging.getLogger(__name__).warning("KB maintenance failed: %s", exc)
+
+
 # Phases D5 + D6 — Reference twins: AGRI-ROVER-01 (Green Robot),
 # ATLAS-CELL-V1 (Li-ion power cell), ATLAS-CELL-SS-V1 (Solid-state).
 # Each twin is also mirrored as a reference blueprint stub.
