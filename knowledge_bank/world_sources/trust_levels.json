@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "principle": "Higher trust sources can support conclusions directly; lower trust sources require confirmation from stronger sources.",
+  "levels": [
+    {
+      "tier": "S",
+      "score_range": "95-100",
+      "description": "Highest reliability for domain-specific factual claims.",
+      "examples": ["government labs", "international standards bodies", "official space agencies", "systematic reviews", "major public health agencies"],
+      "verification_rule": "Can support high-confidence knowledge, but still cite and periodically re-check."
+    },
+    {
+      "tier": "A",
+      "score_range": "85-94",
+      "description": "Highly reliable sources with strong expertise.",
+      "examples": ["peer-reviewed journals", "major universities", "professional societies", "official documentation"],
+      "verification_rule": "Use as primary support; compare with other A/S sources when stakes are high."
+    },
+    {
+      "tier": "B",
+      "score_range": "70-84",
+      "description": "Useful technical or educational sources that may require confirmation.",
+      "examples": ["conference talks", "industry white papers", "open-access textbooks", "high-quality educational channels"],
+      "verification_rule": "Use for learning and leads; verify important claims against A/S sources."
+    },
+    {
+      "tier": "C",
+      "score_range": "50-69",
+      "description": "Community or media sources useful for examples, demonstrations, and early discovery.",
+      "examples": ["YouTube demos", "blogs", "forum explanations", "community repositories"],
+      "verification_rule": "Do not treat as authoritative without stronger confirmation."
+    },
+    {
+      "tier": "D",
+      "score_range": "0-49",
+      "description": "Unverified, opinion-heavy, outdated, or weakly sourced material.",
+      "examples": ["opinion pieces", "uncited claims", "marketing-only claims"],
+      "verification_rule": "Store only as speculative or inspiration; never as established knowledge."
+    }
+  ]
+}
