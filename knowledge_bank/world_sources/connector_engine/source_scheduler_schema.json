@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "description": "Scheduling policy for ATLAS World Knowledge source checks.",
+  "default_intervals": {
+    "daily": {"seconds": 86400, "use_for": ["arxiv", "pubmed", "github", "news-like technical feeds"]},
+    "weekly": {"seconds": 604800, "use_for": ["government labs", "space agencies", "journals", "patents", "research institutes"]},
+    "monthly": {"seconds": 2592000, "use_for": ["universities", "museums", "libraries", "archives", "courseware"]},
+    "manual": {"seconds": null, "use_for": ["private sources", "sensitive sources", "vault-linked material"]}
+  },
+  "priority_rules": [
+    {"condition": "source affects active project", "priority": "high"},
+    {"condition": "source trust_tier is S and subject matches mission", "priority": "high"},
+    {"condition": "source trust_tier is C or D", "priority": "normal", "requires_council_review": true},
+    {"condition": "medical, legal, financial, biological safety, or physical engineering claim", "priority": "critical", "requires_council_review": true}
+  ],
+  "status_values": ["idle", "queued", "running", "completed", "failed", "paused", "needs_review"]
+}
