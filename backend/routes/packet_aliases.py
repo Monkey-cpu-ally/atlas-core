@@ -195,10 +195,16 @@ def register_packet_aliases(app: FastAPI) -> Dict[str, int]:
     from routes.research_orchestrator import router as research_orch_router
     from routes.subjects import router as subjects_router
     from routes.transcripts import router as transcripts_router
+    from routes.knowledge_network import router as knowledge_network_router
+    from routes.kbase import router as kbase_router
+    from routes.youtube import router as youtube_router
+    from routes.dev_pipeline import router as dev_pipeline_router
     from atlas_core import atlas_router as atlas_core_router
 
     app.include_router(health_router)
     app.include_router(intelligence_router)
+    app.include_router(knowledge_network_router)
+    app.include_router(dev_pipeline_router)
 
     counts: Dict[str, int] = {}
     counts["memory"] = mount_alias(app, memory_router, "/api/membank", "/api/memory")
@@ -216,5 +222,24 @@ def register_packet_aliases(app: FastAPI) -> Dict[str, int]:
     )
     counts["knowledge_transcripts"] = mount_alias(
         app, transcripts_router, "/api/transcripts", "/api/knowledge/transcripts"
+    )
+
+    # --- Unified /api/knowledge-network/* deep aliases --------------------
+    kn_prefix = "/api/knowledge-network"
+    counts["kn_sources_deep"] = mount_alias(
+        app, research_sources_router, "/api/research-sources", f"{kn_prefix}/research-sources"
+    )
+    counts["kn_kbase"] = mount_alias(
+        app, kbase_router, "/api/kbase", f"{kn_prefix}/kbase"
+    )
+    counts["kn_youtube"] = mount_alias(
+        app, youtube_router, "/api/youtube", f"{kn_prefix}/youtube"
+    )
+    counts["kn_subjects_deep"] = mount_alias(
+        app, subjects_router, "/api/subjects", f"{kn_prefix}/subjects-registry"
+    )
+    # Memory Bank — only the /research write path is exposed under KN.
+    counts["kn_membank_research"] = mount_alias(
+        app, memory_router, "/api/membank/research", f"{kn_prefix}/membank/research"
     )
     return counts

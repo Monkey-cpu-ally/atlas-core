@@ -1,0 +1,32 @@
+{
+  "summary": "Iter28 Knowledge Network + Engineering Console backend verification via public ingress URL. All 13 packet tests pass; expanded with 6 additional filter/interaction/dashboard-math tests, all pass. Iter27 alias regression re-run: 17/18 pass (1 pre-existing failure on /api/openapi.json is unrelated to iter28).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/openapi.json", "issue": "Returns 404 on both public ingress and localhost:8001; causes test_teaching_alias_registered_in_openapi (iter27) to fail. Pre-existing, unrelated to iter28."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter28_knowledge_network.py",
+    "/app/backend/tests/test_iter28_expansion.py",
+    "/app/test_reports/pytest/iter28_public.xml",
+    "/app/test_reports/pytest/iter28_expansion.xml"
+  ],
+  "action_items": [
+    "(Optional) Investigate why /api/openapi.json 404s — appears the router does not expose OpenAPI under /api prefix. Only affects iter27 test_teaching_alias_registered_in_openapi."
+  ],
+  "critical_code_review_comments": [
+    "Filter param `kind` for watchers registry accepts only 'web'|'git'; a source seeded into `watchers` with kind='rss' silently gets classified as 'web' by _shape_watcher default (line 87 of research_sources.py). Might warrant validation on ingestion.",
+    "PATCH /sources/{id}/metadata does not validate enum values for trust_level/access_method/update_frequency — arbitrary strings persist. Consider Pydantic enum tightening.",
+    "test_kn_sources_expose_full_metadata_block returns silently if items list is empty — could mask contract regressions in a clean DB. Consider seeding a sentinel row."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter28_expansion.py (new)"
+  ],
+  "success_rate": {"backend": "100% (19/19 iter28), 94% (17/18 iter27 pre-existing miss)", "frontend": "N/A (skipped per request)"},
+  "seed_data_creation": "Ephemeral watchers rows prefixed 'kn-exp-*' and 'kn-test-*' — all cleaned up in finally blocks.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iter28 backend fully green through public ingress URL. test_iter28_expansion.py adds coverage for country/region/agent/auto_sync/kind filters after PATCH, partial PATCH persistence, dashboard facet updates, and iter27 alias no-regression. Openapi 404 is a standing issue that should be triaged separately."
+}

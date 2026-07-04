@@ -15,6 +15,7 @@ import LearningHubPanel from './HUD/LearningHubPanel';
 import WeaverPanel from './HUD/WeaverPanel';
 import NIRScannerPanel from './HUD/NIRScannerPanel';
 import KnowledgeBankPanel from './HUD/KnowledgeBankPanel';
+import EngineeringConsole from './HUD/EngineeringConsole';
 import { Youtube, Code2, Network, Globe2, GraduationCap, Hammer, Scan, BookOpen } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
@@ -107,6 +108,7 @@ export default function HUDInterface() {
   const [weaverOpen, setWeaverOpen] = useState(false);
   const [nirOpen, setNirOpen] = useState(false);
   const [kbOpen, setKbOpen] = useState(false);
+  const [engConsoleOpen, setEngConsoleOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -151,6 +153,18 @@ export default function HUDInterface() {
       setCoreState(CORE_STATES.IDLE);
     }, 700);
   }, [playTone]);
+
+  // --- Hidden dev overlay: Ctrl+Shift+E toggles the Engineering Console.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+        e.preventDefault();
+        setEngConsoleOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // --- Phase 4: voice command system ---------------------------------------
   const voiceModeRef = useRef('off');
@@ -462,6 +476,10 @@ export default function HUDInterface() {
       <KnowledgeBankPanel
         open={kbOpen}
         onClose={() => setKbOpen(false)}
+      />
+      <EngineeringConsole
+        open={engConsoleOpen}
+        onClose={() => setEngConsoleOpen(false)}
       />
     </div>
   );
