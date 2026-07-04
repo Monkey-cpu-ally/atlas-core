@@ -587,3 +587,54 @@ movement they snap to the nearest slot and stop. No auto-spin.
 - [ ] Channel poll worker — periodic `poll-all` (currently manual trigger only).
 - [ ] Promote the `knowledge` legacy collection's rows into `knowledge_records` once and retire it (6 rows of YouTube-shaped legacy data).
 
+
+---
+
+## 2026-06-21 (final) · Knowledge Bank — Transcripts + LLM Summaries
+
+### New this pass
+- **`transcripts` collection + service + REST** — source-agnostic (YouTube / audio / meeting / podcast / lecture / manual paste). Upsert by `source_url`. `/api/transcripts/*`.
+- **`transcript_summaries` collection** — LLM-generated, structured. Every row links back to a `knowledge_records` row + a `memory_bank` row (real ST-embedded).
+- **Real LLM call** via `emergentintegrations.LlmChat` → `claude-sonnet-4-6`. System message enforces strict JSON output; response is regex-recovered and validated. `identified_subjects` are **whitelisted** against the 22-subject taxonomy so no hallucinated slugs enter the DB.
+- **`/app/memory/KNOWLEDGE_BANK_SCHEMA.md`** — authoritative schema + API + workflow reference (259 lines, every collection + endpoint + invariant + test coverage table).
+
+### 9 items in the architect's latest request — final status
+| # | Item | Status |
+|---|---|---|
+| 1 | Channel Watchlists | ✅ (Phase B — `youtube_channels` + `youtube_channel_runs`) |
+| 2 | Subject Libraries (22 core subjects) | ✅ (Phase A — `subjects`, 22 rows across 4 families) |
+| 3 | Agent-specific memory partitions | ✅ (Phase D — `/api/membank/agents`) |
+| 4 | Shared Atlas Memory Bank | ✅ (`memory_bank`, 1502+ rows) |
+| 5 | Transcript storage | ✅ (NEW — `transcripts` collection, source-agnostic) |
+| 6 | Transcript summaries | ✅ (NEW — `transcript_summaries` via real Claude call) |
+| 7 | Vector embeddings | ✅ (ST `all-MiniLM-L6-v2`, 384-dim, on `memory_bank.embedding`) |
+| 8 | Knowledge graph relationships | ✅ (`graph_triples`, 2753 edges) |
+| 9 | Council recommendation pipeline | ✅ (`services/council.py`, 4-voice auto-invoke) |
+
+### Test suite regression
+| Iteration | Tests |
+|---|---:|
+| iter21 (ESP32 + HUD) | 24 |
+| iter22 (Twin Environments) | 4 |
+| iter23 (D3/D4/D5/D6 · Weaver·NIR·Green Robot·Power Cell) | 11 |
+| iter24 (Knowledge Bank Phases A/B/C/D) | 11 |
+| iter25 (Transcripts + real Claude summary) | 6 |
+| **TOTAL** | **56** |
+
+All 56 pass in isolation. iter25's `test_transcript_summary_real_llm` makes an actual Claude Sonnet 4.6 call and verifies:
+- structured JSON output shape (one_line, key_points, identified_subjects, concepts)
+- subject-whitelist enforcement (no hallucinated slugs)
+- KR + MB row creation with correct linkage
+
+### Live verification numbers
+- Sample transcript on solid-state batteries → Claude summarised in ~4s with 7 key points, 5 whitelisted subjects, 6 concepts.
+- Auto-created knowledge_record + memory_bank row (with ST embedding) confirmed via Mongo query.
+
+## Backlog (still deferred per architect's "no cosmetics until operational" rule)
+- 🟡 HUD Knowledge Bank panel — surface the 4 new APIs (subjects, research sources, YT channels, transcripts) in one place. Currently curl-only.
+- 🟡 Subject-tagging auto-categoriser on intake/worldwatch (taxonomy is DB-backed; only wiring left).
+- 🟡 Periodic YT `poll-all` worker.
+- 🟡 Legacy `knowledge` (6 rows) retirement — promote into `knowledge_records`.
+- 🔴 P3 — External CFD/FEM solver pod.
+- 🔴 P3 — `useAtlasTheme()` hook + cosmetic polish.
+

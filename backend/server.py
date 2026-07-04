@@ -143,6 +143,8 @@ from routes.subjects import router as subjects_router  # Knowledge Bank Phase A
 app.include_router(subjects_router)
 from routes.research_sources import router as research_sources_router  # Knowledge Bank Phase C
 app.include_router(research_sources_router)
+from routes.transcripts import router as transcripts_router  # Knowledge Bank Phase E
+app.include_router(transcripts_router)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
