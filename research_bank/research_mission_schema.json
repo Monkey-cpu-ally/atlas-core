@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "description": "ATLAS Research Mission schema used by Ajani, Hermes, Minerva, and Council.",
+  "mission_fields": {
+    "mission_id": "unique mission id, e.g. AJANI-ENG-0001",
+    "title": "short mission title",
+    "owner_ai": "Ajani | Hermes | Minerva | Council",
+    "owner_role": "Chief Engineer | Chief Robotics & Design | Chief Scientist | Executive Board",
+    "status": "queued | running | blocked | council_review | completed | archived",
+    "priority": "low | normal | high | critical",
+    "goal": "what the mission is trying to learn or decide",
+    "source_ids": "approved source ids from World Knowledge Network",
+    "subject_tags": "array of subject tags",
+    "related_projects": "array of ATLAS project names or ids",
+    "started_at": "ISO timestamp or null",
+    "completed_at": "ISO timestamp or null",
+    "progress_percent": "0-100",
+    "knowledge_records_created": "number",
+    "discoveries_created": "number",
+    "council_review_required": "boolean",
+    "open_questions": "array of unanswered questions",
+    "next_actions": "array of next steps"
+  }
+}
