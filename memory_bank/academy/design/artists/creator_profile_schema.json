@@ -1,0 +1,32 @@
+{
+  "schema_name": "ATLAS Creator Profile Schema",
+  "version": "1.0.0",
+  "purpose": "Standard structure for artists, designers, filmmakers, architects, sculptors, studios, and other design references studied by the ATLAS Design Academy.",
+  "fields": {
+    "id": "Unique ATLAS creator ID, such as ART-0001.",
+    "name": "Creator name.",
+    "category": "Primary category such as comic_artist, costume_designer, filmmaker, sculptor, fine_artist, concept_artist, studio.",
+    "disciplines": "List of disciplines connected to the creator.",
+    "study_focus": "What ATLAS should study from this creator.",
+    "visual_principles": "High-level design principles ATLAS can learn.",
+    "shape_language": "Forms, silhouettes, proportions, and visual structure.",
+    "color_language": "Color behavior, palette tendencies, lighting, mood, and contrast.",
+    "materials_and_textures": "Material lessons, surface finishes, clothing, mechanical, organic, or architectural textures.",
+    "storytelling_methods": "How the creator communicates story, emotion, culture, function, or world-building through design.",
+    "atlas_applications": "Where the AI Council can apply these lessons: robots, clothing, vehicles, architecture, HUD, branding, tools, products.",
+    "ai_role_relevance": {
+      "minerva": "How Minerva should use this profile.",
+      "ajani": "How Ajani should use this profile.",
+      "hermes": "How Hermes should use this profile."
+    },
+    "related_creators": "Creators or studios that connect well with this profile.",
+    "study_priority": "low, medium, high, or foundational.",
+    "confidence": "low, medium, high; indicates how confident ATLAS is in the current profile depth.",
+    "originality_rules": {
+      "copy_finished_work": false,
+      "copy_characters_or_costumes": false,
+      "learn_principles": true,
+      "synthesize_into_atlas_style": true
+    }
+  }
+}
