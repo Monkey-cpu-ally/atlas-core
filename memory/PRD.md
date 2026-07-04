@@ -691,3 +691,43 @@ Every remaining item from the 2026-06-21 backlog is now closed.
 ## Handoff artifact
 - Architect uploaded `atlas_emergent_pipeline_hand_off.zip` — a DevOps release/merge guide targeting `Monkey-cpu-ally/atlas-core`. Read but not applied to this preview environment.
 
+## Iter-27 · Packet-aligned API aliases (2026-02)
+User selected option A of the last plan: mirror EMERGENT_MASTER_PROMPT.md
+endpoint prefixes without touching any HUD-wired route.
+
+**Files added:**
+- `/app/backend/routes/packet_aliases.py` — `mount_alias()` helper that
+  clones existing `APIRoute` objects onto the app under new prefixes;
+  plus two brand-new lightweight routers.
+- `/app/backend/tests/test_iter27_packet_aliases.py` — 18 assertions.
+
+**Files changed:**
+- `/app/backend/server.py` — appends
+  `register_packet_aliases(app)` after all original routers are mounted.
+
+**Aliases live:**
+| Packet prefix                 | Source                                      |
+|------------------------------|---------------------------------------------|
+| `/api/health`                 | NEW — liveness + service inventory          |
+| `/api/intelligence`           | NEW — aggregate persona + LLM introspection |
+| `/api/memory/*`               | `/api/membank/*`                            |
+| `/api/sources/*`              | `/api/research-sources/*`                   |
+| `/api/tasks/*`                | `/api/research-orch/*`                      |
+| `/api/teaching/*`             | `/api/atlas/teach*`                         |
+| `/api/knowledge/subjects-bank/*` | `/api/subjects/*`                        |
+| `/api/knowledge/transcripts/*`   | `/api/transcripts/*`                     |
+
+- `/api/knowledge` and `/api/research` were already exposed and remain untouched.
+- Every original path (`/api/membank`, `/api/research-sources`,
+  `/api/research-orch`, `/api/subjects`, `/api/transcripts`, `/api/atlas/teach`)
+  still responds — the HUD is unaffected.
+
+**Testing:** `testing_agent_v3_fork` re-run confirms 18/18 pass, no
+regressions. Local pytest across iter21–iter27 = 82/82 green after DB reset.
+
+## Next action for user
+- Click **"Save to GitHub"** to push `feature/atlas-release-foundation-intelligence`.
+- When actual Release 1 / Release 2 code payloads arrive, drop them in and the
+  aliases already match the expected surface — merge should be near-drop-in.
+
+
