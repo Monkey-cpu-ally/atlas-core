@@ -1,0 +1,27 @@
+{
+  "id": "ART-0030",
+  "name": "Guillermo del Toro",
+  "category": "filmmaker_worldbuilder",
+  "disciplines": ["film direction", "creature design", "world-building", "visual storytelling", "practical effects", "mythic design"],
+  "study_focus": ["organic machinery", "mythic creatures", "dark fairy-tale design", "handcrafted worlds", "symbolic objects", "beauty inside monsters"],
+  "visual_principles": ["The strange can feel believable when materials, anatomy, and story rules are consistent.", "A machine or creature should feel like it has a history, not like it appeared from nowhere.", "Beauty and horror can exist in the same design when purpose and emotion are clear."],
+  "shape_language": ["organic curves", "ancient mechanical forms", "ritual objects", "soft grotesque silhouettes", "ornate handcrafted details"],
+  "color_language": ["Study warm candlelike lighting, deep shadows, aged materials, mythic contrast, and emotional color atmospheres."],
+  "materials_and_textures": ["aged brass", "wood", "stone", "bone-like forms", "leather", "glass", "weathered metal", "organic textures"],
+  "storytelling_methods": ["Objects, creatures, rooms, and machines should reveal history, trauma, wonder, belief, and function."],
+  "atlas_applications": ["organic robotics", "Minerva nature-tech systems", "ATLAS labs", "mythic machine design", "advanced tools", "brand artifacts", "story-rich architecture"],
+  "ai_role_relevance": {
+    "minerva": "Study nature, myth, symbolism, environment, story-rich materials, and emotional world-building.",
+    "ajani": "Use principles for symbolic accessories, leadership artifacts, luxury with mystery, and personal brand objects.",
+    "hermes": "Use principles for machines that feel engineered, ancient, organic, and emotionally meaningful without losing function."
+  },
+  "related_creators": ["Gustave Dore", "William Blake", "Salvador Dali"],
+  "study_priority": "foundational",
+  "confidence": "medium",
+  "originality_rules": {
+    "copy_finished_work": false,
+    "copy_characters_or_costumes": false,
+    "learn_principles": true,
+    "synthesize_into_atlas_style": true
+  }
+}
