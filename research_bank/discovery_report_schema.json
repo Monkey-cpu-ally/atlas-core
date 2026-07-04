@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "description": "ATLAS Discovery Report schema. Discovery reports store what an AI learned in its own words, with evidence and citations.",
+  "discovery_fields": {
+    "discovery_id": "unique discovery id",
+    "mission_id": "parent research mission id",
+    "title": "short discovery title",
+    "owner_ai": "Ajani | Hermes | Minerva | Council",
+    "summary_in_own_words": "AI-written understanding, not copied source text",
+    "why_it_matters": "why this discovery matters to ATLAS",
+    "evidence": "array of evidence notes",
+    "source_ids": "array of approved source ids",
+    "citations": "array of citation objects with original URLs",
+    "confidence_score": "0-100",
+    "verification_status": "unverified | single_source | corroborated | contradicted | council_verified",
+    "risks_and_limits": "array of risks, limits, and uncertainty",
+    "related_projects": "array of ATLAS project names or ids",
+    "recommendation": "what the AI recommends doing next",
+    "created_at": "ISO timestamp",
+    "reviewed_by_council": "boolean",
+    "council_decision": "pending | approved | rejected | needs_more_evidence"
+  }
+}
