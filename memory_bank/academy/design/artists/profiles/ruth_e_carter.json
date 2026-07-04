@@ -1,0 +1,27 @@
+{
+  "id": "ART-0018",
+  "name": "Ruth E. Carter",
+  "category": "costume_designer",
+  "disciplines": ["costume design", "cultural design", "film design", "textile design", "Afrofuturist design"],
+  "study_focus": ["cultural symbolism", "royal silhouettes", "material storytelling", "heritage-informed futurism", "costume identity systems"],
+  "visual_principles": ["Costume can carry culture, history, rank, function, and technology at the same time.", "Strong design can feel futuristic without abandoning ancestral roots.", "Pattern, textile, jewelry, and silhouette should communicate identity before dialogue is spoken."],
+  "shape_language": ["regal silhouettes", "structured shoulders", "ceremonial geometry", "tribal-inspired pattern systems", "strong headpieces and accessories"],
+  "color_language": ["Study cultural color symbolism, royal contrast, earthy foundations, metallic accents, and ceremonial palettes."],
+  "materials_and_textures": ["woven textiles", "beadwork", "metal jewelry", "ceremonial fabrics", "technical fabric blended with heritage material language"],
+  "storytelling_methods": ["Costume communicates nation, role, rank, family, tradition, power, grief, ceremony, and technological progress."],
+  "atlas_applications": ["ATLAS uniforms", "leadership attire", "formal engineering wear", "cultural design systems", "Ajani personal style", "brand identity", "ceremonial clothing"],
+  "ai_role_relevance": {
+    "minerva": "Study cultural symbolism, textile history, material meaning, and how identity is encoded into design.",
+    "ajani": "Use principles for ATLAS leadership presence, personal style, formal uniforms, luxury wear, jewelry, and symbolic clothing.",
+    "hermes": "Use principles when technology must respect culture, ceremony, and human identity rather than look generic."
+  },
+  "related_creators": ["Judianna Makovsky", "Alexandra Byrne", "Mayes C. Rubeo"],
+  "study_priority": "foundational",
+  "confidence": "medium",
+  "originality_rules": {
+    "copy_finished_work": false,
+    "copy_characters_or_costumes": false,
+    "learn_principles": true,
+    "synthesize_into_atlas_style": true
+  }
+}
