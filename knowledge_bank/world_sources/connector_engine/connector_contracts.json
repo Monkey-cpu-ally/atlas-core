@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "description": "Connector contracts for future ATLAS World Knowledge live ingestion.",
+  "contracts": {
+    "rss": {
+      "inputs": ["source_id", "feed_url"],
+      "outputs": ["title", "link", "published_at", "summary_or_excerpt"],
+      "stores_full_content": false,
+      "notes": "Use for source feeds, journals, agencies, and updates."
+    },
+    "api": {
+      "inputs": ["source_id", "api_url", "query_params"],
+      "outputs": ["metadata", "record_url", "abstract_or_summary"],
+      "stores_full_content": false,
+      "notes": "Use official APIs where available."
+    },
+    "web_metadata": {
+      "inputs": ["source_id", "url"],
+      "outputs": ["page_title", "description", "canonical_url", "headings"],
+      "stores_full_content": false,
+      "notes": "Fallback connector. Should avoid heavy scraping."
+    },
+    "github": {
+      "inputs": ["source_id", "repository_url"],
+      "outputs": ["repo_name", "description", "license", "readme_summary", "stars", "last_updated"],
+      "stores_full_content": false,
+      "notes": "Code must be reviewed before being treated as reliable implementation guidance."
+    },
+    "youtube": {
+      "inputs": ["source_id", "channel_url", "video_url"],
+      "outputs": ["title", "channel", "published_at", "description", "user-provided transcript summary when available"],
+      "stores_full_content": false,
+      "notes": "YouTube is learning/demo support, not high-authority evidence alone."
+    },
+    "patent": {
+      "inputs": ["source_id", "patent_url", "query"],
+      "outputs": ["patent_title", "inventors", "assignee", "publication_date", "abstract", "patent_url"],
+      "stores_full_content": false,
+      "notes": "Patent claims describe protected ideas; not proof of practical performance."
+    }
+  }
+}
