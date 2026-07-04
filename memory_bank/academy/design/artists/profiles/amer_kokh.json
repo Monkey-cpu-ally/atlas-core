@@ -1,0 +1,30 @@
+{
+  "id": "ART-0002",
+  "name": "Amer Kokh",
+  "category": "concept_artist",
+  "disciplines": [],
+  "study_focus": [],
+  "visual_principles": [],
+  "shape_language": [],
+  "color_language": [],
+  "materials_and_textures": [],
+  "storytelling_methods": [],
+  "atlas_applications": [],
+  "ai_role_relevance": {
+    "minerva": "Pending verified research.",
+    "ajani": "Pending verified research.",
+    "hermes": "Pending verified research."
+  },
+  "related_creators": [],
+  "study_priority": "high",
+  "confidence": "needs_research",
+  "sources_verified": false,
+  "last_reviewed": null,
+  "research_status": "placeholder",
+  "originality_rules": {
+    "copy_finished_work": false,
+    "copy_characters_or_costumes": false,
+    "learn_principles": true,
+    "synthesize_into_atlas_style": true
+  }
+}
