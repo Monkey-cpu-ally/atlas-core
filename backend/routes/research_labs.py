@@ -1,7 +1,8 @@
 """ATLAS Research Lab routes.
 
 Mission queue and discovery report API for Ajani, Hermes, Minerva, and Council.
-This v1 is in-memory and deterministic; MongoDB persistence comes next.
+This v1 keeps deterministic in-memory behavior and mirrors mutations to MongoDB
+when the backend attaches a database on startup.
 """
 from __future__ import annotations
 
@@ -50,7 +51,12 @@ class CouncilReviewRequest(BaseModel):
 
 @router.get("/health")
 async def health():
-    return {"status": "ok", "engine": "research_lab_engine", "labs": labs.labs()}
+    return {
+        "status": "ok",
+        "engine": "research_lab_engine",
+        "persistence_enabled": labs.persistence_enabled(),
+        "labs": labs.labs(),
+    }
 
 
 @router.get("/labs")
@@ -61,7 +67,9 @@ async def list_labs():
 @router.post("/missions")
 async def create_mission(req: CreateMissionRequest):
     try:
-        return labs.create_mission(**req.model_dump())
+        mission = labs.create_mission(**req.model_dump())
+        await labs.persist_mission(mission)
+        return mission
     except labs.ResearchLabError as exc:
         raise HTTPException(422, str(exc)) from exc
 
@@ -89,11 +97,13 @@ async def get_mission(mission_id: str):
 @router.patch("/missions/{mission_id}/status")
 async def update_status(mission_id: str, req: UpdateMissionStatusRequest):
     try:
-        return labs.update_mission_status(
+        mission = labs.update_mission_status(
             mission_id,
             status=req.status,
             progress_percent=req.progress_percent,
         )
+        await labs.persist_mission(mission)
+        return mission
     except labs.ResearchLabError as exc:
         raise HTTPException(422, str(exc)) from exc
 
@@ -101,7 +111,12 @@ async def update_status(mission_id: str, req: UpdateMissionStatusRequest):
 @router.post("/discoveries")
 async def create_discovery(req: CreateDiscoveryRequest):
     try:
-        return labs.create_discovery(**req.model_dump())
+        discovery = labs.create_discovery(**req.model_dump())
+        mission = labs.get_mission(discovery["mission_id"])
+        if mission:
+            await labs.persist_mission(mission)
+        await labs.persist_discovery(discovery)
+        return discovery
     except labs.ResearchLabError as exc:
         raise HTTPException(422, str(exc)) from exc
 
@@ -121,6 +136,8 @@ async def list_discoveries(
 @router.patch("/discoveries/{discovery_id}/council-review")
 async def review_discovery(discovery_id: str, req: CouncilReviewRequest):
     try:
-        return labs.council_review(discovery_id, decision=req.decision, notes=req.notes)
+        discovery = labs.council_review(discovery_id, decision=req.decision, notes=req.notes)
+        await labs.persist_discovery(discovery)
+        return discovery
     except labs.ResearchLabError as exc:
         raise HTTPException(422, str(exc)) from exc
