@@ -1,0 +1,42 @@
+{
+  "tracker_name": "ATLAS Founding Creator Research Status",
+  "version": "1.0.0",
+  "purpose": "Track which founding creator profiles are complete, partial, or placeholders so ATLAS does not treat unverified design notes as finished research.",
+  "status_key": {
+    "complete": "Profile has researched, verified, and reviewed information.",
+    "partial": "Profile has useful initial notes but still needs verification and expansion.",
+    "placeholder": "Profile exists only as a structured entry and needs research before serious use."
+  },
+  "creators": [
+    {"id":"ART-0001","name":"Kenneth Rocafort","status":"partial"},
+    {"id":"ART-0002","name":"Amer Kokh","status":"placeholder"},
+    {"id":"ART-0003","name":"Christopher Whittier","status":"placeholder"},
+    {"id":"ART-0004","name":"Nick Dragotta","status":"placeholder"},
+    {"id":"ART-0005","name":"Hayden Sherman","status":"placeholder"},
+    {"id":"ART-0006","name":"Rafa Sandoval","status":"placeholder"},
+    {"id":"ART-0007","name":"Javier Rodriguez","status":"placeholder"},
+    {"id":"ART-0008","name":"Nick Robles","status":"placeholder"},
+    {"id":"ART-0009","name":"John Timms","status":"placeholder"},
+    {"id":"ART-0010","name":"Tetsu Takahashi","status":"placeholder"},
+    {"id":"ART-0011","name":"Yan Shi","status":"placeholder"},
+    {"id":"ART-0012","name":"Dapeng Song","status":"placeholder"},
+    {"id":"ART-0013","name":"Aden Zhiyong","status":"placeholder"},
+    {"id":"ART-0014","name":"Luca Clarrett","status":"placeholder"},
+    {"id":"ART-0015","name":"Peach Momoko","status":"placeholder"},
+    {"id":"ART-0016","name":"Dino Ma","status":"placeholder"},
+    {"id":"ART-0017","name":"Judianna Makovsky","status":"placeholder"},
+    {"id":"ART-0018","name":"Ruth E. Carter","status":"partial"},
+    {"id":"ART-0019","name":"Alexandra Byrne","status":"placeholder"},
+    {"id":"ART-0020","name":"Mayes C. Rubeo","status":"placeholder"},
+    {"id":"ART-0021","name":"Meghan Kasperlik","status":"placeholder"},
+    {"id":"ART-0022","name":"Daniel Selon","status":"placeholder"},
+    {"id":"ART-0023","name":"Christine Wada","status":"placeholder"},
+    {"id":"ART-0024","name":"Gustave Dore","status":"placeholder"},
+    {"id":"ART-0025","name":"William Blake","status":"placeholder"},
+    {"id":"ART-0026","name":"Sandro Botticelli","status":"placeholder"},
+    {"id":"ART-0027","name":"Auguste Rodin","status":"placeholder"},
+    {"id":"ART-0028","name":"William-Adolphe Bouguereau","status":"placeholder"},
+    {"id":"ART-0029","name":"Salvador Dali","status":"placeholder"},
+    {"id":"ART-0030","name":"Guillermo del Toro","status":"partial"}
+  ]
+}
