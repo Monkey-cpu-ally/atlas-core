@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "owners": {
+    "ajani": {
+      "title": "Chief Engineer",
+      "domains": ["engineering", "manufacturing", "energy", "aerospace", "infrastructure", "materials", "mechanical_systems", "electrical_systems", "project_feasibility"],
+      "review_focus": ["buildability", "cost", "risk", "manufacturing", "power", "safety", "testing"]
+    },
+    "hermes": {
+      "title": "Chief Robotics & Design",
+      "domains": ["robotics", "cad", "mechatronics", "automation", "software", "ai_tooling", "ui_ux", "industrial_design", "digital_twins"],
+      "review_focus": ["robotic_function", "design_quality", "interfaces", "automation", "sensing", "simulation", "user_experience"]
+    },
+    "minerva": {
+      "title": "Chief Scientist",
+      "domains": ["biology", "medicine", "chemistry", "genetics", "plants", "agriculture", "ecology", "environment", "materials_science"],
+      "review_focus": ["evidence", "biological_safety", "environment", "clinical_validity", "chemical_risk", "scientific_confidence"]
+    },
+    "council": {
+      "title": "Executive Board",
+      "domains": ["cross_discipline", "ethics", "economics", "history", "culture", "policy", "law", "final_validation"],
+      "review_focus": ["conflicts", "confidence", "source_quality", "strategic_value", "permissions", "long_term_risk", "final_decision"]
+    }
+  }
+}
