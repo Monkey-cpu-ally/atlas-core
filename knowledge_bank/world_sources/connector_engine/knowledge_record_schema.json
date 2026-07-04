@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "description": "Knowledge record schema for ATLAS summaries created from approved World Knowledge Network sources.",
+  "record_fields": {
+    "record_id": "unique knowledge record id",
+    "title": "short title",
+    "source_id": "source_registry source id",
+    "source_name": "source name",
+    "original_url": "link back to original source",
+    "country": "source country",
+    "region": "source region",
+    "language": "source language",
+    "ai_owner": "Ajani | Hermes | Minerva | Council",
+    "subject_tags": "array of subjects",
+    "summary_in_own_words": "ATLAS explanation, not copied text",
+    "key_findings": "array of short findings",
+    "evidence_notes": "why this source matters and what supports the claim",
+    "confidence_score": "0-100",
+    "trust_tier": "S | A | B | C | D",
+    "verification_status": "unverified | single_source | corroborated | contradicted | council_verified",
+    "related_projects": "array of project names or ids",
+    "related_records": "array of related knowledge record ids",
+    "created_at": "ISO timestamp",
+    "last_verified": "ISO timestamp or null",
+    "next_review": "ISO timestamp or null",
+    "version": "integer",
+    "change_reason": "why this version exists"
+  }
+}
