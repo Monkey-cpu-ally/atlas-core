@@ -717,17 +717,80 @@ endpoint prefixes without touching any HUD-wired route.
 | `/api/knowledge/subjects-bank/*` | `/api/subjects/*`                        |
 | `/api/knowledge/transcripts/*`   | `/api/transcripts/*`                     |
 
-- `/api/knowledge` and `/api/research` were already exposed and remain untouched.
-- Every original path (`/api/membank`, `/api/research-sources`,
-  `/api/research-orch`, `/api/subjects`, `/api/transcripts`, `/api/atlas/teach`)
-  still responds — the HUD is unaffected.
-
 **Testing:** `testing_agent_v3_fork` re-run confirms 18/18 pass, no
 regressions. Local pytest across iter21–iter27 = 82/82 green after DB reset.
 
-## Next action for user
-- Click **"Save to GitHub"** to push `feature/atlas-release-foundation-intelligence`.
-- When actual Release 1 / Release 2 code payloads arrive, drop them in and the
-  aliases already match the expected surface — merge should be near-drop-in.
+
+## Iter-28 · Engineering Console + Knowledge Network v1 (2026-02)
+
+Two coupled deliverables shipped in one iteration.
+
+### A · Engineering Console packet (applied)
+
+**Files added:**
+- `/app/backend/routes/dev_pipeline.py`  — `GET /api/dev/pipeline/status`, `/ping`
+- `/app/backend/services/dev_pipeline_service.py` — live in-process
+  health probes replacing the packet's `needs_runtime_check` stub
+- `/app/frontend/src/components/HUD/EngineeringConsole.js` — hidden
+  dev overlay (glass-morphism, HUD-styled, data-testids)
+- `/app/memory/ATLAS_DEVELOPMENT_PIPELINE.md`
+- `/app/memory/ATLAS_SYSTEM_INDEX_TEMPLATE.md`
+- `/app/memory/CURSOR_EMERGENT_APPLY_PIPELINE.md`
+
+**Files changed:**
+- `/app/frontend/src/components/HUDInterface.js` — Ctrl+Shift+E hotkey
+  toggles the console; component mounted alongside KnowledgeBankPanel.
+- `/app/backend/routes/packet_aliases.py` — registers `dev_pipeline_router`.
+
+**Live probes:** MongoDB · Memory Bank · Knowledge Network · Research
+Queue · AI Routing · Teaching Engine · Research Engine · GitHub
+(passive) · Test Suite. Overall status rolled up from severity map.
+Screenshot verification: 9/9 system cards render live status.
+
+### B · ATLAS Knowledge Network v1
+
+**Files added:**
+- `/app/backend/routes/knowledge_network.py` — unified layer wrapping
+  research-sources, kbase, youtube, subjects, membank/research.
+- `/app/backend/tests/test_iter28_knowledge_network.py` — 19 assertions.
+
+**Files changed:**
+- `/app/backend/services/research_sources.py` — `_metadata_block()`
+  now adds 11 KN metadata fields to every source row; new
+  `find_source()` + `update_source_metadata()` helpers; `KN_METADATA_FIELDS`
+  strict allow-list for PATCH writes.
+- `/app/backend/routes/packet_aliases.py` — deep-alias mounts under
+  `/api/knowledge-network/*` for every wrapped router.
+
+**New API surface:**
+| Route                                                    | Purpose                              |
+|----------------------------------------------------------|--------------------------------------|
+| `GET  /api/knowledge-network/health`                      | Layer liveness + wrapped subsystems  |
+| `GET  /api/knowledge-network/dashboard`                   | Aggregate counts + facet rollups     |
+| `GET  /api/knowledge-network/stats`                       | Facet breakdown (kind/country/region/language/trust/ai_owner/culture) |
+| `GET  /api/knowledge-network/sources`                     | Proxy + KN filters                   |
+| `GET  /api/knowledge-network/sources/stats`               | Passthrough                          |
+| `GET  /api/knowledge-network/sources/{id}`                | Single row w/ metadata               |
+| `PATCH /api/knowledge-network/sources/{id}/metadata`      | Merge KN metadata                    |
+| `GET  /api/knowledge-network/by-agent/{agent}`            | Ownership lookup                     |
+| `GET  /api/knowledge-network/by-country/{country}`        | Geographic filter                    |
+| `GET  /api/knowledge-network/subjects`                    | Convenience proxy                    |
+| `GET  /api/knowledge-network/youtube/dashboard`           | Convenience proxy                    |
+| `POST /api/knowledge-network/research-memory`             | membank/research alias               |
+| `+ deep-alias mounts` under `/api/knowledge-network/{research-sources,subjects-registry,youtube/*,kbase/*}` |
+
+**11 metadata fields on every source:**
+`country · region · source_language · source_type · trust_level ·
+ai_owner · update_frequency · access_method · auto_sync ·
+private_source · culture_tag` (plus friendly aliases `source_name`,
+`last_sync`, and native `enabled`, `tags`).
+
+**Testing:**
+- Local pytest iter28: **19/19 pass** (1.07s).
+- Cumulative iter21–iter28: **102/102 pass**.
+- `testing_agent_v3_fork` iteration_25.json: **19/19 pass via public
+  ingress**, `failed_tests: []`, zero regressions across the 9 wrapped
+  legacy endpoints.
+
 
 
