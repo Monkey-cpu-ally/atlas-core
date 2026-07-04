@@ -50,6 +50,8 @@ from routes.youtube import router as youtube_router
 from routes.atlas_v2 import router as atlas_v2_router
 # Autonomous Research Orchestrator (Phase 9)
 from routes.research_orchestrator import router as research_orch_router
+# ATLAS Knowledge Network — World Sources registry + dry-run sync planning
+from routes.knowledge_network import router as knowledge_network_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -135,6 +137,7 @@ app.include_router(self_improve_router)  # ATLAS Self-Improvement Watcher
 app.include_router(youtube_router)  # YouTube Learning subsystem (resolver + manual transcript + dashboard)
 app.include_router(atlas_v2_router)  # ATLAS V2: worldwatch + self-code + learning + style + themes
 app.include_router(research_orch_router)  # Autonomous Research Orchestrator (Phase 9)
+app.include_router(knowledge_network_router)  # ATLAS Knowledge Network: sources + dry-run sync planning
 from routes.environments import router as environments_router  # Phase D2
 app.include_router(environments_router)
 from routes.nir import router as nir_router  # Phase D4: NIR Scanner
