@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "system": "ATLAS HUD Design Tokens",
+  "colors": {
+    "atlas_idle": {
+      "name": "ATLAS Amber Core",
+      "primary": "#F6A53A",
+      "secondary": "#FFD27A",
+      "deep": "#2A1405",
+      "glow": "rgba(246, 165, 58, 0.65)"
+    },
+    "ajani": {
+      "name": "Ajani Crimson",
+      "primary": "#D72638",
+      "secondary": "#FF6B6B",
+      "deep": "#210509",
+      "glow": "rgba(215, 38, 56, 0.68)"
+    },
+    "hermes": {
+      "name": "Hermes Blue-White",
+      "primary": "#4CC9F0",
+      "secondary": "#E8FBFF",
+      "deep": "#03131A",
+      "glow": "rgba(76, 201, 240, 0.64)"
+    },
+    "minerva": {
+      "name": "Minerva Teal-Green",
+      "primary": "#2DD4BF",
+      "secondary": "#A7F3D0",
+      "deep": "#031F1A",
+      "glow": "rgba(45, 212, 191, 0.62)"
+    },
+    "council": {
+      "name": "Council Purple",
+      "primary": "#9D4EDD",
+      "secondary": "#E0AAFF",
+      "deep": "#160423",
+      "glow": "rgba(157, 78, 221, 0.68)"
+    },
+    "surface": {
+      "void": "#030406",
+      "panel": "rgba(10, 14, 20, 0.58)",
+      "panel_strong": "rgba(10, 14, 20, 0.78)",
+      "stroke": "rgba(255, 255, 255, 0.16)",
+      "text_primary": "#F8FAFC",
+      "text_secondary": "#AAB4C0"
+    }
+  },
+  "typography": {
+    "display": {"font_family": "Inter, Space Grotesk, system-ui", "weight": 700},
+    "body": {"font_family": "Inter, system-ui", "weight": 400},
+    "mono": {"font_family": "JetBrains Mono, ui-monospace", "weight": 500}
+  },
+  "radii": {
+    "panel": 24,
+    "chip": 999,
+    "node": 999,
+    "portrait": 18
+  },
+  "blur": {
+    "glass_panel": 20,
+    "core_glow": 48,
+    "background_depth": 80
+  },
+  "motion": {
+    "idle_ring_rotation_seconds": 36,
+    "active_ring_rotation_seconds": 18,
+    "state_morph_ms": 900,
+    "node_unfold_ms": 650,
+    "panel_slide_ms": 420,
+    "breathing_glow_seconds": 4.8
+  }
+}
