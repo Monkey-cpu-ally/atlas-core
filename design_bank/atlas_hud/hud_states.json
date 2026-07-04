@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "states": [
+    {
+      "id": "atlas_idle",
+      "name": "ATLAS Core Idle",
+      "trigger": "app_start | timeout_return | user_says_atlas",
+      "color_token": "atlas_idle",
+      "core_behavior": "slow breathing amber orb with transparent orbital rings",
+      "visible_modules": ["core", "minimal_status", "small_ai_portraits"],
+      "hidden_modules": ["knowledge_graph", "bank_panels", "mission_queue", "engineering_console"],
+      "description": "Default calm state inspired by the user's third reference image. Low noise, centered core, no clutter."
+    },
+    {
+      "id": "hermes_active",
+      "name": "Hermes Active State",
+      "trigger": "user_says_hermes",
+      "color_token": "hermes",
+      "core_behavior": "blue-white core with robotics/design nodes unfolding from center",
+      "visible_modules": ["knowledge_graph", "robotics", "design_bank", "blueprint_bank", "materials", "manufacturing", "active_missions"],
+      "description": "Hermes awakens as the robotics, design, CAD, and blueprint interface."
+    },
+    {
+      "id": "ajani_active",
+      "name": "Ajani Active State",
+      "trigger": "user_says_ajani",
+      "color_token": "ajani",
+      "core_behavior": "crimson engineering core with system and build nodes unfolding",
+      "visible_modules": ["engineering", "manufacturing", "energy", "aerospace", "vehicles", "architecture", "project_bank", "active_missions"],
+      "description": "Ajani awakens as the engineering, systems, build, and feasibility interface."
+    },
+    {
+      "id": "minerva_active",
+      "name": "Minerva Active State",
+      "trigger": "user_says_minerva",
+      "color_token": "minerva",
+      "core_behavior": "teal-green science core with organic knowledge nodes unfolding",
+      "visible_modules": ["biology", "chemistry", "medicine", "plants", "agriculture", "environment", "research_bank", "active_missions"],
+      "description": "Minerva awakens as the science, biology, plant, medicine, and environmental interface."
+    },
+    {
+      "id": "council_active",
+      "name": "Council Active State",
+      "trigger": "user_holds_core_and_says_council",
+      "color_token": "council",
+      "core_behavior": "purple executive core with Ajani, Hermes, and Minerva streams merging",
+      "visible_modules": ["all_ai_status", "pending_reviews", "approvals", "conflicts", "weekly_reports", "strategic_dashboard"],
+      "description": "Council mode merges all AI perspectives and displays executive decisions."
+    },
+    {
+      "id": "world_knowledge_mode",
+      "name": "World Knowledge Mode",
+      "trigger": "user_opens_world_sources | scheduled_research_running",
+      "color_token": "atlas_idle",
+      "core_behavior": "global source lights feed knowledge streams into the active AI",
+      "visible_modules": ["world_map", "source_registry", "sync_jobs", "trust_levels", "citations"],
+      "description": "Shows where ATLAS is learning from around the world."
+    }
+  ]
+}
