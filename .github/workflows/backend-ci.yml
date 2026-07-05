@@ -17,6 +17,10 @@ on:
       - ".github/workflows/backend-ci.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   backend-tests:
     name: Backend tests
@@ -63,9 +67,95 @@ jobs:
 
       - name: Python syntax compile check
         run: |
-          python -m compileall backend atlas_core
+          mkdir -p test_reports
+          set +e
+          python -m compileall backend atlas_core 2>&1 | tee test_reports/compile.log
+          status=${PIPESTATUS[0]}
+          echo $status > test_reports/compile.exitcode
+          exit $status
 
       - name: Run backend unit tests
         working-directory: backend
         run: |
-          pytest -q
+          mkdir -p ../test_reports
+          set +e
+          pytest -q 2>&1 | tee ../test_reports/pytest.log
+          status=${PIPESTATUS[0]}
+          echo $status > ../test_reports/pytest.exitcode
+          exit $status
+
+      - name: Build ATLAS repair report
+        if: failure()
+        run: |
+          mkdir -p test_reports
+          cat > test_reports/atlas_repair_report.md <<'EOF'
+          # ATLAS CI Repair Report
+
+          CI failed. ATLAS should inspect this report, identify the root cause, and create a fix in the next coding session.
+
+          ## Commit
+          `${{ github.sha }}`
+
+          ## Branch
+          `${{ github.ref_name }}`
+
+          ## Run
+          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ## Repair Protocol
+          1. Read `compile.log` first.
+          2. Read `pytest.log` second.
+          3. Identify the smallest safe fix.
+          4. Do not remove ATLAS features to make tests pass.
+          5. Add or update tests when fixing the bug.
+          6. Re-run CI after the fix.
+          EOF
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-ci-failure-report
+          path: test_reports/
+
+      - name: Create repair issue on CI failure
+        if: failure() && github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `ATLAS CI Repair Needed: ${context.sha.substring(0, 7)}`;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              '## ATLAS CI failed',
+              '',
+              `Commit: \`${context.sha}\``,
+              `Branch: \`${context.ref}\``,
+              `Run: ${runUrl}`,
+              '',
+              '### Required action',
+              '- Inspect the uploaded `atlas-ci-failure-report` artifact.',
+              '- Fix the root cause without deleting ATLAS features.',
+              '- Add or update tests for the fix.',
+              '- Re-run CI until green.',
+              '',
+              '### ATLAS repair rule',
+              'Treat this as a repair mission for Ajani/Hermes/Minerva/Council review.'
+            ].join('\n');
+
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'ci-failure,atlas-repair'
+            });
+
+            const already = existing.data.find(issue => issue.title === title);
+            if (!already) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['ci-failure', 'atlas-repair']
+              });
+            }
