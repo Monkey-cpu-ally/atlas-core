@@ -62,6 +62,8 @@ from routes.autonomous_knowledge import router as autonomous_knowledge_router
 from routes.source_sync import router as source_sync_router
 # ATLAS Mission Scheduler — routes goals to the right AI research lane
 from routes.mission_scheduler import router as mission_scheduler_router
+# ATLAS Project Intelligence — living project workspaces + cross-project reuse
+from routes.project_intelligence import router as project_intelligence_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -153,6 +155,7 @@ app.include_router(knowledge_graph_router)  # ATLAS Knowledge Graph: nodes, edge
 app.include_router(autonomous_knowledge_router)  # ATLAS Autonomous Knowledge: coordinated research jobs
 app.include_router(source_sync_router)  # ATLAS Source Sync: approved-source preview + discovery drafts
 app.include_router(mission_scheduler_router)  # ATLAS Mission Scheduler: classify + queue missions
+app.include_router(project_intelligence_router)  # ATLAS Project Intelligence: living project workspaces
 from routes.environments import router as environments_router  # Phase D2
 app.include_router(environments_router)
 from routes.nir import router as nir_router  # Phase D4: NIR Scanner
@@ -302,6 +305,22 @@ async def _wire_mission_scheduler():
         )
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning("Mission Scheduler persistence skipped: %s", exc)
+
+
+# Project Intelligence — attach MongoDB so living project workspaces persist.
+@app.on_event("startup")
+async def _wire_project_intelligence():
+    try:
+        from services import project_intelligence as _project_intelligence
+        _project_intelligence.attach_mongo(db)
+        await _project_intelligence.create_indexes()
+        counts = await _project_intelligence.hydrate_from_mongo()
+        logging.getLogger(__name__).info(
+            "Project Intelligence hydrated: %s projects",
+            counts["projects"],
+        )
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("Project Intelligence persistence skipped: %s", exc)
 
 
 # Phase 7 — Seed POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH on first boot
