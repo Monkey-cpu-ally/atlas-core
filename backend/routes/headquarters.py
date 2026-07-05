@@ -31,3 +31,23 @@ async def atlas_standard():
 @router.get("/mission-control")
 async def mission_control():
     return headquarters_engine.mission_control()
+
+
+@router.get("/knowledge-gate")
+async def knowledge_gate():
+    return headquarters_engine.knowledge_gate()
+
+
+@router.get("/source-clearance")
+async def source_clearance():
+    return headquarters_engine.source_clearance()
+
+
+@router.get("/project-briefing")
+async def project_briefing():
+    return headquarters_engine.project_briefing()
+
+
+@router.get("/refinement")
+async def refinement():
+    return headquarters_engine.refinement()
