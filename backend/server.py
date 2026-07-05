@@ -60,6 +60,8 @@ from routes.knowledge_graph import router as knowledge_graph_router
 from routes.autonomous_knowledge import router as autonomous_knowledge_router
 # ATLAS Source Sync — safe approved-source preview + discovery drafting
 from routes.source_sync import router as source_sync_router
+# ATLAS Mission Scheduler — routes goals to the right AI research lane
+from routes.mission_scheduler import router as mission_scheduler_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -150,6 +152,7 @@ app.include_router(research_labs_router)  # ATLAS Research Labs: missions + disc
 app.include_router(knowledge_graph_router)  # ATLAS Knowledge Graph: nodes, edges, neighborhoods
 app.include_router(autonomous_knowledge_router)  # ATLAS Autonomous Knowledge: coordinated research jobs
 app.include_router(source_sync_router)  # ATLAS Source Sync: approved-source preview + discovery drafts
+app.include_router(mission_scheduler_router)  # ATLAS Mission Scheduler: classify + queue missions
 from routes.environments import router as environments_router  # Phase D2
 app.include_router(environments_router)
 from routes.nir import router as nir_router  # Phase D4: NIR Scanner
@@ -283,6 +286,22 @@ async def _wire_source_sync():
         )
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning("Source Sync persistence skipped: %s", exc)
+
+
+# Mission Scheduler — attach MongoDB so scheduled mission records persist.
+@app.on_event("startup")
+async def _wire_mission_scheduler():
+    try:
+        from services import mission_scheduler as _mission_scheduler
+        _mission_scheduler.attach_mongo(db)
+        await _mission_scheduler.create_indexes()
+        counts = await _mission_scheduler.hydrate_from_mongo()
+        logging.getLogger(__name__).info(
+            "Mission Scheduler hydrated: %s schedules",
+            counts["schedules"],
+        )
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("Mission Scheduler persistence skipped: %s", exc)
 
 
 # Phase 7 — Seed POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH on first boot
