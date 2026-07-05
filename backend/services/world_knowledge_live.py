@@ -177,6 +177,10 @@ async def preview_source(source_id: str, limit: int = 5) -> Dict[str, Any]:
     planned = registry.plan_sync_job(source_id)
     connector_type = planned["connector_type"]
 
+    if connector_type == "github":
+        from services import source_code_connector
+        return await source_code_connector.preview_github_repository(source_id, commit_limit=limit)
+
     if connector_type == "rss":
         try:
             return await preview_rss(source_id, limit=limit)
