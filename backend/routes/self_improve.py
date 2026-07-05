@@ -7,6 +7,8 @@ POST  /api/self-improve/approve/{id}        → approve a proposal
 POST  /api/self-improve/reject/{id}         → reject a proposal
 GET   /api/self-improve/history             → full history
 GET   /api/self-improve/weekly-report       → deterministic 7-day roll-up
+GET   /api/self-improve/health-scan         → repository self-improvement scan
+POST  /api/self-improve/health-scan/propose → create proposals from scan
 """
 from typing import Any, Dict, List, Optional
 
@@ -27,6 +29,9 @@ class ProposeReq(BaseModel):
     risk_level: str = "low"
     confidence_score: float = 0.5
     source: str = "atlas"
+    owner_ai: str = "Council"
+    update_plan: List[str] = Field(default_factory=list)
+    rollback_plan: Optional[str] = None
 
 
 class DecideReq(BaseModel):
@@ -55,6 +60,9 @@ async def create(req: ProposeReq):
             risk_level=req.risk_level,
             confidence_score=req.confidence_score,
             source=req.source,
+            owner_ai=req.owner_ai,
+            update_plan=req.update_plan,
+            rollback_plan=req.rollback_plan,
         )
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
@@ -87,3 +95,13 @@ async def history(limit: int = Query(200, ge=1, le=1000)):
 @router.get("/weekly-report")
 async def weekly_report():
     return await si.weekly_report()
+
+
+@router.get("/health-scan")
+async def health_scan():
+    return si.analyze_repository_health()
+
+
+@router.post("/health-scan/propose")
+async def health_scan_propose():
+    return await si.propose_from_health_scan()
