@@ -64,6 +64,8 @@ from routes.source_sync import router as source_sync_router
 from routes.mission_scheduler import router as mission_scheduler_router
 # ATLAS Project Intelligence — living project workspaces + cross-project reuse
 from routes.project_intelligence import router as project_intelligence_router
+# ATLAS External Access — permission-first gateway for outside tools/content
+from routes.external_access import router as external_access_router
 # Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
 from atlas_core import atlas_router as atlas_core_router
 
@@ -125,47 +127,46 @@ async def get_status_checks():
 
 # Include the router in the main app
 app.include_router(api_router)
-app.include_router(files_router)  # File upload and management routes
-app.include_router(chat_router)  # AI chat routes
-app.include_router(knowledge_router)  # Knowledge core routes
-app.include_router(ai_services_router)  # TTS, Minerva, Hermes, Blueprint
-app.include_router(sandbox_router)  # Sandbox: save/replay, mastery curve, AI suggest
-app.include_router(council_router)  # Topic routing + tri-AI deliberation
-app.include_router(hud_surfaces_router)  # Memory feed, Manual, Settings
-app.include_router(intake_router)  # YouTube intake → routed lesson + quiz
-app.include_router(learning_router)  # Full learning pipeline (lessons/projects/mastery)
-app.include_router(llm_router)  # Phase 1: multi-provider LLM (emergent + ollama + lmstudio)
-app.include_router(memory_router)  # Phase 2: memory bank + vector search + graph triples
-app.include_router(research_router)  # Phase 3: research pipeline (web + pdf + patent)
-app.include_router(twins_router)  # Phase 5: digital twin engine (registry + 6 simulators + council)
-app.include_router(weaver_router)  # Phase 6: weaver (parts library + blueprint planner + manufacturing)
-app.include_router(kbase_router)  # Knowledge Ingestion: distill external sources → MemoryRecords
-app.include_router(robot_router)  # Phase 7: robot control layer (devices + telemetry + sim-first command pipeline)
-app.include_router(persona_router)  # Phase 8a: persona chat (Ajani · Minerva · Hermes · Council)
-app.include_router(watchers_router)  # Knowledge Watcher (GitHub link-list ingester)
-app.include_router(kbase_helper_router)  # /api/kbase/sources/github helper
-app.include_router(lessons_router)  # Lesson plans generated from watcher runs
-app.include_router(self_improve_router)  # ATLAS Self-Improvement Watcher
-app.include_router(youtube_router)  # YouTube Learning subsystem (resolver + manual transcript + dashboard)
-app.include_router(atlas_v2_router)  # ATLAS V2: worldwatch + self-code + learning + style + themes
-app.include_router(research_orch_router)  # Autonomous Research Orchestrator (Phase 9)
-app.include_router(knowledge_network_router)  # ATLAS Knowledge Network: sources + dry-run sync planning
-app.include_router(research_labs_router)  # ATLAS Research Labs: missions + discoveries + Council review
-app.include_router(knowledge_graph_router)  # ATLAS Knowledge Graph: nodes, edges, neighborhoods
-app.include_router(autonomous_knowledge_router)  # ATLAS Autonomous Knowledge: coordinated research jobs
-app.include_router(source_sync_router)  # ATLAS Source Sync: approved-source preview + discovery drafts
-app.include_router(mission_scheduler_router)  # ATLAS Mission Scheduler: classify + queue missions
-app.include_router(project_intelligence_router)  # ATLAS Project Intelligence: living project workspaces
-from routes.environments import router as environments_router  # Phase D2
+app.include_router(files_router)
+app.include_router(chat_router)
+app.include_router(knowledge_router)
+app.include_router(ai_services_router)
+app.include_router(sandbox_router)
+app.include_router(council_router)
+app.include_router(hud_surfaces_router)
+app.include_router(intake_router)
+app.include_router(learning_router)
+app.include_router(llm_router)
+app.include_router(memory_router)
+app.include_router(research_router)
+app.include_router(twins_router)
+app.include_router(weaver_router)
+app.include_router(kbase_router)
+app.include_router(robot_router)
+app.include_router(persona_router)
+app.include_router(watchers_router)
+app.include_router(kbase_helper_router)
+app.include_router(lessons_router)
+app.include_router(self_improve_router)
+app.include_router(youtube_router)
+app.include_router(atlas_v2_router)
+app.include_router(research_orch_router)
+app.include_router(knowledge_network_router)
+app.include_router(research_labs_router)
+app.include_router(knowledge_graph_router)
+app.include_router(autonomous_knowledge_router)
+app.include_router(source_sync_router)
+app.include_router(mission_scheduler_router)
+app.include_router(project_intelligence_router)
+app.include_router(external_access_router)
+from routes.environments import router as environments_router
 app.include_router(environments_router)
-from routes.nir import router as nir_router  # Phase D4: NIR Scanner
+from routes.nir import router as nir_router
 app.include_router(nir_router)
-from routes.subjects import router as subjects_router  # Knowledge Bank Phase A
+from routes.subjects import router as subjects_router
 app.include_router(subjects_router)
-from routes.research_sources import router as research_sources_router  # Knowledge Bank Phase C
+from routes.research_sources import router as research_sources_router
 app.include_router(research_sources_router)
-# ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
-# cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")
 
 
@@ -175,30 +176,20 @@ EXPORTS_DIR = Path("/app/exports")
 
 @app.get("/api/exports/atlas-ai-architecture.zip")
 async def download_architecture_zip():
-    """Serve the bundled AI architecture zip for download."""
     path = EXPORTS_DIR / "atlas-ai-architecture.zip"
     if not path.exists():
         from fastapi import HTTPException
         raise HTTPException(404, "architecture zip not yet built")
-    return FileResponse(
-        path=str(path),
-        filename="atlas-ai-architecture.zip",
-        media_type="application/zip",
-    )
+    return FileResponse(path=str(path), filename="atlas-ai-architecture.zip", media_type="application/zip")
 
 
 @app.get("/api/exports/atlas-hud-architecture.zip")
 async def download_hud_zip():
-    """Serve the bundled HUD frontend architecture zip for download."""
     path = EXPORTS_DIR / "atlas-hud-architecture.zip"
     if not path.exists():
         from fastapi import HTTPException
         raise HTTPException(404, "HUD architecture zip not yet built")
-    return FileResponse(
-        path=str(path),
-        filename="atlas-hud-architecture.zip",
-        media_type="application/zip",
-    )
+    return FileResponse(path=str(path), filename="atlas-hud-architecture.zip", media_type="application/zip")
 
 
 @app.get("/api/exports/README.md")
@@ -218,8 +209,7 @@ async def download_hud_readme():
         raise HTTPException(404, "HUD readme not found")
     return FileResponse(path=str(path), filename="atlas-hud-README.md", media_type="text/markdown")
 
-# Wire ATLAS memory to MongoDB on startup so archive entries, conversations,
-# and audit events persist across restarts.
+
 from atlas_core.memory.memory import attach_mongo_on_startup as _atlas_attach_mongo
 
 @app.on_event("startup")
@@ -227,7 +217,6 @@ async def _wire_atlas_memory():
     await _atlas_attach_mongo()
 
 
-# Research Labs — attach MongoDB so missions/discoveries persist across restarts.
 @app.on_event("startup")
 async def _wire_research_labs():
     try:
@@ -235,15 +224,11 @@ async def _wire_research_labs():
         _research_labs.attach_mongo(db)
         await _research_labs.create_indexes()
         counts = await _research_labs.hydrate_from_mongo()
-        logging.getLogger(__name__).info(
-            "Research Labs hydrated: %s missions · %s discoveries",
-            counts["missions"], counts["discoveries"],
-        )
-    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).info("Research Labs hydrated: %s missions · %s discoveries", counts["missions"], counts["discoveries"])
+    except Exception as exc:
         logging.getLogger(__name__).warning("Research Lab persistence skipped: %s", exc)
 
 
-# Knowledge Graph — attach MongoDB so relationships persist across restarts.
 @app.on_event("startup")
 async def _wire_knowledge_graph():
     try:
@@ -251,15 +236,11 @@ async def _wire_knowledge_graph():
         _knowledge_graph.attach_mongo(db)
         await _knowledge_graph.create_indexes()
         counts = await _knowledge_graph.hydrate_from_mongo()
-        logging.getLogger(__name__).info(
-            "Knowledge Graph hydrated: %s nodes · %s edges",
-            counts["nodes"], counts["edges"],
-        )
-    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).info("Knowledge Graph hydrated: %s nodes · %s edges", counts["nodes"], counts["edges"])
+    except Exception as exc:
         logging.getLogger(__name__).warning("Knowledge Graph persistence skipped: %s", exc)
 
 
-# Autonomous Knowledge — attach MongoDB so coordinated knowledge jobs persist.
 @app.on_event("startup")
 async def _wire_autonomous_knowledge():
     try:
@@ -267,15 +248,11 @@ async def _wire_autonomous_knowledge():
         _ake.attach_mongo(db)
         await _ake.create_indexes()
         counts = await _ake.hydrate_from_mongo()
-        logging.getLogger(__name__).info(
-            "Autonomous Knowledge hydrated: %s jobs",
-            counts["jobs"],
-        )
-    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).info("Autonomous Knowledge hydrated: %s jobs", counts["jobs"])
+    except Exception as exc:
         logging.getLogger(__name__).warning("Autonomous Knowledge persistence skipped: %s", exc)
 
 
-# Source Sync — attach MongoDB so source-preview runs persist.
 @app.on_event("startup")
 async def _wire_source_sync():
     try:
@@ -283,15 +260,11 @@ async def _wire_source_sync():
         _source_sync.attach_mongo(db)
         await _source_sync.create_indexes()
         counts = await _source_sync.hydrate_from_mongo()
-        logging.getLogger(__name__).info(
-            "Source Sync hydrated: %s runs",
-            counts["sync_runs"],
-        )
-    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).info("Source Sync hydrated: %s runs", counts["sync_runs"])
+    except Exception as exc:
         logging.getLogger(__name__).warning("Source Sync persistence skipped: %s", exc)
 
 
-# Mission Scheduler — attach MongoDB so scheduled mission records persist.
 @app.on_event("startup")
 async def _wire_mission_scheduler():
     try:
@@ -299,15 +272,11 @@ async def _wire_mission_scheduler():
         _mission_scheduler.attach_mongo(db)
         await _mission_scheduler.create_indexes()
         counts = await _mission_scheduler.hydrate_from_mongo()
-        logging.getLogger(__name__).info(
-            "Mission Scheduler hydrated: %s schedules",
-            counts["schedules"],
-        )
-    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).info("Mission Scheduler hydrated: %s schedules", counts["schedules"])
+    except Exception as exc:
         logging.getLogger(__name__).warning("Mission Scheduler persistence skipped: %s", exc)
 
 
-# Project Intelligence — attach MongoDB so living project workspaces persist.
 @app.on_event("startup")
 async def _wire_project_intelligence():
     try:
@@ -315,16 +284,27 @@ async def _wire_project_intelligence():
         _project_intelligence.attach_mongo(db)
         await _project_intelligence.create_indexes()
         counts = await _project_intelligence.hydrate_from_mongo()
-        logging.getLogger(__name__).info(
-            "Project Intelligence hydrated: %s projects",
-            counts["projects"],
-        )
-    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).info("Project Intelligence hydrated: %s projects", counts["projects"])
+    except Exception as exc:
         logging.getLogger(__name__).warning("Project Intelligence persistence skipped: %s", exc)
 
 
-# Phase 7 — Seed POSEIDON-BUOY / AETHER-STATION / SOIL-WATCH on first boot
-# (each auto-bound to its own Digital Twin via services/robot.py).
+@app.on_event("startup")
+async def _wire_external_access():
+    try:
+        from services import external_access_gateway as _external_access
+        _external_access.attach_mongo(db)
+        await _external_access.create_indexes()
+        counts = await _external_access.hydrate_from_mongo()
+        if counts["connections"] == 0:
+            seeded = _external_access.seed_default_connections()
+            await _external_access.persist_all(seeded["items"])
+            counts = await _external_access.hydrate_from_mongo()
+        logging.getLogger(__name__).info("External Access hydrated: %s connections · %s import plans", counts["connections"], counts["import_plans"])
+    except Exception as exc:
+        logging.getLogger(__name__).warning("External Access persistence skipped: %s", exc)
+
+
 from services import robot as _robot_service
 
 @app.on_event("startup")
@@ -332,31 +312,20 @@ async def _seed_phase7_devices():
     try:
         inserted = await _robot_service.seed_if_needed()
         if inserted:
-            logging.getLogger(__name__).info(
-                "Phase 7: seeded %d robot devices + twins", inserted
-            )
-    except Exception as exc:  # noqa: BLE001
-        logging.getLogger(__name__).warning(
-            "Phase 7 seed skipped: %s", exc
-        )
+            logging.getLogger(__name__).info("Phase 7: seeded %d robot devices + twins", inserted)
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Phase 7 seed skipped: %s", exc)
 
 
-# Phase 8h — Sentinel Autonomic Watcher (loops at SENTINEL_AUTONOMIC_INTERVAL_S
-# seconds, fires Council on every newly-detected anomaly).
 @app.on_event("startup")
 async def _start_sentinel_watcher():
     try:
         from services import sentinel_watcher
         await sentinel_watcher.start()
-    except Exception as exc:  # noqa: BLE001
-        logging.getLogger(__name__).warning(
-            "Sentinel autonomic watcher failed to start: %s",
-            exc,
-        )
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Sentinel autonomic watcher failed to start: %s", exc)
 
 
-# Phase D2 — Twin Environments: seed 5 realistic environments (lab,
-# outdoor, aerial, aquatic, lunar) on first boot. Idempotent.
 @app.on_event("startup")
 async def _seed_twin_environments():
     try:
@@ -364,12 +333,10 @@ async def _seed_twin_environments():
         n = await env_svc.seed_if_needed()
         if n:
             logging.getLogger(__name__).info("Twin environments seeded: %s new", n)
-    except Exception as exc:    # noqa: BLE001
+    except Exception as exc:
         logging.getLogger(__name__).warning("environment seed failed: %s", exc)
 
 
-# Phase D4 — NIR Scanner: seed a 12-entry NIR library (plastics, agri,
-# materials) on first boot. Idempotent.
 @app.on_event("startup")
 async def _seed_nir_library():
     try:
@@ -377,11 +344,10 @@ async def _seed_nir_library():
         n = await nir_svc.seed_library_if_needed()
         if n:
             logging.getLogger(__name__).info("NIR library seeded: %s new entries", n)
-    except Exception as exc:    # noqa: BLE001
+    except Exception as exc:
         logging.getLogger(__name__).warning("NIR seed failed: %s", exc)
 
 
-# Knowledge Bank Phase A — Seed 22 subjects on first boot. Idempotent.
 @app.on_event("startup")
 async def _seed_subjects():
     try:
@@ -389,30 +355,21 @@ async def _seed_subjects():
         n = await subj_svc.seed_if_needed()
         if n:
             logging.getLogger(__name__).info("Subjects seeded: %s new", n)
-    except Exception as exc:    # noqa: BLE001
+    except Exception as exc:
         logging.getLogger(__name__).warning("subject seed failed: %s", exc)
 
 
-# Phases D5 + D6 — Reference twins: AGRI-ROVER-01 (Green Robot),
-# ATLAS-CELL-V1 (Li-ion power cell), ATLAS-CELL-SS-V1 (Solid-state).
-# Each twin is also mirrored as a reference blueprint stub.
 @app.on_event("startup")
 async def _seed_reference_twins():
     try:
         from services import reference_twins
         r = await reference_twins.seed_if_needed()
         if r["inserted_twins"]:
-            logging.getLogger(__name__).info(
-                "Reference twins seeded: %s · blueprints: %s",
-                r["inserted_twins"], r["inserted_blueprints"],
-            )
-    except Exception as exc:    # noqa: BLE001
+            logging.getLogger(__name__).info("Reference twins seeded: %s · blueprints: %s", r["inserted_twins"], r["inserted_blueprints"])
+    except Exception as exc:
         logging.getLogger(__name__).warning("reference twin seed failed: %s", exc)
 
 
-# Phase 8c.2 — MQTT bidirectional bridge: capture the running event loop
-# and wire the device→Atlas telemetry uplink subscriber. Dormant if
-# MQTT_BROKER_HOST is unset.
 @app.on_event("startup")
 async def _start_mqtt_uplink():
     try:
@@ -422,7 +379,7 @@ async def _start_mqtt_uplink():
         if mqtt_bridge.is_enabled():
             status = mqtt_bridge.enable_uplink()
             logging.getLogger(__name__).info("MQTT uplink: %s", status)
-    except Exception as exc:    # noqa: BLE001
+    except Exception as exc:
         logging.getLogger(__name__).warning("MQTT uplink wire failed: %s", exc)
 
 app.add_middleware(
@@ -430,28 +387,22 @@ app.add_middleware(
     allow_credentials=True,
     allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-    # Phase 8c — clean MQTT bridge shutdown (no-op when dormant)
     try:
         from services import mqtt_bridge
         mqtt_bridge.shutdown()
-    except Exception:    # noqa: BLE001
+    except Exception:
         pass
-    # Phase 8h — stop the Sentinel autonomic loop
     try:
         from services import sentinel_watcher
         await sentinel_watcher.stop()
-    except Exception:    # noqa: BLE001
+    except Exception:
         pass
