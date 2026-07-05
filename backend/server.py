@@ -46,6 +46,7 @@ from routes.mission_scheduler import router as mission_scheduler_router
 from routes.project_intelligence import router as project_intelligence_router
 from routes.external_access import router as external_access_router
 from routes.discovery_approval import router as discovery_approval_router
+from routes.headquarters import router as headquarters_router
 from atlas_core import atlas_router as atlas_core_router
 
 ROOT_DIR = Path(__file__).parent
@@ -127,6 +128,7 @@ app.include_router(mission_scheduler_router)
 app.include_router(project_intelligence_router)
 app.include_router(external_access_router)
 app.include_router(discovery_approval_router)
+app.include_router(headquarters_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router
