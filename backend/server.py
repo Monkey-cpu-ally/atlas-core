@@ -12,24 +12,15 @@ from typing import List
 import uuid
 from datetime import datetime, timezone
 
-# Make /app importable so we can find the atlas_core sibling package.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Import file routes
 from routes.files import router as files_router
-# Import chat routes
 from routes.chat import router as chat_router
-# Import knowledge core routes
 from routes.knowledge import router as knowledge_router
-# Import AI services (TTS / Minerva / Hermes / Blueprint)
 from routes.ai_services import router as ai_services_router
-# Sandbox — save/replay configs, mastery curve, AI-suggested tweaks
 from routes.sandbox import router as sandbox_router
-# Council — topic routing + tri-AI deliberation
 from routes.council import router as council_router
-# HUD surfaces — Memory feed, Manual sections, Settings
 from routes.hud_surfaces import router as hud_surfaces_router
-# YouTube / external knowledge intake → routed lesson + quiz
 from routes.intake import router as intake_router
 from routes.learning import router as learning_router
 from routes.llm import router as llm_router
@@ -40,92 +31,68 @@ from routes.weaver import router as weaver_router
 from routes.kbase import router as kbase_router
 from routes.robot import router as robot_router
 from routes.persona import router as persona_router
-# Watchers — GitHub link-list ingester + lessons + self-improvement
 from routes.watchers import router as watchers_router, kbase_helper_router
 from routes.lessons import router as lessons_router
 from routes.self_improve import router as self_improve_router
-# YouTube channel-RSS resolver + manual transcript ingest + dashboard
 from routes.youtube import router as youtube_router
-# ATLAS V2: World Watch + Self-Code + Adaptation + Style + Themes
 from routes.atlas_v2 import router as atlas_v2_router
-# Autonomous Research Orchestrator (Phase 9)
 from routes.research_orchestrator import router as research_orch_router
-# ATLAS Knowledge Network — World Sources registry + dry-run sync planning
 from routes.knowledge_network import router as knowledge_network_router
-# ATLAS Research Labs — Ajani/Hermes/Minerva/Council mission queues
 from routes.research_labs import router as research_labs_router
-# ATLAS Knowledge Graph — connected concepts, projects, discoveries, sources
 from routes.knowledge_graph import router as knowledge_graph_router
-# ATLAS Autonomous Knowledge — source selection + research mission orchestration
 from routes.autonomous_knowledge import router as autonomous_knowledge_router
-# ATLAS Source Sync — safe approved-source preview + discovery drafting
 from routes.source_sync import router as source_sync_router
-# ATLAS Mission Scheduler — routes goals to the right AI research lane
 from routes.mission_scheduler import router as mission_scheduler_router
-# ATLAS Project Intelligence — living project workspaces + cross-project reuse
 from routes.project_intelligence import router as project_intelligence_router
-# ATLAS External Access — permission-first gateway for outside tools/content
 from routes.external_access import router as external_access_router
-# Import ATLAS Core v1 — three cognitive cores, council, teaching, blueprint, shield
+from routes.discovery_approval import router as discovery_approval_router
 from atlas_core import atlas_router as atlas_core_router
-
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
 app = FastAPI()
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
 
-# Define Models
 class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
+    model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# Add your routes to the router instead of directly to app
+
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
 
+
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
+    status_obj = StatusCheck(**input.model_dump())
     doc = status_obj.model_dump()
     doc['timestamp'] = doc['timestamp'].isoformat()
-    
     _ = await db.status_checks.insert_one(doc)
     return status_obj
 
+
 @api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
     status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
     for check in status_checks:
         if isinstance(check['timestamp'], str):
             check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
     return status_checks
 
-# Include the router in the main app
+
 app.include_router(api_router)
 app.include_router(files_router)
 app.include_router(chat_router)
@@ -159,6 +126,7 @@ app.include_router(source_sync_router)
 app.include_router(mission_scheduler_router)
 app.include_router(project_intelligence_router)
 app.include_router(external_access_router)
+app.include_router(discovery_approval_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router
@@ -169,8 +137,6 @@ from routes.research_sources import router as research_sources_router
 app.include_router(research_sources_router)
 app.include_router(atlas_core_router, prefix="/api")
 
-
-# --- Exports — let the architect download the AI architecture zip --------
 EXPORTS_DIR = Path("/app/exports")
 
 
@@ -211,6 +177,7 @@ async def download_hud_readme():
 
 
 from atlas_core.memory.memory import attach_mongo_on_startup as _atlas_attach_mongo
+
 
 @app.on_event("startup")
 async def _wire_atlas_memory():
@@ -305,7 +272,31 @@ async def _wire_external_access():
         logging.getLogger(__name__).warning("External Access persistence skipped: %s", exc)
 
 
+@app.on_event("startup")
+async def _wire_discovery_approval():
+    try:
+        from services import chronicle_engine as _chronicle
+        from services import discovery_approval_pipeline as _dap
+        from services import knowledge_record_writer as _krw
+        _dap.attach_mongo(db)
+        _krw.attach_mongo(db)
+        _chronicle.attach_mongo(db)
+        await _dap.create_indexes()
+        await _krw.create_indexes()
+        await _chronicle.create_indexes()
+        dcounts = await _dap.hydrate_from_mongo()
+        kcounts = await _krw.hydrate_from_mongo()
+        ccounts = await _chronicle.hydrate_from_mongo()
+        logging.getLogger(__name__).info(
+            "Discovery Approval hydrated: %s drafts · %s records · %s chronicle entries",
+            dcounts["discovery_drafts"], kcounts["knowledge_records"], ccounts["chronicle_entries"]
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Discovery Approval persistence skipped: %s", exc)
+
+
 from services import robot as _robot_service
+
 
 @app.on_event("startup")
 async def _seed_phase7_devices():
@@ -382,6 +373,7 @@ async def _start_mqtt_uplink():
     except Exception as exc:
         logging.getLogger(__name__).warning("MQTT uplink wire failed: %s", exc)
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -392,6 +384,7 @@ app.add_middleware(
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
