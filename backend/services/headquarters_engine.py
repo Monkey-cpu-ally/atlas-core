@@ -66,36 +66,12 @@ DIVISIONS = [
 
 
 QUALITY_GATES = [
-    {
-        "gate": "Built",
-        "meaning": "The subsystem exists as real code, not only a roadmap item.",
-        "required": True,
-    },
-    {
-        "gate": "Connected",
-        "meaning": "The subsystem is mounted into ATLAS and linked to the correct services.",
-        "required": True,
-    },
-    {
-        "gate": "Tested",
-        "meaning": "Unit and integration tests cover core behavior and failure behavior.",
-        "required": True,
-    },
-    {
-        "gate": "Cleaned",
-        "meaning": "Names, modules, imports, error handling, and responsibilities are organized.",
-        "required": True,
-    },
-    {
-        "gate": "Documented",
-        "meaning": "Purpose, routes, inputs, outputs, and limitations are documented.",
-        "required": True,
-    },
-    {
-        "gate": "Approved",
-        "meaning": "Headquarters confirms it meets the ATLAS Luxury Engineering Standard.",
-        "required": True,
-    },
+    {"gate": "Built", "meaning": "The subsystem exists as real code, not only a roadmap item.", "required": True},
+    {"gate": "Connected", "meaning": "The subsystem is mounted into ATLAS and linked to the correct services.", "required": True},
+    {"gate": "Tested", "meaning": "Unit and integration tests cover core behavior and failure behavior.", "required": True},
+    {"gate": "Cleaned", "meaning": "Names, modules, imports, error handling, and responsibilities are organized.", "required": True},
+    {"gate": "Documented", "meaning": "Purpose, routes, inputs, outputs, and limitations are documented.", "required": True},
+    {"gate": "Approved", "meaning": "Headquarters confirms it meets the ATLAS Luxury Engineering Standard.", "required": True},
 ]
 
 
@@ -108,7 +84,6 @@ GENERIC_REPLACEMENT_MAP = {
 
 
 def headquarters_status() -> Dict[str, Any]:
-    """Return a polished command-center status snapshot."""
     return {
         "name": "ATLAS Headquarters",
         "motto": "Order. Precision. Craftsmanship. Legacy.",
@@ -125,7 +100,6 @@ def headquarters_status() -> Dict[str, Any]:
 
 
 def quality_gate_report() -> Dict[str, Any]:
-    """Return the clean quality-gate checklist used before any phase is approved."""
     return {
         "title": "ATLAS Quality Gate Report",
         "rule": "A subsystem is not complete because files exist; it is complete only when it is built, connected, tested, cleaned, documented, and approved.",
@@ -136,7 +110,6 @@ def quality_gate_report() -> Dict[str, Any]:
 
 
 def atlas_standard() -> Dict[str, Any]:
-    """Return the ATLAS standard in product-facing language."""
     return {
         "title": "ATLAS Luxury Engineering Standard",
         "principles": [
@@ -155,7 +128,6 @@ def atlas_standard() -> Dict[str, Any]:
 
 
 def mission_control() -> Dict[str, Any]:
-    """Return current mission queue in ATLAS language."""
     return {
         "title": "ATLAS Mission Control",
         "active": {
@@ -170,5 +142,91 @@ def mission_control() -> Dict[str, Any]:
             "Create ATLAS System Inspector after Knowledge Validation passes Headquarters review.",
         ],
         "blocked_until": "Phase 14 verification passes.",
+        "generated_at": _utc_now(),
+    }
+
+
+def knowledge_gate() -> Dict[str, Any]:
+    return _command_surface(
+        title="ATLAS Knowledge Gate",
+        replaces="/api/discovery-approval",
+        purpose="Controls whether discoveries are promoted into trusted ATLAS knowledge.",
+        owner="Minerva + Council",
+        responsibilities=[
+            "Create discovery drafts.",
+            "Collect Ajani, Hermes, and Minerva reviews.",
+            "Score evidence.",
+            "Record Council decisions.",
+            "Promote approved discoveries into Knowledge Records and Chronicle entries.",
+        ],
+        current_state="under_verification",
+    )
+
+
+def source_clearance() -> Dict[str, Any]:
+    return _command_surface(
+        title="ATLAS Source Clearance",
+        replaces="/api/external-access",
+        purpose="Controls what outside systems ATLAS is allowed to read or import.",
+        owner="Council",
+        responsibilities=[
+            "Define source permissions.",
+            "Block unrestricted private access.",
+            "Create import plans.",
+            "Route approved content through Council review.",
+        ],
+        current_state="under_verification",
+    )
+
+
+def project_briefing() -> Dict[str, Any]:
+    return _command_surface(
+        title="ATLAS Project Briefing",
+        replaces="/api/project-intelligence",
+        purpose="Presents living project workspaces as executive engineering briefs.",
+        owner="Council",
+        responsibilities=[
+            "Track missions, risks, recommendations, materials, tests, and decisions.",
+            "Detect cross-project reuse opportunities.",
+            "Keep project intelligence connected to ATLAS knowledge.",
+        ],
+        current_state="active_foundation_needs_more_tests",
+    )
+
+
+def refinement() -> Dict[str, Any]:
+    return _command_surface(
+        title="ATLAS Refinement Office",
+        replaces="/api/self-improve",
+        purpose="Turns rough edges, failed tests, and code-quality issues into safe improvement proposals.",
+        owner="Council",
+        responsibilities=[
+            "Scan repository health.",
+            "Create improvement proposals.",
+            "Require approval for risky changes.",
+            "Keep technical debt visible instead of hidden.",
+        ],
+        current_state="active",
+    )
+
+
+def _command_surface(
+    *,
+    title: str,
+    replaces: str,
+    purpose: str,
+    owner: str,
+    responsibilities: List[str],
+    current_state: str,
+) -> Dict[str, Any]:
+    return {
+        "title": title,
+        "identity": "ATLAS Headquarters Command Surface",
+        "developer_api_underneath": replaces,
+        "purpose": purpose,
+        "owner": owner,
+        "responsibilities": responsibilities,
+        "current_state": current_state,
+        "quality_gate": "pending_headquarters_approval",
         "generated_at": _utc_now(),
     }
