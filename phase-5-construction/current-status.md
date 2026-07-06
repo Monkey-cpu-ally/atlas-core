@@ -32,6 +32,7 @@ Task repository interface
 JSON task repository
 Event repository interface
 JSON event repository
+EventBusService optional JSON-backed persistence
 Repository persistence tests
 Task and event repository tests
 ```
@@ -48,15 +49,12 @@ Council
 ## Current Storage Mode
 
 ```text
-Memory and Knowledge services support optional JSON-backed persistence
-Task service supports optional JSON-backed persistence
-Event JSON repository exists; EventBusService repository wiring still pending
+Memory, Knowledge, Task, and Event services support optional JSON-backed persistence
 ```
 
 ## Current Known Limits
 
 ```text
-EventBusService is not wired to repository yet
 No SQLite persistence yet
 No real LLM calls yet
 No real HTTP server yet
@@ -68,16 +66,16 @@ No HUD integration yet
 
 ## Next Recommended Step
 
-Finish EventBusService repository wiring, then create a local data folder convention.
+Create a local atlas-data folder convention and add bootstrap demo persistence mode.
 
 Suggested order:
 
 ```text
-1. Wire EventBusService to EventRepository
-2. Add local atlas-data folder convention
-3. Add bootstrap demo persistence mode
-4. Prepare SQLite adapter planning document
-5. Add persistence recovery/loading from disk
+1. Add local atlas-data folder convention
+2. Add bootstrap demo persistence mode
+3. Prepare SQLite adapter planning document
+4. Add persistence recovery/loading from disk
+5. Add persistence backup convention
 ```
 
 ## Phase 5 Rule
