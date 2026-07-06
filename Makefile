@@ -1,6 +1,6 @@
 .PHONY: test bootstrap smoke phase5-status
 
-PYTHONPATH=atlas-core-runtime/src:atlas-events/src:atlas-tasks/src:atlas-memory-engine/src:atlas-knowledge-engine/src:atlas-agent-runtime/src:atlas-diagnostics/src:atlas-api/src
+PYTHONPATH=atlas-core-runtime/src:atlas-events/src:atlas-tasks/src:atlas-memory-engine/src:atlas-knowledge-engine/src:atlas-agent-runtime/src:atlas-diagnostics/src:atlas-api/src:atlas-persistence/src
 
 test:
 	PYTHONPATH=$(PYTHONPATH) pytest atlas-tests/tests
@@ -20,3 +20,4 @@ phase5-status:
 	@echo "- Agents: Hermes, Minerva, Ajani, Council identity registry"
 	@echo "- API: route registry scaffold"
 	@echo "- Diagnostics: health aggregation"
+	@echo "- Persistence: JSON file store scaffold"
