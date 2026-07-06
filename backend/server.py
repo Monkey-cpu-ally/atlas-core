@@ -52,6 +52,7 @@ from routes.global_knowledge import router as global_knowledge_router
 from routes.technology_atlas import router as technology_atlas_router
 from routes.project_knowledge import router as project_knowledge_router
 from routes.knowledge_chronicle import router as knowledge_chronicle_router
+from routes.engineering_os import router as engineering_os_router
 from atlas_core import atlas_router as atlas_core_router
 
 ROOT_DIR = Path(__file__).parent
@@ -139,6 +140,7 @@ app.include_router(global_knowledge_router)
 app.include_router(technology_atlas_router)
 app.include_router(project_knowledge_router)
 app.include_router(knowledge_chronicle_router)
+app.include_router(engineering_os_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router
@@ -370,6 +372,22 @@ async def _wire_knowledge_chronicle():
         logging.getLogger(__name__).info("Knowledge Chronicle hydrated: %s records · %s events", counts["knowledge_chronicle_records"], counts["knowledge_chronicle_events"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Knowledge Chronicle persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_engineering_os():
+    try:
+        from services import engineering_operating_system as _aeos
+        _aeos.attach_mongo(db)
+        await _aeos.create_indexes()
+        counts = await _aeos.hydrate_from_mongo()
+        if counts["engineering_missions"] == 0:
+            _aeos.seed_foundation_missions()
+            await _aeos.persist_all()
+            counts = await _aeos.hydrate_from_mongo()
+        logging.getLogger(__name__).info("Engineering OS hydrated: %s missions · %s tasks · %s risks", counts["engineering_missions"], counts["engineering_tasks"], counts["engineering_risks"])
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Engineering OS persistence skipped: %s", exc)
 
 
 from services import robot as _robot_service
