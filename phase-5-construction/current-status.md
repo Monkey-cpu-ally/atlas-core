@@ -2,7 +2,7 @@
 
 ## Current Milestone
 
-Phase 5 — Sprint 1: Core Foundation Scaffold
+Phase 5 — Sprint 2: Persistence Foundation
 
 ## Implemented So Far
 
@@ -21,6 +21,14 @@ Diagnostics health aggregation
 Bootstrap demo
 Smoke test
 Developer setup guide
+JSON persistence package
+JSON file store
+Memory repository interface
+JSON memory repository
+Knowledge repository interfaces
+JSON source repository
+JSON knowledge repository
+Repository persistence tests
 ```
 
 ## Core Agents Registered
@@ -35,13 +43,14 @@ Council
 ## Current Storage Mode
 
 ```text
-In-memory only
+In-memory services with optional JSON-backed persistence for Memory and Knowledge
 ```
 
 ## Current Known Limits
 
 ```text
-No database persistence yet
+Tasks and events are not persistent yet
+No SQLite persistence yet
 No real LLM calls yet
 No real HTTP server yet
 No graph database yet
@@ -52,16 +61,18 @@ No HUD integration yet
 
 ## Next Recommended Step
 
-Build persistence adapters.
+Extend persistence to tasks and events, then create a local data folder convention.
 
 Suggested order:
 
 ```text
-1. Define repository interfaces
-2. Add JSON file persistence for local development
-3. Add SQLite persistence for structured records
-4. Prepare graph database adapter interface
-5. Add tests for persistence
+1. Add task repository interface
+2. Add JSON task repository
+3. Add event repository interface
+4. Add JSON event repository
+5. Add local atlas-data folder convention
+6. Add bootstrap demo persistence mode
+7. Prepare SQLite adapter planning document
 ```
 
 ## Phase 5 Rule
