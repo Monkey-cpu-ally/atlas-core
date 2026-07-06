@@ -1,6 +1,7 @@
 """Smoke tests for the first ATLAS Phase 5 services."""
 
 from atlas_agent_runtime.service import AgentRuntimeService
+from atlas_api.service import ApiService
 from atlas_core_runtime.registry import ServiceRegistry
 from atlas_events.models import AtlasEvent
 from atlas_events.service import EventBusService
@@ -20,8 +21,16 @@ def test_phase5_services_can_start_and_store_records():
     memory_service = MemoryService()
     knowledge_service = KnowledgeService()
     agent_service = AgentRuntimeService()
+    api_service = ApiService()
 
-    for service in [event_service, task_service, memory_service, knowledge_service, agent_service]:
+    for service in [
+        event_service,
+        task_service,
+        memory_service,
+        knowledge_service,
+        agent_service,
+        api_service,
+    ]:
         service.start()
         registry.register(service)
 
@@ -79,8 +88,12 @@ def test_phase5_services_can_start_and_store_records():
     agent_names = {agent.name for agent in agent_service.list_agents()}
     assert {"Hermes", "Minerva", "Ajani", "Council"}.issubset(agent_names)
 
+    api_service.register_route("/system/test", lambda payload: {"ok": payload.get("ok", False)})
+    assert api_service.call("/system/test", {"ok": True}) == {"ok": True}
+
     assert set(registry.list_services()) == {
         "atlas-agent-runtime",
+        "atlas-api",
         "atlas-events",
         "atlas-knowledge-engine",
         "atlas-memory-engine",
