@@ -5,6 +5,7 @@ It assumes the service packages are importable through PYTHONPATH or a future wo
 """
 
 from atlas_agent_runtime.service import AgentRuntimeService
+from atlas_api.service import ApiService
 from atlas_core_runtime.registry import ServiceRegistry
 from atlas_diagnostics.service import DiagnosticsService
 from atlas_events.models import AtlasEvent
@@ -27,6 +28,7 @@ def build_registry() -> ServiceRegistry:
         MemoryService(),
         KnowledgeService(),
         AgentRuntimeService(),
+        ApiService(),
         DiagnosticsService(),
     ]
 
@@ -38,12 +40,13 @@ def build_registry() -> ServiceRegistry:
 
 
 def seed_demo_data(registry: ServiceRegistry) -> None:
-    """Create one event, task, memory, source, and knowledge entry."""
+    """Create one event, task, memory, source, knowledge entry, and API route."""
 
     events = registry.get("atlas-events")
     tasks = registry.get("atlas-tasks")
     memory = registry.get("atlas-memory-engine")
     knowledge = registry.get("atlas-knowledge-engine")
+    api = registry.get("atlas-api")
 
     events.publish(
         AtlasEvent(
@@ -93,9 +96,17 @@ def seed_demo_data(registry: ServiceRegistry) -> None:
             created_by="phase-5-bootstrap",
             source_ids=[source.source_id],
             known_facts=["Service contracts exist", "In-memory service skeletons exist"],
-            unknowns=["Persistence layer not implemented", "API layer not implemented"],
+            unknowns=["Persistence layer not implemented", "Full HTTP API layer not implemented"],
             risks=["Scaffold can grow messy without tests and packaging"],
         )
+    )
+
+    api.register_route(
+        "/system/health",
+        lambda _payload: {
+            "services": [report.service_name for report in registry.health_report()],
+            "status": "ok",
+        },
     )
 
 
@@ -114,6 +125,10 @@ def main() -> None:
     print("\nHealth reports:")
     for report in diagnostics.last_reports():
         print(f"- {report.service_name}: {report.status.value} — {report.message}")
+
+    api = registry.get("atlas-api")
+    print("\nAPI demo:")
+    print(api.call("/system/health"))
 
 
 if __name__ == "__main__":
