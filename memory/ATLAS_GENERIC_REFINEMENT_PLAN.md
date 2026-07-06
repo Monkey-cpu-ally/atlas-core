@@ -10,7 +10,7 @@ Do not rename or delete stable APIs blindly. Add polished ATLAS-facing command s
 
 ### 1. API naming
 
-Current backend routes such as `/api/discovery-approval`, `/api/external-access`, and `/api/project-intelligence` are functional but generic.
+Current backend routes such as `/api/discovery-approval`, `/api/external-access`, `/api/project-intelligence`, and `/api/self-improve` are functional but generic.
 
 Refinement path:
 
@@ -24,6 +24,10 @@ New Headquarters routes:
 - `/api/headquarters/quality-gates`
 - `/api/headquarters/atlas-standard`
 - `/api/headquarters/mission-control`
+- `/api/headquarters/knowledge-gate`
+- `/api/headquarters/source-clearance`
+- `/api/headquarters/project-briefing`
+- `/api/headquarters/refinement`
 
 ### 2. Backend presentation
 
@@ -33,7 +37,7 @@ Refinement path:
 
 - Use Headquarters language for top-level reports.
 - Keep developer APIs beneath the surface.
-- Add product-grade status, quality, mission, and approval reports.
+- Add product-grade status, quality, mission, approval, source, project, and refinement reports.
 
 ### 3. HUD identity
 
@@ -41,7 +45,7 @@ The HUD must not look like a generic AI dashboard.
 
 Refinement path:
 
-- Build around Headquarters, Council Chamber, Mission Control, Knowledge Gate, Project Briefing, and Source Clearance.
+- Build around Headquarters, Council Chamber, Mission Control, Knowledge Gate, Project Briefing, Source Clearance, and Refinement Office.
 - Avoid generic cards and random neon UI.
 - Use calm motion, premium spacing, and purposeful animation.
 
@@ -71,12 +75,15 @@ Refinement path:
 - Added `backend/services/headquarters_engine.py`.
 - Added `backend/routes/headquarters.py`.
 - Mounted Headquarters routes in `backend/server.py`.
+- Added `backend/tests/test_headquarters_engine.py`.
+- Added `backend/tests/test_headquarters_routes.py`.
+- Added command surfaces for Knowledge Gate, Source Clearance, Project Briefing, and Refinement Office.
 
 ## Next Work
 
-1. Add route tests for Headquarters.
-2. Add route tests for Discovery Approval.
-3. Add route tests for External Access.
+1. Add route tests for Discovery Approval.
+2. Add route tests for External Access.
+3. Add route tests for Project Intelligence.
 4. Update HUD planning docs to use Headquarters language.
 5. Add ATLAS Technical Debt Register.
 
