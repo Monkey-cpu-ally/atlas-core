@@ -1,4 +1,4 @@
-"""In-memory event bus service for ATLAS."""
+"""Event bus service for ATLAS."""
 
 from __future__ import annotations
 
@@ -7,23 +7,21 @@ from typing import Callable
 
 try:
     from atlas_core_runtime.service import HealthReport, ServiceStatus
-except ImportError:  # Allows local file review before packaging is wired.
+except ImportError:
     HealthReport = object  # type: ignore
     ServiceStatus = None  # type: ignore
 
 from .models import AtlasEvent
+from .repository import EventRepository
 
 EventHandler = Callable[[AtlasEvent], None]
 
 
 @dataclass
 class EventBusService:
-    """Small in-memory event bus.
+    """Small event bus with optional repository persistence."""
 
-    This is not the final distributed event system. It is the first working service
-    shape for local development and testing.
-    """
-
+    repository: EventRepository | None = None
     name: str = "atlas-events"
     version: str = "0.1.0"
     _events: list[AtlasEvent] = field(default_factory=list)
@@ -38,9 +36,11 @@ class EventBusService:
 
     def publish(self, event: AtlasEvent) -> None:
         self._events.append(event)
+        if self.repository is not None:
+            self.repository.save(event)
         for handler in self._subscribers.get(event.event_type, []):
             handler(event)
-        for handler in self._subscribers.get("*", []):
+        for handler in self._subscribers.get("all", []):
             handler(event)
 
     def subscribe(self, event_type: str, handler: EventHandler) -> None:
@@ -49,11 +49,17 @@ class EventBusService:
     def list_events(self) -> list[AtlasEvent]:
         return list(self._events)
 
+    def persisted_events(self) -> list[dict[str, object]]:
+        if self.repository is None:
+            return []
+        return self.repository.list_all()
+
     def health_check(self):
         if ServiceStatus is None:
             return {"service_name": self.name, "status": "healthy" if self._running else "offline"}
+        persistence = "persistent" if self.repository is not None else "in-memory only"
         return HealthReport(
             service_name=self.name,
             status=ServiceStatus.HEALTHY if self._running else ServiceStatus.OFFLINE,
-            message=f"{len(self._events)} events stored in memory",
+            message=f"{len(self._events)} events stored; mode={persistence}",
         )
