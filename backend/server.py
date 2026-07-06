@@ -51,6 +51,7 @@ from routes.system_inspector import router as system_inspector_router
 from routes.global_knowledge import router as global_knowledge_router
 from routes.technology_atlas import router as technology_atlas_router
 from routes.project_knowledge import router as project_knowledge_router
+from routes.knowledge_chronicle import router as knowledge_chronicle_router
 from atlas_core import atlas_router as atlas_core_router
 
 ROOT_DIR = Path(__file__).parent
@@ -137,6 +138,7 @@ app.include_router(system_inspector_router)
 app.include_router(global_knowledge_router)
 app.include_router(technology_atlas_router)
 app.include_router(project_knowledge_router)
+app.include_router(knowledge_chronicle_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router
@@ -351,6 +353,23 @@ async def _wire_project_knowledge_linker():
         logging.getLogger(__name__).info("Project Knowledge Linker hydrated: %s profiles · %s links", counts["project_knowledge_profiles"], counts["project_knowledge_links"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Project Knowledge Linker persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_knowledge_chronicle():
+    try:
+        from services import knowledge_chronicle as _kc
+        _kc.attach_mongo(db)
+        await _kc.create_indexes()
+        counts = await _kc.hydrate_from_mongo()
+        if counts["knowledge_chronicle_records"] == 0:
+            seeded = _kc.seed_foundation_records()
+            await _kc.persist_records(seeded["items"])
+            await _kc.persist_events(_kc.list_events(limit=10000))
+            counts = await _kc.hydrate_from_mongo()
+        logging.getLogger(__name__).info("Knowledge Chronicle hydrated: %s records · %s events", counts["knowledge_chronicle_records"], counts["knowledge_chronicle_events"])
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Knowledge Chronicle persistence skipped: %s", exc)
 
 
 from services import robot as _robot_service
