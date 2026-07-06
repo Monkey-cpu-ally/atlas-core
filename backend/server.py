@@ -50,6 +50,7 @@ from routes.headquarters import router as headquarters_router
 from routes.system_inspector import router as system_inspector_router
 from routes.global_knowledge import router as global_knowledge_router
 from routes.technology_atlas import router as technology_atlas_router
+from routes.project_knowledge import router as project_knowledge_router
 from atlas_core import atlas_router as atlas_core_router
 
 ROOT_DIR = Path(__file__).parent
@@ -135,6 +136,7 @@ app.include_router(headquarters_router)
 app.include_router(system_inspector_router)
 app.include_router(global_knowledge_router)
 app.include_router(technology_atlas_router)
+app.include_router(project_knowledge_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router
@@ -333,6 +335,22 @@ async def _wire_technology_atlas():
         logging.getLogger(__name__).info("Technology Atlas hydrated: %s technologies · %s relationships", counts["global_technologies"], counts["global_knowledge_relationships"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Technology Atlas persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_project_knowledge_linker():
+    try:
+        from services import project_knowledge_linker as _pkl
+        _pkl.attach_mongo(db)
+        await _pkl.create_indexes()
+        counts = await _pkl.hydrate_from_mongo()
+        if counts["project_knowledge_profiles"] == 0:
+            seeded = _pkl.seed_project_profiles()
+            await _pkl.persist_projects(seeded["items"])
+            counts = await _pkl.hydrate_from_mongo()
+        logging.getLogger(__name__).info("Project Knowledge Linker hydrated: %s profiles · %s links", counts["project_knowledge_profiles"], counts["project_knowledge_links"])
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Project Knowledge Linker persistence skipped: %s", exc)
 
 
 from services import robot as _robot_service
