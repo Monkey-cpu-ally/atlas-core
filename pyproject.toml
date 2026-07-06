@@ -21,6 +21,7 @@ pythonpath = [
   "atlas-agent-runtime/src",
   "atlas-diagnostics/src",
   "atlas-api/src",
+  "atlas-persistence/src",
 ]
 
 [tool.ruff]
