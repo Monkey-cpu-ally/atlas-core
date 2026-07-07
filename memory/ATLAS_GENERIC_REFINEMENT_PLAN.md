@@ -78,14 +78,18 @@ Refinement path:
 - Added `backend/tests/test_headquarters_engine.py`.
 - Added `backend/tests/test_headquarters_routes.py`.
 - Added command surfaces for Knowledge Gate, Source Clearance, Project Briefing, and Refinement Office.
+- Added `backend/tests/test_command_surface_routes.py`.
+- Added route coverage for Discovery Approval draft-review-Council approval flow.
+- Added route coverage for External Access default seeding and permission-first import plans.
+- Added route coverage for Project Intelligence briefs, risks, recommendations, and cross-project reuse signals.
 
 ## Next Work
 
-1. Add route tests for Discovery Approval.
-2. Add route tests for External Access.
-3. Add route tests for Project Intelligence.
-4. Update HUD planning docs to use Headquarters language.
-5. Add ATLAS Technical Debt Register.
+1. Update HUD planning docs to use Headquarters language.
+2. Add ATLAS Technical Debt Register.
+3. Add integration tests proving Headquarters surfaces stay mapped to developer APIs.
+4. Add startup persistence wiring coverage for Discovery Approval, External Access, and Project Intelligence.
+5. Continue Knowledge Division roadmap after refinement hardening.
 
 ## Standard
 
