@@ -10,6 +10,7 @@ def test_headquarters_status_exposes_atlas_identity():
     assert len(status["seals"]) == 7
     assert any(division["owner"] == "Minerva" for division in status["divisions"])
     assert any(division["owner"] == "Hermes" for division in status["divisions"])
+    assert status["technical_debt"]["active_count"] >= 1
 
 
 def test_quality_gate_report_requires_all_completion_gates():
@@ -44,3 +45,32 @@ def test_mission_control_blocks_new_phase_until_verification():
     assert mission["active"]["operation"] == "Operation ATLAS Refinement"
     assert mission["blocked_until"] == "Phase 14 verification passes."
     assert any("route-level tests" in item for item in mission["queue"])
+
+
+def test_technical_debt_register_prioritizes_visible_debt():
+    report = headquarters_engine.technical_debt_register()
+    debt_ids = {item["debt_id"] for item in report["items"]}
+
+    assert report["title"] == "ATLAS Technical Debt Register"
+    assert report["active_count"] >= 1
+    assert report["highest_open_severity"] in {"high", "critical"}
+    assert "DEBT-PERSIST-001" in debt_ids
+    assert report["by_quality_gate"]["Engineering"] >= 1
+
+
+def test_technical_debt_register_can_filter_by_status_and_severity():
+    open_report = headquarters_engine.technical_debt_register(status="open")
+    high_report = headquarters_engine.technical_debt_register(severity="high")
+
+    assert open_report["items"]
+    assert all(item["status"] == "open" for item in open_report["items"])
+    assert high_report["items"]
+    assert all(item["severity"] == "high" for item in high_report["items"])
+
+
+def test_refinement_surface_includes_technical_debt_summary():
+    surface = headquarters_engine.refinement()
+
+    assert surface["title"] == "ATLAS Refinement Office"
+    assert surface["technical_debt"]["title"] == "ATLAS Technical Debt Register"
+    assert surface["technical_debt"]["active_count"] >= 1
