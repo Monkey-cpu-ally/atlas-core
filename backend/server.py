@@ -53,6 +53,8 @@ from routes.technology_atlas import router as technology_atlas_router
 from routes.project_knowledge import router as project_knowledge_router
 from routes.knowledge_chronicle import router as knowledge_chronicle_router
 from routes.engineering_os import router as engineering_os_router
+from routes.global_sources import router as global_sources_router
+from routes.world_knowledge_graph import router as world_knowledge_graph_router
 from atlas_core import atlas_router as atlas_core_router
 
 ROOT_DIR = Path(__file__).parent
@@ -141,6 +143,8 @@ app.include_router(technology_atlas_router)
 app.include_router(project_knowledge_router)
 app.include_router(knowledge_chronicle_router)
 app.include_router(engineering_os_router)
+app.include_router(global_sources_router)
+app.include_router(world_knowledge_graph_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router
@@ -388,6 +392,38 @@ async def _wire_engineering_os():
         logging.getLogger(__name__).info("Engineering OS hydrated: %s missions · %s tasks · %s risks", counts["engineering_missions"], counts["engineering_tasks"], counts["engineering_risks"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Engineering OS persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_global_source_library():
+    try:
+        from services import global_source_library as _gsl
+        _gsl.attach_mongo(db)
+        await _gsl.create_indexes()
+        counts = await _gsl.hydrate_from_mongo()
+        if counts["global_source_library"] == 0:
+            seeded = _gsl.seed_foundation_sources()
+            await _gsl.persist_all(seeded["items"])
+            counts = await _gsl.hydrate_from_mongo()
+        logging.getLogger(__name__).info("Global Source Library hydrated: %s sources", counts["global_source_library"])
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Global Source Library persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_world_knowledge_graph():
+    try:
+        from services import world_knowledge_graph as _wkg
+        _wkg.attach_mongo(db)
+        await _wkg.create_indexes()
+        counts = await _wkg.hydrate_from_mongo()
+        if counts["world_knowledge_nodes"] == 0:
+            _wkg.seed_foundation_graph()
+            await _wkg.persist_all()
+            counts = await _wkg.hydrate_from_mongo()
+        logging.getLogger(__name__).info("World Knowledge Graph hydrated: %s nodes · %s edges", counts["world_knowledge_nodes"], counts["world_knowledge_edges"])
+    except Exception as exc:
+        logging.getLogger(__name__).warning("World Knowledge Graph persistence skipped: %s", exc)
 
 
 from services import robot as _robot_service
