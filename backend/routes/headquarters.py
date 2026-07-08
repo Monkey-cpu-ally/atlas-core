@@ -51,3 +51,8 @@ async def project_briefing():
 @router.get("/refinement")
 async def refinement():
     return headquarters_engine.refinement()
+
+
+@router.get("/technical-debt")
+async def technical_debt(status: str | None = None, severity: str | None = None):
+    return headquarters_engine.technical_debt_register(status=status, severity=severity)
