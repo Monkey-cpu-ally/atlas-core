@@ -83,7 +83,75 @@ GENERIC_REPLACEMENT_MAP = {
 }
 
 
+TECHNICAL_DEBT_ITEMS = [
+    {
+        "debt_id": "DEBT-HUD-001",
+        "subsystem": "HUD",
+        "severity": "medium",
+        "quality_gate": "Luxury Review",
+        "issue": "Some HUD docs used older dashboard/ring wording instead of Headquarters language.",
+        "next_safe_action": "Refresh HUD docs and design-bank contract.",
+        "status": "completed",
+    },
+    {
+        "debt_id": "DEBT-HQ-001",
+        "subsystem": "Headquarters",
+        "severity": "medium",
+        "quality_gate": "Engineering",
+        "issue": "Headquarters command surfaces exist, but integration tests must prove they stay mapped to developer APIs.",
+        "next_safe_action": "Add route and engine tests for command-surface mapping.",
+        "status": "open",
+    },
+    {
+        "debt_id": "DEBT-PERSIST-001",
+        "subsystem": "Startup Persistence",
+        "severity": "high",
+        "quality_gate": "Engineering",
+        "issue": "Discovery Approval, External Access, and Project Intelligence need persistence wiring coverage.",
+        "next_safe_action": "Add tests confirming startup hydrates and persists required collections.",
+        "status": "open",
+    },
+    {
+        "debt_id": "DEBT-KNOW-001",
+        "subsystem": "Knowledge Division",
+        "severity": "medium",
+        "quality_gate": "Architecture",
+        "issue": "World Knowledge Graph exists as a core service but still needs final server mounting verification.",
+        "next_safe_action": "Confirm route registration and add route tests if missing.",
+        "status": "open",
+    },
+    {
+        "debt_id": "DEBT-DOC-001",
+        "subsystem": "Documentation",
+        "severity": "low",
+        "quality_gate": "Documentation",
+        "issue": "Some roadmap docs lag behind completed command-surface work.",
+        "next_safe_action": "Update refinement plan after every subsystem sprint.",
+        "status": "active",
+    },
+    {
+        "debt_id": "DEBT-TWIN-001",
+        "subsystem": "Digital Twin",
+        "severity": "high",
+        "quality_gate": "Engineering",
+        "issue": "Digital Twin registry exists, but no real solver layer is confirmed.",
+        "next_safe_action": "Begin D2 engineering stack after Headquarters hardening.",
+        "status": "queued",
+    },
+    {
+        "debt_id": "DEBT-HW-001",
+        "subsystem": "Hardware Bridge",
+        "severity": "high",
+        "quality_gate": "Security",
+        "issue": "ESP32 and hardware bridge work must stay sim-first until safety boundaries and device permissions are clear.",
+        "next_safe_action": "Add simulation contract before any device-control work.",
+        "status": "queued",
+    },
+]
+
+
 def headquarters_status() -> Dict[str, Any]:
+    debt = technical_debt_register()
     return {
         "name": "ATLAS Headquarters",
         "motto": "Order. Precision. Craftsmanship. Legacy.",
@@ -95,6 +163,11 @@ def headquarters_status() -> Dict[str, Any]:
         "seals": [{"name": seal, "status": "pending_verification"} for seal in ATLAS_SEALS],
         "divisions": DIVISIONS,
         "quality_gates": QUALITY_GATES,
+        "technical_debt": {
+            "active_count": debt["active_count"],
+            "highest_open_severity": debt["highest_open_severity"],
+            "next_safe_action": debt["next_safe_action"],
+        },
         "generated_at": _utc_now(),
     }
 
@@ -195,7 +268,7 @@ def project_briefing() -> Dict[str, Any]:
 
 
 def refinement() -> Dict[str, Any]:
-    return _command_surface(
+    surface = _command_surface(
         title="ATLAS Refinement Office",
         replaces="/api/self-improve",
         purpose="Turns rough edges, failed tests, and code-quality issues into safe improvement proposals.",
@@ -208,6 +281,41 @@ def refinement() -> Dict[str, Any]:
         ],
         current_state="active",
     )
+    surface["technical_debt"] = technical_debt_register()
+    return surface
+
+
+def technical_debt_register(status: str | None = None, severity: str | None = None) -> Dict[str, Any]:
+    items = TECHNICAL_DEBT_ITEMS
+    if status:
+        items = [item for item in items if item["status"] == status]
+    if severity:
+        items = [item for item in items if item["severity"] == severity]
+
+    active_items = [item for item in TECHNICAL_DEBT_ITEMS if item["status"] in {"open", "active"}]
+    severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+    highest = "none"
+    if active_items:
+        highest = max(active_items, key=lambda item: severity_rank.get(item["severity"], 0))["severity"]
+    next_action = active_items[0]["next_safe_action"] if active_items else "No active debt items. Continue normal quality-gate review."
+
+    by_status: Dict[str, int] = {}
+    by_gate: Dict[str, int] = {}
+    for item in TECHNICAL_DEBT_ITEMS:
+        by_status[item["status"]] = by_status.get(item["status"], 0) + 1
+        by_gate[item["quality_gate"]] = by_gate.get(item["quality_gate"], 0) + 1
+
+    return {
+        "title": "ATLAS Technical Debt Register",
+        "rule": "Technical debt is allowed only when it is visible, prioritized, and tied to a next safe action.",
+        "active_count": len(active_items),
+        "highest_open_severity": highest,
+        "next_safe_action": next_action,
+        "by_status": by_status,
+        "by_quality_gate": by_gate,
+        "items": items,
+        "generated_at": _utc_now(),
+    }
 
 
 def _command_surface(
