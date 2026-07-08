@@ -28,6 +28,7 @@ New Headquarters routes:
 - `/api/headquarters/source-clearance`
 - `/api/headquarters/project-briefing`
 - `/api/headquarters/refinement`
+- `/api/headquarters/technical-debt`
 
 ### 2. Backend presentation
 
@@ -37,7 +38,7 @@ Refinement path:
 
 - Use Headquarters language for top-level reports.
 - Keep developer APIs beneath the surface.
-- Add product-grade status, quality, mission, approval, source, project, and refinement reports.
+- Add product-grade status, quality, mission, approval, source, project, refinement, and technical-debt reports.
 
 ### 3. HUD identity
 
@@ -82,14 +83,22 @@ Refinement path:
 - Added route coverage for Discovery Approval draft-review-Council approval flow.
 - Added route coverage for External Access default seeding and permission-first import plans.
 - Added route coverage for Project Intelligence briefs, risks, recommendations, and cross-project reuse signals.
+- Updated `memory/HUD_AUDIT.md` to use Headquarters, Council Chamber, Headquarters Systems, and Mission Departments language.
+- Updated `exports/README-HUD.md` to describe the HUD as the ATLAS Headquarters command layer.
+- Updated `design_bank/atlas_hud/README.md` with Headquarters zones and Figma page recommendations.
+- Added `memory/ATLAS_TECHNICAL_DEBT_REGISTER.md`.
+- Added `TECHNICAL_DEBT_ITEMS` and `technical_debt_register()` to `backend/services/headquarters_engine.py`.
+- Added `/api/headquarters/technical-debt`.
+- Added engine and route tests for technical debt reporting and filtering.
+- Connected technical debt summary into `/api/headquarters/status` and `/api/headquarters/refinement`.
 
 ## Next Work
 
-1. Update HUD planning docs to use Headquarters language.
-2. Add ATLAS Technical Debt Register.
-3. Add integration tests proving Headquarters surfaces stay mapped to developer APIs.
-4. Add startup persistence wiring coverage for Discovery Approval, External Access, and Project Intelligence.
-5. Continue Knowledge Division roadmap after refinement hardening.
+1. Add integration tests proving Headquarters surfaces stay mapped to developer APIs.
+2. Add startup persistence wiring coverage for Discovery Approval, External Access, and Project Intelligence.
+3. Verify World Knowledge Graph route mounting and add route tests if missing.
+4. Continue Knowledge Division roadmap after refinement hardening.
+5. Begin Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
 
 ## Standard
 
