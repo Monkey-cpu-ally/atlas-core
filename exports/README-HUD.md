@@ -1,6 +1,6 @@
-# Atlas Core — HUD Frontend Architecture
+# Atlas Core — HUD Headquarters Frontend Architecture
 
-The complete React/CSS layer that renders the radial AI operating system.
+The complete React/CSS layer that renders the radial AI operating system. The HUD is the visual command layer for **ATLAS Headquarters**, not a generic dashboard.
 
 ## Visual layout
 
@@ -8,112 +8,108 @@ The complete React/CSS layer that renders the radial AI operating system.
                     ┌──────────────────────────────────────┐
                     │   Date · Year · Status · Persona     │
                     │                                      │
-                    │      ╭─────── Outer Ring ───────╮    │
-                    │     ╱   Subjects · Manual ·      ╲   │
-                    │    │  Memory · Projects · Lab     │  │
-                    │    │  ──── Middle Ring ────       │  │
-                    │    │  Cyclopedia · Customization  │  │
-                    │    │   ──── Inner Ring ────       │  │
-                    │    │   Ajani · Minerva · Hermes   │  │
-                    │     ╲   ⟡ Lava Lamp Core ⟡       ╱   │
-                    │      ╰──────────────────────────╯    │
+                    │      ╭──── Mission Departments ───╮  │
+                    │     ╱ Knowledge · Lab · Projects   ╲ │
+                    │    │ Blueprints · Archive · Sources │ │
+                    │    │ ─ Headquarters Systems ──────  │ │
+                    │    │ Standard · Memory · Status     │ │
+                    │    │ ─ Council Chamber ───────────  │ │
+                    │    │ Ajani · Minerva · Hermes       │ │
+                    │     ╲      ⟡ ATLAS Core ⟡          ╱ │
+                    │      ╰────────────────────────────╯  │
                     │                                      │
                     │   FAB · Chat · Upload · Voice        │
                     └──────────────────────────────────────┘
 ```
 
-The three rings drag-rotate independently with snap angles. The central core
-is a touch-reactive Canvas2D lava-lamp simulation (particles + blobs +
-audio-reactive pulse). Side panels slide in from the right.
+The three rings drag-rotate independently with snap angles. The central core is a touch-reactive Canvas2D lava-lamp simulation. Side panels slide in from the right and should feel like command surfaces inside a headquarters, not separate app pages.
+
+## Headquarters language map
+
+| Legacy UI idea | ATLAS Headquarters language | Purpose |
+|---|---|---|
+| AI persona ring | Council Chamber | Ajani, Minerva, Hermes, and Council decision work |
+| System ring | Headquarters Systems | status, memory, manual, customization, diagnostics |
+| World ring | Mission Departments | knowledge, lab, projects, blueprints, archive, source intake |
+| Generic diagnostics | Headquarters Status / Quality Gates | product-facing system confidence |
+| Generic project view | Project Briefing | risks, recommendations, reuse signals |
+| Generic import/intake | Source Clearance | permission-first source handling |
+| Generic self-improvement | Refinement Office | cleanup, polish, technical debt, ATLAS standard checks |
 
 ## Layout
 
 ```
 frontend/src/
 ├── App.js                       Entry — renders <HUDInterface/>
-├── App.css                      Single CSS file (2.9 K LOC) for ALL HUD styling
-│                                including rings, panels, sandbox, vibrancy
+├── App.css                      Single CSS file for HUD styling
 │
 ├── components/
 │   ├── HUDInterface.js          Main orchestrator — state, voice, FAB, panels
-│   ├── ChatPanel.js             Floating chat with EN/ZU/YO/MAA language picker
+│   ├── ChatPanel.js             Floating chat with language picker
 │   ├── FileUploadModal.js       Chunked upload + AI categorisation
-│   ├── FileBrowserPanel.js      Legacy popover (kept; ARCHIVE now uses inline panel)
+│   ├── FileBrowserPanel.js      Legacy popover; ARCHIVE uses inline panel
 │   │
 │   └── HUD/
-│       ├── AtlasCore.js              Central lava-lamp core (Canvas2D + particles)
+│       ├── AtlasCore.js              Central lava-lamp core
 │       ├── DialRing.js               Drag-to-rotate ring renderer
 │       ├── GhostRings.js             Holographic parallax background rings
-│       ├── AtlasSidePanel.js         Side-panel router for every tile
+│       ├── AtlasSidePanel.js         Command-surface router for every tile
 │       │
-│       ├── BlueprintWorkbench.js     Tri-council blueprint generator UI
-│       ├── TeachingWorkbench.js      4-band teach + hands-on sandbox toggle
-│       ├── DiagnosticsPanel.js       Core status · events · shield stats
-│       │
-│       ├── InteractiveSandbox.js     6-lab hands-on simulator
-│       │                             (Power/Bridge/Code/Ecosystem/Nanoswarm/Resonance)
-│       │
-│       ├── ManualPanel.js            Operator manual (collapsible sections)
-│       ├── CyclopediaPanel.js        Knowledge index + search
-│       ├── MemoryPanel.js            Live event feed (8-second auto refresh)
-│       ├── CustomizationPanel.js     Real persisted settings (TTS / lang / theme)
-│       ├── CouncilPanel.js           Topic routing + tri-AI deliberation UI
-│       ├── IntakePanel.js            YouTube / paste-transcript intake
-│       ├── ArchiveBrowser.js         Atlas memory + uploaded files (tabbed)
-│       ├── ProjectsPanel.js          Auto-generated projects with status cycle
-│       └── QuizTaker.js              Inline quiz with LLM-graded mastery
+│       ├── BlueprintWorkbench.js     Council-reviewed blueprint generator UI
+│       ├── TeachingWorkbench.js      Knowledge Division teach surface
+│       ├── DiagnosticsPanel.js       Headquarters status / quality posture
+│       ├── InteractiveSandbox.js     Engineering Lab simulator
+│       ├── ManualPanel.js            ATLAS Standard / operator manual
+│       ├── CyclopediaPanel.js        Knowledge Gate index
+│       ├── MemoryPanel.js            Memory Bank live feed
+│       ├── CustomizationPanel.js     HUD identity, voice, theme controls
+│       ├── CouncilPanel.js           Council Chamber deliberation UI
+│       ├── IntakePanel.js            Source Clearance intake
+│       ├── ArchiveBrowser.js         Memory Bank archive and uploaded files
+│       ├── ProjectsPanel.js          Project Briefing / roadmap execution
+│       └── QuizTaker.js              Mastery check
 │
 ├── hooks/
 │   ├── useVoiceRecognition.js   Web Speech API → wake-word & command parsing
-│   ├── useTTS.js                Backend TTS with provider + language + abort-on-unmount
+│   ├── useTTS.js                Backend TTS with provider + abort-on-unmount
 │   ├── useAudioReactive.js      Mic level → ring pulse + core hum
 │   ├── useAudioFeedback.js      Hover / click / select chimes
-│   └── useAtlasJob.js           Non-blocking job-polling for >60s LLM tasks
+│   └── useAtlasJob.js           Non-blocking job-polling for long LLM tasks
 │
 ├── data/
-│   ├── ringStructure.js         Inner/middle/outer ring tile definitions
+│   ├── ringStructure.js         Council/Systems/Missions tile definitions
 │   └── atlasCore.js             AI personas, phases, teaching modes
 │
-└── components/ui/               shadcn primitives (slider, button, dialog, …)
+└── components/ui/               shadcn primitives
 ```
 
 ## Key technical patterns
 
-### 1. Strict radial layout (locked)
-The HUD geometry is calibrated to exact pixel positions. `ringStructure.js`
-holds the snap angles; `DialRing.js` renders one ring; `AtlasSidePanel.js`
-maps `(ring, tile-id)` → the right workbench component. **Do not redesign.**
+### 1. Strict radial layout
+The HUD geometry is calibrated to exact pixel positions. `ringStructure.js` holds snap angles, `DialRing.js` renders one ring, and `AtlasSidePanel.js` maps `(ring, tile-id)` to the right command surface. Redesign only through the design-bank contract.
 
-### 2. Job polling for long LLM tasks
-The Kubernetes ingress kills HTTP requests after 60 s. The teaching engine
-(4-band lesson), the tri-council blueprint, and the council deliberation all
-exceed that. `useAtlasJob.js` submits a job, gets a `job_id`, polls
-`/api/atlas/jobs/{id}` every 2 s, and auto-cancels on unmount so closing
-a panel mid-generation never leaks LLM calls.
+### 2. Headquarters first, developer APIs underneath
+Product-facing language should say Headquarters, Council Chamber, Mission Control, Knowledge Gate, Source Clearance, Project Briefing, and Refinement Office. Stable developer APIs should remain underneath until migration is safe.
 
-### 3. Abort-on-close everywhere
-Both `useTTS.js` and `useAtlasJob.js` keep an `AbortController` in a ref
-and `.abort()` it in the cleanup effect. ChatPanel does the same with its
-`/api/chat/send` fetch. Closing a panel ⇒ all in-flight LLM calls cancel.
+### 3. Job polling for long LLM tasks
+The ingress may kill HTTP requests after 60 s. Long tasks submit a job, receive a `job_id`, poll `/api/atlas/jobs/{id}`, and auto-cancel on unmount.
 
-### 4. Lava-lamp Canvas2D core
-`AtlasCore.js` runs a 60 fps simulation of N particles + M metaballs in a
-single `<canvas>` element. Audio-reactive pulse comes from `useAudioReactive`.
-Three.js / WebGL was deferred — Canvas2D performs beautifully on iPad/laptop.
+### 4. Abort-on-close everywhere
+TTS, job polling, and chat fetches must abort on panel close so hidden panels never leak LLM calls.
 
-### 5. Multi-AI persona styling
-Every workbench panel accepts an `aiColor` prop. Persona colours:
-- **Ajani** `#F03246` (crimson)
-- **Minerva** `#28C8BE` (teal)
-- **Hermes** `#E0E0EA` (silver)
-- **Council** `#A878E6` (violet)
+### 5. Lava-lamp Canvas2D core
+`AtlasCore.js` runs a 60 fps Canvas2D simulation. Audio-reactive pulse comes from `useAudioReactive`. Canvas2D remains the default for reliability on iPad/laptop.
 
-The sandbox lead-mentor card gets a `.lead` glow ring in its colour.
+### 6. Multi-AI persona styling
+Every workbench panel accepts an `aiColor` prop.
 
-### 6. Vibrancy additive layer
-The scan-sweep, brighter ring drop-shadows, persona pulse, tile hover-stroke,
-and core saturation bump are added in App.css ONLY — they decorate the
-existing geometry without redrawing it.
+- **Ajani** `#F03246` crimson
+- **Minerva** `#28C8BE` teal
+- **Hermes** `#E0E0EA` silver
+- **Council** `#A878E6` violet
+
+### 7. Premium motion, not noisy neon
+The scan-sweep, ring shadows, persona pulse, tile hover stroke, and core saturation bump should decorate existing geometry without turning ATLAS into a random sci-fi skin.
 
 ## Required environment
 
@@ -123,7 +119,7 @@ REACT_APP_BACKEND_URL=https://...   # base URL for all /api/* calls
 
 ## Conventions
 
-- All interactive elements have `data-testid` for Playwright drive
-- Hooks return `{ ref, fn1, fn2 }` not arrays
-- Panels render inside `.bp-workbench` shell for consistent spacing
-- shadcn primitives imported from `../components/ui/...`
+- All interactive elements have `data-testid` for Playwright drive.
+- Hooks return named objects, not ambiguous arrays.
+- Panels render inside `.bp-workbench` shell for consistent spacing.
+- Command surfaces use ATLAS-facing names while preserving stable backend APIs.
