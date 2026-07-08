@@ -11,6 +11,7 @@ async def test_status_route_returns_headquarters_snapshot():
     assert response["active_operation"] == "Operation ATLAS Refinement"
     assert response["release_posture"] == "not_ready_until_verified"
     assert response["divisions"]
+    assert response["technical_debt"]["active_count"] >= 1
 
 
 @pytest.mark.asyncio
@@ -78,3 +79,24 @@ async def test_refinement_route_presents_self_improve_as_atlas_surface():
     assert response["title"] == "ATLAS Refinement Office"
     assert response["developer_api_underneath"] == "/api/self-improve"
     assert response["quality_gate"] == "pending_headquarters_approval"
+    assert response["technical_debt"]["active_count"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_technical_debt_route_returns_register():
+    response = await headquarters.technical_debt()
+
+    assert response["title"] == "ATLAS Technical Debt Register"
+    assert response["active_count"] >= 1
+    assert response["items"]
+
+
+@pytest.mark.asyncio
+async def test_technical_debt_route_filters_items():
+    open_response = await headquarters.technical_debt(status="open")
+    high_response = await headquarters.technical_debt(severity="high")
+
+    assert open_response["items"]
+    assert all(item["status"] == "open" for item in open_response["items"])
+    assert high_response["items"]
+    assert all(item["severity"] == "high" for item in high_response["items"])
