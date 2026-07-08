@@ -55,6 +55,7 @@ from routes.knowledge_chronicle import router as knowledge_chronicle_router
 from routes.engineering_os import router as engineering_os_router
 from routes.global_sources import router as global_sources_router
 from routes.world_knowledge_graph import router as world_knowledge_graph_router
+from routes.engineering_playbooks import router as engineering_playbooks_router
 from atlas_core import atlas_router as atlas_core_router
 
 ROOT_DIR = Path(__file__).parent
@@ -145,6 +146,7 @@ app.include_router(knowledge_chronicle_router)
 app.include_router(engineering_os_router)
 app.include_router(global_sources_router)
 app.include_router(world_knowledge_graph_router)
+app.include_router(engineering_playbooks_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router
@@ -424,6 +426,22 @@ async def _wire_world_knowledge_graph():
         logging.getLogger(__name__).info("World Knowledge Graph hydrated: %s nodes · %s edges", counts["world_knowledge_nodes"], counts["world_knowledge_edges"])
     except Exception as exc:
         logging.getLogger(__name__).warning("World Knowledge Graph persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_engineering_playbooks():
+    try:
+        from services import engineering_playbooks as _epb
+        _epb.attach_mongo(db)
+        await _epb.create_indexes()
+        counts = await _epb.hydrate_from_mongo()
+        if counts["engineering_playbooks"] == 0:
+            _epb.seed_foundation_playbooks()
+            await _epb.persist_all()
+            counts = await _epb.hydrate_from_mongo()
+        logging.getLogger(__name__).info("Engineering Playbooks hydrated: %s playbooks · %s sections", counts["engineering_playbooks"], counts["engineering_playbook_sections"])
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Engineering Playbooks persistence skipped: %s", exc)
 
 
 from services import robot as _robot_service
