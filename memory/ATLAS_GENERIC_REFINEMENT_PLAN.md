@@ -91,14 +91,15 @@ Refinement path:
 - Added `/api/headquarters/technical-debt`.
 - Added engine and route tests for technical debt reporting and filtering.
 - Connected technical debt summary into `/api/headquarters/status` and `/api/headquarters/refinement`.
+- Added integration coverage proving Headquarters command surfaces remain mapped to their developer APIs.
+- Closed `DEBT-HQ-001` after adding the Headquarters mapping test.
 
 ## Next Work
 
-1. Add integration tests proving Headquarters surfaces stay mapped to developer APIs.
-2. Add startup persistence wiring coverage for Discovery Approval, External Access, and Project Intelligence.
-3. Verify World Knowledge Graph route mounting and add route tests if missing.
-4. Continue Knowledge Division roadmap after refinement hardening.
-5. Begin Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
+1. Add startup persistence wiring coverage for Discovery Approval, External Access, and Project Intelligence.
+2. Verify World Knowledge Graph route mounting and add route tests if missing.
+3. Continue Knowledge Division roadmap after refinement hardening.
+4. Begin Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
 
 ## Standard
 
