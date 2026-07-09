@@ -83,6 +83,27 @@ async def test_refinement_route_presents_self_improve_as_atlas_surface():
 
 
 @pytest.mark.asyncio
+async def test_headquarters_surfaces_stay_locked_to_developer_api_map():
+    standard = await headquarters.atlas_standard()
+    expected = {
+        "/api/discovery-approval": headquarters.knowledge_gate,
+        "/api/external-access": headquarters.source_clearance,
+        "/api/project-intelligence": headquarters.project_briefing,
+        "/api/self-improve": headquarters.refinement,
+    }
+
+    assert set(standard["generic_replacement_map"].keys()) == set(expected.keys())
+
+    for developer_api, route_handler in expected.items():
+        surface = await route_handler()
+        headquarters_route = standard["generic_replacement_map"][developer_api]
+
+        assert headquarters_route.startswith("/api/headquarters/")
+        assert surface["identity"] == "ATLAS Headquarters Command Surface"
+        assert surface["developer_api_underneath"] == developer_api
+
+
+@pytest.mark.asyncio
 async def test_technical_debt_route_returns_register():
     response = await headquarters.technical_debt()
 
