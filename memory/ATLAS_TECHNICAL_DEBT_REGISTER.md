@@ -38,8 +38,8 @@ Every debt item should answer:
 | ID | Subsystem | Severity | Quality Gate | Issue | Next Safe Action | Status |
 |---|---|---|---|---|---|---|
 | `DEBT-HUD-001` | HUD | medium | Luxury Review | Some HUD docs still used older dashboard/ring wording instead of Headquarters language. | Refresh HUD docs and design-bank contract. | completed |
-| `DEBT-HQ-001` | Headquarters | medium | Engineering | Headquarters command surfaces exist, but integration tests must prove they stay mapped to developer APIs. | Add route/engine tests for command-surface mapping. | open |
-| `DEBT-PERSIST-001` | Startup Persistence | high | Engineering | Discovery Approval, External Access, and Project Intelligence need persistence wiring coverage. | Add tests confirming startup hydrates/persists required collections. | open |
+| `DEBT-HQ-001` | Headquarters | medium | Engineering | Headquarters command surfaces needed integration tests proving they stay mapped to developer APIs. | Keep command-surface mapping tests updated when adding or renaming Headquarters surfaces. | completed |
+| `DEBT-PERSIST-001` | Startup Persistence | high | Engineering | Discovery Approval, External Access, and Project Intelligence needed persistence wiring coverage. | Keep startup hydration tests updated when persistence-backed collections change. | completed |
 | `DEBT-KNOW-001` | Knowledge Division | medium | Architecture | World Knowledge Graph exists as a core service but still needs final server mounting verification. | Confirm route registration and add route tests if missing. | open |
 | `DEBT-DOC-001` | Documentation | low | Documentation | Some roadmap docs lag behind completed command-surface work. | Update refinement plan after every subsystem sprint. | active |
 | `DEBT-TWIN-001` | Digital Twin | high | Engineering | Digital Twin registry exists, but no real solver layer is confirmed. | Begin D2 engineering stack after Headquarters hardening. | queued |
