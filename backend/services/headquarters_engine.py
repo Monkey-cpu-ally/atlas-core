@@ -98,9 +98,9 @@ TECHNICAL_DEBT_ITEMS = [
         "subsystem": "Headquarters",
         "severity": "medium",
         "quality_gate": "Engineering",
-        "issue": "Headquarters command surfaces exist, but integration tests must prove they stay mapped to developer APIs.",
-        "next_safe_action": "Add route and engine tests for command-surface mapping.",
-        "status": "open",
+        "issue": "Headquarters command surfaces needed integration tests proving they stay mapped to developer APIs.",
+        "next_safe_action": "Keep command-surface mapping tests updated when adding or renaming Headquarters surfaces.",
+        "status": "completed",
     },
     {
         "debt_id": "DEBT-PERSIST-001",
