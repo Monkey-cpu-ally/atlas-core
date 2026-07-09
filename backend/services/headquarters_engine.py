@@ -107,9 +107,9 @@ TECHNICAL_DEBT_ITEMS = [
         "subsystem": "Startup Persistence",
         "severity": "high",
         "quality_gate": "Engineering",
-        "issue": "Discovery Approval, External Access, and Project Intelligence need persistence wiring coverage.",
-        "next_safe_action": "Add tests confirming startup hydrates and persists required collections.",
-        "status": "open",
+        "issue": "Discovery Approval, External Access, and Project Intelligence needed persistence wiring coverage.",
+        "next_safe_action": "Keep startup hydration tests updated when persistence-backed collections change.",
+        "status": "completed",
     },
     {
         "debt_id": "DEBT-KNOW-001",
@@ -209,8 +209,8 @@ def mission_control() -> Dict[str, Any]:
             "status": "active",
         },
         "queue": [
-            "Fix CI or test failures.",
-            "Add route-level tests for Discovery Approval and External Access.",
+            "Verify World Knowledge Graph route mounting and route tests.",
+            "Continue Knowledge Division roadmap after refinement hardening.",
             "Add Source Reliability Ranking after Phase 14 is stable.",
             "Create ATLAS System Inspector after Knowledge Validation passes Headquarters review.",
         ],
