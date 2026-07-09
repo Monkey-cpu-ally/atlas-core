@@ -93,13 +93,16 @@ Refinement path:
 - Connected technical debt summary into `/api/headquarters/status` and `/api/headquarters/refinement`.
 - Added integration coverage proving Headquarters command surfaces remain mapped to their developer APIs.
 - Closed `DEBT-HQ-001` after adding the Headquarters mapping test.
+- Added `backend/tests/test_startup_persistence_wiring.py`.
+- Added startup persistence coverage for Discovery Approval drafts/reviews/decisions, Knowledge Records, Chronicle entries, External Access connections/import plans, and Project Intelligence briefs.
+- Closed `DEBT-PERSIST-001` after adding persistence hydration coverage.
 
 ## Next Work
 
-1. Add startup persistence wiring coverage for Discovery Approval, External Access, and Project Intelligence.
-2. Verify World Knowledge Graph route mounting and add route tests if missing.
-3. Continue Knowledge Division roadmap after refinement hardening.
-4. Begin Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
+1. Verify World Knowledge Graph route mounting and add route tests if missing.
+2. Continue Knowledge Division roadmap after refinement hardening.
+3. Begin Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
+4. Keep startup persistence tests updated when adding new persistence-backed command surfaces.
 
 ## Standard
 
