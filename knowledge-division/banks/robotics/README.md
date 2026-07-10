@@ -1,44 +1,19 @@
 # Robotics Knowledge Bank
 
 ## Mission
-Study, design, simulate, and improve robotic systems for industry, exploration, manufacturing, medicine, and environmental restoration.
+Design, simulate, manufacture, test, and improve robotic systems for industry, exploration, medicine, environmental restoration, and autonomous manufacturing.
 
 ## Primary AI
 Hermes
 
-## Core Subjects
-- Humanoid robots
-- Bio-inspired robots
-- Green robots
-- Industrial robots
-- Actuators
-- Sensors
-- Robot control
-- Motion planning
-- Manipulation
-- Swarm robotics
-- Power systems
-- Electronics
-- Embedded systems
-- Digital twins
-- Materials science
-- Manufacturing
-- Systems engineering
-
-## Permanent Manual
+## Core Library
 - [ATLAS Robotics Division Manual](./ATLAS_ROBOTICS_DIVISION_MANUAL.md)
-
-This manual preserves the Robotics Division foundation, Hermes engineering rules, ATLAS engineering methodology, biomimetic research program, Global Robotics Research Program, and the beginning of the ATLAS Institute of Robotics and Intelligent Machines.
-
-## ATLAS Projects
-- Weaver
-- Green Robots
-- Metal Flowers
-- Manufacturing Systems
-- Field Robotics
-- Ocean Explorers
-- Space Builders
-- Humanoid Assistants
+- [Mechanisms and Machine Elements](./mechanical-engineering/MECHANISMS_AND_MACHINE_ELEMENTS.md)
+- [Materials Science Deep Expansion](./mechanical-engineering/MATERIALS_SCIENCE_DEEP_EXPANSION.md)
+- [Manufacturing Engineering Foundation](./manufacturing-engineering/MANUFACTURING_ENGINEERING_FOUNDATION.md)
+- [Humanoid Robotics Bible](./humanoid/HUMANOID_ROBOTICS_BIBLE.md)
+- [Reliability and Safety Engineering Bible](./reliability-safety/RELIABILITY_AND_SAFETY_ENGINEERING_BIBLE.md)
+- [Weaver Engineering Bible](./weaver/README.md)
 
 ## Research Goal
-Design robots that combine strong engineering, elegant design, reliability, practical real-world usefulness, maintainability, modular upgrades, and long service life.
+Create safe, reliable, elegant, modular, maintainable, and useful robotic systems with long service lives and complete engineering traceability.
