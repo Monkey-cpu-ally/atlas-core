@@ -96,13 +96,16 @@ Refinement path:
 - Added `backend/tests/test_startup_persistence_wiring.py`.
 - Added startup persistence coverage for Discovery Approval drafts/reviews/decisions, Knowledge Records, Chronicle entries, External Access connections/import plans, and Project Intelligence briefs.
 - Closed `DEBT-PERSIST-001` after adding persistence hydration coverage.
+- Verified the World Knowledge Graph router import and `app.include_router(...)` mounting in `backend/server.py`.
+- Added `backend/tests/test_world_knowledge_graph_routes.py`.
+- Added route coverage for World Knowledge Graph health, foundation seeding, summaries, node creation/filtering/fetching, edge creation/filtering, neighborhood traversal, and HTTP error translation.
 
 ## Next Work
 
-1. Verify World Knowledge Graph route mounting and add route tests if missing.
-2. Continue Knowledge Division roadmap after refinement hardening.
-3. Begin Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
-4. Keep startup persistence tests updated when adding new persistence-backed command surfaces.
+1. Run CI confirmation for World Knowledge Graph route coverage and close `DEBT-KNOW-001` after a passing result.
+2. Continue the Knowledge Division roadmap with Source Reliability Ranking.
+3. Begin the Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
+4. Keep persistence and route-mounting tests updated when adding new command surfaces.
 
 ## Standard
 
