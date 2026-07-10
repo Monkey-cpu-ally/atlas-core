@@ -6,6 +6,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from routes.atlas_os import router as atlas_os_router
 from services import engineering_operating_system as aeos
 
 router = APIRouter(prefix="/api/engineering-os", tags=["ATLAS Engineering OS"])
@@ -163,3 +164,6 @@ async def list_risks(mission_id: Optional[str] = None, status: Optional[str] = N
 async def list_events(mission_id: Optional[str] = None, event_type: Optional[str] = None, limit: int = 250):
     items = aeos.list_events(mission_id=mission_id, event_type=event_type, limit=limit)
     return {"count": len(items), "items": items}
+
+
+router.include_router(atlas_os_router)
