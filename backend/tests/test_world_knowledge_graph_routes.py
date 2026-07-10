@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from fastapi import HTTPException
 
@@ -9,6 +11,13 @@ from services import world_knowledge_graph as wkg
 def reset_world_graph_state():
     wkg.attach_mongo(None)
     wkg.reset_in_memory_state()
+
+
+def test_world_knowledge_graph_router_is_mounted_in_server():
+    server_source = (Path(__file__).resolve().parents[1] / "server.py").read_text(encoding="utf-8")
+
+    assert "from routes.world_knowledge_graph import router as world_knowledge_graph_router" in server_source
+    assert "app.include_router(world_knowledge_graph_router)" in server_source
 
 
 @pytest.mark.asyncio
