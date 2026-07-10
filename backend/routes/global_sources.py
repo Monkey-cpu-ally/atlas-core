@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from services import global_source_library as gsl
+from services import source_reliability
 
 router = APIRouter(prefix="/api/global-sources", tags=["ATLAS Global Source Library"])
 
@@ -103,3 +104,26 @@ async def mark_reviewed(source_id: str, req: SourceReviewRequest):
         return source
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
+
+
+@router.get("/sources/{source_id}/reliability")
+async def source_reliability_report(source_id: str, domain: Optional[str] = None):
+    source = gsl.get_source(source_id)
+    if not source:
+        raise HTTPException(404, f"source not found: {source_id}")
+    return source_reliability.assess_source(source, domain=domain)
+
+
+@router.get("/reliability-rankings")
+async def reliability_rankings(
+    domain: Optional[str] = None,
+    minimum_score: int = 0,
+    limit: int = 100,
+):
+    sources = gsl.list_sources(limit=10000)
+    return source_reliability.rank_sources(
+        sources,
+        domain=domain,
+        minimum_score=minimum_score,
+        limit=limit,
+    )
