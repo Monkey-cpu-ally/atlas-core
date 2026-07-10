@@ -2,7 +2,7 @@
 
 ## Current Milestone
 
-Phase 5 — Sprint 2: Persistence Foundation
+Phase 5 — Sprint 3A: Knowledge Relationships and Automatic Classification
 
 ## Implemented So Far
 
@@ -19,7 +19,7 @@ Agent runtime identity registry
 In-memory API route registry
 Diagnostics health aggregation
 Bootstrap demo
-Smoke test
+Persistent bootstrap mode
 Developer setup guide
 JSON persistence package
 JSON file store
@@ -33,8 +33,14 @@ JSON task repository
 Event repository interface
 JSON event repository
 EventBusService optional JSON-backed persistence
-Repository persistence tests
-Task and event repository tests
+Knowledge node model
+Knowledge relationship model
+Knowledge relationship repositories
+Knowledge relationship service
+Automatic Knowledge Bank classifier
+Automatic relationship builder
+Confidence and matched-term explanations
+Relationship and classifier tests
 ```
 
 ## Core Agents Registered
@@ -49,33 +55,47 @@ Council
 ## Current Storage Mode
 
 ```text
-Memory, Knowledge, Task, and Event services support optional JSON-backed persistence
+Memory, Knowledge, Task, Event, Knowledge Node, and Knowledge Relationship records support optional JSON-backed persistence
+```
+
+## Current Knowledge Division Capability
+
+```text
+Can store knowledge entries and source passports
+Can connect projects, sources, Knowledge Banks, agents, tasks, events, experiments, and blueprints
+Can query inbound, outbound, and all related relationships
+Can classify text using explainable domain terms
+Can suggest Knowledge Banks with confidence scores
+Can automatically create project-to-bank relationships
 ```
 
 ## Current Known Limits
 
 ```text
+Test files exist but have not yet been executed through GitHub Actions in this workflow
+Automatic classification is rule-based, not semantic AI reasoning
+The classifier does not yet cover every Knowledge Bank in equal depth
 No SQLite persistence yet
-No real LLM calls yet
-No real HTTP server yet
 No graph database yet
 No vector search yet
+No real LLM calls yet
+No real HTTP server yet
 No authentication yet
 No HUD integration yet
 ```
 
 ## Next Recommended Step
 
-Create a local atlas-data folder convention and add bootstrap demo persistence mode.
+Expand and formalize the complete Knowledge Bank registry, then add timeline and query services.
 
 Suggested order:
 
 ```text
-1. Add local atlas-data folder convention
-2. Add bootstrap demo persistence mode
-3. Prepare SQLite adapter planning document
-4. Add persistence recovery/loading from disk
-5. Add persistence backup convention
+1. Create canonical Knowledge Bank registry
+2. Map each bank to keywords and responsible agents
+3. Add knowledge timeline models and service
+4. Add query service across nodes and relationships
+5. Add API routes for knowledge queries
 ```
 
 ## Phase 5 Rule
