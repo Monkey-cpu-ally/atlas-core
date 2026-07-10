@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 
 from services import atlas_os_control_plane as control_plane
 
-router = APIRouter(prefix="/api/atlas-os", tags=["AtlasOS"])
+router = APIRouter(prefix="/atlas-os", tags=["AtlasOS"])
 
 
 @router.get("/health")
