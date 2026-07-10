@@ -99,13 +99,19 @@ Refinement path:
 - Verified the World Knowledge Graph router import and `app.include_router(...)` mounting in `backend/server.py`.
 - Added `backend/tests/test_world_knowledge_graph_routes.py`.
 - Added route coverage for World Knowledge Graph health, foundation seeding, summaries, node creation/filtering/fetching, edge creation/filtering, neighborhood traversal, and HTTP error translation.
+- Added `backend/services/source_reliability.py`.
+- Added transparent deterministic source scoring using trust tier, source type, review status, access method, provenance, completed review, and domain fit.
+- Added `GET /api/global-sources/sources/{source_id}/reliability`.
+- Added `GET /api/global-sources/reliability-rankings`.
+- Added `backend/tests/test_source_reliability.py`.
+- Added `memory/SOURCE_RELIABILITY_STANDARD.md` with reliability bands, scoring rules, limitations, and safety policy.
 
 ## Next Work
 
-1. Run CI confirmation for World Knowledge Graph route coverage and close `DEBT-KNOW-001` after a passing result.
-2. Continue the Knowledge Division roadmap with Source Reliability Ranking.
-3. Begin the Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
-4. Keep persistence and route-mounting tests updated when adding new command surfaces.
+1. Connect Source Reliability Ranking to Discovery Approval evidence scoring so source quality influences evidence review transparently.
+2. Run CI confirmation for World Knowledge Graph and Source Reliability tests; close `DEBT-KNOW-001` after passing results.
+3. Continue Knowledge Division hardening with provenance conflict detection and source review history.
+4. Begin the Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
 
 ## Standard
 
