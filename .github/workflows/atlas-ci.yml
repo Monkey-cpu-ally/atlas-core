@@ -12,7 +12,7 @@ permissions:
 jobs:
   backend-quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: backend
@@ -29,8 +29,8 @@ jobs:
           pip install -r requirements.txt
       - name: Compile Python
         run: python -m compileall . ../atlas_core ../src
-      - name: Engineering adapter tests
-        run: pytest tests/test_engineering_tool_adapters.py -v
+      - name: Engineering and memory tests
+        run: pytest tests/test_engineering_tool_adapters.py tests/test_qdrant_memory.py -v
       - name: Core API tests
         run: pytest tests/test_atlas_api.py -q
         continue-on-error: true
