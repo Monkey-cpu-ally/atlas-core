@@ -791,6 +791,43 @@ private_source · culture_tag` (plus friendly aliases `source_name`,
 - `testing_agent_v3_fork` iteration_25.json: 19/19 pass via public
   ingress; iteration_24.json: 6+13 pass; zero regressions.
 
+## Iter-30 · ATLAS Vision Systems (2026-07)
+
+Robotics perception foundation for Hermes + The Weaver. Pure Python +
+numpy, no OpenCV/torch/paid-API dependency. All routes under
+`/api/vision/*`, additive — nothing existing renamed.
+
+**Files added:**
+- `backend/models/vision_models.py` — 15 Pydantic models
+- `backend/services/vision.py` — 10-section service layer
+- `backend/routes/vision.py` — FastAPI router, ~28 endpoints
+- `backend/tests/test_iter30_vision_systems.py` — 25 tests
+- `backend/tests/test_iter29_stabilization.py` — 15 stabilization tests
+- `memory/ATLAS_VISION_SYSTEMS.md` — full docs
+
+**Files changed:**
+- `backend/server.py` — 1 line `include_router(vision_router)`
+- `backend/services/memory_bank.py` — `search_memory` gains substring
+  keyword boost so `/api/membank/search?q=whisper` surfaces exact hits
+- `atlas_core/council/router.py` — fixed stale `route()` reference
+  inside `assemble()` (renamed to `route_internal`, callsite missed)
+- `backend/tests/test_ai_services.py` — provider-agnostic (accept either
+  OpenAI voice name OR ElevenLabs voice ID)
+- `backend/tests/test_iter10_hud.py` — quiz size 5→10, proxy 502 tolerant
+- `backend/tests/test_iter16_voice_ingest_sentinel.py` — paginate device
+  list so seed rows aren't buried past limit=50
+
+**MongoDB collections created:** `vision_cameras`, `vision_sensors`,
+`vision_calibrations`, `vision_hand_eye`, `vision_frames`,
+`vision_detections`, `vision_tracks`, `vision_poses`,
+`vision_inspections`, `vision_twin_links`.
+
+**Testing:**
+- Local pytest iter30: **25/25 pass** (4.58 s)
+- Cumulative iter27–iter30: **79/79 pass**
+- `testing_agent_v3_fork` iteration_26.json: **25/25 pass via public
+  ingress**, `failed_tests: []`, zero regressions.
+
 ## Iter-28b · KN metadata enrichment (2026-02)
 
 **Files added:**
