@@ -64,11 +64,11 @@ jobs:
         run: |
           sudo mkdir -p /app/frontend
           printf 'REACT_APP_BACKEND_URL=http://127.0.0.1:8000\n' | sudo tee /app/frontend/.env >/dev/null
+          mkdir -p test_reports
 
       - name: Install backend dependencies
         working-directory: backend
         run: |
-          mkdir -p ../test_reports
           set +e
           python -m pip install --upgrade pip 2>&1 | tee ../test_reports/pip-upgrade.log
           upgrade_status=${PIPESTATUS[0]}
@@ -83,17 +83,39 @@ jobs:
 
       - name: Python syntax compile check
         run: |
-          mkdir -p test_reports
           set +e
           python -m compileall backend atlas_core 2>&1 | tee test_reports/compile.log
           status=${PIPESTATUS[0]}
           echo $status > test_reports/compile.exitcode
           exit $status
 
-      - name: Run backend unit tests
+      - name: Start backend API servers
         working-directory: backend
         run: |
-          mkdir -p ../test_reports
+          nohup python -m uvicorn server:app --host 127.0.0.1 --port 8000 > ../test_reports/server-8000.log 2>&1 &
+          echo $! > ../test_reports/server-8000.pid
+          nohup python -m uvicorn server:app --host 127.0.0.1 --port 8001 > ../test_reports/server-8001.log 2>&1 &
+          echo $! > ../test_reports/server-8001.pid
+
+          for port in 8000 8001; do
+            ready=0
+            for attempt in $(seq 1 60); do
+              if curl --silent --fail "http://127.0.0.1:${port}/api/" >/dev/null; then
+                ready=1
+                break
+              fi
+              sleep 1
+            done
+            if [ "$ready" -ne 1 ]; then
+              echo "Backend failed to become ready on port ${port}."
+              cat "../test_reports/server-${port}.log" || true
+              exit 1
+            fi
+          done
+
+      - name: Run backend unit and integration tests
+        working-directory: backend
+        run: |
           set +e
           pytest -q 2>&1 | tee ../test_reports/pytest.log
           status=${PIPESTATUS[0]}
@@ -103,7 +125,6 @@ jobs:
       - name: Build ATLAS repair report
         if: failure()
         run: |
-          mkdir -p test_reports
           cat > test_reports/atlas_repair_report.md <<'EOF'
           # ATLAS CI Repair Report
 
@@ -120,12 +141,13 @@ jobs:
 
           ## Repair Protocol
           1. Read `pip-install.log` first when dependency installation failed.
-          2. Read `compile.log` next when compilation ran.
-          3. Read `pytest.log` when tests ran.
-          4. Identify the smallest safe fix.
-          5. Do not remove ATLAS features to make tests pass.
-          6. Add or update tests when fixing the bug.
-          7. Re-run CI after the fix.
+          2. Read `compile.log` when compilation failed.
+          3. Read `server-8000.log` and `server-8001.log` when startup failed.
+          4. Read `pytest.log` when tests ran.
+          5. Identify the smallest safe fix.
+          6. Do not remove ATLAS features to make tests pass.
+          7. Add or update tests when fixing the bug.
+          8. Re-run CI after the fix.
           EOF
 
       - name: Upload failure diagnostics
