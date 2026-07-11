@@ -62,8 +62,18 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          mkdir -p ../test_reports
+          set +e
+          python -m pip install --upgrade pip 2>&1 | tee ../test_reports/pip-upgrade.log
+          upgrade_status=${PIPESTATUS[0]}
+          if [ "$upgrade_status" -ne 0 ]; then
+            echo "$upgrade_status" > ../test_reports/pip-install.exitcode
+            exit "$upgrade_status"
+          fi
+          pip install -r requirements.txt 2>&1 | tee ../test_reports/pip-install.log
+          status=${PIPESTATUS[0]}
+          echo "$status" > ../test_reports/pip-install.exitcode
+          exit "$status"
 
       - name: Python syntax compile check
         run: |
@@ -103,12 +113,13 @@ jobs:
           ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
           ## Repair Protocol
-          1. Read `compile.log` first.
-          2. Read `pytest.log` second.
-          3. Identify the smallest safe fix.
-          4. Do not remove ATLAS features to make tests pass.
-          5. Add or update tests when fixing the bug.
-          6. Re-run CI after the fix.
+          1. Read `pip-install.log` first when dependency installation failed.
+          2. Read `compile.log` next when compilation ran.
+          3. Read `pytest.log` when tests ran.
+          4. Identify the smallest safe fix.
+          5. Do not remove ATLAS features to make tests pass.
+          6. Add or update tests when fixing the bug.
+          7. Re-run CI after the fix.
           EOF
 
       - name: Upload failure diagnostics
