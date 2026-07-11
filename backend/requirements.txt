@@ -30,8 +30,5 @@ pypdf==6.11.0
 youtube-transcript-api==1.2.4
 selectolax==0.4.10
 paho-mqtt==2.1.0
-opencv-python-headless>=4.10.0
-cadquery>=2.5.2
 qdrant-client>=1.10.0,<2.0.0
-sentence-transformers>=3.0.0,<4.0.0
 sentry-sdk[fastapi]>=2.8.0,<3.0.0
