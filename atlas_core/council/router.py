@@ -107,7 +107,7 @@ async def assemble(
       3) Critic (optionally) lists open concerns.
       4) Support adds one short action step.
     """
-    decision = route(question)
+    decision = route_internal(question)
     lead_core = get_core(decision.lead)
     critic_core = get_core(decision.critic)
     support_core = get_core(decision.support)

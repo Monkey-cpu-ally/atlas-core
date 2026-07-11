@@ -381,10 +381,18 @@ async def search_memory(
     top_k: int = 10,
     min_score: float = 0.30,
 ) -> List[Dict[str, Any]]:
-    """Cosine-similarity search. We compute scores in Python — fine up to
-    a few thousand memories. When the architect scales past that, swap
-    this for Mongo Atlas Vector Search (same field name, same dim)."""
+    """Cosine-similarity search blended with a substring keyword boost.
+
+    Pure embedding similarity buries exact keyword hits (e.g. "whisper")
+    behind semantically-related but lexically-unrelated content. To fix
+    that we blend a small substring bonus into the final score so a row
+    whose content literally contains the query wins over merely-similar
+    rows. We compute scores in Python — fine up to a few thousand
+    memories. When the architect scales past that, swap this for Mongo
+    Atlas Vector Search (same field name, same dim).
+    """
     qvec, _ = await embed(query, persona=persona or "default")
+    q_lower = query.lower().strip()
     filt: Dict[str, Any] = {}
     if persona:
         filt["persona"] = persona.lower()
@@ -400,11 +408,20 @@ async def search_memory(
         # surface less unless they're pinned.
         fresh = await _decay_score(row)
         score = 0.85 * sim + 0.15 * fresh
+        # Substring keyword boost — up to +0.35 when the query literally
+        # appears in the content or tags. Keeps semantic ordering intact
+        # for non-matching rows, but makes exact keyword lookups reliable.
+        content_l = (row.get("content") or "").lower()
+        tags_l = " ".join(row.get("tags") or []).lower()
+        keyword_hit = q_lower and (q_lower in content_l or q_lower in tags_l)
+        if keyword_hit:
+            score = min(1.0, score + 0.35)
         if score >= min_score:
             row.pop("embedding", None)        # don't return raw vectors
             row["sim"] = round(sim, 4)
             row["freshness_now"] = round(fresh, 4)
             row["score"] = round(score, 4)
+            row["keyword_hit"] = bool(keyword_hit)
             scored.append((score, row))
     scored.sort(key=lambda t: t[0], reverse=True)
     return [r for _, r in scored[:top_k]]

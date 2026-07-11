@@ -145,6 +145,10 @@ from routes.research_sources import router as research_sources_router  # Knowled
 app.include_router(research_sources_router)
 from routes.transcripts import router as transcripts_router  # Knowledge Bank Phase E
 app.include_router(transcripts_router)
+
+# Vision Systems — Robotics perception foundation for Hermes + Weaver.
+from routes.vision import router as vision_router  # noqa: E402
+app.include_router(vision_router)
 # ATLAS Core v1 — mounted at /api/atlas/* so the HUD can talk to the new
 # cognition stack (council, mental simulation, teaching, identity anchor).
 app.include_router(atlas_core_router, prefix="/api")

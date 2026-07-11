@@ -72,7 +72,10 @@ def test_membank_search_finds_whisper_record():
 # 3) Robot Control permission verification (guest vs owner ACTUATE)
 # ---------------------------------------------------------------------------
 def _get_device_id(name):
-    r = requests.get(f"{BASE_URL}/api/robot/devices", timeout=10)
+    # Seed devices are older than test-created devices, so the default
+    # limit=50 buries them past the pagination cutoff. Ask for a full
+    # page so the roll-up stays deterministic.
+    r = requests.get(f"{BASE_URL}/api/robot/devices", params={"limit": 200}, timeout=10)
     assert r.status_code == 200, r.text[:200]
     for d in r.json().get("items", []):
         if d["name"] == name:
