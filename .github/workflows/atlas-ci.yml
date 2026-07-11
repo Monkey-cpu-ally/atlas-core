@@ -1,0 +1,51 @@
+name: ATLAS CI
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/backend
+
+jobs:
+  backend-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-tools.txt
+      - name: Install core dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Compile Python
+        run: python -m compileall . ../atlas_core ../src
+      - name: Engineering and memory contract tests
+        run: pytest tests/test_engineering_tool_adapters.py tests/test_qdrant_memory.py -v
+      - name: Core API tests
+        run: pytest tests/test_atlas_api.py -q
+        continue-on-error: true
+
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        run: docker compose config
+      - name: Build ATLAS core image
+        run: docker build --build-arg INSTALL_TOOL_EXTRAS=false -t atlas-core:ci .
