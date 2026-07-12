@@ -15,6 +15,7 @@ Hermes
 - [Reliability and Safety Engineering Bible](./reliability-safety/RELIABILITY_AND_SAFETY_ENGINEERING_BIBLE.md)
 - [Weaver Engineering Bible](./weaver/README.md)
 - [Robotics Vision Systems Bible](./vision/VISION_SYSTEMS_BIBLE.md)
+- [Motion Planning and Control Bible](./motion-control/MOTION_PLANNING_AND_CONTROL_BIBLE.md)
 
 ## Research Goal
 Create safe, reliable, elegant, modular, maintainable, and useful robotic systems with long service lives and complete engineering traceability.
