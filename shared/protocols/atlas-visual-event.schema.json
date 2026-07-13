@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.local/schemas/atlas-visual-event.schema.json",
+  "title": "ATLAS Visual Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "event", "timestamp", "source", "payload"],
+  "properties": {
+    "version": { "const": "1.0" },
+    "event": {
+      "type": "string",
+      "enum": [
+        "system.ready",
+        "system.alert",
+        "ai.state.changed",
+        "ai.speech.started",
+        "ai.speech.ended",
+        "council.started",
+        "council.completed",
+        "project.progress.changed",
+        "research.ingestion.changed",
+        "twin.simulation.changed",
+        "weaver.plan.changed",
+        "robot.telemetry.changed",
+        "hud.mode.changed"
+      ]
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "minLength": 1 },
+    "correlation_id": { "type": ["string", "null"] },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "persona": {
+          "type": "string",
+          "enum": ["ajani", "minerva", "hermes", "council", "atlas"]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "idle",
+            "listening",
+            "thinking",
+            "speaking",
+            "working",
+            "warning",
+            "error",
+            "offline"
+          ]
+        },
+        "emotion": { "type": "string" },
+        "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mode": {
+          "type": "string",
+          "enum": ["core", "gaia", "forge", "council", "explore", "void"]
+        },
+        "message": { "type": "string" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+        "data": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  }
+}
