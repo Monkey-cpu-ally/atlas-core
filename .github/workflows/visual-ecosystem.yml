@@ -1,0 +1,52 @@
+name: Visual Ecosystem
+
+on:
+  pull_request:
+    paths:
+      - "atlas_core/visual.py"
+      - "frontend/**"
+      - "clients/atlas-godot/**"
+      - "clients/atlas-desktop/**"
+      - "clients/atlas-unreal/**"
+      - "visual-systems/**"
+      - "shared/protocols/**"
+      - "tests/test_visual_hub.py"
+  push:
+    branches:
+      - "feature/atlas-visual-ecosystem"
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install fastapi pydantic pytest
+      - run: pytest -q tests/test_visual_hub.py
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+
+  tauri-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/atlas-desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check
