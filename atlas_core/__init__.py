@@ -12,6 +12,7 @@ Subpackages:
     archive_engine   — PDF / ZIP / TXT scan → classify → summarize
     shield_core      — sanitize / quarantine / gates / identity anchor
     memory           — thread-safe in-memory store w/ DB-shaped interface
+    visual           — shared WebSocket event hub for all ATLAS interfaces
 
 Mount on an existing FastAPI app::
 
@@ -19,8 +20,13 @@ Mount on an existing FastAPI app::
     app.include_router(atlas_router, prefix="/api")
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
-from .app import atlas_router  # noqa: F401  (re-export for convenience)
+from .app import atlas_router  # noqa: F401
+from .visual import visual_router
 
-__all__ = ["atlas_router", "__version__"]
+# The visual ecosystem is deliberately mounted inside the existing ATLAS
+# router, producing /api/atlas/visual/* when ATLAS Core is mounted by server.py.
+atlas_router.include_router(visual_router)
+
+__all__ = ["atlas_router", "visual_router", "__version__"]
