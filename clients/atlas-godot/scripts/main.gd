@@ -3,13 +3,14 @@ extends Control
 @onready var status_label: Label = $Center/Status
 
 var socket := WebSocketPeer.new()
-var socket_url := "ws://127.0.0.1:8000/api/visual/ws"
+var socket_url := "ws://127.0.0.1:8000/api/atlas/visual/ws"
 var connected := false
+var reconnect_seconds := 0.0
 
 func _ready() -> void:
 	_connect_visual_bridge()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	socket.poll()
 	var state := socket.get_ready_state()
 
@@ -18,9 +19,15 @@ func _process(_delta: float) -> void:
 			connected = true
 			status_label.text = "ATLAS CONSOLE // CONNECTED"
 		_read_messages()
-	elif state == WebSocketPeer.STATE_CLOSED and connected:
-		connected = false
-		status_label.text = "ATLAS CONSOLE // BRIDGE OFFLINE"
+	elif state == WebSocketPeer.STATE_CLOSED:
+		if connected:
+			connected = false
+			status_label.text = "ATLAS CONSOLE // BRIDGE OFFLINE"
+		reconnect_seconds += delta
+		if reconnect_seconds >= 3.0:
+			reconnect_seconds = 0.0
+			socket = WebSocketPeer.new()
+			_connect_visual_bridge()
 
 func _connect_visual_bridge() -> void:
 	var error := socket.connect_to_url(socket_url)
