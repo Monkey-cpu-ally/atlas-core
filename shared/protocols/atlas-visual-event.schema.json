@@ -15,14 +15,23 @@
         "ai.state.changed",
         "ai.speech.started",
         "ai.speech.ended",
+        "ai.presence.requested",
         "council.started",
         "council.completed",
+        "wheel.opened",
+        "wheel.selection.changed",
+        "project.opened",
         "project.progress.changed",
+        "pulse.opened",
+        "pulse.updated",
+        "awareness.alert.raised",
+        "awareness.alert.dismissed",
         "research.ingestion.changed",
         "twin.simulation.changed",
         "weaver.plan.changed",
         "robot.telemetry.changed",
-        "hud.mode.changed"
+        "hud.mode.changed",
+        "hud.returned.idle"
       ]
     },
     "timestamp": { "type": "string", "format": "date-time" },
@@ -37,25 +46,23 @@
         },
         "state": {
           "type": "string",
-          "enum": [
-            "idle",
-            "listening",
-            "thinking",
-            "speaking",
-            "working",
-            "warning",
-            "error",
-            "offline"
-          ]
+          "enum": ["idle", "listening", "thinking", "speaking", "working", "warning", "error", "offline"]
         },
         "emotion": { "type": "string" },
         "intensity": { "type": "number", "minimum": 0, "maximum": 1 },
         "mode": {
           "type": "string",
-          "enum": ["core", "gaia", "forge", "council", "explore", "void"]
+          "enum": ["idle", "conversation", "active-ai", "constellation-wheel", "project-workspace", "council", "pulse", "awareness-alert", "explore"]
         },
         "message": { "type": "string" },
+        "title": { "type": "string" },
+        "reason": { "type": "string" },
+        "action": { "type": "string" },
+        "urgency": { "type": "string", "enum": ["normal", "elevated", "high", "critical"] },
+        "node_id": { "type": "string" },
+        "project_id": { "type": "string" },
         "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+        "items": { "type": "array", "items": { "type": "object" } },
         "data": { "type": "object" }
       },
       "additionalProperties": true
