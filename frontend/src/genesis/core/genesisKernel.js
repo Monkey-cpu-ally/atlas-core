@@ -38,6 +38,12 @@ export function createGenesisKernel() {
     openProjects() {
       sceneManager.transition(SCENES.PROJECTS);
     },
+    openWorkspace(projectId, persona = snapshot.activePersona || "hermes") {
+      sceneManager.transition(SCENES.WORKSPACE, {
+        activeProjectId: projectId,
+        activePersona: persona,
+      });
+    },
     openPulse() {
       sceneManager.transition(SCENES.PULSE);
     },
