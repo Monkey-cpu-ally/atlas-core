@@ -1,4 +1,5 @@
 import React from "react";
+import "./mission.css";
 
 export default function MissionDock({ mission, onOpen }) {
   if (!mission) return null;
