@@ -8,6 +8,7 @@ import { initialHubState, reduceHubState, HUB_MODES } from "./hubState";
 import { personaTokens } from "./designTokens";
 import useAdaptiveQuality from "./useAdaptiveQuality";
 import "./genesis.css";
+import "./performance.css";
 
 const previewModes = [
   { label: "Idle", event: { event: "hud.returned.idle", payload: {} } },
