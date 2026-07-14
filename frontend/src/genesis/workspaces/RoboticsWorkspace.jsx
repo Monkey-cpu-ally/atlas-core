@@ -1,4 +1,5 @@
 import React from "react";
+import "./workspaces.css";
 
 const sections = [
   { id: "blueprints", label: "Blueprints", detail: "Drawings, dimensions, assemblies, and revision history." },
