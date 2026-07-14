@@ -1,32 +1,30 @@
 import React, { useEffect, useMemo, useReducer, useState } from "react";
+import AwarenessAlert from "./AwarenessAlert";
 import ConstellationWheel from "./ConstellationWheel";
+import PortraitController from "./PortraitController";
+import PulsePanel from "./PulsePanel";
+import { getCapabilities } from "./capabilityRegistry";
 import { initialHubState, reduceHubState, HUB_MODES } from "./hubState";
 import { personaTokens } from "./designTokens";
 import "./genesis.css";
 
-const demoNodes = {
-  hermes: [
-    { id: "robotics", label: "Robotics", art: "R" },
-    { id: "software", label: "Software", art: "S" },
-    { id: "electronics", label: "Electronics", art: "E" },
-    { id: "cad", label: "CAD", art: "C" },
-    { id: "weaver", label: "Weaver", art: "W" },
-  ],
-  minerva: [
-    { id: "biology", label: "Biology", art: "B" },
-    { id: "botany", label: "Botany", art: "N" },
-    { id: "research", label: "Research", art: "R" },
-    { id: "learning", label: "Learning", art: "L" },
-    { id: "knowledge", label: "Knowledge Bank", art: "K" },
-  ],
-  ajani: [
-    { id: "strategy", label: "Strategy", art: "S" },
-    { id: "projects", label: "Projects", art: "P" },
-    { id: "risk", label: "Risk", art: "R" },
-    { id: "business", label: "Business", art: "B" },
-    { id: "missions", label: "Missions", art: "M" },
-  ],
-};
+const previewModes = [
+  { label: "Idle", event: { event: "hud.returned.idle", payload: {} } },
+  { label: "Ajani", event: { event: "ai.presence.requested", payload: { persona: "ajani" } } },
+  { label: "Minerva", event: { event: "ai.presence.requested", payload: { persona: "minerva" } } },
+  { label: "Hermes", event: { event: "ai.presence.requested", payload: { persona: "hermes" } } },
+  { label: "Council", event: { event: "council.started", payload: { persona: "council" } } },
+  { label: "Pulse", event: { event: "pulse.opened", payload: { persona: "atlas" } } },
+];
+
+function withEnvelope(event) {
+  return {
+    version: "1.0",
+    timestamp: new Date().toISOString(),
+    source: "genesis-preview",
+    ...event,
+  };
+}
 
 export default function GenesisHub({ visualBridge }) {
   const [state, dispatch] = useReducer(reduceHubState, initialHubState);
@@ -38,44 +36,100 @@ export default function GenesisHub({ visualBridge }) {
 
   const persona = state.activePersona || "atlas";
   const tokens = personaTokens[persona] || personaTokens.atlas;
-  const nodes = useMemo(() => demoNodes[persona] || [], [persona]);
+  const nodes = useMemo(() => getCapabilities(persona), [persona]);
+  const showWheel = [HUB_MODES.WHEEL, HUB_MODES.PROJECT, HUB_MODES.ACTIVE_AI, HUB_MODES.COUNCIL].includes(state.mode);
+  const showPulse = state.mode === HUB_MODES.PULSE;
 
-  const showWheel = [HUB_MODES.WHEEL, HUB_MODES.PROJECT, HUB_MODES.ACTIVE_AI].includes(state.mode);
-  const visibleFaces = state.visiblePersonas;
+  useEffect(() => {
+    setSelectedNode(null);
+  }, [persona]);
+
+  function selectNode(node) {
+    setSelectedNode(node);
+    dispatch(withEnvelope({ event: "wheel.selection.changed", payload: { persona, node_id: node.id } }));
+  }
+
+  function dismissAlert() {
+    dispatch(withEnvelope({ event: "awareness.alert.dismissed", payload: {} }));
+  }
 
   return (
-    <main className="genesis-hub" style={{ "--atlas-accent": tokens.accent }}>
+    <main
+      className={`genesis-hub genesis-hub--${state.mode}`}
+      data-persona={persona}
+      style={{ "--atlas-accent": tokens.accent }}
+    >
+      <div className="genesis-hub__ambient" aria-hidden="true" />
       <div className="genesis-hub__core" aria-label="ATLAS core">
         <span>ATLAS</span>
       </div>
 
       {showWheel && (
         <ConstellationWheel
-          nodes={nodes}
+          nodes={nodes.map((node) => ({ ...node, art: node.label.slice(0, 1) }))}
           selectedId={selectedNode?.id || state.selectedNodeId}
-          onSelect={setSelectedNode}
+          onSelect={selectNode}
           accent={tokens.accent}
         />
       )}
 
-      <section className="genesis-hub__workspace" aria-live="polite">
-        <p className="genesis-hub__mode">{state.mode}</p>
-        <h1>{selectedNode?.label || (persona === "atlas" ? "Quiet and ready" : `${persona} workspace`)}</h1>
-        <p>
-          {selectedNode
-            ? "This is the first functional shell. Original project artwork and real tools will replace this placeholder."
-            : "Voice stays primary. The Hub expands only when the work needs it."}
-        </p>
-      </section>
+      {!showPulse && (
+        <section className="genesis-hub__workspace" aria-live="polite">
+          <p className="genesis-hub__mode">{state.mode}</p>
+          <h1>
+            {selectedNode?.label ||
+              (persona === "atlas"
+                ? "Quiet and ready"
+                : persona === "council"
+                  ? "Council assembled"
+                  : `${persona} workspace`)}
+          </h1>
+          <p>
+            {selectedNode?.summary ||
+              (persona === "council"
+                ? "Ajani, Minerva, and Hermes are present together. Agreements and dissent remain visible."
+                : "Voice stays primary. The Hub expands only when the work needs it.")}
+          </p>
+          {selectedNode?.projectIds?.length ? (
+            <div className="genesis-hub__project-links">
+              {selectedNode.projectIds.map((projectId) => <span key={projectId}>{projectId}</span>)}
+            </div>
+          ) : null}
+        </section>
+      )}
 
-      <aside className="genesis-hub__portraits" aria-label="Active AI presence">
-        {visibleFaces.map((name) => (
-          <div className="genesis-hub__portrait" key={name}>
-            <div className="genesis-hub__portrait-placeholder">{name.slice(0, 1).toUpperCase()}</div>
-            <span>{name}</span>
-          </div>
+      {showPulse ? <PulsePanel items={state.pulseItems} updatedAt={state.pulseUpdatedAt} /> : null}
+
+      <PortraitController
+        visiblePersonas={state.visiblePersonas}
+        activePersona={state.activePersona}
+        state={state.speechState}
+      />
+
+      <AwarenessAlert alert={state.alert} onDismiss={dismissAlert} />
+
+      <nav className="genesis-preview" aria-label="Genesis development preview controls">
+        {previewModes.map((item) => (
+          <button type="button" key={item.label} onClick={() => dispatch(withEnvelope(item.event))}>
+            {item.label}
+          </button>
         ))}
-      </aside>
+        <button
+          type="button"
+          onClick={() => dispatch(withEnvelope({
+            event: "awareness.alert.raised",
+            payload: {
+              persona: "ajani",
+              title: "The offer is below your stated floor.",
+              reason: "The proposed amount is 18% under your minimum target.",
+              action: "Do not accept yet. Ask them to justify the reduction.",
+              urgency: "high",
+            },
+          }))}
+        >
+          Alert
+        </button>
+      </nav>
 
       <div className="genesis-hub__connection">
         Visual bridge: {visualBridge?.status || "offline"}
