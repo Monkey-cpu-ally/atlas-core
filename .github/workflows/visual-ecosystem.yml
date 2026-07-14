@@ -11,6 +11,7 @@ on:
       - "visual-systems/**"
       - "shared/protocols/**"
       - "tests/test_visual_hub.py"
+      - ".github/workflows/visual-ecosystem.yml"
   push:
     branches:
       - "feature/atlas-visual-ecosystem"
@@ -18,12 +19,15 @@ on:
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
+    env:
+      MONGO_URL: mongodb://localhost:27017
+      DB_NAME: atlas_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install fastapi pydantic pytest
+      - run: pip install -r backend/requirements.txt pytest
       - run: pytest -q tests/test_visual_hub.py
 
   frontend-build:
@@ -36,10 +40,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: yarn
-          cache-dependency-path: frontend/yarn.lock
+      - run: corepack enable
       - run: yarn install --frozen-lockfile
-      - run: yarn build
+      - run: CI=false yarn build
 
   tauri-check:
     runs-on: ubuntu-latest
@@ -48,5 +51,9 @@ jobs:
         working-directory: clients/atlas-desktop/src-tauri
     steps:
       - uses: actions/checkout@v4
+      - name: Install Linux Tauri dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo check
