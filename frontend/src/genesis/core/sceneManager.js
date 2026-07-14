@@ -4,6 +4,7 @@ export const SCENES = Object.freeze({
   WHEEL: "wheel",
   PROJECTS: "projects",
   MISSION: "mission",
+  WORKSPACE: "workspace",
   PULSE: "pulse",
   COUNCIL: "council",
   ALERT: "alert",
