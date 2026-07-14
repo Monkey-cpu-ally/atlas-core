@@ -13,8 +13,10 @@ import { getMission } from "./mission/missionRegistry";
 import { getProjects } from "./mission/projectRegistry";
 import { personaTokens } from "./designTokens";
 import useAdaptiveQuality from "./useAdaptiveQuality";
+import RoboticsWorkspace from "./workspaces/RoboticsWorkspace";
 import "./genesis.css";
 import "./performance.css";
+import "./portrait.css";
 
 const previewModes = [
   { label: "Idle", event: { event: "hud.returned.idle", payload: {} } },
@@ -57,13 +59,14 @@ export default function GenesisHub({ visualBridge }) {
   }, [visualBridge?.lastEvent]);
 
   useEffect(() => {
+    if ([SCENES.MISSION, SCENES.PROJECTS, SCENES.WORKSPACE].includes(kernelSnapshot?.scene)) return;
     kernel.sceneManager.transition(sceneForHubMode(state.mode), {
       activePersona: state.activePersona,
       activeProjectId: state.activeProjectId,
     });
-  }, [kernel, state.activePersona, state.activeProjectId, state.mode]);
+  }, [kernel, kernelSnapshot?.scene, state.activePersona, state.activeProjectId, state.mode]);
 
-  const persona = state.activePersona || "atlas";
+  const persona = kernelSnapshot?.activePersona || state.activePersona || "atlas";
   const tokens = personaTokens[persona] || personaTokens.atlas;
   const nodes = useMemo(
     () => getCapabilities(persona).map((node) => ({ ...node, art: node.label.slice(0, 1) })),
@@ -71,11 +74,16 @@ export default function GenesisHub({ visualBridge }) {
   );
   const mission = useMemo(() => getMission(kernelSnapshot?.activeMissionId), [kernelSnapshot?.activeMissionId]);
   const missionProjects = useMemo(() => getProjects(mission?.projectIds), [mission?.projectIds]);
+  const activeProject = useMemo(
+    () => getProjects(kernelSnapshot?.activeProjectId ? [kernelSnapshot.activeProjectId] : [])[0] || null,
+    [kernelSnapshot?.activeProjectId],
+  );
   const showWheel = [HUB_MODES.WHEEL, HUB_MODES.PROJECT, HUB_MODES.ACTIVE_AI, HUB_MODES.COUNCIL].includes(state.mode);
   const scene = kernelSnapshot?.scene || SCENES.IDLE;
   const showPulse = scene === SCENES.PULSE;
   const showMission = scene === SCENES.MISSION;
   const showProjects = scene === SCENES.PROJECTS;
+  const showWorkspace = scene === SCENES.WORKSPACE;
 
   useEffect(() => {
     setSelectedNode(null);
@@ -88,13 +96,15 @@ export default function GenesisHub({ visualBridge }) {
   }, [kernel, persona]);
 
   const selectProject = useCallback((project) => {
-    kernel.setState({ activeProjectId: project.id });
+    kernel.openWorkspace(project.id, project.persona);
     dispatch(withEnvelope({ event: "project.opened", payload: { persona: project.persona, project_id: project.id } }));
   }, [kernel]);
 
   const dismissAlert = useCallback(() => {
     dispatch(withEnvelope({ event: "awareness.alert.dismissed", payload: {} }));
   }, []);
+
+  const standardScene = !showPulse && !showMission && !showProjects && !showWorkspace;
 
   return (
     <main
@@ -109,7 +119,7 @@ export default function GenesisHub({ visualBridge }) {
         <span>ATLAS</span>
       </button>
 
-      {showWheel && !showMission && !showProjects && (
+      {showWheel && standardScene && (
         <ConstellationWheel
           nodes={nodes}
           selectedId={selectedNode?.id || state.selectedNodeId}
@@ -118,7 +128,7 @@ export default function GenesisHub({ visualBridge }) {
         />
       )}
 
-      {!showPulse && !showMission && !showProjects && (
+      {standardScene && (
         <section className="genesis-hub__workspace" aria-live="polite">
           <p className="genesis-hub__mode">{state.mode}</p>
           <h1>
@@ -146,8 +156,14 @@ export default function GenesisHub({ visualBridge }) {
       {showPulse ? <PulsePanel items={state.pulseItems} updatedAt={state.pulseUpdatedAt} /> : null}
       {showMission ? <ProjectWall projects={missionProjects} onSelect={selectProject} /> : null}
       {showProjects ? <ProjectWall projects={getProjects()} onSelect={selectProject} /> : null}
+      {showWorkspace ? (
+        <RoboticsWorkspace
+          project={activeProject}
+          onBack={() => kernel.openProjects()}
+        />
+      ) : null}
 
-      {!showMission && !showProjects ? (
+      {standardScene ? (
         <PortraitController
           visiblePersonas={state.visiblePersonas}
           activePersona={state.activePersona}
@@ -155,7 +171,7 @@ export default function GenesisHub({ visualBridge }) {
         />
       ) : null}
 
-      <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} />
+      {!showWorkspace ? <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} /> : null}
       <AwarenessAlert alert={state.alert} onDismiss={dismissAlert} />
 
       {process.env.NODE_ENV !== "production" ? (
