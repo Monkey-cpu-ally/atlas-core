@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ConfigDict, Field
@@ -17,20 +17,30 @@ ALLOWED_EVENTS = {
     "ai.state.changed",
     "ai.speech.started",
     "ai.speech.ended",
+    "ai.presence.requested",
     "council.started",
     "council.completed",
+    "wheel.opened",
+    "wheel.selection.changed",
+    "project.opened",
     "project.progress.changed",
+    "pulse.opened",
+    "pulse.updated",
+    "awareness.alert.raised",
+    "awareness.alert.dismissed",
     "research.ingestion.changed",
     "twin.simulation.changed",
     "weaver.plan.changed",
     "robot.telemetry.changed",
     "hud.mode.changed",
+    "hud.returned.idle",
 }
 ALLOWED_PERSONAS = {"ajani", "minerva", "hermes", "council", "atlas"}
 ALLOWED_STATES = {
     "idle", "listening", "thinking", "speaking", "working",
     "warning", "error", "offline",
 }
+ALLOWED_URGENCY = {"normal", "elevated", "high", "critical"}
 
 
 class VisualPayload(BaseModel):
@@ -42,7 +52,14 @@ class VisualPayload(BaseModel):
     intensity: Optional[float] = Field(default=None, ge=0, le=1)
     mode: Optional[str] = None
     message: Optional[str] = None
+    title: Optional[str] = None
+    reason: Optional[str] = None
+    action: Optional[str] = None
+    urgency: Optional[str] = None
+    node_id: Optional[str] = None
+    project_id: Optional[str] = None
     progress: Optional[float] = Field(default=None, ge=0, le=1)
+    items: Optional[List[Dict[str, Any]]] = None
     data: Optional[Dict[str, Any]] = None
 
 
@@ -108,6 +125,8 @@ def build_envelope(request: VisualEventCreate) -> Dict[str, Any]:
         raise HTTPException(422, "Unknown ATLAS persona")
     if payload.get("state") not in ALLOWED_STATES | {None}:
         raise HTTPException(422, "Unknown ATLAS visual state")
+    if payload.get("urgency") not in ALLOWED_URGENCY | {None}:
+        raise HTTPException(422, "Unknown ATLAS alert urgency")
 
     return {
         "version": "1.0",
