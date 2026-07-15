@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
+import { mergePulseItems, pulseSources } from "./pulse/pulseRegistry";
+import "./pulse/pulse.css";
 
-const fallbackItems = [
-  { id: "weather", category: "Weather", title: "Weather source not connected", why: "Connect a forecast provider to receive local conditions and severe-weather alerts.", persona: "minerva", urgency: "normal" },
-  { id: "markets", category: "Markets", title: "Market source not connected", why: "Connect market data before ATLAS reports prices or movement.", persona: "ajani", urgency: "normal" },
-  { id: "technology", category: "Technology", title: "Technology feed not connected", why: "Connect verified news and research sources for project-relevant developments.", persona: "hermes", urgency: "normal" },
-];
-
-export default function PulsePanel({ items, updatedAt }) {
-  const visibleItems = items?.length ? items : fallbackItems;
+export default function PulsePanel({ items = [], updatedAt }) {
+  const [filter, setFilter] = useState("all");
+  const mergedItems = useMemo(() => mergePulseItems(items), [items]);
+  const visibleItems = useMemo(
+    () => mergedItems.filter((item) => filter === "all" || item.sourceId === filter),
+    [filter, mergedItems],
+  );
+  const connectedCount = pulseSources.filter((source) => source.enabled).length;
 
   return (
     <section className="pulse-panel" aria-label="The Pulse">
@@ -15,18 +17,43 @@ export default function PulsePanel({ items, updatedAt }) {
         <div>
           <p>The Pulse</p>
           <h2>What matters and why</h2>
+          <span>{connectedCount} of {pulseSources.length} sources connected</span>
         </div>
         <time>{updatedAt ? new Date(updatedAt).toLocaleTimeString() : "Awaiting live sources"}</time>
       </header>
+
+      <nav className="pulse-panel__filters" aria-label="Pulse categories">
+        <button type="button" className={filter === "all" ? "is-active" : ""} onClick={() => setFilter("all")}>All</button>
+        {pulseSources.map((source) => (
+          <button
+            type="button"
+            key={source.id}
+            className={filter === source.id ? "is-active" : ""}
+            data-connected={source.enabled}
+            onClick={() => setFilter(source.id)}
+          >
+            {source.label}
+          </button>
+        ))}
+      </nav>
+
       <div className="pulse-panel__grid">
-        {visibleItems.slice(0, 6).map((item) => (
-          <article className="pulse-card" data-persona={item.persona || "atlas"} key={item.id}>
+        {visibleItems.slice(0, 12).map((item) => (
+          <article
+            className="pulse-card"
+            data-persona={item.persona || "atlas"}
+            data-status={item.status || "live"}
+            key={item.id}
+          >
             <div className="pulse-card__topline">
               <span>{item.category}</span>
-              {item.urgency && item.urgency !== "normal" ? <b>{item.urgency}</b> : null}
+              <div>
+                {item.status ? <em>{item.status}</em> : null}
+                {item.urgency && item.urgency !== "normal" ? <b>{item.urgency}</b> : null}
+              </div>
             </div>
             <h3>{item.title}</h3>
-            <p>{item.summary}</p>
+            {item.summary ? <p>{item.summary}</p> : null}
             <footer>
               <strong>Why Frazier should care</strong>
               <span>{item.why}</span>
