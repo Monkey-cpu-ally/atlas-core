@@ -1,20 +1,29 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "atlas-core"
 version = "0.1.0"
 description = "ATLAS Core Phase 5 construction scaffold"
 requires-python = ">=3.11"
-dependencies = []
-
-[project.optional-dependencies]
-youtube = [
+dependencies = [
   "youtube-transcript-api>=1.0,<2.0",
 ]
+
+[project.optional-dependencies]
 dev = [
   "pytest>=8.0.0",
 ]
 
 [project.scripts]
 atlas-youtube-ingest = "atlas_knowledge_engine.youtube_cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "atlas-knowledge-engine/src"}
+
+[tool.setuptools.packages.find]
+where = ["atlas-knowledge-engine/src"]
 
 [tool.pytest.ini_options]
 testpaths = ["atlas-tests/tests"]
