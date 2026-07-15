@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import importlib.util
+import importlib
 import sys
 import types
 from typing import Any
@@ -10,11 +10,15 @@ from typing import Any
 
 def _install_openai_tts_compatibility() -> None:
     module_name = "emergentintegrations.llm.openai"
+
     try:
-        if importlib.util.find_spec(module_name) is not None:
+        existing = importlib.import_module(module_name)
+        if hasattr(existing, "OpenAITextToSpeech"):
             return
-    except (ImportError, ModuleNotFoundError, ValueError):
-        pass
+    except (ImportError, ModuleNotFoundError, AttributeError):
+        # A module may have a discoverable spec but still fail during import
+        # when its optional ``openai`` dependency is not installed.
+        sys.modules.pop(module_name, None)
 
     module = types.ModuleType(module_name)
 
