@@ -35,6 +35,11 @@ function normalizeAlert(payload, envelope) {
   };
 }
 
+function upsertById(items, item, limit) {
+  if (!item?.id) return items;
+  return [item, ...items.filter((existing) => existing.id !== item.id)].slice(0, limit);
+}
+
 export function reduceHubState(state, envelope) {
   if (!envelope?.event) return state;
   const payload = envelope.payload || {};
@@ -93,6 +98,12 @@ export function reduceHubState(state, envelope) {
         pulseItems: Array.isArray(payload.items) ? payload.items : state.pulseItems,
         pulseUpdatedAt: envelope.timestamp || payload.updated_at || new Date().toISOString(),
       };
+    case "pulse.item.received":
+      return {
+        ...state,
+        pulseItems: upsertById(state.pulseItems, payload.item, 24),
+        pulseUpdatedAt: envelope.timestamp || new Date().toISOString(),
+      };
     case "awareness.opened":
       return { ...state, mode: HUB_MODES.AWARENESS };
     case "council.started":
@@ -110,7 +121,7 @@ export function reduceHubState(state, envelope) {
         ...state,
         mode: HUB_MODES.ALERT,
         alert,
-        awarenessItems: [alert, ...state.awarenessItems.filter((item) => item.id !== alert.id)].slice(0, 50),
+        awarenessItems: upsertById(state.awarenessItems, alert, 50),
       };
     }
     case "awareness.alert.dismissed": {
