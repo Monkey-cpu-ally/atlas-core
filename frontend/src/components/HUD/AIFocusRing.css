@@ -1,0 +1,89 @@
+/*
+ * ATLAS AI Focus Mode
+ *
+ * Default state remains the approved three-ring HUD. Selecting an AI from the
+ * inner branch ring temporarily suppresses the other rings and expands one
+ * transparent ring into the selected AI's workspace navigator.
+ */
+
+.dial-ring.focus-suppressed {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.82);
+  transition: opacity 320ms ease, transform 420ms cubic-bezier(.2,.75,.25,1), visibility 0s linear 420ms;
+}
+
+.dial-ring.ai-focus-ring {
+  z-index: 12;
+  transform: scale(1.72);
+  transition: transform 520ms cubic-bezier(.16,.84,.25,1), opacity 260ms ease;
+}
+
+.dial-ring.ai-focus-ring .ring-visible {
+  stroke-width: 0.42;
+  stroke: color-mix(in srgb, var(--tile-color, rgba(148, 163, 184, 0.9)) 58%, transparent);
+  filter: drop-shadow(0 0 2px rgba(210, 235, 255, 0.28));
+}
+
+.dial-ring.ai-focus-ring .focus-branch-tile {
+  min-width: 54px;
+  min-height: 54px;
+  border-color: rgba(220, 235, 255, 0.22);
+  background: rgba(5, 11, 18, 0.54);
+  backdrop-filter: blur(9px);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.025), 0 8px 26px rgba(0, 0, 0, 0.32);
+}
+
+.dial-ring.ai-focus-ring .focus-branch-tile.is-top,
+.dial-ring.ai-focus-ring .focus-branch-tile.active-branch {
+  border-color: var(--tile-color, rgba(210, 235, 255, 0.72));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--tile-color, white) 35%, transparent);
+}
+
+.dial-ring.ai-focus-ring .focus-branch-tile .tile-label {
+  font-size: 6.5px;
+  letter-spacing: 0.12em;
+}
+
+.ai-focus-back {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 8;
+  transform: translate(-50%, 35px);
+  padding: 4px 9px;
+  border: 1px solid rgba(220, 235, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(4, 8, 14, 0.52);
+  color: rgba(230, 240, 255, 0.68);
+  font: 500 6px/1 'Orbitron', sans-serif;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.ai-focus-back:hover,
+.ai-focus-back:focus-visible {
+  color: #fff;
+  border-color: rgba(230, 245, 255, 0.56);
+  outline: none;
+}
+
+@media (max-width: 760px) {
+  .dial-ring.ai-focus-ring {
+    transform: scale(1.42);
+  }
+
+  .dial-ring.ai-focus-ring .focus-branch-tile {
+    min-width: 45px;
+    min-height: 45px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dial-ring.focus-suppressed,
+  .dial-ring.ai-focus-ring {
+    transition-duration: 1ms;
+  }
+}
