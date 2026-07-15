@@ -21,7 +21,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install test and YouTube dependencies
-        run: python -m pip install "pytest>=8.0" "youtube-transcript-api>=1.0,<2.0"
+          cache: pip
+      - name: Install ATLAS and test tools
+        run: python -m pip install -e ".[dev]"
       - name: Run YouTube ingestion tests
-        run: python -m pytest atlas-tests/tests/test_youtube_ingestion.py atlas-tests/tests/test_youtube_cli.py
+        run: python -m pytest atlas-tests/tests/test_youtube_ingestion.py atlas-tests/tests/test_youtube_cli.py -q
+      - name: Verify installed CLI
+        run: atlas-youtube-ingest --help
