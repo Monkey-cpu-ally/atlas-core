@@ -6,6 +6,7 @@ import PulsePanel from "./PulsePanel";
 import { getCapabilities } from "./capabilityRegistry";
 import { createGenesisKernel } from "./core/genesisKernel";
 import { SCENES } from "./core/sceneManager";
+import DeveloperMode from "./developer/DeveloperMode";
 import { initialHubState, reduceHubState, HUB_MODES } from "./hubState";
 import MissionDock from "./mission/MissionDock";
 import ProjectWall from "./mission/ProjectWall";
@@ -48,6 +49,7 @@ export default function GenesisHub({ visualBridge }) {
   const [state, dispatch] = useReducer(reduceHubState, initialHubState);
   const [selectedNode, setSelectedNode] = useState(null);
   const [kernelSnapshot, setKernelSnapshot] = useState(null);
+  const [developerMode, setDeveloperMode] = useState(false);
   const kernel = useMemo(() => createGenesisKernel(), []);
   const quality = useAdaptiveQuality();
 
@@ -66,12 +68,20 @@ export default function GenesisHub({ visualBridge }) {
     });
   }, [kernel, kernelSnapshot?.scene, state.activePersona, state.activeProjectId, state.mode]);
 
+  useEffect(() => {
+    function onKeyDown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        setDeveloperMode((current) => !current);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const persona = kernelSnapshot?.activePersona || state.activePersona || "atlas";
   const tokens = personaTokens[persona] || personaTokens.atlas;
-  const nodes = useMemo(
-    () => getCapabilities(persona).map((node) => ({ ...node, art: node.label.slice(0, 1) })),
-    [persona],
-  );
+  const nodes = useMemo(() => getCapabilities(persona), [persona]);
   const mission = useMemo(() => getMission(kernelSnapshot?.activeMissionId), [kernelSnapshot?.activeMissionId]);
   const missionProjects = useMemo(() => getProjects(mission?.projectIds), [mission?.projectIds]);
   const activeProject = useMemo(
@@ -88,6 +98,10 @@ export default function GenesisHub({ visualBridge }) {
   useEffect(() => {
     setSelectedNode(null);
   }, [persona]);
+
+  useEffect(() => {
+    if (!selectedNode && nodes.length) setSelectedNode(nodes[0]);
+  }, [nodes, selectedNode]);
 
   const selectNode = useCallback((node) => {
     setSelectedNode(node);
@@ -128,28 +142,21 @@ export default function GenesisHub({ visualBridge }) {
         />
       )}
 
-      {standardScene && (
+      {standardScene && !showWheel && (
         <section className="genesis-hub__workspace" aria-live="polite">
           <p className="genesis-hub__mode">{state.mode}</p>
           <h1>
-            {selectedNode?.label ||
-              (persona === "atlas"
-                ? "Quiet and ready"
-                : persona === "council"
-                  ? "Council assembled"
-                  : `${persona} workspace`)}
+            {persona === "atlas"
+              ? "Quiet and ready"
+              : persona === "council"
+                ? "Council assembled"
+                : `${persona} workspace`}
           </h1>
           <p>
-            {selectedNode?.summary ||
-              (persona === "council"
-                ? "Ajani, Minerva, and Hermes are present together. Agreements and dissent remain visible."
-                : "Voice stays primary. The Hub expands only when the work needs it.")}
+            {persona === "council"
+              ? "Ajani, Minerva, and Hermes are present together. Agreements and dissent remain visible."
+              : "Voice stays primary. The Hub expands only when the work needs it."}
           </p>
-          {selectedNode?.projectIds?.length ? (
-            <div className="genesis-hub__project-links">
-              {selectedNode.projectIds.map((projectId) => <span key={projectId}>{projectId}</span>)}
-            </div>
-          ) : null}
         </section>
       )}
 
@@ -173,6 +180,16 @@ export default function GenesisHub({ visualBridge }) {
 
       {!showWorkspace ? <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} /> : null}
       <AwarenessAlert alert={state.alert} onDismiss={dismissAlert} />
+
+      <DeveloperMode
+        enabled={developerMode}
+        onToggle={() => setDeveloperMode((current) => !current)}
+        scene={scene}
+        persona={persona}
+        quality={quality.profile}
+        bridgeStatus={visualBridge?.status}
+        activeProjectId={kernelSnapshot?.activeProjectId}
+      />
 
       {process.env.NODE_ENV !== "production" ? (
         <nav className="genesis-preview" aria-label="Genesis development preview controls">
