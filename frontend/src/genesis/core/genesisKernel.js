@@ -47,6 +47,9 @@ export function createGenesisKernel() {
     openPulse() {
       sceneManager.transition(SCENES.PULSE);
     },
+    openAwareness() {
+      sceneManager.transition(SCENES.AWARENESS);
+    },
     returnIdle() {
       sceneManager.transition(SCENES.IDLE, {
         activePersona: null,
