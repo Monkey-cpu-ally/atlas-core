@@ -3,6 +3,7 @@ import AwarenessAlert from "./AwarenessAlert";
 import ConstellationWheel from "./ConstellationWheel";
 import PortraitController from "./PortraitController";
 import PulsePanel from "./PulsePanel";
+import AwarenessCenter from "./awareness/AwarenessCenter";
 import { getCapabilities } from "./capabilityRegistry";
 import { createGenesisKernel } from "./core/genesisKernel";
 import { SCENES } from "./core/sceneManager";
@@ -12,12 +13,14 @@ import MissionDock from "./mission/MissionDock";
 import ProjectWall from "./mission/ProjectWall";
 import { getMission } from "./mission/missionRegistry";
 import { getProjects } from "./mission/projectRegistry";
+import { githubPulseItemFromEnvelope } from "./pulse/githubPulse";
 import { personaTokens } from "./designTokens";
 import useAdaptiveQuality from "./useAdaptiveQuality";
 import AdaptiveWorkspace from "./workspaces/AdaptiveWorkspace";
 import "./genesis.css";
 import "./performance.css";
 import "./portrait.css";
+import "./utility-dock.css";
 
 const previewModes = [
   { label: "Idle", event: { event: "hud.returned.idle", payload: {} } },
@@ -25,7 +28,6 @@ const previewModes = [
   { label: "Minerva", event: { event: "ai.presence.requested", payload: { persona: "minerva" } } },
   { label: "Hermes", event: { event: "ai.presence.requested", payload: { persona: "hermes" } } },
   { label: "Council", event: { event: "council.started", payload: { persona: "council" } } },
-  { label: "Pulse", event: { event: "pulse.opened", payload: { persona: "atlas" } } },
 ];
 
 function withEnvelope(event) {
@@ -39,6 +41,7 @@ function withEnvelope(event) {
 
 function sceneForHubMode(mode) {
   if (mode === HUB_MODES.PULSE) return SCENES.PULSE;
+  if (mode === HUB_MODES.AWARENESS) return SCENES.AWARENESS;
   if (mode === HUB_MODES.COUNCIL) return SCENES.COUNCIL;
   if (mode === HUB_MODES.ALERT) return SCENES.ALERT;
   if ([HUB_MODES.ACTIVE_AI, HUB_MODES.WHEEL, HUB_MODES.PROJECT].includes(mode)) return SCENES.AI;
@@ -57,11 +60,21 @@ export default function GenesisHub({ visualBridge }) {
   useEffect(() => setKernelSnapshot(kernel.getSnapshot()), [kernel]);
 
   useEffect(() => {
-    if (visualBridge?.lastEvent) dispatch(visualBridge.lastEvent);
+    const envelope = visualBridge?.lastEvent;
+    if (!envelope) return;
+    dispatch(envelope);
+    const githubItem = githubPulseItemFromEnvelope(envelope);
+    if (githubItem) {
+      dispatch({
+        event: "pulse.item.received",
+        timestamp: envelope.timestamp || new Date().toISOString(),
+        payload: { item: githubItem },
+      });
+    }
   }, [visualBridge?.lastEvent]);
 
   useEffect(() => {
-    if ([SCENES.MISSION, SCENES.PROJECTS, SCENES.WORKSPACE].includes(kernelSnapshot?.scene)) return;
+    if ([SCENES.MISSION, SCENES.PROJECTS, SCENES.WORKSPACE, SCENES.AWARENESS].includes(kernelSnapshot?.scene)) return;
     kernel.sceneManager.transition(sceneForHubMode(state.mode), {
       activePersona: state.activePersona,
       activeProjectId: state.activeProjectId,
@@ -91,6 +104,7 @@ export default function GenesisHub({ visualBridge }) {
   const showWheel = [HUB_MODES.WHEEL, HUB_MODES.PROJECT, HUB_MODES.ACTIVE_AI, HUB_MODES.COUNCIL].includes(state.mode);
   const scene = kernelSnapshot?.scene || SCENES.IDLE;
   const showPulse = scene === SCENES.PULSE;
+  const showAwareness = scene === SCENES.AWARENESS;
   const showMission = scene === SCENES.MISSION;
   const showProjects = scene === SCENES.PROJECTS;
   const showWorkspace = scene === SCENES.WORKSPACE;
@@ -114,11 +128,11 @@ export default function GenesisHub({ visualBridge }) {
     dispatch(withEnvelope({ event: "project.opened", payload: { persona: project.persona, project_id: project.id } }));
   }, [kernel]);
 
-  const dismissAlert = useCallback(() => {
-    dispatch(withEnvelope({ event: "awareness.alert.dismissed", payload: {} }));
+  const dismissAlert = useCallback((id) => {
+    dispatch(withEnvelope({ event: "awareness.alert.dismissed", payload: id ? { id } : {} }));
   }, []);
 
-  const standardScene = !showPulse && !showMission && !showProjects && !showWorkspace;
+  const standardScene = !showPulse && !showAwareness && !showMission && !showProjects && !showWorkspace;
 
   return (
     <main
@@ -161,6 +175,14 @@ export default function GenesisHub({ visualBridge }) {
       )}
 
       {showPulse ? <PulsePanel items={state.pulseItems} updatedAt={state.pulseUpdatedAt} /> : null}
+      {showAwareness ? (
+        <AwarenessCenter
+          alerts={state.awarenessItems}
+          onDismiss={dismissAlert}
+          onSelect={(alert) => dispatch(withEnvelope({ event: "awareness.alert.raised", payload: alert }))}
+          onClose={() => kernel.returnIdle()}
+        />
+      ) : null}
       {showMission ? <ProjectWall projects={missionProjects} onSelect={selectProject} /> : null}
       {showProjects ? <ProjectWall projects={getProjects()} onSelect={selectProject} /> : null}
       {showWorkspace ? <AdaptiveWorkspace project={activeProject} onBack={() => kernel.openProjects()} /> : null}
@@ -173,8 +195,19 @@ export default function GenesisHub({ visualBridge }) {
         />
       ) : null}
 
-      {!showWorkspace ? <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} /> : null}
-      <AwarenessAlert alert={state.alert} onDismiss={dismissAlert} />
+      {!showWorkspace && !showPulse && !showAwareness ? <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} /> : null}
+      {!showAwareness ? <AwarenessAlert alert={state.alert} onDismiss={() => dismissAlert()} /> : null}
+
+      <nav className="genesis-utility-dock" aria-label="ATLAS intelligence centers">
+        <button type="button" className={showPulse ? "is-active" : ""} onClick={() => kernel.openPulse()}>
+          <span>Pulse</span>
+          <small>{state.pulseItems.length}</small>
+        </button>
+        <button type="button" className={showAwareness ? "is-active" : ""} onClick={() => kernel.openAwareness()}>
+          <span>Awareness</span>
+          <small>{state.awarenessItems.length}</small>
+        </button>
+      </nav>
 
       <DeveloperMode
         enabled={developerMode}
