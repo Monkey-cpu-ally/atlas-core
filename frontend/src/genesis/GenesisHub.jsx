@@ -14,7 +14,7 @@ import { getMission } from "./mission/missionRegistry";
 import { getProjects } from "./mission/projectRegistry";
 import { personaTokens } from "./designTokens";
 import useAdaptiveQuality from "./useAdaptiveQuality";
-import RoboticsWorkspace from "./workspaces/RoboticsWorkspace";
+import AdaptiveWorkspace from "./workspaces/AdaptiveWorkspace";
 import "./genesis.css";
 import "./performance.css";
 import "./portrait.css";
@@ -163,12 +163,7 @@ export default function GenesisHub({ visualBridge }) {
       {showPulse ? <PulsePanel items={state.pulseItems} updatedAt={state.pulseUpdatedAt} /> : null}
       {showMission ? <ProjectWall projects={missionProjects} onSelect={selectProject} /> : null}
       {showProjects ? <ProjectWall projects={getProjects()} onSelect={selectProject} /> : null}
-      {showWorkspace ? (
-        <RoboticsWorkspace
-          project={activeProject}
-          onBack={() => kernel.openProjects()}
-        />
-      ) : null}
+      {showWorkspace ? <AdaptiveWorkspace project={activeProject} onBack={() => kernel.openProjects()} /> : null}
 
       {standardScene ? (
         <PortraitController
