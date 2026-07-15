@@ -1,0 +1,27 @@
+name: YouTube ingestion tests
+
+on:
+  push:
+    paths:
+      - "atlas-knowledge-engine/**"
+      - "atlas-tests/tests/test_youtube_*.py"
+      - "pyproject.toml"
+      - ".github/workflows/youtube-ingestion-tests.yml"
+  pull_request:
+    paths:
+      - "atlas-knowledge-engine/**"
+      - "atlas-tests/tests/test_youtube_*.py"
+      - "pyproject.toml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test and YouTube dependencies
+        run: python -m pip install -e ".[dev,youtube]"
+      - name: Run YouTube ingestion tests
+        run: python -m pytest atlas-tests/tests/test_youtube_ingestion.py atlas-tests/tests/test_youtube_cli.py
