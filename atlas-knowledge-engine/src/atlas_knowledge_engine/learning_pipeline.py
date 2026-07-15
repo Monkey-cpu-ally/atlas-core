@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 from typing import Callable
 
+from .confidence_engine import ConfidenceAssessment, ConfidenceEngine
 from .duplicate_detector import DuplicateDetector
 from .learning_adapter import AdapterRegistry, ExtractedContent, LearningSource
 from .learning_queue import LearningJob, LearningQueue
@@ -25,13 +26,16 @@ class LearningResult:
     title: str
     content_hash: str
     text_length: int
+    confidence_score: float
+    confidence_label: str
+    requires_verification: bool
 
 
 class LearningPipeline:
-    """Queue, validate, extract, normalize, deduplicate, and emit content.
+    """Queue, validate, extract, normalize, deduplicate, score, and emit content.
 
-    Storage, graph linking, confidence scoring, and AI review remain injected as
-    hooks so these systems stay replaceable and independent.
+    Storage, graph linking, and AI review remain injected as hooks so these
+    systems stay replaceable and independent.
     """
 
     def __init__(
@@ -42,12 +46,14 @@ class LearningPipeline:
         hooks: tuple[PipelineHook, ...] = (),
         source_registry: SourceRegistry | None = None,
         duplicate_detector: DuplicateDetector | None = None,
+        confidence_engine: ConfidenceEngine | None = None,
     ) -> None:
         self.adapters = adapters
         self.queue = queue or LearningQueue()
         self.hooks = hooks
         self.source_registry = source_registry or SourceRegistry()
         self.duplicate_detector = duplicate_detector or DuplicateDetector(self.source_registry)
+        self.confidence_engine = confidence_engine or ConfidenceEngine()
 
     def submit(self, source: LearningSource, *, priority: int = 50) -> LearningJob:
         adapter = self.adapters.resolve(source)
@@ -77,31 +83,54 @@ class LearningPipeline:
                     f"{duplicate.existing.source_type}:{duplicate.existing.source_id}"
                 )
 
+            assessment = self.confidence_engine.assess(normalized)
+            enriched = self._with_confidence(normalized, assessment)
+
             for hook in self.hooks:
-                hook(normalized)
+                hook(enriched)
 
             self.source_registry.register(
                 SourceRecord(
-                    source_type=normalized.source_type,
-                    source_id=normalized.source_id,
-                    title=normalized.title,
+                    source_type=enriched.source_type,
+                    source_id=enriched.source_id,
+                    title=enriched.title,
                     content_hash=digest,
-                    canonical_url=normalized.canonical_url,
-                    creator=normalized.creator,
-                    metadata=dict(normalized.metadata),
+                    canonical_url=enriched.canonical_url,
+                    creator=enriched.creator,
+                    metadata=dict(enriched.metadata),
                 )
             )
             self.queue.complete(job.job_id)
             return LearningResult(
                 job_id=job.job_id,
-                source_id=normalized.source_id,
-                title=normalized.title,
+                source_id=enriched.source_id,
+                title=enriched.title,
                 content_hash=digest,
-                text_length=len(normalized.text),
+                text_length=len(enriched.text),
+                confidence_score=assessment.score,
+                confidence_label=assessment.label,
+                requires_verification=assessment.requires_verification,
             )
         except Exception as exc:
             self.queue.fail(job.job_id, str(exc))
             raise
+
+    @staticmethod
+    def _with_confidence(
+        content: ExtractedContent,
+        assessment: ConfidenceAssessment,
+    ) -> ExtractedContent:
+        metadata = dict(content.metadata)
+        metadata.update(assessment.as_metadata())
+        return ExtractedContent(
+            source_type=content.source_type,
+            source_id=content.source_id,
+            title=content.title,
+            text=content.text,
+            canonical_url=content.canonical_url,
+            creator=content.creator,
+            metadata=metadata,
+        )
 
     @staticmethod
     def _normalize(content: ExtractedContent) -> ExtractedContent:
@@ -136,4 +165,5 @@ class LearningPipeline:
             "hooks": len(self.hooks),
             "source_registry": self.source_registry.health(),
             "duplicate_detector": self.duplicate_detector.health(),
+            "confidence_engine": self.confidence_engine.health(),
         }
