@@ -6,6 +6,7 @@ export const HUB_MODES = Object.freeze({
   PROJECT: "project-workspace",
   COUNCIL: "council",
   PULSE: "pulse",
+  AWARENESS: "awareness-center",
   ALERT: "awareness-alert",
 });
 
@@ -19,10 +20,19 @@ export const initialHubState = Object.freeze({
   pulseItems: [],
   pulseUpdatedAt: null,
   alert: null,
+  awarenessItems: [],
 });
 
 function oneFace(persona) {
   return persona && !["atlas", "council"].includes(persona) ? [persona] : [];
+}
+
+function normalizeAlert(payload, envelope) {
+  return {
+    id: payload.id || `alert-${envelope.timestamp || Date.now()}`,
+    createdAt: envelope.timestamp || new Date().toISOString(),
+    ...payload,
+  };
 }
 
 export function reduceHubState(state, envelope) {
@@ -83,6 +93,8 @@ export function reduceHubState(state, envelope) {
         pulseItems: Array.isArray(payload.items) ? payload.items : state.pulseItems,
         pulseUpdatedAt: envelope.timestamp || payload.updated_at || new Date().toISOString(),
       };
+    case "awareness.opened":
+      return { ...state, mode: HUB_MODES.AWARENESS };
     case "council.started":
       return {
         ...state,
@@ -92,12 +104,26 @@ export function reduceHubState(state, envelope) {
       };
     case "council.completed":
       return { ...initialHubState };
-    case "awareness.alert.raised":
-      return { ...state, mode: HUB_MODES.ALERT, alert: payload };
-    case "awareness.alert.dismissed":
-      return { ...state, mode: state.activePersona ? HUB_MODES.ACTIVE_AI : HUB_MODES.IDLE, alert: null };
+    case "awareness.alert.raised": {
+      const alert = normalizeAlert(payload, envelope);
+      return {
+        ...state,
+        mode: HUB_MODES.ALERT,
+        alert,
+        awarenessItems: [alert, ...state.awarenessItems.filter((item) => item.id !== alert.id)].slice(0, 50),
+      };
+    }
+    case "awareness.alert.dismissed": {
+      const dismissedId = payload.id || state.alert?.id;
+      return {
+        ...state,
+        mode: state.mode === HUB_MODES.AWARENESS ? HUB_MODES.AWARENESS : state.activePersona ? HUB_MODES.ACTIVE_AI : HUB_MODES.IDLE,
+        alert: state.alert?.id === dismissedId ? null : state.alert,
+        awarenessItems: dismissedId ? state.awarenessItems.filter((item) => item.id !== dismissedId) : state.awarenessItems,
+      };
+    }
     case "hud.returned.idle":
-      return { ...initialHubState };
+      return { ...initialHubState, pulseItems: state.pulseItems, pulseUpdatedAt: state.pulseUpdatedAt, awarenessItems: state.awarenessItems };
     default:
       return state;
   }
