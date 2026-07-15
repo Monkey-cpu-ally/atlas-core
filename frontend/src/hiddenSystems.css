@@ -1,0 +1,26 @@
+/*
+ * ATLAS hidden-systems boundary.
+ *
+ * Memory banks, knowledge banks, graph memory, source registries, indexes,
+ * caches, ingestion queues, and other infrastructure are backstage services.
+ * They must not appear as permanent HUD controls or panels.
+ *
+ * This stylesheet is a defensive UI guard for legacy components while the
+ * backend services remain available to the AIs.
+ */
+
+/* Legacy Graph Memory launcher: graph memory stays behind the scenes. */
+.atlas-launchers .gv,
+[data-testid="graph-launch-btn"] {
+  display: none !important;
+}
+
+/* Defensive guard against future bank-specific permanent HUD launchers. */
+[data-hud-system="knowledge-bank"],
+[data-hud-system="memory-bank"],
+[data-hud-system="research-bank"],
+[data-hud-system="media-bank"],
+[data-hud-system="source-registry"],
+[data-hud-system="graph-memory"] {
+  display: none !important;
+}
