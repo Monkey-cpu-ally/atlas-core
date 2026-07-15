@@ -13,6 +13,7 @@ import MissionDock from "./mission/MissionDock";
 import ProjectWall from "./mission/ProjectWall";
 import { getMission } from "./mission/missionRegistry";
 import { getProjects } from "./mission/projectRegistry";
+import Observatory from "./observatory/Observatory";
 import { githubPulseItemFromEnvelope } from "./pulse/githubPulse";
 import { personaTokens } from "./designTokens";
 import useAdaptiveQuality from "./useAdaptiveQuality";
@@ -95,6 +96,7 @@ export default function GenesisHub({ visualBridge }) {
   const persona = kernelSnapshot?.activePersona || state.activePersona || "atlas";
   const tokens = personaTokens[persona] || personaTokens.atlas;
   const nodes = useMemo(() => getCapabilities(persona), [persona]);
+  const allProjects = useMemo(() => getProjects(), []);
   const mission = useMemo(() => getMission(kernelSnapshot?.activeMissionId), [kernelSnapshot?.activeMissionId]);
   const missionProjects = useMemo(() => getProjects(mission?.projectIds), [mission?.projectIds]);
   const activeProject = useMemo(
@@ -133,6 +135,7 @@ export default function GenesisHub({ visualBridge }) {
   }, []);
 
   const standardScene = !showPulse && !showAwareness && !showMission && !showProjects && !showWorkspace;
+  const showObservatory = standardScene && !showWheel && persona === "atlas" && state.mode === HUB_MODES.IDLE;
 
   return (
     <main
@@ -156,15 +159,28 @@ export default function GenesisHub({ visualBridge }) {
         />
       )}
 
-      {standardScene && !showWheel && (
+      {showObservatory ? (
+        <Observatory
+          mission={mission}
+          projects={allProjects}
+          pulseItems={state.pulseItems}
+          awarenessItems={state.awarenessItems}
+          bridgeStatus={visualBridge?.status || "offline"}
+          onOpenMission={() => kernel.openMission(mission.id)}
+          onOpenProjects={() => kernel.openProjects()}
+          onOpenPulse={() => kernel.openPulse()}
+          onOpenAwareness={() => kernel.openAwareness()}
+          onOpenProject={selectProject}
+        />
+      ) : null}
+
+      {standardScene && !showWheel && !showObservatory && (
         <section className="genesis-hub__workspace" aria-live="polite">
           <p className="genesis-hub__mode">{state.mode}</p>
           <h1>
-            {persona === "atlas"
-              ? "Quiet and ready"
-              : persona === "council"
-                ? "Council assembled"
-                : `${persona} workspace`}
+            {persona === "council"
+              ? "Council assembled"
+              : `${persona} workspace`}
           </h1>
           <p>
             {persona === "council"
@@ -184,10 +200,10 @@ export default function GenesisHub({ visualBridge }) {
         />
       ) : null}
       {showMission ? <ProjectWall projects={missionProjects} onSelect={selectProject} /> : null}
-      {showProjects ? <ProjectWall projects={getProjects()} onSelect={selectProject} /> : null}
+      {showProjects ? <ProjectWall projects={allProjects} onSelect={selectProject} /> : null}
       {showWorkspace ? <AdaptiveWorkspace project={activeProject} onBack={() => kernel.openProjects()} /> : null}
 
-      {standardScene ? (
+      {standardScene && !showObservatory ? (
         <PortraitController
           visiblePersonas={state.visiblePersonas}
           activePersona={state.activePersona}
@@ -195,7 +211,7 @@ export default function GenesisHub({ visualBridge }) {
         />
       ) : null}
 
-      {!showWorkspace && !showPulse && !showAwareness ? <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} /> : null}
+      {!showWorkspace && !showPulse && !showAwareness && !showObservatory ? <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} /> : null}
       {!showAwareness ? <AwarenessAlert alert={state.alert} onDismiss={() => dismissAlert()} /> : null}
 
       <nav className="genesis-utility-dock" aria-label="ATLAS intelligence centers">
