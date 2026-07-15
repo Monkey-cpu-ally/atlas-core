@@ -60,4 +60,19 @@ jobs:
           mkdir -p ../../../frontend/build
           printf '<!doctype html><html><body><div id="root"></div></body></html>' > ../../../frontend/build/index.html
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo check
+      - name: Run cargo check
+        id: cargo-check
+        shell: bash
+        run: |
+          set +e
+          cargo check --message-format=short 2>&1 | tee cargo-check.log
+          status=${PIPESTATUS[0]}
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+      - name: Upload Tauri diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-cargo-check-log
+          path: clients/atlas-desktop/src-tauri/cargo-check.log
+          if-no-files-found: error
