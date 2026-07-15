@@ -6,6 +6,7 @@ export const SCENES = Object.freeze({
   MISSION: "mission",
   WORKSPACE: "workspace",
   PULSE: "pulse",
+  AWARENESS: "awareness",
   COUNCIL: "council",
   ALERT: "alert",
 });
