@@ -40,7 +40,9 @@
 .hermes-dashboard-grid section,
 .hermes-focus-card,
 .hermes-project-card,
-.hermes-task { border: 1px solid rgba(244, 239, 228, .14); background: rgba(255,255,255,.025); border-radius: 18px; }
+.hermes-task,
+.hermes-tool-surface,
+.hermes-notebook { border: 1px solid rgba(244, 239, 228, .14); background: rgba(255,255,255,.025); border-radius: 18px; }
 .hermes-dashboard-grid section { padding: 20px; }
 .hermes-resume-card h2 { margin: 10px 0 4px; font-size: 25px; }
 .hermes-resume-card p,
@@ -49,7 +51,9 @@
 .hermes-workspace button { font-family: 'Rajdhani', sans-serif; }
 .hermes-resume-actions button,
 .hermes-status-card button,
-.hermes-focus-card button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(244,239,228,.32); background: #f4efe4; color: #11151b; cursor: pointer; font-weight: 700; }
+.hermes-focus-card button,
+.hermes-save-note { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(244,239,228,.32); background: #f4efe4; color: #11151b; cursor: pointer; font-weight: 700; }
+.hermes-save-note:disabled { opacity: .5; cursor: default; }
 .hermes-resume-actions .secondary { background: transparent; color: #f4efe4; }
 .hermes-status-card strong { display: block; margin-top: 12px; font-size: 22px; }
 .hermes-mini-task,
@@ -71,10 +75,22 @@
 .hermes-focus-card p { color: rgba(244,239,228,.62); line-height: 1.6; }
 .hermes-ready-dot { width: 8px; height: 8px; border-radius: 50%; background: #7ee787; box-shadow: 0 0 12px rgba(126,231,135,.8); }
 
+.hermes-tool-surface,
+.hermes-notebook { min-height: 100%; padding: 18px; }
+.hermes-tool-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.hermes-tool-heading h2 { margin: 7px 0 0; font-size: 22px; }
+.hermes-tool-surface .blueprint-workbench { max-width: none; width: 100%; }
+.hermes-notebook { display: grid; grid-template-rows: auto 1fr auto; }
+.hermes-notebook textarea { width: 100%; min-height: 360px; resize: vertical; padding: 18px; border: 1px solid rgba(244,239,228,.18); border-radius: 14px; outline: none; background: rgba(0,0,0,.28); color: #f4efe4; font: 15px/1.65 'Rajdhani', sans-serif; }
+.hermes-notebook textarea:focus { border-color: rgba(244,239,228,.42); box-shadow: 0 0 0 3px rgba(244,239,228,.06); }
+.hermes-notebook-meta { display: flex; justify-content: space-between; gap: 12px; padding-top: 10px; color: rgba(244,239,228,.45); font-size: 12px; }
+
 @media (max-width: 820px) {
   .hermes-workspace { inset: 2vh 2vw; }
   .hermes-workspace-body { grid-template-columns: 64px 1fr; }
   .hermes-workspace-nav span { display: none; }
   .hermes-workspace-nav button { justify-content: center; }
   .hermes-dashboard-grid { grid-template-columns: 1fr; }
+  .hermes-tool-heading { align-items: flex-start; flex-direction: column; }
+  .hermes-notebook-meta { flex-direction: column; }
 }
