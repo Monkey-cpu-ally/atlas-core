@@ -55,6 +55,20 @@ def test_voice_router_supports_contextual_navigation():
     assert "contextual: true" in source
 
 
+def test_voice_router_remembers_prior_project_and_persona_targets():
+    source = VOICE_ROUTER.read_text(encoding="utf-8")
+    assert "voiceContext" in source
+    assert "rememberVoiceContext" in source
+    assert "getVoiceContext" in source
+    assert "resetVoiceContext" in source
+    assert "contextualReferenceCommand" in source
+    assert "resolvedFromMemory: true" in source
+    assert "continue that" in source
+    assert "show me the next step" in source
+    assert 'voiceContext.type === "project"' in source
+    assert 'voiceContext.type === "persona"' in source
+
+
 def test_voice_router_supports_wake_repeat_and_cancel():
     source = VOICE_ROUTER.read_text(encoding="utf-8")
     assert "WAKE_WORDS" in source
