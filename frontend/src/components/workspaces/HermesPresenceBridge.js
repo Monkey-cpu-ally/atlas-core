@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { getAllProjects } from '../../data/atlasCore';
 import './HermesPresenceBridge.css';
 
 const STATUS_EVENT = 'atlas-ai-status';
@@ -16,9 +17,10 @@ const STATUS_LABELS = {
 function readStoredPresence() {
   try {
     const saved = JSON.parse(window.localStorage?.getItem(SESSION_KEY) || '{}');
+    const project = getAllProjects().find((item) => item.id === saved.activeProjectId);
     return {
       status: saved.hermesStatus || 'ready',
-      project: saved.activeProjectName || '',
+      project: project?.name || '',
       section: saved.section || '',
     };
   } catch (_) {
@@ -36,6 +38,7 @@ function applyHermesPresence(detail = {}) {
   const section = detail.section || '';
 
   card.dataset.aiStatus = status;
+  card.dataset.workspaceSection = section;
   card.setAttribute('aria-label', `Hermes: ${label}${project ? ` on ${project}` : ''}`);
   card.title = `Hermes · ${label}${project ? ` · ${project}` : ''}${section ? ` · ${section}` : ''}`;
 
