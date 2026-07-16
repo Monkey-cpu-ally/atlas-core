@@ -29,6 +29,15 @@ const NAV_ITEMS = [
   { id: 'tasks', label: 'Tasks', icon: ClipboardList },
 ];
 
+const BRANCH_LABELS = {
+  engineering: 'Engineering',
+  robotics: 'Robotics',
+  software: 'Software',
+  manufacturing: 'Manufacturing',
+  architecture: 'Architecture',
+  systems: 'Systems',
+};
+
 const DEFAULT_TASKS = [
   { id: 'review', label: 'Review active project requirements', status: 'ready' },
   { id: 'blueprint', label: 'Inspect latest blueprint revision', status: 'queued' },
@@ -64,13 +73,22 @@ function timeLabel(timestamp) {
   }
 }
 
-export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProject }) {
+export default function HermesWorkspace({
+  open,
+  requestedSection,
+  requestedBranch,
+  requestId,
+  onClose,
+  onOpenChat,
+  onOpenProject,
+}) {
   const projects = useMemo(
     () => getAllProjects().filter((project) => project.ai === 'hermes'),
     [],
   );
   const saved = useMemo(readSession, []);
   const [section, setSection] = useState(saved.section || 'dashboard');
+  const [focusBranch, setFocusBranch] = useState(saved.focusBranch || 'engineering');
   const [activeProjectId, setActiveProjectId] = useState(saved.activeProjectId || projects[0]?.id || null);
   const [tasks, setTasks] = useState(saved.tasks || DEFAULT_TASKS);
   const [notebook, setNotebook] = useState(() => readNotebook(saved.activeProjectId || projects[0]?.id));
@@ -87,13 +105,15 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
     try {
       window.localStorage?.setItem(SESSION_KEY, JSON.stringify({
         section,
+        focusBranch,
         activeProjectId,
+        activeProjectName: activeProject?.name || '',
         tasks,
         hermesStatus,
         activity: activity.slice(0, 12),
       }));
     } catch (_) {}
-  }, [open, section, activeProjectId, tasks, hermesStatus, activity]);
+  }, [open, section, focusBranch, activeProjectId, activeProject, tasks, hermesStatus, activity]);
 
   useEffect(() => {
     setNotebook(readNotebook(activeProjectId));
@@ -106,6 +126,14 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
       ...current,
     ].slice(0, 12));
   }, []);
+
+  useEffect(() => {
+    if (!open || !requestedSection || !requestId) return;
+    setSection(requestedSection);
+    setFocusBranch(requestedBranch || 'engineering');
+    setHermesStatus(requestedSection === 'blueprints' ? 'blueprinting' : 'ready');
+    addActivity(`Focus branch opened: ${BRANCH_LABELS[requestedBranch] || requestedBranch || 'Engineering'}`);
+  }, [open, requestedSection, requestedBranch, requestId, addActivity]);
 
   if (!open) return null;
 
@@ -143,35 +171,49 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
 
   const changeSection = (nextSection) => {
     setSection(nextSection);
-    if (nextSection !== 'simulation') setHermesStatus('ready');
+    if (nextSection !== 'simulation') {
+      setHermesStatus(nextSection === 'blueprints' ? 'blueprinting' : 'ready');
+    }
     addActivity(`Opened ${NAV_ITEMS.find((item) => item.id === nextSection)?.label || nextSection}`);
   };
 
   const renderMain = () => {
     if (section === 'projects') {
       return (
-        <div className="hermes-project-grid">
-          {projects.map((project) => (
-            <button key={project.id} type="button" className="hermes-project-card" onClick={() => activateProject(project)}>
-              <span className="hermes-kicker">{project.codename}</span>
-              <strong>{project.name}</strong>
-              <span>{project.phase}</span>
-            </button>
-          ))}
+        <div>
+          <div className="hermes-branch-context">
+            <span className="hermes-kicker">{BRANCH_LABELS[focusBranch] || 'Engineering'} focus</span>
+            <p>Select an active Hermes project for this branch.</p>
+          </div>
+          <div className="hermes-project-grid">
+            {projects.map((project) => (
+              <button key={project.id} type="button" className="hermes-project-card" onClick={() => activateProject(project)}>
+                <span className="hermes-kicker">{project.codename}</span>
+                <strong>{project.name}</strong>
+                <span>{project.phase}</span>
+              </button>
+            ))}
+          </div>
         </div>
       );
     }
 
     if (section === 'tasks') {
       return (
-        <div className="hermes-task-list">
-          {tasks.map((task) => (
-            <button key={task.id} type="button" className={`hermes-task is-${task.status}`} onClick={() => completeTask(task.id)}>
-              {task.status === 'done' ? <CheckCircle2 size={16} /> : <Clock3 size={16} />}
-              <span>{task.label}</span>
-              <small>{task.status}</small>
-            </button>
-          ))}
+        <div>
+          <div className="hermes-branch-context">
+            <span className="hermes-kicker">{BRANCH_LABELS[focusBranch] || 'Software'} focus</span>
+            <p>Review implementation, software, and engineering tasks.</p>
+          </div>
+          <div className="hermes-task-list">
+            {tasks.map((task) => (
+              <button key={task.id} type="button" className={`hermes-task is-${task.status}`} onClick={() => completeTask(task.id)}>
+                {task.status === 'done' ? <CheckCircle2 size={16} /> : <Clock3 size={16} />}
+                <span>{task.label}</span>
+                <small>{task.status}</small>
+              </button>
+            ))}
+          </div>
         </div>
       );
     }
@@ -181,7 +223,7 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
         <section className="hermes-tool-surface" aria-label="Hermes blueprint workbench">
           <div className="hermes-tool-heading">
             <div>
-              <span className="hermes-kicker">Blueprint workspace</span>
+              <span className="hermes-kicker">{BRANCH_LABELS[focusBranch] || 'Architecture'} workspace</span>
               <h2>{activeProject?.name || 'No project selected'}</h2>
             </div>
           </div>
@@ -230,7 +272,7 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
     return (
       <div className="hermes-dashboard-grid">
         <section className="hermes-resume-card">
-          <span className="hermes-kicker">Continue project</span>
+          <span className="hermes-kicker">{BRANCH_LABELS[focusBranch] || 'Engineering'} focus</span>
           <h2>{activeProject?.name || 'Choose a Hermes project'}</h2>
           <p>{activeProject?.codename || 'Engineering workspace ready'}</p>
           <div className="hermes-resume-actions">
@@ -246,7 +288,7 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
         <section className="hermes-status-card">
           <span className="hermes-kicker">Hermes status</span>
           <strong>{hermesStatus}</strong>
-          <p>{hermesStatus === 'simulating' ? 'Tracking the active simulation workflow.' : hermesStatus === 'paused' ? 'Simulation workflow paused.' : hermesStatus === 'noting' ? 'Engineering notes have unsaved changes.' : 'Awaiting engineering instructions.'}</p>
+          <p>{hermesStatus === 'simulating' ? 'Tracking the active simulation workflow.' : hermesStatus === 'paused' ? 'Simulation workflow paused.' : hermesStatus === 'noting' ? 'Engineering notes have unsaved changes.' : hermesStatus === 'blueprinting' ? 'Blueprint workspace active.' : 'Awaiting engineering instructions.'}</p>
           <button type="button" onClick={onOpenChat}><MessageSquare size={14} /> Talk to Hermes</button>
         </section>
 
@@ -271,10 +313,10 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
   };
 
   return (
-    <div className="hermes-workspace" role="dialog" aria-label="Hermes Engineering Workspace" data-testid="hermes-workspace" data-hermes-status={hermesStatus}>
+    <div className="hermes-workspace" role="dialog" aria-label="Hermes Engineering Workspace" data-testid="hermes-workspace" data-hermes-status={hermesStatus} data-focus-branch={focusBranch}>
       <header className="hermes-workspace-head">
         <div>
-          <span className="hermes-kicker">HERMES</span>
+          <span className="hermes-kicker">HERMES · {BRANCH_LABELS[focusBranch] || 'Engineering'}</span>
           <h1>Engineering Workspace</h1>
         </div>
         <button type="button" className="hermes-close" onClick={onClose} aria-label="Close Hermes workspace"><X size={18} /></button>
@@ -295,6 +337,7 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
         <span className={`hermes-ready-dot is-${hermesStatus}`} />
         <strong>Hermes {hermesStatus}</strong>
         <span>{activeProject?.name || 'No active project'}</span>
+        <span>{BRANCH_LABELS[focusBranch] || 'Engineering'}</span>
       </footer>
     </div>
   );
