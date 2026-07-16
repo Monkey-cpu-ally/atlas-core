@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { buildAiActivities } from "../activity/aiActivityEngine";
+import { buildOperationsTimeline, formatTimelineTime } from "../activity/operationsTimeline";
 import "./observatory.css";
 
 function projectHealthSummary(projects) {
@@ -60,6 +61,10 @@ export default function Observatory({
     () => buildAiActivities({ projects, pulseItems, awarenessItems, bridgeStatus }),
     [projects, pulseItems, awarenessItems, bridgeStatus],
   );
+  const operations = useMemo(
+    () => buildOperationsTimeline({ mission, projects, pulseItems, awarenessItems, limit: 6 }),
+    [mission, projects, pulseItems, awarenessItems],
+  );
   const importantAlerts = awarenessItems.slice(0, 3);
   const knowledgeProject = projects.find((project) => project.id === "knowledge-bank");
   const githubItems = pulseItems.filter((item) => item.sourceId === "github");
@@ -78,14 +83,8 @@ export default function Observatory({
           <span>{formatUpdatedAt(lastUpdate)}</span>
         </div>
         <div className="observatory__system-stack" aria-label="System connections">
-          <div className="observatory__system" data-status={bridgeStatus}>
-            <span>Visual Bridge</span>
-            <strong>{connectionLabel(bridgeStatus)}</strong>
-          </div>
-          <div className="observatory__system" data-status={githubStatus}>
-            <span>GitHub Pulse</span>
-            <strong>{connectionLabel(githubStatus)}</strong>
-          </div>
+          <div className="observatory__system" data-status={bridgeStatus}><span>Visual Bridge</span><strong>{connectionLabel(bridgeStatus)}</strong></div>
+          <div className="observatory__system" data-status={githubStatus}><span>GitHub Pulse</span><strong>{connectionLabel(githubStatus)}</strong></div>
         </div>
       </header>
 
@@ -116,11 +115,7 @@ export default function Observatory({
             {aiActivities.map((activity) => (
               <div key={activity.id} data-persona={activity.id} data-state={activity.state}>
                 <span className="observatory__presence" aria-hidden="true" />
-                <div>
-                  <strong>{activity.name}</strong>
-                  <span>{activity.task}</span>
-                  <div className="observatory__ai-progress"><span style={{ width: `${activity.progress}%` }} /></div>
-                </div>
+                <div><strong>{activity.name}</strong><span>{activity.task}</span><div className="observatory__ai-progress"><span style={{ width: `${activity.progress}%` }} /></div></div>
                 <small>{activity.state}</small>
               </div>
             ))}
@@ -129,12 +124,20 @@ export default function Observatory({
 
         <button className="observatory-card observatory-card--projects" type="button" onClick={onOpenProjects}>
           <div className="observatory-card__topline"><span>Project Health</span><b>{projects.length}</b></div>
-          <div className="observatory__health">
-            <div><strong>{health.healthy}</strong><span>Healthy</span></div>
-            <div><strong>{health.building}</strong><span>Building</span></div>
-            <div><strong>{health.watch}</strong><span>Watch</span></div>
-          </div>
+          <div className="observatory__health"><div><strong>{health.healthy}</strong><span>Healthy</span></div><div><strong>{health.building}</strong><span>Building</span></div><div><strong>{health.watch}</strong><span>Watch</span></div></div>
         </button>
+
+        <section className="observatory-card observatory-card--operations" aria-label="Verified operations timeline">
+          <div className="observatory-card__topline"><span>Operations Timeline</span><b>{operations.length}</b></div>
+          <div className="observatory__operations-list">
+            {operations.map((item) => (
+              <div key={item.id} data-status={item.status}>
+                <span className="observatory__event-dot" aria-hidden="true" />
+                <div><strong>{item.title}</strong><span>{item.detail}</span><small>{item.source} · {formatTimelineTime(item.occurredAt)}</small></div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="observatory-card observatory-card--knowledge" aria-label="Knowledge Bank status">
           <div className="observatory-card__topline"><span>Knowledge Bank</span><b>{knowledgeProject ? `${knowledgeProject.progress}%` : "Not linked"}</b></div>
@@ -156,9 +159,7 @@ export default function Observatory({
 
         <section className="observatory-card observatory-card--active-projects" aria-label="Active projects">
           <div className="observatory-card__topline"><span>Active Projects</span><b>{activeProjects.length}</b></div>
-          <div className="observatory__project-list">
-            {activeProjects.map((project) => <button type="button" key={project.id} onClick={() => onOpenProject?.(project)}><div><strong>{project.title}</strong><span>{project.updated}</span></div><b>{project.progress}%</b></button>)}
-          </div>
+          <div className="observatory__project-list">{activeProjects.map((project) => <button type="button" key={project.id} onClick={() => onOpenProject?.(project)}><div><strong>{project.title}</strong><span>{project.updated}</span></div><b>{project.progress}%</b></button>)}</div>
         </section>
       </div>
     </section>
