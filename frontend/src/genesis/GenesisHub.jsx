@@ -9,7 +9,7 @@ import { createGenesisKernel } from "./core/genesisKernel";
 import { SCENES } from "./core/sceneManager";
 import DeveloperMode from "./developer/DeveloperMode";
 import { initialHubState, reduceHubState, HUB_MODES } from "./hubState";
-import MissionDock from "./mission/MissionDock";
+import MinimalHome from "./minimal/MinimalHome";
 import ProjectWall from "./mission/ProjectWall";
 import { getMission } from "./mission/missionRegistry";
 import { getProjects } from "./mission/projectRegistry";
@@ -33,12 +33,7 @@ const previewModes = [
 ];
 
 function withEnvelope(event) {
-  return {
-    version: "1.0",
-    timestamp: new Date().toISOString(),
-    source: "genesis-preview",
-    ...event,
-  };
+  return { version: "1.0", timestamp: new Date().toISOString(), source: "genesis-preview", ...event };
 }
 
 function sceneForHubMode(mode) {
@@ -55,6 +50,7 @@ export default function GenesisHub({ visualBridge }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [kernelSnapshot, setKernelSnapshot] = useState(null);
   const [developerMode, setDeveloperMode] = useState(false);
+  const [observatoryOpen, setObservatoryOpen] = useState(false);
   const kernel = useMemo(() => createGenesisKernel(), []);
   const quality = useAdaptiveQuality();
   const githubFeed = useGithubPulseFeed();
@@ -67,25 +63,17 @@ export default function GenesisHub({ visualBridge }) {
     if (!envelope) return;
     dispatch(envelope);
     const githubItem = githubPulseItemFromEnvelope(envelope);
-    if (githubItem) {
-      dispatch({
-        event: "pulse.item.received",
-        timestamp: envelope.timestamp || new Date().toISOString(),
-        payload: { item: githubItem },
-      });
-    }
+    if (githubItem) dispatch({ event: "pulse.item.received", timestamp: envelope.timestamp || new Date().toISOString(), payload: { item: githubItem } });
   }, [visualBridge?.lastEvent]);
 
   useEffect(() => {
     if (!githubFeed.updatedAt || !githubFeed.items.length) return;
-    githubFeed.items.forEach((item) => {
-      dispatch({
-        event: "pulse.item.received",
-        timestamp: item.occurredAt || githubFeed.updatedAt,
-        source: "github-live-provider",
-        payload: { item },
-      });
-    });
+    githubFeed.items.forEach((item) => dispatch({
+      event: "pulse.item.received",
+      timestamp: item.occurredAt || githubFeed.updatedAt,
+      source: "github-live-provider",
+      payload: { item },
+    }));
   }, [githubFeed.items, githubFeed.updatedAt]);
 
   useEffect(() => {
@@ -102,10 +90,14 @@ export default function GenesisHub({ visualBridge }) {
         event.preventDefault();
         setDeveloperMode((current) => !current);
       }
+      if (event.key === "Escape") {
+        setObservatoryOpen(false);
+        kernel.returnIdle();
+      }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [kernel]);
 
   const persona = kernelSnapshot?.activePersona || state.activePersona || "atlas";
   const tokens = personaTokens[persona] || personaTokens.atlas;
@@ -124,14 +116,12 @@ export default function GenesisHub({ visualBridge }) {
   const showMission = scene === SCENES.MISSION;
   const showProjects = scene === SCENES.PROJECTS;
   const showWorkspace = scene === SCENES.WORKSPACE;
+  const standardScene = !showPulse && !showAwareness && !showMission && !showProjects && !showWorkspace;
+  const showMinimalHome = standardScene && !showWheel && persona === "atlas" && state.mode === HUB_MODES.IDLE && !observatoryOpen;
+  const showObservatory = standardScene && !showWheel && persona === "atlas" && state.mode === HUB_MODES.IDLE && observatoryOpen;
 
-  useEffect(() => {
-    setSelectedNode(null);
-  }, [persona]);
-
-  useEffect(() => {
-    if (!selectedNode && nodes.length) setSelectedNode(nodes[0]);
-  }, [nodes, selectedNode]);
+  useEffect(() => setSelectedNode(null), [persona]);
+  useEffect(() => { if (!selectedNode && nodes.length) setSelectedNode(nodes[0]); }, [nodes, selectedNode]);
 
   const selectNode = useCallback((node) => {
     setSelectedNode(node);
@@ -140,38 +130,43 @@ export default function GenesisHub({ visualBridge }) {
   }, [kernel, persona]);
 
   const selectProject = useCallback((project) => {
+    setObservatoryOpen(false);
     kernel.openWorkspace(project.id, project.persona);
     dispatch(withEnvelope({ event: "project.opened", payload: { persona: project.persona, project_id: project.id } }));
   }, [kernel]);
+
+  const selectPersona = useCallback((personaId) => {
+    setObservatoryOpen(false);
+    dispatch(withEnvelope({ event: "ai.presence.requested", payload: { persona: personaId } }));
+  }, []);
 
   const dismissAlert = useCallback((id) => {
     dispatch(withEnvelope({ event: "awareness.alert.dismissed", payload: id ? { id } : {} }));
   }, []);
 
-  const standardScene = !showPulse && !showAwareness && !showMission && !showProjects && !showWorkspace;
-  const showObservatory = standardScene && !showWheel && persona === "atlas" && state.mode === HUB_MODES.IDLE;
-
   return (
-    <main
-      className={`genesis-hub genesis-hub--${state.mode}`}
-      data-persona={persona}
-      data-quality={quality.profile}
-      data-scene={scene}
-      style={{ "--atlas-accent": tokens.accent }}
-    >
+    <main className={`genesis-hub genesis-hub--${state.mode}`} data-persona={persona} data-quality={quality.profile} data-scene={scene} data-minimal-home={showMinimalHome ? "true" : "false"} style={{ "--atlas-accent": tokens.accent }}>
       {!quality.reducedEffects ? <div className="genesis-hub__ambient" aria-hidden="true" /> : null}
-      <button className="genesis-hub__core" type="button" aria-label="Return ATLAS to idle" onClick={() => kernel.returnIdle()}>
-        <span>ATLAS</span>
-      </button>
 
-      {showWheel && standardScene && (
-        <ConstellationWheel
-          nodes={nodes}
-          selectedId={selectedNode?.id || state.selectedNodeId}
-          onSelect={selectNode}
-          accent={tokens.accent}
+      {showMinimalHome ? (
+        <MinimalHome
+          mission={mission}
+          projects={allProjects}
+          pulseItems={state.pulseItems}
+          awarenessItems={state.awarenessItems}
+          bridgeStatus={visualBridge?.status || "offline"}
+          onOpenObservatory={() => setObservatoryOpen(true)}
+          onOpenMission={() => kernel.openMission(mission.id)}
+          onOpenProject={selectProject}
+          onSelectPersona={selectPersona}
         />
+      ) : (
+        <button className="genesis-hub__core" type="button" aria-label="Return ATLAS to idle" onClick={() => { setObservatoryOpen(false); kernel.returnIdle(); }}>
+          <span>ATLAS</span>
+        </button>
       )}
+
+      {showWheel && standardScene ? <ConstellationWheel nodes={nodes} selectedId={selectedNode?.id || state.selectedNodeId} onSelect={selectNode} accent={tokens.accent} /> : null}
 
       {showObservatory ? (
         <Observatory
@@ -188,97 +183,41 @@ export default function GenesisHub({ visualBridge }) {
         />
       ) : null}
 
-      {standardScene && !showWheel && !showObservatory && (
+      {standardScene && !showWheel && !showObservatory && !showMinimalHome ? (
         <section className="genesis-hub__workspace" aria-live="polite">
           <p className="genesis-hub__mode">{state.mode}</p>
-          <h1>
-            {persona === "council"
-              ? "Council assembled"
-              : `${persona} workspace`}
-          </h1>
-          <p>
-            {persona === "council"
-              ? "Ajani, Minerva, and Hermes are present together. Agreements and dissent remain visible."
-              : "Voice stays primary. The Hub expands only when the work needs it."}
-          </p>
+          <h1>{persona === "council" ? "Council assembled" : `${persona} workspace`}</h1>
+          <p>{persona === "council" ? "Ajani, Minerva, and Hermes are present together. Agreements and dissent remain visible." : "Voice stays primary. The Hub expands only when the work needs it."}</p>
         </section>
-      )}
+      ) : null}
 
       {showPulse ? <PulsePanel items={state.pulseItems} updatedAt={state.pulseUpdatedAt} /> : null}
-      {showAwareness ? (
-        <AwarenessCenter
-          alerts={state.awarenessItems}
-          onDismiss={dismissAlert}
-          onSelect={(alert) => dispatch(withEnvelope({ event: "awareness.alert.raised", payload: alert }))}
-          onClose={() => kernel.returnIdle()}
-        />
-      ) : null}
+      {showAwareness ? <AwarenessCenter alerts={state.awarenessItems} onDismiss={dismissAlert} onSelect={(alert) => dispatch(withEnvelope({ event: "awareness.alert.raised", payload: alert }))} onClose={() => kernel.returnIdle()} /> : null}
       {showMission ? <ProjectWall projects={missionProjects} onSelect={selectProject} /> : null}
       {showProjects ? <ProjectWall projects={allProjects} onSelect={selectProject} /> : null}
       {showWorkspace ? <AdaptiveWorkspace project={activeProject} onBack={() => kernel.openProjects()} /> : null}
 
-      {standardScene && !showObservatory ? (
-        <PortraitController
-          visiblePersonas={state.visiblePersonas}
-          activePersona={state.activePersona}
-          state={state.speechState}
-        />
-      ) : null}
+      {standardScene && !showObservatory && !showMinimalHome ? <PortraitController visiblePersonas={state.visiblePersonas} activePersona={state.activePersona} state={state.speechState} /> : null}
+      {!showAwareness && !showMinimalHome ? <AwarenessAlert alert={state.alert} onDismiss={() => dismissAlert()} /> : null}
 
-      {!showWorkspace && !showPulse && !showAwareness && !showObservatory ? <MissionDock mission={mission} onOpen={() => kernel.openMission(mission.id)} /> : null}
-      {!showAwareness ? <AwarenessAlert alert={state.alert} onDismiss={() => dismissAlert()} /> : null}
-
-      <nav className="genesis-utility-dock" aria-label="ATLAS intelligence centers">
-        <button type="button" className={showPulse ? "is-active" : ""} onClick={() => kernel.openPulse()}>
-          <span>Pulse</span>
-          <small>{state.pulseItems.length}</small>
-        </button>
-        <button type="button" className={showAwareness ? "is-active" : ""} onClick={() => kernel.openAwareness()}>
-          <span>Awareness</span>
-          <small>{state.awarenessItems.length}</small>
-        </button>
-      </nav>
-
-      <DeveloperMode
-        enabled={developerMode}
-        onToggle={() => setDeveloperMode((current) => !current)}
-        scene={scene}
-        persona={persona}
-        quality={quality.profile}
-        bridgeStatus={visualBridge?.status}
-        activeProjectId={kernelSnapshot?.activeProjectId}
-      />
-
-      {process.env.NODE_ENV !== "production" ? (
-        <nav className="genesis-preview" aria-label="Genesis development preview controls">
-          {previewModes.map((item) => (
-            <button type="button" key={item.label} onClick={() => dispatch(withEnvelope(item.event))}>
-              {item.label}
-            </button>
-          ))}
-          <button type="button" onClick={() => kernel.openProjects()}>Projects</button>
-          <button type="button" onClick={() => kernel.openMission()}>Mission</button>
-          <button
-            type="button"
-            onClick={() => dispatch(withEnvelope({
-              event: "awareness.alert.raised",
-              payload: {
-                persona: "ajani",
-                title: "The offer is below your stated floor.",
-                reason: "The proposed amount is 18% under your minimum target.",
-                action: "Do not accept yet. Ask them to justify the reduction.",
-                urgency: "high",
-              },
-            }))}
-          >
-            Alert
-          </button>
+      {!showMinimalHome ? (
+        <nav className="genesis-utility-dock" aria-label="ATLAS intelligence centers">
+          <button type="button" className={showPulse ? "is-active" : ""} onClick={() => kernel.openPulse()}><span>Pulse</span><small>{state.pulseItems.length}</small></button>
+          <button type="button" className={showAwareness ? "is-active" : ""} onClick={() => kernel.openAwareness()}><span>Awareness</span><small>{state.awarenessItems.length}</small></button>
         </nav>
       ) : null}
 
-      <div className="genesis-hub__connection">
-        Visual bridge: {visualBridge?.status || "offline"} · GitHub: {githubFeed.status} · {quality.profile} · {scene}
-      </div>
+      <DeveloperMode enabled={developerMode} onToggle={() => setDeveloperMode((current) => !current)} scene={scene} persona={persona} quality={quality.profile} bridgeStatus={visualBridge?.status} activeProjectId={kernelSnapshot?.activeProjectId} />
+
+      {process.env.NODE_ENV !== "production" && developerMode ? (
+        <nav className="genesis-preview" aria-label="Genesis development preview controls">
+          {previewModes.map((item) => <button type="button" key={item.label} onClick={() => dispatch(withEnvelope(item.event))}>{item.label}</button>)}
+          <button type="button" onClick={() => kernel.openProjects()}>Projects</button>
+          <button type="button" onClick={() => kernel.openMission()}>Mission</button>
+        </nav>
+      ) : null}
+
+      {developerMode ? <div className="genesis-hub__connection">Visual bridge: {visualBridge?.status || "offline"} · GitHub: {githubFeed.status} · {quality.profile} · {scene}</div> : null}
     </main>
   );
 }
