@@ -19,7 +19,19 @@ def test_voice_os_sources_exist():
 
 def test_voice_router_has_core_commands():
     source = VOICE_ROUTER.read_text(encoding="utf-8")
-    for command in ("project", "persona", "observatory", "projects", "mission", "pulse", "awareness", "home"):
+    for command in (
+        "wake",
+        "repeat",
+        "cancel",
+        "project",
+        "persona",
+        "observatory",
+        "projects",
+        "mission",
+        "pulse",
+        "awareness",
+        "home",
+    ):
         assert f'type: "{command}"' in source
     for persona in ("ajani", "minerva", "hermes", "council"):
         assert persona in source
@@ -37,9 +49,19 @@ def test_voice_router_supports_contextual_navigation():
     source = VOICE_ROUTER.read_text(encoding="utf-8")
     assert "resolveCurrentProject" in source
     assert "continue current project" in source
+    assert "open it" in source
     assert "what should i do next" in source
     assert "previous screen" in source
     assert "contextual: true" in source
+
+
+def test_voice_router_supports_wake_repeat_and_cancel():
+    source = VOICE_ROUTER.read_text(encoding="utf-8")
+    assert "WAKE_WORDS" in source
+    assert "stripWakeWord" in source
+    assert "hey atlas" in source
+    assert "repeat that" in source
+    assert "never mind" in source
 
 
 def test_voice_response_layer_confirms_understood_action():
@@ -47,6 +69,8 @@ def test_voice_response_layer_confirms_understood_action():
     assert "buildVoiceCommandResponse" in source
     assert "Opening" in source
     assert "Continuing" in source
+    assert "There is no previous response to repeat" in source
+    assert "Cancelled" in source
     assert "I did not recognize that command" in source
 
 
@@ -58,15 +82,17 @@ def test_speech_controller_uses_browser_synthesis_with_fallback():
     assert "cancel" in source
 
 
-def test_minimal_home_uses_real_voice_controller_and_confirmation():
+def test_minimal_home_preserves_completed_response_for_followups():
     source = MINIMAL_HOME.read_text(encoding="utf-8")
     assert "useAtlasVoice" in source
     assert "useAtlasSpeech" in source
     assert "buildVoiceCommandResponse" in source
+    assert "lastCompletedResponse" in source
+    assert 'response.command.type === "repeat"' in source
+    assert 'response.command.type === "cancel"' in source
     assert "voice.start()" in source
     assert "voice.stop()" in source
     assert "speech.speak(response.message)" in source
-    assert "lastResponse" in source
     assert "onVoiceCommand" in source
 
 
