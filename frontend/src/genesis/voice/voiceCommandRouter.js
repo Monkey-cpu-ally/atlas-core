@@ -49,9 +49,23 @@ export function findVoiceProject(transcript, projects = []) {
   return matches[0]?.project || null;
 }
 
-export function routeVoiceCommand(transcript, { projects = [] } = {}) {
+export function routeVoiceCommand(transcript, { projects = [], currentProject = null } = {}) {
   const text = normalizeTranscript(transcript);
   if (!text) return { type: "unknown", transcript: text };
+
+  if (includesAny(text, ["continue current project", "resume current project", "open current project", "continue where i left off"])) {
+    return currentProject
+      ? { type: "project", projectId: currentProject.id, project: currentProject, transcript: text, contextual: true }
+      : { type: "projects", transcript: text, contextual: true };
+  }
+
+  if (includesAny(text, ["what's next", "what is next", "next step", "what should i do next"])) {
+    return { type: "next", transcript: text };
+  }
+
+  if (includesAny(text, ["go back", "back", "previous screen", "return" ])) {
+    return { type: "back", transcript: text };
+  }
 
   const project = findVoiceProject(text, projects);
   if (project && includesAny(text, ["open", "continue", "resume", "show", "workspace", project.title?.toLowerCase() || project.id])) {
