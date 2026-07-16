@@ -1,6 +1,8 @@
-import React, { useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { buildAiActivities } from "../activity/aiActivityEngine";
+import useAtlasSpeech from "../voice/useAtlasSpeech";
 import useAtlasVoice from "../voice/useAtlasVoice";
+import { buildVoiceCommandResponse } from "../voice/voiceCommandResponse";
 import "./minimal-home.css";
 
 const HOLD_THRESHOLD_MS = 320;
@@ -20,7 +22,17 @@ export default function MinimalHome({
   const pointerStartedAt = useRef(0);
   const holdTimer = useRef(null);
   const holdActivated = useRef(false);
-  const voice = useAtlasVoice({ onTranscript: onVoiceCommand });
+  const [lastResponse, setLastResponse] = useState("");
+  const speech = useAtlasSpeech();
+
+  const handleTranscript = useCallback((transcript) => {
+    const response = buildVoiceCommandResponse(transcript, { projects, mission });
+    setLastResponse(response.message);
+    onVoiceCommand?.(transcript);
+    speech.speak(response.message);
+  }, [mission, onVoiceCommand, projects, speech]);
+
+  const voice = useAtlasVoice({ onTranscript: handleTranscript });
   const activities = useMemo(
     () => buildAiActivities({ projects, pulseItems, awarenessItems, bridgeStatus }),
     [projects, pulseItems, awarenessItems, bridgeStatus],
@@ -42,6 +54,8 @@ export default function MinimalHome({
   function handlePointerDown(event) {
     pointerStartedAt.current = performance.now();
     holdActivated.current = false;
+    speech.cancel();
+    setLastResponse("");
     event.currentTarget.setPointerCapture?.(event.pointerId);
     clearHoldTimer();
     holdTimer.current = window.setTimeout(() => {
@@ -71,11 +85,15 @@ export default function MinimalHome({
     ? (voice.transcript || "Listening…")
     : voice.state === "processing"
       ? "Understanding command…"
-      : voice.state === "permission-denied"
-        ? "Microphone permission needed"
-        : voice.state === "unsupported"
-          ? "Voice unavailable · Tap for status"
-          : "Hold to speak · Tap for status";
+      : speech.state === "speaking"
+        ? (lastResponse || "Responding…")
+        : voice.state === "permission-denied"
+          ? "Microphone permission needed"
+          : voice.state === "unsupported"
+            ? "Voice unavailable · Tap for status"
+            : lastResponse || "Hold to speak · Tap for status";
+
+  const combinedVoiceState = speech.state === "speaking" ? "speaking" : voice.state;
 
   return (
     <section className="minimal-home" aria-label="GENESIS minimal home">
@@ -100,7 +118,7 @@ export default function MinimalHome({
         type="button"
         className="minimal-home__voice-core"
         data-listening={listening ? "true" : "false"}
-        data-voice-state={voice.state}
+        data-voice-state={combinedVoiceState}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerEnd}
         onPointerCancel={handlePointerCancel}
