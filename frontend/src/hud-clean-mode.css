@@ -1,0 +1,12 @@
+/*
+ * ATLAS clean HUD policy
+ *
+ * The reference design is ring-led. Standalone utility launchers must not grow
+ * into a second navigation bar beneath the HUD. Their underlying services and
+ * panels remain in the codebase and are reached through the existing ring and
+ * project workspace routes instead.
+ */
+.clean-hud-mode .transcript-launch,
+.clean-hud-mode .atlas-launchers {
+  display: none !important;
+}
