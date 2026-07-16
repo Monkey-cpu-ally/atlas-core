@@ -33,6 +33,13 @@ function projectSearchTerms(project) {
   return [...terms].filter(Boolean).sort((a, b) => b.length - a.length);
 }
 
+function resolveCurrentProject(currentProject, projects) {
+  if (currentProject?.id) return currentProject;
+  return [...projects]
+    .filter((project) => project?.id)
+    .sort((a, b) => (b.progress || 0) - (a.progress || 0))[0] || null;
+}
+
 export function findVoiceProject(transcript, projects = []) {
   const text = normalizeProjectName(transcript);
   if (!text) return null;
@@ -54,8 +61,9 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
   if (!text) return { type: "unknown", transcript: text };
 
   if (includesAny(text, ["continue current project", "resume current project", "open current project", "continue where i left off"])) {
-    return currentProject
-      ? { type: "project", projectId: currentProject.id, project: currentProject, transcript: text, contextual: true }
+    const resolvedProject = resolveCurrentProject(currentProject, projects);
+    return resolvedProject
+      ? { type: "project", projectId: resolvedProject.id, project: resolvedProject, transcript: text, contextual: true }
       : { type: "projects", transcript: text, contextual: true };
   }
 
@@ -103,4 +111,4 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
   return { type: "unknown", transcript: text };
 }
 
-export { normalizeTranscript, normalizeProjectName };
+export { normalizeTranscript, normalizeProjectName, resolveCurrentProject };
