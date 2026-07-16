@@ -60,11 +60,11 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
   }
 
   if (includesAny(text, ["what's next", "what is next", "next step", "what should i do next"])) {
-    return { type: "next", transcript: text };
+    return { type: "mission", transcript: text, contextual: true };
   }
 
-  if (includesAny(text, ["go back", "back", "previous screen", "return" ])) {
-    return { type: "back", transcript: text };
+  if (includesAny(text, ["go back", "back", "previous screen", "return"])) {
+    return { type: "home", transcript: text, contextual: true };
   }
 
   const project = findVoiceProject(text, projects);
