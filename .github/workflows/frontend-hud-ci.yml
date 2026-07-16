@@ -1,0 +1,69 @@
+name: ATLAS Frontend HUD CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-hud-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-hud-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-hud-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-hud:
+    name: Build and test HUD
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    env:
+      CI: "true"
+      REACT_APP_BACKEND_URL: http://127.0.0.1:8000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: frontend/package.json
+
+      - name: Enable Yarn
+        run: corepack enable
+
+      - name: Install frontend dependencies
+        run: yarn install --non-interactive
+
+      - name: Run HUD tests
+        run: yarn test --watchAll=false --passWithNoTests
+
+      - name: Build production HUD
+        run: yarn build
+
+      - name: Upload build on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-frontend-hud-ci-diagnostics
+          path: |
+            frontend/build/
+            frontend/npm-debug.log
+            frontend/yarn-error.log
+          if-no-files-found: ignore
