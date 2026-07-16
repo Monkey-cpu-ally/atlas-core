@@ -1,0 +1,46 @@
+.ai-face-card[data-ai-status] {
+  position: relative;
+}
+
+.ai-face-card .ai-face-status {
+  display: block;
+  max-width: 72px;
+  overflow: hidden;
+  color: rgba(244, 239, 228, 0.58);
+  font-size: 8px;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ai-face-card[data-ai-status='simulating'] .ai-presence-dot,
+.ai-face-card[data-ai-status='blueprinting'] .ai-presence-dot {
+  background: #8ab4ff;
+  box-shadow: 0 0 12px rgba(138, 180, 255, 0.95);
+  animation: atlasHermesWorking 1.4s ease-in-out infinite;
+}
+
+.ai-face-card[data-ai-status='noting'] .ai-presence-dot,
+.ai-face-card[data-ai-status='reviewing'] .ai-presence-dot {
+  background: #e9c46a;
+  box-shadow: 0 0 12px rgba(233, 196, 106, 0.9);
+  animation: atlasHermesWorking 2s ease-in-out infinite;
+}
+
+.ai-face-card[data-ai-status='paused'] .ai-presence-dot {
+  background: #f4a261;
+  box-shadow: 0 0 8px rgba(244, 162, 97, 0.75);
+  animation: none;
+}
+
+.ai-face-card[data-ai-status='ready'] .ai-presence-dot {
+  background: #7ee787;
+  box-shadow: 0 0 9px rgba(126, 231, 135, 0.75);
+}
+
+@keyframes atlasHermesWorking {
+  0%, 100% { transform: scale(0.8); opacity: 0.65; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
