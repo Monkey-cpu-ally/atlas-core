@@ -15,6 +15,7 @@ import { getMission } from "./mission/missionRegistry";
 import { getProjects } from "./mission/projectRegistry";
 import Observatory from "./observatory/Observatory";
 import { githubPulseItemFromEnvelope } from "./pulse/githubPulse";
+import useGithubPulseFeed from "./pulse/useGithubPulseFeed";
 import { personaTokens } from "./designTokens";
 import useAdaptiveQuality from "./useAdaptiveQuality";
 import AdaptiveWorkspace from "./workspaces/AdaptiveWorkspace";
@@ -56,6 +57,7 @@ export default function GenesisHub({ visualBridge }) {
   const [developerMode, setDeveloperMode] = useState(false);
   const kernel = useMemo(() => createGenesisKernel(), []);
   const quality = useAdaptiveQuality();
+  const githubFeed = useGithubPulseFeed();
 
   useEffect(() => kernel.subscribe(setKernelSnapshot), [kernel]);
   useEffect(() => setKernelSnapshot(kernel.getSnapshot()), [kernel]);
@@ -73,6 +75,18 @@ export default function GenesisHub({ visualBridge }) {
       });
     }
   }, [visualBridge?.lastEvent]);
+
+  useEffect(() => {
+    if (!githubFeed.updatedAt || !githubFeed.items.length) return;
+    githubFeed.items.forEach((item) => {
+      dispatch({
+        event: "pulse.item.received",
+        timestamp: item.occurredAt || githubFeed.updatedAt,
+        source: "github-live-provider",
+        payload: { item },
+      });
+    });
+  }, [githubFeed.items, githubFeed.updatedAt]);
 
   useEffect(() => {
     if ([SCENES.MISSION, SCENES.PROJECTS, SCENES.WORKSPACE, SCENES.AWARENESS].includes(kernelSnapshot?.scene)) return;
@@ -263,7 +277,7 @@ export default function GenesisHub({ visualBridge }) {
       ) : null}
 
       <div className="genesis-hub__connection">
-        Visual bridge: {visualBridge?.status || "offline"} · {quality.profile} · {scene}
+        Visual bridge: {visualBridge?.status || "offline"} · GitHub: {githubFeed.status} · {quality.profile} · {scene}
       </div>
     </main>
   );
