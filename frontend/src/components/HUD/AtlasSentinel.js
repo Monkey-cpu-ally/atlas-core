@@ -1,87 +1,105 @@
 /* eslint-disable */
-import React, { useEffect, useState, useRef } from 'react';
-import { Waves, Cloud, Sprout, AlertOctagon, AlertTriangle, MessagesSquare, Loader2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Activity, CircleDot, FolderKanban, RotateCcw, Wifi, WifiOff, X } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+const FOCUS_EVENT = 'atlas-ai-focus-mode';
+const BRANCH_EVENT = 'atlas-ai-focus-branch';
+const PROJECT_EVENT = 'atlas-project-selected';
 
-// Visual mapping per device family. The icons + colours stay subtle so the
-// strip reads as a status ribbon, not a primary HUD element.
-const SENTINEL_VISUAL = {
-  'POSEIDON-BUOY':   { Icon: Waves,  hue: '#28C8BE', label: 'WATER'  },
-  'AETHER-STATION':  { Icon: Cloud,  hue: '#9CD3FF', label: 'AIR'    },
-  'SOIL-WATCH':      { Icon: Sprout, hue: '#A0E66E', label: 'SOIL'   },
-};
+const PROJECTS = [
+  { id: 'weaver', label: 'WEAVER' },
+  { id: 'power-cell', label: 'POWER CELL' },
+  { id: 'green-bots', label: 'GREEN BOTS' },
+  { id: 'hyper-axel', label: 'HYPER AXEL' },
+];
 
-// Pretty-print the three primary readings per device (everything else falls
-// through as raw key=value).
-function formatReadings(payload, deviceName) {
-  if (!payload || typeof payload !== 'object') return '—';
-  const entries = Object.entries(payload).slice(0, 3);
-  if (!entries.length) return '—';
-  return entries
-    .map(([k, v]) => {
-      const val = typeof v === 'number' ? v.toFixed(2).replace(/\.00$/, '') : String(v);
-      return `${k}=${val}`;
-    })
-    .join(' · ');
+function titleCase(value) {
+  return String(value || '')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 /**
- * Phase 7 add-on — Atlas Sentinel.
+ * AtlasSentinel is the small daily-use status ribbon.
  *
- * Optional environmental ribbon at the bottom of the HUD. Pulls the latest
- * telemetry burst per seed device every 12s, falls back to a friendly
- * "no telemetry yet" message when the device hasn't reported. Click a chip
- * → opens a small details popover.
- *
- * Visibility is gated on the local-storage flag `atlas.sentinel.enabled`
- * (default ON) so the architect can collapse it without touching code.
+ * It stays intentionally quiet: connection, selected AI workspace, active
+ * branch, and active project. Knowledge banks and infrastructure remain hidden.
  */
 export default function AtlasSentinel() {
-  const [items, setItems] = useState([]);
   const [enabled, setEnabled] = useState(() => {
     if (typeof window === 'undefined') return true;
-    const v = window.localStorage?.getItem('atlas.sentinel.enabled');
-    return v == null ? true : v === '1';
+    return window.localStorage?.getItem('atlas.status.enabled') !== '0';
   });
-  const [openId, setOpenId] = useState(null);
-  const timerRef = useRef(null);
+  const [connection, setConnection] = useState('checking');
+  const [focusAI, setFocusAI] = useState(null);
+  const [branch, setBranch] = useState(null);
+  const [projectIndex, setProjectIndex] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    const saved = Number(window.localStorage?.getItem('atlas.activeProjectIndex'));
+    return Number.isInteger(saved) && saved >= 0 && saved < PROJECTS.length ? saved : 0;
+  });
+
+  const activeProject = PROJECTS[projectIndex];
 
   useEffect(() => {
-    if (!enabled) return undefined;
+    let cancelled = false;
+    let timer;
 
-    const tick = async () => {
+    const checkHealth = async () => {
       try {
-        const dRes = await fetch(`${API_URL}/api/robot/devices?limit=200`);
-        const dData = await dRes.json();
-        const seeds = (dData.items || []).filter((d) => SENTINEL_VISUAL[d.name]);
-        const enriched = await Promise.all(
-          seeds.map(async (d) => {
-            try {
-              const tRes = await fetch(`${API_URL}/api/robot/devices/${d.id}/telemetry?limit=1`);
-              const tData = await tRes.json();
-              const latest = (tData.items || [])[0] || null;
-              return { device: d, latest };
-            } catch (_) {
-              return { device: d, latest: null };
-            }
-          }),
-        );
-        setItems(enriched);
+        const response = await fetch(`${API_URL}/api/system/health`, {
+          headers: { Accept: 'application/json' },
+        });
+        if (!cancelled) setConnection(response.ok ? 'online' : 'degraded');
       } catch (_) {
-        // Silent — strip stays in its last good state.
+        if (!cancelled) setConnection('offline');
       }
     };
 
-    tick();
-    timerRef.current = setInterval(tick, 12000);
-    return () => clearInterval(timerRef.current);
-  }, [enabled]);
+    checkHealth();
+    timer = window.setInterval(checkHealth, 15000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
 
-  const persist = (next) => {
+  useEffect(() => {
+    const onFocus = (event) => {
+      const ai = event.detail?.ai || null;
+      setFocusAI(ai);
+      if (!ai) setBranch(null);
+    };
+    const onBranch = (event) => {
+      setFocusAI(event.detail?.ai || null);
+      setBranch(event.detail?.branch || null);
+    };
+    window.addEventListener(FOCUS_EVENT, onFocus);
+    window.addEventListener(BRANCH_EVENT, onBranch);
+    return () => {
+      window.removeEventListener(FOCUS_EVENT, onFocus);
+      window.removeEventListener(BRANCH_EVENT, onBranch);
+    };
+  }, []);
+
+  const connectionLabel = useMemo(() => {
+    if (connection === 'online') return 'ATLAS ONLINE';
+    if (connection === 'degraded') return 'ATLAS DEGRADED';
+    if (connection === 'offline') return 'BACKEND OFFLINE';
+    return 'CHECKING SYSTEM';
+  }, [connection]);
+
+  const persistEnabled = (next) => {
     setEnabled(next);
-    try { window.localStorage?.setItem('atlas.sentinel.enabled', next ? '1' : '0'); } catch (_) {}
-    if (!next) setOpenId(null);
+    try { window.localStorage?.setItem('atlas.status.enabled', next ? '1' : '0'); } catch (_) {}
+  };
+
+  const cycleProject = () => {
+    const next = (projectIndex + 1) % PROJECTS.length;
+    setProjectIndex(next);
+    try { window.localStorage?.setItem('atlas.activeProjectIndex', String(next)); } catch (_) {}
+    window.dispatchEvent(new CustomEvent(PROJECT_EVENT, { detail: { project: PROJECTS[next] } }));
   };
 
   if (!enabled) {
@@ -89,191 +107,89 @@ export default function AtlasSentinel() {
       <button
         type="button"
         className="atlas-sentinel-toggle off"
-        onClick={() => persist(true)}
-        title="Show Atlas Sentinel"
-        aria-label="Show Atlas Sentinel"
+        onClick={() => persistEnabled(true)}
+        title="Show ATLAS status"
+        aria-label="Show ATLAS status"
         data-testid="sentinel-toggle"
       >
-        SENTINEL
+        STATUS
       </button>
     );
   }
 
-  return (
-    <div className="atlas-sentinel" data-testid="atlas-sentinel" aria-label="Atlas Sentinel — environmental telemetry">
-      <button
-        type="button"
-        className="atlas-sentinel-toggle on"
-        onClick={() => persist(false)}
-        title="Hide Atlas Sentinel"
-        aria-label="Hide Atlas Sentinel"
-        data-testid="sentinel-hide"
-      >
-        ×
-      </button>
-      <span className="atlas-sentinel-label">SENTINEL</span>
-      {items.length === 0 && (
-        <span className="atlas-sentinel-empty">…awaiting first telemetry burst…</span>
-      )}
-      {items.map(({ device, latest }) => {
-        const v = SENTINEL_VISUAL[device.name];
-        const Icon = v.Icon;
-        const isSafe = device.status === 'safe_state';
-        const anomaly = (device.state && device.state.anomaly) || null;
-        const isAnomaly = !!anomaly && !isSafe;
-        const isOpen = openId === device.id;
-        const stateLabel = isSafe
-          ? 'SAFE STATE'
-          : isAnomaly
-            ? `ANOMALY · ${(anomaly.drifting_keys || []).slice(0, 2).join(', ')}`
-            : (latest ? formatReadings(latest.payload, device.name) : 'no data yet');
-        const StatusIcon = isSafe ? AlertOctagon : isAnomaly ? AlertTriangle : Icon;
-        const chipClass = [
-          'atlas-sentinel-chip',
-          isSafe && 'is-safe',
-          isAnomaly && 'is-anomaly',
-          isOpen && 'is-open',
-        ].filter(Boolean).join(' ');
-        return (
-          <div
-            key={device.id}
-            className={chipClass}
-            data-testid={`sentinel-chip-${device.name}`}
-            data-anomaly={isAnomaly ? 'true' : 'false'}
-            style={{ '--chip-hue': v.hue }}
-            onClick={() => setOpenId(isOpen ? null : device.id)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setOpenId(isOpen ? null : device.id);
-            }}
-          >
-            <StatusIcon size={11} />
-            <span className="atlas-sentinel-name">{v.label}</span>
-            <span className="atlas-sentinel-readings">{stateLabel}</span>
-            {isOpen && (
-              <SentinelPopover
-                device={device}
-                latest={latest}
-                anomaly={anomaly}
-                visual={v}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-
-function SentinelPopover({ device, latest, anomaly, visual }) {
-  const [askLoading, setAskLoading] = useState(false);
-  const [council, setCouncil] = useState(null);
-  const [askError, setAskError] = useState(null);
-
-  const askCouncil = async (e) => {
-    e.stopPropagation();
-    setAskLoading(true); setAskError(null); setCouncil(null);
-    try {
-      const r = await fetch(`${API_URL}/api/robot/devices/${device.id}/ask-council`, {
-        method: 'POST',
-      });
-      const body = await r.json();
-      if (!r.ok) throw new Error(body.detail || 'council call failed');
-      setCouncil(body);
-    } catch (err) {
-      setAskError(String(err.message || err));
-    } finally {
-      setAskLoading(false);
-    }
-  };
-
-  const isSafe = device.status === 'safe_state';
-  const headColor = isSafe ? '#E63946' : (anomaly ? '#E8B845' : visual.hue);
+  const statusColor = connection === 'online'
+    ? '#6EE7B7'
+    : connection === 'degraded'
+      ? '#FBBF24'
+      : connection === 'offline'
+        ? '#F87171'
+        : '#94A3B8';
 
   return (
     <div
-      className="atlas-sentinel-popover"
-      data-testid={`sentinel-popover-${device.name}`}
-      onClick={(e) => e.stopPropagation()}
+      className="atlas-sentinel"
+      data-testid="atlas-sentinel"
+      aria-label="ATLAS daily status"
+      style={{ display: 'flex', alignItems: 'center', gap: 10 }}
     >
-      <div className="atlas-sentinel-popover-head">
-        <strong>{device.name}</strong>
-        <span style={{ color: headColor }}>{anomaly ? 'anomaly' : device.status}</span>
-      </div>
-      {anomaly && (
-        <div className="atlas-sentinel-anomaly-block" data-testid={`sentinel-anomaly-${device.name}`}>
-          <div className="atlas-sentinel-anomaly-head">
-            <AlertTriangle size={10} /> drifting: {(anomaly.drifting_keys || []).join(', ')}
-          </div>
-          {Object.entries(anomaly.z_scores || {}).map(([k, z]) => (
-            <div key={k} className="atlas-sentinel-anomaly-row">
-              <span className="bp-key">{k}</span>: z = {Number(z).toFixed(2)}
-            </div>
-          ))}
-          <button
-            type="button"
-            className="atlas-sentinel-ask"
-            onClick={askCouncil}
-            disabled={askLoading}
-            data-testid={`sentinel-ask-council-${device.name}`}
-          >
-            {askLoading
-              ? <><Loader2 size={10} className="spin" /> asking council…</>
-              : <><MessagesSquare size={10} /> ask the council</>}
-          </button>
-          {askError && <div className="bp-error" style={{ fontSize: 10 }}>{askError}</div>}
-          {council && (
-            <div className="atlas-sentinel-council" data-testid={`sentinel-council-reply-${device.name}`}>
-              <div className="atlas-sentinel-council-head">
-                COUNCIL · {council.council?.model_used || 'reply'}
-              </div>
-              <div className="atlas-sentinel-council-body">
-                {council.council?.reply || '(no reply)'}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-      <div className="atlas-sentinel-popover-body">
-        {latest ? (
-          <>
-            <div>last seen · {new Date(latest.received_at).toLocaleString()}</div>
-            {Object.entries(latest.payload).map(([k, val]) => (
-              <div key={k}><span className="bp-key">{k}</span>: {String(val)}</div>
-            ))}
-          </>
-        ) : (
-          <div className="atlas-help-muted">
-            No telemetry yet. POST a reading to <code>/api/robot/devices/{device.id}/telemetry</code> from the device firmware.
-          </div>
-        )}
-        {!anomaly && !isSafe && (
-          <button
-            type="button"
-            className="atlas-sentinel-ask"
-            onClick={askCouncil}
-            disabled={askLoading}
-            data-testid={`sentinel-ask-council-${device.name}`}
-            style={{ marginTop: 6 }}
-          >
-            {askLoading
-              ? <><Loader2 size={10} className="spin" /> asking council…</>
-              : <><MessagesSquare size={10} /> ask the council</>}
-          </button>
-        )}
-        {!anomaly && council && (
-          <div className="atlas-sentinel-council" data-testid={`sentinel-council-reply-${device.name}`}>
-            <div className="atlas-sentinel-council-head">
-              COUNCIL · {council.council?.model_used || 'reply'}
-            </div>
-            <div className="atlas-sentinel-council-body">
-              {council.council?.reply || '(no reply)'}
-            </div>
-          </div>
-        )}
-      </div>
+      <button
+        type="button"
+        className="atlas-sentinel-toggle on"
+        onClick={() => persistEnabled(false)}
+        title="Hide ATLAS status"
+        aria-label="Hide ATLAS status"
+        data-testid="sentinel-hide"
+      >
+        <X size={11} />
+      </button>
+
+      <span className="atlas-sentinel-label">ATLAS</span>
+
+      <span
+        className="atlas-sentinel-chip"
+        style={{ '--chip-hue': statusColor, cursor: 'default' }}
+        data-testid="atlas-connection-status"
+      >
+        {connection === 'offline' ? <WifiOff size={11} /> : <Wifi size={11} />}
+        <span className="atlas-sentinel-name">{connectionLabel}</span>
+      </span>
+
+      <span
+        className="atlas-sentinel-chip"
+        style={{ '--chip-hue': '#A78BFA', cursor: 'default' }}
+        data-testid="atlas-focus-status"
+      >
+        <CircleDot size={11} />
+        <span className="atlas-sentinel-name">
+          {focusAI ? titleCase(focusAI === 'trinity' ? 'Council' : focusAI) : 'HOME'}
+        </span>
+        <span className="atlas-sentinel-readings">
+          {branch ? titleCase(branch) : (focusAI ? 'Focus Mode' : 'Three-ring HUD')}
+        </span>
+      </span>
+
+      <button
+        type="button"
+        className="atlas-sentinel-chip"
+        style={{ '--chip-hue': '#60A5FA' }}
+        onClick={cycleProject}
+        title="Switch active project"
+        data-testid="active-project-switch"
+      >
+        <FolderKanban size={11} />
+        <span className="atlas-sentinel-name">PROJECT</span>
+        <span className="atlas-sentinel-readings">{activeProject.label}</span>
+        <RotateCcw size={9} />
+      </button>
+
+      <span
+        className="atlas-sentinel-chip"
+        style={{ '--chip-hue': '#67E8F9', cursor: 'default' }}
+        title="HUD session is active"
+      >
+        <Activity size={11} />
+        <span className="atlas-sentinel-name">READY</span>
+      </span>
     </div>
   );
 }
