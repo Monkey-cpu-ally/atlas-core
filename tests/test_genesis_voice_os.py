@@ -29,6 +29,15 @@ def test_voice_router_matches_real_project_records():
     assert "projects = []" in source
 
 
+def test_voice_router_supports_contextual_navigation():
+    source = VOICE_ROUTER.read_text(encoding="utf-8")
+    assert "resolveCurrentProject" in source
+    assert "continue current project" in source
+    assert "what should i do next" in source
+    assert "previous screen" in source
+    assert "contextual: true" in source
+
+
 def test_minimal_home_uses_real_voice_controller():
     source = MINIMAL_HOME.read_text(encoding="utf-8")
     assert "useAtlasVoice" in source
