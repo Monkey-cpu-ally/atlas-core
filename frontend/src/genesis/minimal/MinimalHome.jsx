@@ -1,5 +1,6 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import { buildAiActivities } from "../activity/aiActivityEngine";
+import useAtlasVoice from "../voice/useAtlasVoice";
 import "./minimal-home.css";
 
 const HOLD_THRESHOLD_MS = 320;
@@ -14,10 +15,12 @@ export default function MinimalHome({
   onOpenMission,
   onOpenProject,
   onSelectPersona,
+  onVoiceCommand,
 }) {
-  const [holding, setHolding] = useState(false);
   const pointerStartedAt = useRef(0);
   const holdTimer = useRef(null);
+  const holdActivated = useRef(false);
+  const voice = useAtlasVoice({ onTranscript: onVoiceCommand });
   const activities = useMemo(
     () => buildAiActivities({ projects, pulseItems, awarenessItems, bridgeStatus }),
     [projects, pulseItems, awarenessItems, bridgeStatus],
@@ -27,6 +30,7 @@ export default function MinimalHome({
     [projects],
   );
   const attentionCount = awarenessItems.length + pulseItems.filter((item) => item.urgency === "high").length;
+  const listening = voice.state === "listening";
 
   function clearHoldTimer() {
     if (holdTimer.current) {
@@ -37,23 +41,41 @@ export default function MinimalHome({
 
   function handlePointerDown(event) {
     pointerStartedAt.current = performance.now();
+    holdActivated.current = false;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     clearHoldTimer();
-    holdTimer.current = window.setTimeout(() => setHolding(true), HOLD_THRESHOLD_MS);
+    holdTimer.current = window.setTimeout(() => {
+      holdActivated.current = true;
+      voice.start();
+    }, HOLD_THRESHOLD_MS);
   }
 
   function handlePointerEnd(event) {
     const duration = performance.now() - pointerStartedAt.current;
     clearHoldTimer();
-    setHolding(false);
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-    if (duration < HOLD_THRESHOLD_MS) onOpenObservatory?.();
+    if (holdActivated.current || duration >= HOLD_THRESHOLD_MS) {
+      voice.stop();
+      return;
+    }
+    onOpenObservatory?.();
   }
 
   function handlePointerCancel() {
     clearHoldTimer();
-    setHolding(false);
+    holdActivated.current = false;
+    voice.stop();
   }
+
+  const voiceMessage = voice.state === "listening"
+    ? (voice.transcript || "Listening…")
+    : voice.state === "processing"
+      ? "Understanding command…"
+      : voice.state === "permission-denied"
+        ? "Microphone permission needed"
+        : voice.state === "unsupported"
+          ? "Voice unavailable · Tap for status"
+          : "Hold to speak · Tap for status";
 
   return (
     <section className="minimal-home" aria-label="GENESIS minimal home">
@@ -77,16 +99,18 @@ export default function MinimalHome({
       <button
         type="button"
         className="minimal-home__voice-core"
-        data-listening={holding ? "true" : "false"}
+        data-listening={listening ? "true" : "false"}
+        data-voice-state={voice.state}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerEnd}
         onPointerCancel={handlePointerCancel}
         onLostPointerCapture={handlePointerCancel}
         aria-label="Hold to speak to ATLAS. Tap for status."
+        aria-live="polite"
       >
         <span className="minimal-home__voice-ring" aria-hidden="true" />
         <strong>ATLAS</strong>
-        <small>{holding ? "Listening…" : "Hold to speak · Tap for status"}</small>
+        <small>{voiceMessage}</small>
       </button>
 
       <div className="minimal-home__focus">
