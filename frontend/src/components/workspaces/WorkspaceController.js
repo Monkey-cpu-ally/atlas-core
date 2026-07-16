@@ -5,17 +5,39 @@ const FOCUS_EVENT = 'atlas-ai-focus-mode';
 const BRANCH_EVENT = 'atlas-ai-focus-branch';
 const PROJECT_EVENT = 'atlas-project-selected';
 
+const HERMES_BRANCH_ROUTES = {
+  engineering: 'dashboard',
+  robotics: 'projects',
+  software: 'tasks',
+  manufacturing: 'projects',
+  architecture: 'blueprints',
+  systems: 'simulation',
+};
+
 export default function WorkspaceController() {
   const [workspaceAI, setWorkspaceAI] = useState(null);
+  const [workspaceRequest, setWorkspaceRequest] = useState(null);
 
   useEffect(() => {
     const onFocus = (event) => {
       const ai = event.detail?.ai || null;
-      setWorkspaceAI(ai === 'hermes' ? 'hermes' : null);
+      if (ai === 'hermes') {
+        setWorkspaceAI('hermes');
+        return;
+      }
+      setWorkspaceAI(null);
+      setWorkspaceRequest(null);
     };
 
     const onBranch = (event) => {
-      if (event.detail?.ai === 'hermes') setWorkspaceAI('hermes');
+      if (event.detail?.ai !== 'hermes') return;
+      const branch = event.detail?.branch || 'engineering';
+      setWorkspaceAI('hermes');
+      setWorkspaceRequest({
+        branch,
+        section: HERMES_BRANCH_ROUTES[branch] || 'dashboard',
+        requestId: Date.now(),
+      });
     };
 
     window.addEventListener(FOCUS_EVENT, onFocus);
@@ -28,6 +50,7 @@ export default function WorkspaceController() {
 
   const closeWorkspace = () => {
     setWorkspaceAI(null);
+    setWorkspaceRequest(null);
     window.dispatchEvent(new CustomEvent(FOCUS_EVENT, { detail: { ai: null } }));
   };
 
@@ -49,6 +72,9 @@ export default function WorkspaceController() {
   return (
     <HermesWorkspace
       open={workspaceAI === 'hermes'}
+      requestedSection={workspaceRequest?.section || null}
+      requestedBranch={workspaceRequest?.branch || null}
+      requestId={workspaceRequest?.requestId || 0}
       onClose={closeWorkspace}
       onOpenChat={openHermesChat}
       onOpenProject={openProject}
