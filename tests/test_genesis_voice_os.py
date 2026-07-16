@@ -15,10 +15,18 @@ def test_voice_os_sources_exist():
 
 def test_voice_router_has_core_commands():
     source = VOICE_ROUTER.read_text(encoding="utf-8")
-    for command in ("persona", "observatory", "projects", "mission", "pulse", "awareness", "home"):
+    for command in ("project", "persona", "observatory", "projects", "mission", "pulse", "awareness", "home"):
         assert f'type: "{command}"' in source
     for persona in ("ajani", "minerva", "hermes", "council"):
         assert persona in source
+
+
+def test_voice_router_matches_real_project_records():
+    source = VOICE_ROUTER.read_text(encoding="utf-8")
+    assert "findVoiceProject" in source
+    assert "projectId: project.id" in source
+    assert "projectSearchTerms" in source
+    assert "projects = []" in source
 
 
 def test_minimal_home_uses_real_voice_controller():
@@ -31,8 +39,10 @@ def test_minimal_home_uses_real_voice_controller():
 
 def test_genesis_hub_routes_voice_to_existing_actions():
     source = GENESIS_HUB.read_text(encoding="utf-8")
-    assert "routeVoiceCommand" in source
+    assert "routeVoiceCommand(transcript, { projects: allProjects })" in source
     assert "handleVoiceCommand" in source
+    assert 'case "project"' in source
+    assert "selectProject(command.project)" in source
     assert "kernel.openProjects()" in source
     assert "kernel.openPulse()" in source
     assert "kernel.openAwareness()" in source
