@@ -11,6 +11,7 @@ on:
       - "visual-systems/**"
       - "shared/protocols/**"
       - "tests/test_visual_hub.py"
+      - "tests/test_genesis_*.py"
       - ".github/workflows/visual-ecosystem.yml"
   push:
     branches:
@@ -28,7 +29,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r backend/requirements.txt pytest
-      - run: pytest -q tests/test_visual_hub.py
+      - name: Run visual and GENESIS smoke tests
+        run: pytest -q tests/test_visual_hub.py tests/test_genesis_*.py
 
   frontend-build:
     runs-on: ubuntu-latest
