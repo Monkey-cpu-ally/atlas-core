@@ -64,7 +64,13 @@ export default function GenesisHub({ visualBridge }) {
     if (!envelope) return;
     dispatch(envelope);
     const githubItem = githubPulseItemFromEnvelope(envelope);
-    if (githubItem) dispatch({ event: "pulse.item.received", timestamp: envelope.timestamp || new Date().toISOString(), payload: { item: githubItem } });
+    if (githubItem) {
+      dispatch({
+        event: "pulse.item.received",
+        timestamp: envelope.timestamp || new Date().toISOString(),
+        payload: { item: githubItem },
+      });
+    }
   }, [visualBridge?.lastEvent]);
 
   useEffect(() => {
@@ -110,6 +116,7 @@ export default function GenesisHub({ visualBridge }) {
     () => getProjects(kernelSnapshot?.activeProjectId ? [kernelSnapshot.activeProjectId] : [])[0] || null,
     [kernelSnapshot?.activeProjectId],
   );
+
   const showWheel = [HUB_MODES.WHEEL, HUB_MODES.PROJECT, HUB_MODES.ACTIVE_AI, HUB_MODES.COUNCIL].includes(state.mode);
   const scene = kernelSnapshot?.scene || SCENES.IDLE;
   const showPulse = scene === SCENES.PULSE;
@@ -122,7 +129,9 @@ export default function GenesisHub({ visualBridge }) {
   const showObservatory = standardScene && !showWheel && persona === "atlas" && state.mode === HUB_MODES.IDLE && observatoryOpen;
 
   useEffect(() => setSelectedNode(null), [persona]);
-  useEffect(() => { if (!selectedNode && nodes.length) setSelectedNode(nodes[0]); }, [nodes, selectedNode]);
+  useEffect(() => {
+    if (!selectedNode && nodes.length) setSelectedNode(nodes[0]);
+  }, [nodes, selectedNode]);
 
   const selectNode = useCallback((node) => {
     setSelectedNode(node);
@@ -131,6 +140,7 @@ export default function GenesisHub({ visualBridge }) {
   }, [kernel, persona]);
 
   const selectProject = useCallback((project) => {
+    if (!project?.id) return;
     setObservatoryOpen(false);
     kernel.openWorkspace(project.id, project.persona);
     dispatch(withEnvelope({ event: "project.opened", payload: { persona: project.persona, project_id: project.id } }));
@@ -150,13 +160,16 @@ export default function GenesisHub({ visualBridge }) {
   }, []);
 
   const handleVoiceCommand = useCallback((transcript) => {
-    const command = routeVoiceCommand(transcript);
+    const command = routeVoiceCommand(transcript, { projects: allProjects });
     dispatch(withEnvelope({
       event: "hud.mode.changed",
       payload: { mode: "voice-command", message: command.transcript, data: command },
     }));
 
     switch (command.type) {
+      case "project":
+        selectProject(command.project);
+        break;
       case "persona":
         selectPersona(command.persona);
         break;
@@ -192,15 +205,22 @@ export default function GenesisHub({ visualBridge }) {
             persona: "atlas",
             title: "Command not recognized",
             reason: transcript,
-            action: "Try: status, projects, mission, Pulse, Awareness, Ajani, Minerva, Hermes, or Council.",
+            action: "Try a project name, status, projects, mission, Pulse, Awareness, Ajani, Minerva, Hermes, or Council.",
             urgency: "normal",
           },
         }));
     }
-  }, [kernel, mission.id, selectPersona]);
+  }, [allProjects, kernel, mission.id, selectPersona, selectProject]);
 
   return (
-    <main className={`genesis-hub genesis-hub--${state.mode}`} data-persona={persona} data-quality={quality.profile} data-scene={scene} data-minimal-home={showMinimalHome ? "true" : "false"} style={{ "--atlas-accent": tokens.accent }}>
+    <main
+      className={`genesis-hub genesis-hub--${state.mode}`}
+      data-persona={persona}
+      data-quality={quality.profile}
+      data-scene={scene}
+      data-minimal-home={showMinimalHome ? "true" : "false"}
+      style={{ "--atlas-accent": tokens.accent }}
+    >
       {!quality.reducedEffects ? <div className="genesis-hub__ambient" aria-hidden="true" /> : null}
 
       {showMinimalHome ? (
@@ -222,7 +242,9 @@ export default function GenesisHub({ visualBridge }) {
         </button>
       )}
 
-      {showWheel && standardScene ? <ConstellationWheel nodes={nodes} selectedId={selectedNode?.id || state.selectedNodeId} onSelect={selectNode} accent={tokens.accent} /> : null}
+      {showWheel && standardScene ? (
+        <ConstellationWheel nodes={nodes} selectedId={selectedNode?.id || state.selectedNodeId} onSelect={selectNode} accent={tokens.accent} />
+      ) : null}
 
       {showObservatory ? (
         <Observatory
