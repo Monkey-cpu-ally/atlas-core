@@ -1,13 +1,20 @@
 import { routeVoiceCommand } from "./voiceCommandRouter";
 
-export function buildVoiceCommandResponse(transcript, { projects = [], mission = null } = {}) {
-  const command = routeVoiceCommand(transcript, { projects });
+export function buildVoiceCommandResponse(
+  transcript,
+  { projects = [], mission = null, currentProject = null, lastResponse = "" } = {},
+) {
+  const command = routeVoiceCommand(transcript, { projects, currentProject });
 
   switch (command.type) {
+    case "wake":
+      return { command, message: "Yes?" };
+    case "repeat":
+      return { command, message: lastResponse || "There is no previous response to repeat." };
+    case "cancel":
+      return { command, message: "Cancelled." };
     case "project":
-      return { command, message: `Opening ${command.project?.title || "the project"}.` };
-    case "current-project":
-      return { command, message: command.project ? `Continuing ${command.project.title}.` : "There is no current project to continue." };
+      return { command, message: command.contextual ? `Continuing ${command.project?.title || "the project"}.` : `Opening ${command.project?.title || "the project"}.` };
     case "persona":
       return { command, message: command.persona === "council" ? "Assembling the Council." : `${command.persona} is ready.` };
     case "observatory":
