@@ -66,6 +66,9 @@
 .hermes-activity-card time { color: rgba(244,239,228,.45); }
 .text-action { margin-top: 12px; border: 0; background: transparent; color: #f4efe4; cursor: pointer; padding: 0; }
 
+.hermes-branch-context { margin-bottom: 16px; padding: 13px 15px; border: 1px solid rgba(244,239,228,.12); border-radius: 14px; background: rgba(244,239,228,.035); }
+.hermes-branch-context p { margin: 7px 0 0; color: rgba(244,239,228,.56); font-size: 13px; }
+
 .hermes-project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 .hermes-project-card { padding: 18px; color: #f4efe4; text-align: left; cursor: pointer; }
 .hermes-project-card strong { display: block; margin: 10px 0 6px; font-size: 17px; }
@@ -81,6 +84,7 @@
 .hermes-ready-dot.is-simulating { background: #a78bfa; box-shadow: 0 0 14px rgba(167,139,250,.9); animation: hermes-status-pulse 1.4s ease-in-out infinite; }
 .hermes-ready-dot.is-paused { background: #fbbf24; box-shadow: 0 0 12px rgba(251,191,36,.8); }
 .hermes-ready-dot.is-noting { background: #60a5fa; box-shadow: 0 0 12px rgba(96,165,250,.8); }
+.hermes-ready-dot.is-blueprinting { background: #f4efe4; box-shadow: 0 0 14px rgba(244,239,228,.9); animation: hermes-status-pulse 1.8s ease-in-out infinite; }
 
 .hermes-tool-surface,
 .hermes-notebook,
