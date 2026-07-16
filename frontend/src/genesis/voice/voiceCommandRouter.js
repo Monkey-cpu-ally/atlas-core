@@ -5,12 +5,25 @@ const PERSONA_ALIASES = Object.freeze({
   council: ["council", "team review"],
 });
 
+const WAKE_WORDS = Object.freeze([
+  "hey atlas",
+  "okay atlas",
+  "ok atlas",
+  "atlas",
+]);
+
 function normalizeTranscript(value) {
   return String(value || "")
     .toLowerCase()
     .replace(/[.,!?;:]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function stripWakeWord(value) {
+  const text = normalizeTranscript(value);
+  const wakeWord = WAKE_WORDS.find((phrase) => text === phrase || text.startsWith(`${phrase} `));
+  return wakeWord ? text.slice(wakeWord.length).trim() : text;
 }
 
 function includesAny(text, phrases) {
@@ -57,22 +70,38 @@ export function findVoiceProject(transcript, projects = []) {
 }
 
 export function routeVoiceCommand(transcript, { projects = [], currentProject = null } = {}) {
-  const text = normalizeTranscript(transcript);
-  if (!text) return { type: "unknown", transcript: text };
+  const originalTranscript = normalizeTranscript(transcript);
+  const text = stripWakeWord(originalTranscript);
+  if (!text) return { type: "wake", transcript: originalTranscript };
+
+  if (includesAny(text, ["repeat that", "say that again", "repeat response", "what did you say"])) {
+    return { type: "repeat", transcript: originalTranscript, contextual: true };
+  }
+
+  if (includesAny(text, ["cancel", "never mind", "nevermind", "stop speaking", "be quiet"])) {
+    return { type: "cancel", transcript: originalTranscript, contextual: true };
+  }
+
+  if (includesAny(text, ["open it", "continue it", "resume it", "show it"])) {
+    const resolvedProject = resolveCurrentProject(currentProject, projects);
+    return resolvedProject
+      ? { type: "project", projectId: resolvedProject.id, project: resolvedProject, transcript: originalTranscript, contextual: true }
+      : { type: "projects", transcript: originalTranscript, contextual: true };
+  }
 
   if (includesAny(text, ["continue current project", "resume current project", "open current project", "continue where i left off"])) {
     const resolvedProject = resolveCurrentProject(currentProject, projects);
     return resolvedProject
-      ? { type: "project", projectId: resolvedProject.id, project: resolvedProject, transcript: text, contextual: true }
-      : { type: "projects", transcript: text, contextual: true };
+      ? { type: "project", projectId: resolvedProject.id, project: resolvedProject, transcript: originalTranscript, contextual: true }
+      : { type: "projects", transcript: originalTranscript, contextual: true };
   }
 
   if (includesAny(text, ["what's next", "what is next", "next step", "what should i do next"])) {
-    return { type: "mission", transcript: text, contextual: true };
+    return { type: "mission", transcript: originalTranscript, contextual: true };
   }
 
   if (includesAny(text, ["go back", "back", "previous screen", "return"])) {
-    return { type: "home", transcript: text, contextual: true };
+    return { type: "home", transcript: originalTranscript, contextual: true };
   }
 
   const project = findVoiceProject(text, projects);
@@ -81,34 +110,34 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
       type: "project",
       projectId: project.id,
       project,
-      transcript: text,
+      transcript: originalTranscript,
     };
   }
 
   for (const [persona, aliases] of Object.entries(PERSONA_ALIASES)) {
-    if (includesAny(text, aliases)) return { type: "persona", persona, transcript: text };
+    if (includesAny(text, aliases)) return { type: "persona", persona, transcript: originalTranscript };
   }
 
   if (includesAny(text, ["status", "observatory", "system status", "show status"])) {
-    return { type: "observatory", transcript: text };
+    return { type: "observatory", transcript: originalTranscript };
   }
   if (includesAny(text, ["show projects", "open projects", "project wall", "all projects"])) {
-    return { type: "projects", transcript: text };
+    return { type: "projects", transcript: originalTranscript };
   }
   if (includesAny(text, ["show mission", "open mission", "current mission"])) {
-    return { type: "mission", transcript: text };
+    return { type: "mission", transcript: originalTranscript };
   }
   if (includesAny(text, ["show pulse", "open pulse", "github activity", "latest updates"])) {
-    return { type: "pulse", transcript: text };
+    return { type: "pulse", transcript: originalTranscript };
   }
   if (includesAny(text, ["show awareness", "open awareness", "show alerts", "what needs attention"])) {
-    return { type: "awareness", transcript: text };
+    return { type: "awareness", transcript: originalTranscript };
   }
   if (includesAny(text, ["go home", "return home", "close", "quiet mode", "idle"])) {
-    return { type: "home", transcript: text };
+    return { type: "home", transcript: originalTranscript };
   }
 
-  return { type: "unknown", transcript: text };
+  return { type: "unknown", transcript: originalTranscript };
 }
 
-export { normalizeTranscript, normalizeProjectName, resolveCurrentProject };
+export { normalizeTranscript, normalizeProjectName, resolveCurrentProject, stripWakeWord };
