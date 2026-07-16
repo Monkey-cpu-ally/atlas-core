@@ -1,20 +1,12 @@
-// Radial HUD layout — tile positions designed so that tiles from different
-// orbits NEVER align radially, creating clean visual separation between
-// rings (each ring has its own angular signature).
-//
-// Diameter ratios per spec:
-//   Core orb     ≈ 1×   (anchor)
-//   Core ring    ≈ 1.3× orb
-//   Inner orbit  ≈ 2.5× orb (4 AI personas at compass cardinals)
-//   Mid system   ≈ 4×   orb (offset 22.5° from outer to interleave)
-//   Outer world  ≈ 6×   orb (cardinals + ordinals)
+// Radial HUD layout — visible controls only. Knowledge, memory, and project
+// banks remain backend services and are never exposed as standalone HUD banks.
 //
 // Angles: -90° = top (12 o'clock), 0° = right, 90° = bottom, 180° = left.
 // Positive = clockwise.
 
 import {
   // Middle ring — operating system shell
-  Book, BookMarked, Database, Settings, Layout,
+  Book, BookMarked, Settings, Layout,
   // Outer ring — knowledge / exploration
   BookOpen, FlaskConical, FolderOpen, FileCode, Archive, Compass,
 } from 'lucide-react';
@@ -35,23 +27,20 @@ export const INNER_RING = {
   ],
 };
 
-// --- Mid System Ring (5 items, evenly spaced at 72° intervals) ---
-// Starts at the top (-90°) so MANUAL sits directly above the core, then
-// rotates clockwise. Forms a clean pentagon around the inner orbit.
+// --- Mid System Ring ---
+// Memory and knowledge banks intentionally do not appear here. Their services
+// support every workspace behind the scenes.
 export const MIDDLE_RING = {
-  slotAngle: 72,
+  slotAngle: 90,
   items: [
-    { angle:  -90, id: 'manual',        label: 'MANUAL',        icon: Book,       type: 'section' },
-    { angle:  -18, id: 'encyclopedia',  label: 'CYCLOPEDIA',    icon: BookMarked, type: 'section' },
-    { angle:   54, id: 'memory',        label: 'MEMORY',        icon: Database,   type: 'section' },
-    { angle:  126, id: 'systems',       label: 'SYSTEMS',       icon: Layout,     type: 'section' },
-    { angle: -162, id: 'customization', label: 'CUSTOMIZATION', icon: Settings,   type: 'section' },
+    { angle: -90, id: 'manual',        label: 'MANUAL',        icon: Book,       type: 'section' },
+    { angle:   0, id: 'encyclopedia',  label: 'CYCLOPEDIA',    icon: BookMarked, type: 'section' },
+    { angle:  90, id: 'systems',       label: 'SYSTEMS',       icon: Layout,     type: 'section' },
+    { angle: 180, id: 'customization', label: 'CUSTOMIZATION', icon: Settings,   type: 'section' },
   ],
 };
 
 // --- Outer World Ring (6 items, evenly spaced at 60° intervals) ---
-// Hexagonal layout — symmetric around the centre so no quadrant feels
-// empty. Cardinals (top, right, bottom) plus three ordinals.
 export const OUTER_RING = {
   slotAngle: 60,
   items: [
