@@ -12,6 +12,9 @@ const WAKE_WORDS = Object.freeze([
   "atlas",
 ]);
 
+const EMPTY_CONTEXT = Object.freeze({ type: null, id: null, value: null });
+let voiceContext = { ...EMPTY_CONTEXT };
+
 function normalizeTranscript(value) {
   return String(value || "")
     .toLowerCase()
@@ -53,6 +56,28 @@ function resolveCurrentProject(currentProject, projects) {
     .sort((a, b) => (b.progress || 0) - (a.progress || 0))[0] || null;
 }
 
+export function getVoiceContext() {
+  return { ...voiceContext };
+}
+
+export function resetVoiceContext() {
+  voiceContext = { ...EMPTY_CONTEXT };
+}
+
+export function rememberVoiceContext(command) {
+  if (command?.type === "project" && command.project?.id) {
+    voiceContext = { type: "project", id: command.project.id, value: command.project };
+  } else if (command?.type === "persona" && command.persona) {
+    voiceContext = { type: "persona", id: command.persona, value: command.persona };
+  }
+  return getVoiceContext();
+}
+
+function rememberAndReturn(command) {
+  rememberVoiceContext(command);
+  return command;
+}
+
 export function findVoiceProject(transcript, projects = []) {
   const text = normalizeProjectName(transcript);
   if (!text) return null;
@@ -69,6 +94,51 @@ export function findVoiceProject(transcript, projects = []) {
   return matches[0]?.project || null;
 }
 
+function contextualReferenceCommand(text, originalTranscript, projects) {
+  const referencesPriorTarget = includesAny(text, [
+    "open it",
+    "continue it",
+    "resume it",
+    "show it",
+    "open that",
+    "continue that",
+    "resume that",
+    "show that",
+    "go to it",
+    "what is next for it",
+    "what's next for it",
+    "show me the next step",
+  ]);
+  if (!referencesPriorTarget || !voiceContext.type) return null;
+
+  if (voiceContext.type === "project") {
+    const project = projects.find((item) => item.id === voiceContext.id) || voiceContext.value;
+    if (project?.id) {
+      return {
+        type: "project",
+        projectId: project.id,
+        project,
+        transcript: originalTranscript,
+        contextual: true,
+        resolvedFromMemory: true,
+        intent: includesAny(text, ["next", "next step"]) ? "next-step" : "open",
+      };
+    }
+  }
+
+  if (voiceContext.type === "persona" && voiceContext.id) {
+    return {
+      type: "persona",
+      persona: voiceContext.id,
+      transcript: originalTranscript,
+      contextual: true,
+      resolvedFromMemory: true,
+    };
+  }
+
+  return null;
+}
+
 export function routeVoiceCommand(transcript, { projects = [], currentProject = null } = {}) {
   const originalTranscript = normalizeTranscript(transcript);
   const text = stripWakeWord(originalTranscript);
@@ -82,18 +152,15 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
     return { type: "cancel", transcript: originalTranscript, contextual: true };
   }
 
-  if (includesAny(text, ["open it", "continue it", "resume it", "show it"])) {
-    const resolvedProject = resolveCurrentProject(currentProject, projects);
-    return resolvedProject
-      ? { type: "project", projectId: resolvedProject.id, project: resolvedProject, transcript: originalTranscript, contextual: true }
-      : { type: "projects", transcript: originalTranscript, contextual: true };
-  }
+  const memoryCommand = contextualReferenceCommand(text, originalTranscript, projects);
+  if (memoryCommand) return rememberAndReturn(memoryCommand);
 
   if (includesAny(text, ["continue current project", "resume current project", "open current project", "continue where i left off"])) {
     const resolvedProject = resolveCurrentProject(currentProject, projects);
-    return resolvedProject
+    const command = resolvedProject
       ? { type: "project", projectId: resolvedProject.id, project: resolvedProject, transcript: originalTranscript, contextual: true }
       : { type: "projects", transcript: originalTranscript, contextual: true };
+    return rememberAndReturn(command);
   }
 
   if (includesAny(text, ["what's next", "what is next", "next step", "what should i do next"])) {
@@ -106,16 +173,16 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
 
   const project = findVoiceProject(text, projects);
   if (project && includesAny(text, ["open", "continue", "resume", "show", "workspace", project.title?.toLowerCase() || project.id])) {
-    return {
+    return rememberAndReturn({
       type: "project",
       projectId: project.id,
       project,
       transcript: originalTranscript,
-    };
+    });
   }
 
   for (const [persona, aliases] of Object.entries(PERSONA_ALIASES)) {
-    if (includesAny(text, aliases)) return { type: "persona", persona, transcript: originalTranscript };
+    if (includesAny(text, aliases)) return rememberAndReturn({ type: "persona", persona, transcript: originalTranscript });
   }
 
   if (includesAny(text, ["status", "observatory", "system status", "show status"])) {
