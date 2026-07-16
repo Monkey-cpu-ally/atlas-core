@@ -10,8 +10,10 @@ import {
   Play,
   CheckCircle2,
   Clock3,
+  Save,
 } from 'lucide-react';
 import { getAllProjects } from '../../data/atlasCore';
+import BlueprintWorkbench from '../HUD/BlueprintWorkbench';
 import './HermesWorkspace.css';
 
 const SESSION_KEY = 'atlas.workspace.hermes.v1';
@@ -39,6 +41,18 @@ function readSession() {
   }
 }
 
+function notebookKey(projectId) {
+  return `atlas.workspace.hermes.notebook.${projectId || 'general'}`;
+}
+
+function readNotebook(projectId) {
+  try {
+    return window.localStorage?.getItem(notebookKey(projectId)) || '';
+  } catch (_) {
+    return '';
+  }
+}
+
 export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProject }) {
   const projects = useMemo(
     () => getAllProjects().filter((project) => project.ai === 'hermes'),
@@ -48,6 +62,8 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
   const [section, setSection] = useState(saved.section || 'dashboard');
   const [activeProjectId, setActiveProjectId] = useState(saved.activeProjectId || projects[0]?.id || null);
   const [tasks, setTasks] = useState(saved.tasks || DEFAULT_TASKS);
+  const [notebook, setNotebook] = useState(() => readNotebook(saved.activeProjectId || projects[0]?.id));
+  const [noteStatus, setNoteStatus] = useState('saved');
 
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null;
 
@@ -57,6 +73,11 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
       window.localStorage?.setItem(SESSION_KEY, JSON.stringify({ section, activeProjectId, tasks }));
     } catch (_) {}
   }, [open, section, activeProjectId, tasks]);
+
+  useEffect(() => {
+    setNotebook(readNotebook(activeProjectId));
+    setNoteStatus('saved');
+  }, [activeProjectId]);
 
   if (!open) return null;
 
@@ -70,6 +91,20 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
     setTasks((current) => current.map((task) => (
       task.id === taskId ? { ...task, status: task.status === 'done' ? 'ready' : 'done' } : task
     )));
+  };
+
+  const updateNotebook = (value) => {
+    setNotebook(value);
+    setNoteStatus('unsaved');
+  };
+
+  const saveNotebook = () => {
+    try {
+      window.localStorage?.setItem(notebookKey(activeProjectId), notebook);
+      setNoteStatus('saved');
+    } catch (_) {
+      setNoteStatus('error');
+    }
   };
 
   const renderMain = () => {
@@ -101,20 +136,44 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
       );
     }
 
-    if (section === 'blueprints' || section === 'notebook') {
+    if (section === 'blueprints') {
       return (
-        <div className="hermes-focus-card">
-          <span className="hermes-kicker">{section}</span>
-          <h3>{activeProject?.name || 'No project selected'}</h3>
-          <p>
-            {section === 'blueprints'
-              ? 'Open the project blueprint workbench from the active project context.'
-              : 'Resume engineering notes and decisions for the active project.'}
-          </p>
-          <button type="button" onClick={() => activeProject && onOpenProject?.(activeProject)}>
-            <Play size={14} /> Open {section}
-          </button>
-        </div>
+        <section className="hermes-tool-surface" aria-label="Hermes blueprint workbench">
+          <div className="hermes-tool-heading">
+            <div>
+              <span className="hermes-kicker">Blueprint workspace</span>
+              <h2>{activeProject?.name || 'No project selected'}</h2>
+            </div>
+          </div>
+          <BlueprintWorkbench aiColor="#F4EFE4" />
+        </section>
+      );
+    }
+
+    if (section === 'notebook') {
+      return (
+        <section className="hermes-notebook" aria-label="Hermes engineering notebook">
+          <div className="hermes-tool-heading">
+            <div>
+              <span className="hermes-kicker">Engineering notebook</span>
+              <h2>{activeProject?.name || 'General notes'}</h2>
+            </div>
+            <button type="button" className="hermes-save-note" onClick={saveNotebook} disabled={noteStatus === 'saved'}>
+              <Save size={14} /> {noteStatus === 'saved' ? 'Saved' : noteStatus === 'error' ? 'Retry save' : 'Save notes'}
+            </button>
+          </div>
+          <textarea
+            value={notebook}
+            onChange={(event) => updateNotebook(event.target.value)}
+            placeholder="Record design decisions, measurements, failures, fixes, and next steps..."
+            spellCheck="true"
+            data-testid="hermes-notebook-editor"
+          />
+          <div className="hermes-notebook-meta">
+            <span>{notebook.length} characters</span>
+            <span>{noteStatus === 'saved' ? 'Stored on this device' : 'Unsaved changes'}</span>
+          </div>
+        </section>
       );
     }
 
