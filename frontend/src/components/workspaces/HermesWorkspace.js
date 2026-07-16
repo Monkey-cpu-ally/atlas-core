@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   X,
   FolderOpen,
@@ -11,9 +11,11 @@ import {
   CheckCircle2,
   Clock3,
   Save,
+  Gauge,
 } from 'lucide-react';
 import { getAllProjects } from '../../data/atlasCore';
 import BlueprintWorkbench from '../HUD/BlueprintWorkbench';
+import HermesSimulationPanel from './HermesSimulationPanel';
 import './HermesWorkspace.css';
 
 const SESSION_KEY = 'atlas.workspace.hermes.v1';
@@ -23,6 +25,7 @@ const NAV_ITEMS = [
   { id: 'projects', label: 'Projects', icon: FolderOpen },
   { id: 'blueprints', label: 'Blueprints', icon: FileCode2 },
   { id: 'notebook', label: 'Notebook', icon: BookOpen },
+  { id: 'simulation', label: 'Simulation', icon: Gauge },
   { id: 'tasks', label: 'Tasks', icon: ClipboardList },
 ];
 
@@ -53,6 +56,14 @@ function readNotebook(projectId) {
   }
 }
 
+function timeLabel(timestamp) {
+  try {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch (_) {
+    return 'Now';
+  }
+}
+
 export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProject }) {
   const projects = useMemo(
     () => getAllProjects().filter((project) => project.ai === 'hermes'),
@@ -64,26 +75,44 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
   const [tasks, setTasks] = useState(saved.tasks || DEFAULT_TASKS);
   const [notebook, setNotebook] = useState(() => readNotebook(saved.activeProjectId || projects[0]?.id));
   const [noteStatus, setNoteStatus] = useState('saved');
+  const [hermesStatus, setHermesStatus] = useState(saved.hermesStatus || 'ready');
+  const [activity, setActivity] = useState(saved.activity || [
+    { id: 'workspace-ready', at: Date.now(), label: 'Workspace ready' },
+  ]);
 
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null;
 
   useEffect(() => {
     if (!open) return;
     try {
-      window.localStorage?.setItem(SESSION_KEY, JSON.stringify({ section, activeProjectId, tasks }));
+      window.localStorage?.setItem(SESSION_KEY, JSON.stringify({
+        section,
+        activeProjectId,
+        tasks,
+        hermesStatus,
+        activity: activity.slice(0, 12),
+      }));
     } catch (_) {}
-  }, [open, section, activeProjectId, tasks]);
+  }, [open, section, activeProjectId, tasks, hermesStatus, activity]);
 
   useEffect(() => {
     setNotebook(readNotebook(activeProjectId));
     setNoteStatus('saved');
   }, [activeProjectId]);
 
+  const addActivity = useCallback((label) => {
+    setActivity((current) => [
+      { id: `${Date.now()}-${label}`, at: Date.now(), label },
+      ...current,
+    ].slice(0, 12));
+  }, []);
+
   if (!open) return null;
 
   const activateProject = (project) => {
     setActiveProjectId(project.id);
     setSection('dashboard');
+    addActivity(`Opened ${project.name}`);
     onOpenProject?.(project);
   };
 
@@ -91,20 +120,31 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
     setTasks((current) => current.map((task) => (
       task.id === taskId ? { ...task, status: task.status === 'done' ? 'ready' : 'done' } : task
     )));
+    const task = tasks.find((item) => item.id === taskId);
+    if (task) addActivity(`${task.status === 'done' ? 'Reopened' : 'Completed'} task: ${task.label}`);
   };
 
   const updateNotebook = (value) => {
     setNotebook(value);
     setNoteStatus('unsaved');
+    setHermesStatus('noting');
   };
 
   const saveNotebook = () => {
     try {
       window.localStorage?.setItem(notebookKey(activeProjectId), notebook);
       setNoteStatus('saved');
+      setHermesStatus('ready');
+      addActivity('Engineering notebook saved');
     } catch (_) {
       setNoteStatus('error');
     }
+  };
+
+  const changeSection = (nextSection) => {
+    setSection(nextSection);
+    if (nextSection !== 'simulation') setHermesStatus('ready');
+    addActivity(`Opened ${NAV_ITEMS.find((item) => item.id === nextSection)?.label || nextSection}`);
   };
 
   const renderMain = () => {
@@ -177,6 +217,16 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
       );
     }
 
+    if (section === 'simulation') {
+      return (
+        <HermesSimulationPanel
+          project={activeProject}
+          onStatusChange={setHermesStatus}
+          onActivity={addActivity}
+        />
+      );
+    }
+
     return (
       <div className="hermes-dashboard-grid">
         <section className="hermes-resume-card">
@@ -187,7 +237,7 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
             <button type="button" onClick={() => activeProject && onOpenProject?.(activeProject)}>
               <Play size={14} /> Resume
             </button>
-            <button type="button" className="secondary" onClick={() => setSection('projects')}>
+            <button type="button" className="secondary" onClick={() => changeSection('projects')}>
               Switch project
             </button>
           </div>
@@ -195,8 +245,8 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
 
         <section className="hermes-status-card">
           <span className="hermes-kicker">Hermes status</span>
-          <strong>Ready</strong>
-          <p>Awaiting engineering instructions.</p>
+          <strong>{hermesStatus}</strong>
+          <p>{hermesStatus === 'simulating' ? 'Tracking the active simulation workflow.' : hermesStatus === 'paused' ? 'Simulation workflow paused.' : hermesStatus === 'noting' ? 'Engineering notes have unsaved changes.' : 'Awaiting engineering instructions.'}</p>
           <button type="button" onClick={onOpenChat}><MessageSquare size={14} /> Talk to Hermes</button>
         </section>
 
@@ -207,20 +257,21 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
               <span>{task.label}</span><small>{task.status}</small>
             </div>
           ))}
-          <button type="button" className="text-action" onClick={() => setSection('tasks')}>Open task queue</button>
+          <button type="button" className="text-action" onClick={() => changeSection('tasks')}>Open task queue</button>
         </section>
 
         <section className="hermes-activity-card">
           <span className="hermes-kicker">Activity</span>
-          <div><time>Now</time><span>Workspace restored</span></div>
-          <div><time>Ready</time><span>{activeProject?.name || 'No active project'}</span></div>
+          {activity.slice(0, 4).map((event) => (
+            <div key={event.id}><time>{timeLabel(event.at)}</time><span>{event.label}</span></div>
+          ))}
         </section>
       </div>
     );
   };
 
   return (
-    <div className="hermes-workspace" role="dialog" aria-label="Hermes Engineering Workspace" data-testid="hermes-workspace">
+    <div className="hermes-workspace" role="dialog" aria-label="Hermes Engineering Workspace" data-testid="hermes-workspace" data-hermes-status={hermesStatus}>
       <header className="hermes-workspace-head">
         <div>
           <span className="hermes-kicker">HERMES</span>
@@ -232,7 +283,7 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
       <div className="hermes-workspace-body">
         <nav className="hermes-workspace-nav" aria-label="Hermes workspace sections">
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
-            <button key={id} type="button" className={section === id ? 'active' : ''} onClick={() => setSection(id)}>
+            <button key={id} type="button" className={section === id ? 'active' : ''} onClick={() => changeSection(id)}>
               <Icon size={16} /><span>{label}</span>
             </button>
           ))}
@@ -241,8 +292,8 @@ export default function HermesWorkspace({ open, onClose, onOpenChat, onOpenProje
       </div>
 
       <footer className="hermes-workspace-status">
-        <span className="hermes-ready-dot" />
-        <strong>Hermes ready</strong>
+        <span className={`hermes-ready-dot is-${hermesStatus}`} />
+        <strong>Hermes {hermesStatus}</strong>
         <span>{activeProject?.name || 'No active project'}</span>
       </footer>
     </div>
