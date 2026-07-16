@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: frontend-hud-${{ github.ref }}
+  group: frontend-hud-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,6 +28,7 @@ jobs:
 
     defaults:
       run:
+        shell: bash
         working-directory: frontend
 
     env:
@@ -42,14 +43,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "yarn"
-          cache-dependency-path: frontend/package.json
 
       - name: Enable Yarn
         run: corepack enable
 
+      - name: Show tool versions
+        run: |
+          node --version
+          yarn --version
+
       - name: Install frontend dependencies
-        run: yarn install --non-interactive
+        run: yarn install --non-interactive --no-progress
 
       - name: Run HUD tests
         run: yarn test --watchAll=false --passWithNoTests
@@ -57,7 +61,20 @@ jobs:
       - name: Build production HUD
         run: yarn build
 
-      - name: Upload build on failure
+      - name: Write failure summary
+        if: failure()
+        run: |
+          mkdir -p ../test_reports
+          {
+            echo "# ATLAS Frontend HUD CI Failure"
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            echo "Inspect the failed step, repair the smallest root cause, preserve HUD features, and add a regression test."
+          } > ../test_reports/frontend-hud-ci-failure.md
+
+      - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -66,4 +83,5 @@ jobs:
             frontend/build/
             frontend/npm-debug.log
             frontend/yarn-error.log
+            test_reports/frontend-hud-ci-failure.md
           if-no-files-found: ignore
