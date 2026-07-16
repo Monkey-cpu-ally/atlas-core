@@ -22,24 +22,45 @@ export default function MinimalHome({
   const pointerStartedAt = useRef(0);
   const holdTimer = useRef(null);
   const holdActivated = useRef(false);
+  const lastCompletedResponse = useRef("");
   const [lastResponse, setLastResponse] = useState("");
   const speech = useAtlasSpeech();
+  const currentProject = useMemo(
+    () => [...projects].sort((a, b) => (b.progress || 0) - (a.progress || 0))[0] || null,
+    [projects],
+  );
 
   const handleTranscript = useCallback((transcript) => {
-    const response = buildVoiceCommandResponse(transcript, { projects, mission });
+    const response = buildVoiceCommandResponse(transcript, {
+      projects,
+      mission,
+      currentProject,
+      lastResponse: lastCompletedResponse.current,
+    });
+
+    if (response.command.type === "cancel") {
+      speech.cancel();
+      setLastResponse(response.message);
+      lastCompletedResponse.current = response.message;
+      return;
+    }
+
+    if (response.command.type === "repeat" || response.command.type === "wake") {
+      setLastResponse(response.message);
+      speech.speak(response.message);
+      return;
+    }
+
     setLastResponse(response.message);
+    lastCompletedResponse.current = response.message;
     onVoiceCommand?.(transcript);
     speech.speak(response.message);
-  }, [mission, onVoiceCommand, projects, speech]);
+  }, [currentProject, mission, onVoiceCommand, projects, speech]);
 
   const voice = useAtlasVoice({ onTranscript: handleTranscript });
   const activities = useMemo(
     () => buildAiActivities({ projects, pulseItems, awarenessItems, bridgeStatus }),
     [projects, pulseItems, awarenessItems, bridgeStatus],
-  );
-  const currentProject = useMemo(
-    () => [...projects].sort((a, b) => (b.progress || 0) - (a.progress || 0))[0] || null,
-    [projects],
   );
   const attentionCount = awarenessItems.length + pulseItems.filter((item) => item.urgency === "high").length;
   const listening = voice.state === "listening";
