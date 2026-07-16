@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { buildAiActivities } from "../activity/aiActivityEngine";
 import "./minimal-home.css";
+
+const HOLD_THRESHOLD_MS = 320;
 
 export default function MinimalHome({
   mission,
@@ -14,6 +16,8 @@ export default function MinimalHome({
   onSelectPersona,
 }) {
   const [holding, setHolding] = useState(false);
+  const pointerStartedAt = useRef(0);
+  const holdTimer = useRef(null);
   const activities = useMemo(
     () => buildAiActivities({ projects, pulseItems, awarenessItems, bridgeStatus }),
     [projects, pulseItems, awarenessItems, bridgeStatus],
@@ -23,6 +27,33 @@ export default function MinimalHome({
     [projects],
   );
   const attentionCount = awarenessItems.length + pulseItems.filter((item) => item.urgency === "high").length;
+
+  function clearHoldTimer() {
+    if (holdTimer.current) {
+      window.clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+  }
+
+  function handlePointerDown(event) {
+    pointerStartedAt.current = performance.now();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    clearHoldTimer();
+    holdTimer.current = window.setTimeout(() => setHolding(true), HOLD_THRESHOLD_MS);
+  }
+
+  function handlePointerEnd(event) {
+    const duration = performance.now() - pointerStartedAt.current;
+    clearHoldTimer();
+    setHolding(false);
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    if (duration < HOLD_THRESHOLD_MS) onOpenObservatory?.();
+  }
+
+  function handlePointerCancel() {
+    clearHoldTimer();
+    setHolding(false);
+  }
 
   return (
     <section className="minimal-home" aria-label="GENESIS minimal home">
@@ -47,11 +78,10 @@ export default function MinimalHome({
         type="button"
         className="minimal-home__voice-core"
         data-listening={holding ? "true" : "false"}
-        onPointerDown={() => setHolding(true)}
-        onPointerUp={() => setHolding(false)}
-        onPointerCancel={() => setHolding(false)}
-        onPointerLeave={() => setHolding(false)}
-        onClick={onOpenObservatory}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerCancel}
+        onLostPointerCapture={handlePointerCancel}
         aria-label="Hold to speak to ATLAS. Tap for status."
       >
         <span className="minimal-home__voice-ring" aria-hidden="true" />
