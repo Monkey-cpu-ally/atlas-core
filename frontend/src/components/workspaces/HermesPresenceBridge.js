@@ -13,12 +13,16 @@ const STATUS_LABELS = {
   reviewing: 'Reviewing',
 };
 
-function readStoredStatus() {
+function readStoredPresence() {
   try {
     const saved = JSON.parse(window.localStorage?.getItem(SESSION_KEY) || '{}');
-    return saved.hermesStatus || 'ready';
+    return {
+      status: saved.hermesStatus || 'ready',
+      project: saved.activeProjectName || '',
+      section: saved.section || '',
+    };
   } catch (_) {
-    return 'ready';
+    return { status: 'ready', project: '', section: '' };
   }
 }
 
@@ -49,17 +53,32 @@ function applyHermesPresence(detail = {}) {
 
 export default function HermesPresenceBridge() {
   useEffect(() => {
-    const applyInitial = () => applyHermesPresence({ status: readStoredStatus() });
+    let lastSignature = '';
+
+    const syncStoredPresence = () => {
+      const presence = readStoredPresence();
+      const signature = JSON.stringify(presence);
+      if (signature === lastSignature) return;
+      lastSignature = signature;
+      applyHermesPresence(presence);
+    };
+
     const onStatus = (event) => {
       if (event.detail?.ai !== 'hermes') return;
+      lastSignature = '';
       applyHermesPresence(event.detail);
     };
 
-    const timer = window.setTimeout(applyInitial, 0);
+    const timer = window.setTimeout(syncStoredPresence, 0);
+    const interval = window.setInterval(syncStoredPresence, 500);
     window.addEventListener(STATUS_EVENT, onStatus);
+    window.addEventListener('storage', syncStoredPresence);
+
     return () => {
       window.clearTimeout(timer);
+      window.clearInterval(interval);
       window.removeEventListener(STATUS_EVENT, onStatus);
+      window.removeEventListener('storage', syncStoredPresence);
     };
   }, []);
 
