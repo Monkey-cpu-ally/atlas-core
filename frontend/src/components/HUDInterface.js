@@ -1,6 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps -- voice/audio hooks intentionally don't track all deps */
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, Radio } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
+  Radio,
+  Youtube,
+  Code2,
+  Globe2,
+  GraduationCap,
+  Hammer,
+  Scan,
+} from 'lucide-react';
 import AtlasCore from './HUD/AtlasCore';
 import DialRing from './HUD/DialRing';
 import GhostRings from './HUD/GhostRings';
@@ -9,26 +21,22 @@ import AtlasSentinel from './HUD/AtlasSentinel';
 import PersonaChatPanel from './HUD/PersonaChatPanel';
 import TranscriptIngestPanel from './HUD/TranscriptIngestPanel';
 import SelfImprovementPanel from './HUD/SelfImprovementPanel';
-import GraphMemoryPanel from './HUD/GraphMemoryPanel';
 import WorldWatchPanel from './HUD/WorldWatchPanel';
 import LearningHubPanel from './HUD/LearningHubPanel';
 import WeaverPanel from './HUD/WeaverPanel';
 import NIRScannerPanel from './HUD/NIRScannerPanel';
-import { Youtube, Code2, Network, Globe2, GraduationCap, Hammer, Scan } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { parseVoiceCommand } from '../utils/voiceCommands';
-import { AI_PERSONAS } from '../data/atlasCore';
+import { AI_PERSONAS, getAllProjects } from '../data/atlasCore';
 import { INNER_RING, MIDDLE_RING, OUTER_RING } from '../data/ringStructure';
 import ajaniLogo from '../assets/logos/ajani-logo.jpg';
 import minervaLogo from '../assets/logos/minerva-logo.jpg';
 import hermesLogo from '../assets/logos/hermes-logo.jpg';
 import councilLogo from '../assets/logos/atlas-council-logo.jpg';
 
-// Clean HUD mode: ATLAS face only.
-// No chat box, no type-to-speak, no upload controls, no transcript overlay.
-// The screen is limited to the AIs, rings, core, and selected section panels.
+const PROJECT_EVENT = 'atlas-project-selected';
 
 const AI_LOGOS = {
   ajani: ajaniLogo,
@@ -55,9 +63,7 @@ function AIFaceDock({ activeAI, aiPersonas, onSelect, onOpenChat }) {
             data-testid={`ai-face-${aiKey}`}
             title={`Click: select ${ai.name} · Double-click: open chat`}
           >
-            <span className="ai-face-window">
-              <img src={AI_LOGOS[aiKey]} alt="" />
-            </span>
+            <span className="ai-face-window"><img src={AI_LOGOS[aiKey]} alt="" /></span>
             <span className="ai-face-name">{ai.name}</span>
             <span className="ai-presence-dot" />
           </button>
@@ -72,9 +78,7 @@ function AIFaceDock({ activeAI, aiPersonas, onSelect, onOpenChat }) {
         data-testid="ai-face-trinity"
         title="Click: select Council · Double-click: open chat"
       >
-        <span className="ai-face-window">
-          <img src={AI_LOGOS.trinity} alt="" />
-        </span>
+        <span className="ai-face-window"><img src={AI_LOGOS.trinity} alt="" /></span>
         <span className="ai-face-name">Council</span>
         <span className="ai-presence-dot" />
       </button>
@@ -97,15 +101,14 @@ export default function HUDInterface() {
   const [coreTapPulse, setCoreTapPulse] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [voiceTranscript, setVoiceTranscript] = useState('');
-  const [chatPersona, setChatPersona] = useState(null); // null | 'ajani' | 'minerva' | 'hermes' | 'trinity'
+  const [chatPersona, setChatPersona] = useState(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [selfImproveOpen, setSelfImproveOpen] = useState(false);
-  const [graphOpen, setGraphOpen] = useState(false);
   const [worldWatchOpen, setWorldWatchOpen] = useState(false);
   const [learningHubOpen, setLearningHubOpen] = useState(false);
   const [weaverOpen, setWeaverOpen] = useState(false);
   const [nirOpen, setNirOpen] = useState(false);
-  const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
+  const [voiceStatus, setVoiceStatus] = useState('');
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
   const audioReactive = useAudioReactive();
@@ -113,7 +116,6 @@ export default function HUDInterface() {
   const selectAI = useCallback((aiKey) => {
     const color = AI_PERSONAS[aiKey]?.color;
     if (color) playTone(color);
-
     setActiveAI(aiKey);
     setCoreState(CORE_STATES.SPEAKING);
     setPanelContent({ type: 'ai-info', ai: aiKey });
@@ -128,7 +130,6 @@ export default function HUDInterface() {
       playSnap();
       setSelectedMiddle(sectionId);
     }
-
     setCoreState(CORE_STATES.THINKING);
     setPanelContent({ type: 'operation', operation: sectionId, ai: activeAI });
     setTimeout(() => setCoreState(CORE_STATES.IDLE), 1000);
@@ -140,6 +141,32 @@ export default function HUDInterface() {
     setSelectedOuter(null);
   }, []);
 
+  const handleProjectSelection = useCallback((selection) => {
+    if (!selection) return;
+    if (selection.type === 'projects') {
+      setPanelContent(selection);
+      return;
+    }
+    if (selection.ai && AI_PERSONAS[selection.ai]) setActiveAI(selection.ai);
+    setPanelContent({ type: 'project-detail', project: selection });
+  }, []);
+
+  useEffect(() => {
+    const onProjectSelected = (event) => {
+      const requested = event.detail?.project;
+      if (!requested) return;
+      const normalized = `${requested.id || ''} ${requested.label || ''}`.toLowerCase();
+      const match = getAllProjects().find((project) => {
+        const haystack = `${project.id} ${project.name} ${project.codename}`.toLowerCase();
+        return normalized.split(/\s+/).filter(Boolean).some((token) => token.length > 3 && haystack.includes(token));
+      });
+      if (match) handleProjectSelection(match);
+      else setPanelContent({ type: 'projects', ai: 'trinity' });
+    };
+    window.addEventListener(PROJECT_EVENT, onProjectSelected);
+    return () => window.removeEventListener(PROJECT_EVENT, onProjectSelected);
+  }, [handleProjectSelection]);
+
   const handleCoreTap = useCallback(() => {
     playTone('#220066');
     setCoreTapPulse(true);
@@ -150,42 +177,23 @@ export default function HUDInterface() {
     }, 700);
   }, [playTone]);
 
-  // --- Phase 4: voice command system ---------------------------------------
   const voiceModeRef = useRef('off');
 
   const executeVoiceIntent = useCallback((intent) => {
     if (!intent || intent.type === 'noop') return;
     if (intent.type === 'select-ai') {
-      const aiKey = intent.ai;
-      const color = AI_PERSONAS[aiKey]?.color;
-      if (color) playTone(color);
-      setActiveAI(aiKey);
-      setCoreState(CORE_STATES.SPEAKING);
-      setPanelContent({ type: 'ai-info', ai: aiKey });
-      setTimeout(() => setCoreState(CORE_STATES.IDLE), 1400);
+      selectAI(intent.ai);
       return;
     }
     if (intent.type === 'open-section') {
-      if (intent.ring === 'outer') {
-        playGlide();
-        setSelectedOuter(intent.id);
-      } else {
-        playSnap();
-        setSelectedMiddle(intent.id);
-      }
-      setCoreState(CORE_STATES.THINKING);
-      setPanelContent({ type: 'operation', operation: intent.id, ai: activeAI });
-      setTimeout(() => setCoreState(CORE_STATES.IDLE), 1000);
+      openSection(intent.id, intent.ring === 'outer' ? 'outer' : 'middle');
       return;
     }
     if (intent.type === 'close-panel') {
-      setPanelContent(null);
-      setSelectedMiddle(null);
-      setSelectedOuter(null);
+      closePanel();
       return;
     }
     if (intent.type === 'ingest-url') {
-      // Voice → Knowledge Ingestion → Memory Bank → Graph Memory
       setCoreState(CORE_STATES.THINKING);
       setVoiceTranscript(`Ingesting ${intent.url} …`);
       const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -194,33 +202,30 @@ export default function HUDInterface() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: intent.url }),
       })
-        .then((r) => r.json().then((j) => ({ ok: r.ok, status: r.status, body: j })))
+        .then((r) => r.json().then((body) => ({ ok: r.ok, status: r.status, body })))
         .then(({ ok, status, body }) => {
           if (!ok) {
             setVoiceTranscript(`Ingest failed (${status}): ${body.detail || 'error'}`);
           } else {
-            const title = (body.record && body.record.title) || 'source';
-            const tags = ((body.record && body.record.tags) || []).slice(0, 3).join(', ');
-            setVoiceTranscript(
-              body.reinforced
-                ? `Re-reinforced "${title}"${tags ? ' · ' + tags : ''}`
-                : `Stored "${title}"${tags ? ' · ' + tags : ''}`
-            );
+            const title = body.record?.title || 'source';
+            const tags = (body.record?.tags || []).slice(0, 3).join(', ');
+            setVoiceTranscript(body.reinforced
+              ? `Re-reinforced "${title}"${tags ? ` · ${tags}` : ''}`
+              : `Stored "${title}"${tags ? ` · ${tags}` : ''}`);
           }
         })
-        .catch((e) => setVoiceTranscript(`Ingest error: ${e.message || e}`))
+        .catch((error) => setVoiceTranscript(`Ingest error: ${error.message || error}`))
         .finally(() => {
           setCoreState(CORE_STATES.IDLE);
           setTimeout(() => setVoiceTranscript(''), 6000);
         });
     }
-  }, [activeAI, playGlide, playSnap, playTone]);
+  }, [closePanel, openSection, selectAI]);
 
   const handleVoiceResult = useCallback((transcript, isFinal) => {
     setVoiceTranscript(transcript);
     if (!isFinal) return;
-    const requireWake = voiceModeRef.current === 'wake';
-    const intent = parseVoiceCommand(transcript, { requireWake });
+    const intent = parseVoiceCommand(transcript, { requireWake: voiceModeRef.current === 'wake' });
     if (intent.type !== 'noop') {
       executeVoiceIntent(intent);
       setTimeout(() => setVoiceTranscript(''), 1800);
@@ -238,6 +243,7 @@ export default function HUDInterface() {
     onListeningChange: (isOn) => setVoiceStatus(isOn ? 'listening' : ''),
     onError: (code) => setVoiceStatus(`err:${code}`),
   });
+
   useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
 
   const cycleVoiceMode = useCallback(() => {
@@ -247,15 +253,11 @@ export default function HUDInterface() {
   }, [voiceMode, startPushToTalk, startWakeWord, stopVoice]);
 
   return (
-    <div className="atlas-container clean-hud-mode">
+    <div className="atlas-container clean-hud-mode" data-voice-status={voiceStatus || undefined}>
       <div className="atlas-background" />
 
-      <div
-        className={`atlas-hud ${coreTapPulse ? 'tap-pulse' : ''}`}
-        data-ring-motion={coreState}
-      >
+      <div className={`atlas-hud ${coreTapPulse ? 'tap-pulse' : ''}`} data-ring-motion={coreState}>
         <GhostRings />
-
         <div className="ring-stage ring-stage-outer" data-ring="outer">
           <DialRing
             items={OUTER_RING.items}
@@ -266,7 +268,6 @@ export default function HUDInterface() {
             ringTestId="ring-outer"
           />
         </div>
-
         <div className="ring-stage ring-stage-middle" data-ring="middle">
           <DialRing
             items={MIDDLE_RING.items}
@@ -277,7 +278,6 @@ export default function HUDInterface() {
             ringTestId="ring-middle"
           />
         </div>
-
         <div className="ring-stage ring-stage-inner" data-ring="inner">
           <DialRing
             items={INNER_RING.items}
@@ -294,15 +294,12 @@ export default function HUDInterface() {
           className="core-ring"
           aria-hidden="true"
           style={{
-            '--core-bloom': (
-              activeAI === 'minerva' ? '40, 200, 190' :
-              activeAI === 'hermes'  ? '240, 240, 250' :
-              activeAI === 'trinity' ? '168, 120, 230' :
-              '240, 50, 70'
-            ),
+            '--core-bloom': activeAI === 'minerva' ? '40, 200, 190'
+              : activeAI === 'hermes' ? '240, 240, 250'
+                : activeAI === 'trinity' ? '168, 120, 230'
+                  : '240, 50, 70',
           }}
         />
-
         <div className="core-wrap">
           <AtlasCore
             activeAI={activeAI}
@@ -325,16 +322,15 @@ export default function HUDInterface() {
         activeAI={activeAI}
         aiPersonas={AI_PERSONAS}
         onClose={closePanel}
+        onSelectProject={handleProjectSelection}
       />
 
-      <div className="atlas-startup-mark" aria-hidden="true">
-        <img src={councilLogo} alt="" />
-      </div>
+      <div className="atlas-startup-mark" aria-hidden="true"><img src={councilLogo} alt="" /></div>
 
       <button
         type="button"
         className={`atlas-sound-toggle ${soundEnabled ? 'on' : 'off'}`}
-        onClick={() => setSoundEnabled((s) => !s)}
+        onClick={() => setSoundEnabled((enabled) => !enabled)}
         title={soundEnabled ? 'Mute HUD chimes' : 'Enable HUD chimes'}
         aria-label={soundEnabled ? 'Mute HUD chimes' : 'Enable HUD chimes'}
         data-testid="sound-toggle"
@@ -347,26 +343,18 @@ export default function HUDInterface() {
           type="button"
           className={`atlas-voice-toggle ${voiceMode}`}
           onClick={cycleVoiceMode}
-          title={
-            voiceMode === 'off'  ? 'Voice off — click to enable push-to-talk' :
-            voiceMode === 'push' ? 'Push-to-talk active — click for wake-word mode' :
-                                   'Wake-word listening — click to stop'
-          }
+          title={voiceMode === 'off' ? 'Voice off — click to enable push-to-talk'
+            : voiceMode === 'push' ? 'Push-to-talk active — click for wake-word mode'
+              : 'Wake-word listening — click to stop'}
           aria-label={`Voice mode: ${voiceMode}`}
           data-testid="voice-toggle"
         >
-          {voiceMode === 'off'  ? <MicOff size={13} /> :
-           voiceMode === 'push' ? <Mic    size={13} /> :
-                                  <Radio  size={13} />}
+          {voiceMode === 'off' ? <MicOff size={13} /> : voiceMode === 'push' ? <Mic size={13} /> : <Radio size={13} />}
         </button>
       )}
 
       {voiceTranscript && (
-        <div
-          className="atlas-voice-transcript"
-          data-testid="voice-transcript"
-          aria-live="polite"
-        >
+        <div className="atlas-voice-transcript" data-testid="voice-transcript" aria-live="polite">
           <span className="atlas-voice-dot" />
           <span className="atlas-voice-text">{voiceTranscript}</span>
         </div>
@@ -387,71 +375,33 @@ export default function HUDInterface() {
         title="Paste a YouTube transcript to teach ATLAS"
         data-testid="transcript-launch-btn"
       >
-        <Youtube size={12} />
-        <span>Ingest transcript</span>
+        <Youtube size={12} /><span>Ingest transcript</span>
       </button>
 
       <div className="atlas-launchers">
-        <button type="button" className="si"
-          onClick={() => setSelfImproveOpen(true)}
-          title="Review ATLAS self-improvement proposals"
-          data-testid="si-launch-btn"
-        ><Code2 size={12} /><span>Self-Improve</span></button>
-        <button type="button" className="gv"
-          onClick={() => setGraphOpen(true)}
-          title="Open Graph Memory visualizer"
-          data-testid="graph-launch-btn"
-        ><Network size={12} /><span>Graph</span></button>
-        <button type="button" className="ww"
-          onClick={() => setWorldWatchOpen(true)}
-          title="See what changed in the world"
-          data-testid="ww-launch-btn"
-        ><Globe2 size={12} /><span>World Watch</span></button>
-        <button type="button" className="lh"
-          onClick={() => setLearningHubOpen(true)}
-          title="Open Learning Hub (Minerva's workspace)"
-          data-testid="lh-launch-btn"
-        ><GraduationCap size={12} /><span>Learning Hub</span></button>
-        <button type="button" className="lh"
-          onClick={() => setWeaverOpen(true)}
-          title="Open Weaver build planner"
-          data-testid="weaver-launch-btn"
-        ><Hammer size={12} /><span>Weaver</span></button>
-        <button type="button" className="lh"
-          onClick={() => setNirOpen(true)}
-          title="Open NIR Scanner"
-          data-testid="nir-launch-btn"
-        ><Scan size={12} /><span>NIR</span></button>
+        <button type="button" className="si" onClick={() => setSelfImproveOpen(true)} title="Review ATLAS self-improvement proposals" data-testid="si-launch-btn">
+          <Code2 size={12} /><span>Self-Improve</span>
+        </button>
+        <button type="button" className="ww" onClick={() => setWorldWatchOpen(true)} title="See what changed in the world" data-testid="ww-launch-btn">
+          <Globe2 size={12} /><span>World Watch</span>
+        </button>
+        <button type="button" className="lh" onClick={() => setLearningHubOpen(true)} title="Open Learning Hub" data-testid="lh-launch-btn">
+          <GraduationCap size={12} /><span>Learning Hub</span>
+        </button>
+        <button type="button" className="lh" onClick={() => setWeaverOpen(true)} title="Open Weaver build planner" data-testid="weaver-launch-btn">
+          <Hammer size={12} /><span>Weaver</span>
+        </button>
+        <button type="button" className="lh" onClick={() => setNirOpen(true)} title="Open NIR Scanner" data-testid="nir-launch-btn">
+          <Scan size={12} /><span>NIR</span>
+        </button>
       </div>
 
-      <TranscriptIngestPanel
-        open={transcriptOpen}
-        onClose={() => setTranscriptOpen(false)}
-      />
-      <SelfImprovementPanel
-        open={selfImproveOpen}
-        onClose={() => setSelfImproveOpen(false)}
-      />
-      <GraphMemoryPanel
-        open={graphOpen}
-        onClose={() => setGraphOpen(false)}
-      />
-      <WorldWatchPanel
-        open={worldWatchOpen}
-        onClose={() => setWorldWatchOpen(false)}
-      />
-      <LearningHubPanel
-        open={learningHubOpen}
-        onClose={() => setLearningHubOpen(false)}
-      />
-      <WeaverPanel
-        open={weaverOpen}
-        onClose={() => setWeaverOpen(false)}
-      />
-      <NIRScannerPanel
-        open={nirOpen}
-        onClose={() => setNirOpen(false)}
-      />
+      <TranscriptIngestPanel open={transcriptOpen} onClose={() => setTranscriptOpen(false)} />
+      <SelfImprovementPanel open={selfImproveOpen} onClose={() => setSelfImproveOpen(false)} />
+      <WorldWatchPanel open={worldWatchOpen} onClose={() => setWorldWatchOpen(false)} />
+      <LearningHubPanel open={learningHubOpen} onClose={() => setLearningHubOpen(false)} />
+      <WeaverPanel open={weaverOpen} onClose={() => setWeaverOpen(false)} />
+      <NIRScannerPanel open={nirOpen} onClose={() => setNirOpen(false)} />
     </div>
   );
 }
