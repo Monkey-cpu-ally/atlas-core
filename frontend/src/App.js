@@ -1,4 +1,5 @@
 import "@/App.css";
+import "@/hud-clean-mode.css";
 import HUDInterface from "./components/HUDInterface";
 
 function App() {
