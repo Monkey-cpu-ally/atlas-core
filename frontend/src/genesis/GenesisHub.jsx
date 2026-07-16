@@ -18,6 +18,7 @@ import { githubPulseItemFromEnvelope } from "./pulse/githubPulse";
 import useGithubPulseFeed from "./pulse/useGithubPulseFeed";
 import { personaTokens } from "./designTokens";
 import useAdaptiveQuality from "./useAdaptiveQuality";
+import { routeVoiceCommand } from "./voice/voiceCommandRouter";
 import AdaptiveWorkspace from "./workspaces/AdaptiveWorkspace";
 import "./genesis.css";
 import "./performance.css";
@@ -137,12 +138,66 @@ export default function GenesisHub({ visualBridge }) {
 
   const selectPersona = useCallback((personaId) => {
     setObservatoryOpen(false);
+    if (personaId === "council") {
+      dispatch(withEnvelope({ event: "council.started", payload: { persona: "council" } }));
+      return;
+    }
     dispatch(withEnvelope({ event: "ai.presence.requested", payload: { persona: personaId } }));
   }, []);
 
   const dismissAlert = useCallback((id) => {
     dispatch(withEnvelope({ event: "awareness.alert.dismissed", payload: id ? { id } : {} }));
   }, []);
+
+  const handleVoiceCommand = useCallback((transcript) => {
+    const command = routeVoiceCommand(transcript);
+    dispatch(withEnvelope({
+      event: "hud.mode.changed",
+      payload: { mode: "voice-command", message: command.transcript, data: command },
+    }));
+
+    switch (command.type) {
+      case "persona":
+        selectPersona(command.persona);
+        break;
+      case "observatory":
+        kernel.returnIdle();
+        setObservatoryOpen(true);
+        break;
+      case "projects":
+        setObservatoryOpen(false);
+        kernel.openProjects();
+        break;
+      case "mission":
+        setObservatoryOpen(false);
+        kernel.openMission(mission.id);
+        break;
+      case "pulse":
+        setObservatoryOpen(false);
+        kernel.openPulse();
+        break;
+      case "awareness":
+        setObservatoryOpen(false);
+        kernel.openAwareness();
+        break;
+      case "home":
+        setObservatoryOpen(false);
+        kernel.returnIdle();
+        dispatch(withEnvelope({ event: "hud.returned.idle", payload: {} }));
+        break;
+      default:
+        dispatch(withEnvelope({
+          event: "awareness.alert.raised",
+          payload: {
+            persona: "atlas",
+            title: "Command not recognized",
+            reason: transcript,
+            action: "Try: status, projects, mission, Pulse, Awareness, Ajani, Minerva, Hermes, or Council.",
+            urgency: "normal",
+          },
+        }));
+    }
+  }, [kernel, mission.id, selectPersona]);
 
   return (
     <main className={`genesis-hub genesis-hub--${state.mode}`} data-persona={persona} data-quality={quality.profile} data-scene={scene} data-minimal-home={showMinimalHome ? "true" : "false"} style={{ "--atlas-accent": tokens.accent }}>
@@ -159,6 +214,7 @@ export default function GenesisHub({ visualBridge }) {
           onOpenMission={() => kernel.openMission(mission.id)}
           onOpenProject={selectProject}
           onSelectPersona={selectPersona}
+          onVoiceCommand={handleVoiceCommand}
         />
       ) : (
         <button className="genesis-hub__core" type="button" aria-label="Return ATLAS to idle" onClick={() => { setObservatoryOpen(false); kernel.returnIdle(); }}>
