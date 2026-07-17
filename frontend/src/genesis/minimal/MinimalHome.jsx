@@ -7,6 +7,13 @@ import "./minimal-home.css";
 
 const HOLD_THRESHOLD_MS = 320;
 
+function navigationTranscriptFor(command, originalTranscript) {
+  if (command?.type !== "conversation") return originalTranscript;
+  if (command.project?.title) return `open ${command.project.title}`;
+  if (command.persona && command.persona !== "atlas") return command.persona;
+  return null;
+}
+
 export default function MinimalHome({
   mission,
   projects = [],
@@ -53,7 +60,8 @@ export default function MinimalHome({
 
     setLastResponse(response.message);
     lastCompletedResponse.current = response.message;
-    onVoiceCommand?.(transcript);
+    const navigationTranscript = navigationTranscriptFor(response.command, transcript);
+    if (navigationTranscript) onVoiceCommand?.(navigationTranscript);
     speech.speak(response.message);
   }, [currentProject, mission, onVoiceCommand, projects, speech]);
 
@@ -172,3 +180,5 @@ export default function MinimalHome({
     </section>
   );
 }
+
+export { navigationTranscriptFor };
