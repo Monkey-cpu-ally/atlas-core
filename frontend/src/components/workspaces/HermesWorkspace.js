@@ -44,11 +44,57 @@ const DEFAULT_TASKS = [
   { id: 'report', label: 'Prepare engineering summary', status: 'queued' },
 ];
 
+const DEFAULT_ACTIVITY = [
+  { id: 'workspace-ready', at: Date.now(), label: 'Workspace ready' },
+];
+
+const VALID_SECTIONS = new Set(NAV_ITEMS.map((item) => item.id));
+const VALID_BRANCHES = new Set(Object.keys(BRANCH_LABELS));
+const VALID_STATUSES = new Set(['ready', 'blueprinting', 'simulating', 'paused', 'noting']);
+
+function cleanTasks(value) {
+  if (!Array.isArray(value)) return DEFAULT_TASKS;
+  const tasks = value
+    .filter((task) => task && typeof task === 'object')
+    .map((task, index) => ({
+      id: typeof task.id === 'string' && task.id ? task.id : `restored-task-${index}`,
+      label: typeof task.label === 'string' && task.label ? task.label : 'Recovered engineering task',
+      status: task.status === 'done' ? 'done' : task.status === 'queued' ? 'queued' : 'ready',
+    }));
+  return tasks.length ? tasks : DEFAULT_TASKS;
+}
+
+function cleanActivity(value) {
+  if (!Array.isArray(value)) return DEFAULT_ACTIVITY;
+  const activity = value
+    .filter((event) => event && typeof event === 'object' && typeof event.label === 'string')
+    .map((event, index) => ({
+      id: typeof event.id === 'string' && event.id ? event.id : `restored-event-${index}`,
+      at: Number.isFinite(Number(event.at)) ? Number(event.at) : Date.now(),
+      label: event.label,
+    }))
+    .slice(0, 12);
+  return activity.length ? activity : DEFAULT_ACTIVITY;
+}
+
 function readSession() {
   try {
-    const saved = window.localStorage?.getItem(SESSION_KEY);
-    return saved ? JSON.parse(saved) : {};
+    const raw = window.localStorage?.getItem(SESSION_KEY);
+    if (!raw) return {};
+
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return {};
+
+    return {
+      section: VALID_SECTIONS.has(saved.section) ? saved.section : 'dashboard',
+      focusBranch: VALID_BRANCHES.has(saved.focusBranch) ? saved.focusBranch : 'engineering',
+      activeProjectId: typeof saved.activeProjectId === 'string' ? saved.activeProjectId : null,
+      tasks: cleanTasks(saved.tasks),
+      hermesStatus: VALID_STATUSES.has(saved.hermesStatus) ? saved.hermesStatus : 'ready',
+      activity: cleanActivity(saved.activity),
+    };
   } catch (_) {
+    try { window.localStorage?.removeItem(SESSION_KEY); } catch (_) {}
     return {};
   }
 }
@@ -94,9 +140,7 @@ export default function HermesWorkspace({
   const [notebook, setNotebook] = useState(() => readNotebook(saved.activeProjectId || projects[0]?.id));
   const [noteStatus, setNoteStatus] = useState('saved');
   const [hermesStatus, setHermesStatus] = useState(saved.hermesStatus || 'ready');
-  const [activity, setActivity] = useState(saved.activity || [
-    { id: 'workspace-ready', at: Date.now(), label: 'Workspace ready' },
-  ]);
+  const [activity, setActivity] = useState(saved.activity || DEFAULT_ACTIVITY);
 
   const activeProject = projects.find((project) => project.id === activeProjectId) || projects[0] || null;
 
