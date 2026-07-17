@@ -30,7 +30,7 @@ function readStoredPresence() {
 
 function applyHermesPresence(detail = {}) {
   const card = document.querySelector('[data-testid="ai-face-hermes"]');
-  if (!card) return;
+  if (!card) return false;
 
   const status = detail.status || 'ready';
   const label = STATUS_LABELS[status] || status;
@@ -52,6 +52,7 @@ function applyHermesPresence(detail = {}) {
     card.appendChild(statusText);
   }
   statusText.textContent = label;
+  return true;
 }
 
 export default function HermesPresenceBridge() {
@@ -62,14 +63,25 @@ export default function HermesPresenceBridge() {
       const presence = readStoredPresence();
       const signature = JSON.stringify(presence);
       if (signature === lastSignature) return;
-      lastSignature = signature;
-      applyHermesPresence(presence);
+
+      // Only mark the state as applied after the Hermes card actually exists.
+      // This lets later interval ticks retry during HUD startup or remounts.
+      if (applyHermesPresence(presence)) {
+        lastSignature = signature;
+      }
     };
 
     const onStatus = (event) => {
       if (event.detail?.ai !== 'hermes') return;
-      lastSignature = '';
-      applyHermesPresence(event.detail);
+      if (applyHermesPresence(event.detail)) {
+        lastSignature = JSON.stringify({
+          status: event.detail.status || 'ready',
+          project: event.detail.project || '',
+          section: event.detail.section || '',
+        });
+      } else {
+        lastSignature = '';
+      }
     };
 
     const timer = window.setTimeout(syncStoredPresence, 0);
