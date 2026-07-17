@@ -1,6 +1,7 @@
 import { buildConversationCommand } from "./conversationIntent";
 import {
   clearPendingClarification,
+  getPendingClarification,
   requestProjectClarification,
   resolvePendingClarification,
 } from "./voiceClarification";
@@ -208,6 +209,19 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
   if (includesAny(text, ["cancel", "never mind", "nevermind", "stop speaking", "be quiet"])) {
     clearPendingClarification();
     return { type: "cancel", transcript: originalTranscript, contextual: true };
+  }
+
+  const pendingClarification = getPendingClarification();
+  if (pendingClarification.kind === "project" && pendingClarification.options.length) {
+    return {
+      type: "clarification",
+      clarificationKind: "project",
+      options: pendingClarification.options,
+      originalCommand: pendingClarification.originalCommand,
+      transcript: originalTranscript,
+      contextual: true,
+      retry: true,
+    };
   }
 
   const memoryCommand = contextualReferenceCommand(text, originalTranscript, projects);
