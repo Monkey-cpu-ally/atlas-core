@@ -24,6 +24,9 @@ export default function WorkspaceController() {
     const onFocus = (event) => {
       const ai = event.detail?.ai || null;
       if (ai === 'hermes') {
+        // A normal Hermes focus request should open the saved/default workspace,
+        // not replay a stale specialized branch request from an earlier session.
+        setWorkspaceRequest(null);
         setWorkspaceAI('hermes');
         return;
       }
