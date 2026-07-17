@@ -1,3 +1,5 @@
+import { buildConversationCommand } from "./conversationIntent";
+
 const PERSONA_ALIASES = Object.freeze({
   ajani: ["ajani", "strategy"],
   minerva: ["minerva", "research"],
@@ -56,6 +58,35 @@ function resolveCurrentProject(currentProject, projects) {
     .sort((a, b) => (b.progress || 0) - (a.progress || 0))[0] || null;
 }
 
+function findExplicitPersona(text) {
+  for (const [persona, aliases] of Object.entries(PERSONA_ALIASES)) {
+    if (includesAny(text, aliases)) return persona;
+  }
+  return null;
+}
+
+function looksConversational(text, project, explicitPersona) {
+  if (project || explicitPersona) return true;
+  return includesAny(text, [
+    "i'm thinking",
+    "im thinking",
+    "i want",
+    "we should",
+    "let's",
+    "lets",
+    "could we",
+    "can we",
+    "what if",
+    "help me",
+    "explain",
+    "teach me",
+    "review",
+    "redesign",
+    "research",
+    "brainstorm",
+  ]);
+}
+
 export function getVoiceContext() {
   return { ...voiceContext };
 }
@@ -65,9 +96,9 @@ export function resetVoiceContext() {
 }
 
 export function rememberVoiceContext(command) {
-  if (command?.type === "project" && command.project?.id) {
+  if ((command?.type === "project" || command?.type === "conversation") && command.project?.id) {
     voiceContext = { type: "project", id: command.project.id, value: command.project };
-  } else if (command?.type === "persona" && command.persona) {
+  } else if ((command?.type === "persona" || command?.type === "conversation") && command.persona) {
     voiceContext = { type: "persona", id: command.persona, value: command.persona };
   }
   return getVoiceContext();
@@ -181,8 +212,10 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
     });
   }
 
-  for (const [persona, aliases] of Object.entries(PERSONA_ALIASES)) {
-    if (includesAny(text, aliases)) return rememberAndReturn({ type: "persona", persona, transcript: originalTranscript });
+  const explicitPersona = findExplicitPersona(text);
+  const isPersonaOnly = explicitPersona && PERSONA_ALIASES[explicitPersona].some((alias) => text === alias);
+  if (isPersonaOnly) {
+    return rememberAndReturn({ type: "persona", persona: explicitPersona, transcript: originalTranscript });
   }
 
   if (includesAny(text, ["status", "observatory", "system status", "show status"])) {
@@ -204,7 +237,16 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
     return { type: "home", transcript: originalTranscript };
   }
 
+  if (looksConversational(text, project, explicitPersona)) {
+    return rememberAndReturn(buildConversationCommand({
+      text,
+      originalTranscript,
+      project,
+      persona: explicitPersona,
+    }));
+  }
+
   return { type: "unknown", transcript: originalTranscript };
 }
 
-export { normalizeTranscript, normalizeProjectName, resolveCurrentProject, stripWakeWord };
+export { normalizeTranscript, normalizeProjectName, resolveCurrentProject, stripWakeWord, findExplicitPersona };
