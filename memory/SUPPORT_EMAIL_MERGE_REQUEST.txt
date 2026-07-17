@@ -1,0 +1,92 @@
+TO: support@emergent.sh
+SUBJECT: Non-destructive three-way merge request — atlas-core repo divergence
+
+Hello Emergent support,
+
+I need help executing a three-way merge between my GitHub `main` branch
+and this Emergent pod without losing any work from either side.
+
+--------------------------------------------------------------------
+CONTEXT
+--------------------------------------------------------------------
+Repo:         github.com/Monkey-cpu-ally/atlas-core
+Job ID:       <PASTE FROM ℹ️ BUTTON IN TOP-RIGHT OF CHAT>
+Preview URL:  https://youthful-archimedes-7.preview.emergentagent.com
+
+Two agent sessions have been building against the same repo in parallel:
+
+  • Cursor Agent (contributor `cursoragent` on GitHub) has pushed
+    ~20 new backend subsystems directly to `main` in the last two
+    weeks (atlas_os, autonomous_knowledge, discovery_approval,
+    engineering_os, engineering_playbooks, external_access,
+    global_knowledge, global_sources, headquarters,
+    knowledge_chronicle, knowledge_graph, mission_scheduler,
+    project_intelligence, project_knowledge, research_labs,
+    self_improve, source_sync, system_inspector, technology_atlas,
+    world_knowledge_graph, and an earlier knowledge_network.py).
+
+  • This Emergent pod (contributor `emergent-agent-e1`) has built
+    Vision Systems (iter30), packet aliases, dev pipeline,
+    Engineering Console, Vision Console HUD, an updated
+    knowledge_network.py with Knowledge Network v1 metadata schema,
+    ~100 pytest cases across iter27–iter30, and multiple memory docs.
+
+The pod state and `main` have diverged in BOTH directions. The
+"Save to GitHub" button appears to sync only isolated frontend edits,
+so my substantial backend work has not landed on GitHub, and the pod
+has never pulled `main` since the divergence started.
+
+--------------------------------------------------------------------
+WHAT I HAVE ALREADY DONE
+--------------------------------------------------------------------
+1. Clicked "Save to GitHub" and pushed the complete pod state to a
+   NEW backup branch: `emergent-vision-systems-iter30`
+   (please confirm this branch is intact when you begin work).
+
+2. Produced a preservation report at
+   `/app/memory/PRE_MERGE_PRESERVATION_REPORT.md` listing every
+   file that must survive the merge (21 pod-only files, 20+
+   GitHub-only files, 9 pod-modified files, and 1 true conflict on
+   `backend/routes/knowledge_network.py`).
+
+--------------------------------------------------------------------
+WHAT I NEED FROM SUPPORT
+--------------------------------------------------------------------
+Please perform (or unblock me to perform) the following, in order:
+
+  1. Pull `main` from GitHub INTO this pod's working tree WITHOUT
+     replacing the `emergent-vision-systems-iter30` branch on
+     GitHub and WITHOUT deleting any file currently in the pod.
+     If the platform can only do a destructive clone, please
+     stage the incoming `main` under a side path such as
+     `/tmp/github-main-checkout/` so I can run a real 3-way merge.
+
+  2. Preserve `.git` history on both sides throughout the operation.
+
+  3. Once the pull lands, my E1 agent will perform the merge
+     locally (no auto-resolve, manual conflict resolution on
+     `knowledge_network.py`, `research_sources.py`, `server.py`),
+     generate a merge report, and open a pull request from a NEW
+     merge branch (e.g. `merge-iter30-into-main`) against `main`.
+     Nothing will be force-pushed. `main` will not be touched
+     directly.
+
+  4. If your team can also expose a "Pull from GitHub to side path"
+     mechanism in the platform going forward, that would prevent
+     future divergences of this kind for anyone running parallel
+     Cursor + Emergent sessions.
+
+--------------------------------------------------------------------
+EXPLICIT DO-NOT-DO LIST
+--------------------------------------------------------------------
+  ✗ Do NOT force-push to `main`.
+  ✗ Do NOT delete the `emergent-vision-systems-iter30` backup branch.
+  ✗ Do NOT auto-resolve conflicts with `-X ours` or `-X theirs`.
+  ✗ Do NOT overwrite pod files with `main` versions without staging.
+  ✗ Do NOT overwrite `main` with pod state.
+
+Thank you for the careful handling — this repo is now sizeable and
+losing either side's contributions would set the project back weeks.
+
+Best,
+<YOUR NAME>
