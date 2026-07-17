@@ -127,6 +127,15 @@ def test_router_requests_clarification_for_close_project_matches():
     assert "first.score - second.score <= 5" in source
 
 
+def test_router_repeats_pending_choices_after_unmatched_clarification_answer():
+    source = VOICE_ROUTER.read_text(encoding="utf-8")
+    assert "getPendingClarification" in source
+    assert 'pendingClarification.kind === "project"' in source
+    assert "options: pendingClarification.options" in source
+    assert "originalCommand: pendingClarification.originalCommand" in source
+    assert "retry: true" in source
+
+
 def test_voice_response_layer_confirms_understood_action():
     source = VOICE_RESPONSE.read_text(encoding="utf-8")
     assert "buildVoiceCommandResponse" in source
