@@ -82,10 +82,11 @@ export function useVoiceRecognition({
 
     recognitionRef.current = rec;
     return () => {
+      modeRef.current = 'off';
       try { rec.abort(); } catch (_) { /* no-op */ }
       recognitionRef.current = null;
     };
-  }, []);
+  }, [isSupported]);
 
   const _ensureMic = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) return true;
@@ -105,10 +106,13 @@ export function useVoiceRecognition({
     if (!recognitionRef.current) return;
     if (!(await _ensureMic())) return;
     recognitionRef.current.continuous = false;
+    modeRef.current = 'push';
     setMode('push');
     try {
       recognitionRef.current.start();
     } catch (e) {
+      modeRef.current = 'off';
+      setMode('off');
       // eslint-disable-next-line no-console
       console.warn('[voice] start failed:', e?.message || e);
     }
@@ -118,16 +122,24 @@ export function useVoiceRecognition({
     if (!recognitionRef.current) return;
     if (!(await _ensureMic())) return;
     recognitionRef.current.continuous = true;
+    modeRef.current = 'wake';
     setMode('wake');
     try {
-      recognitionRef.current.start();
+      if (listeningRef.current) {
+        recognitionRef.current.stop();
+      } else {
+        recognitionRef.current.start();
+      }
     } catch (e) {
+      modeRef.current = 'off';
+      setMode('off');
       // eslint-disable-next-line no-console
       console.warn('[voice] wake start failed:', e?.message || e);
     }
   }, [_ensureMic]);
 
   const stop = useCallback(() => {
+    modeRef.current = 'off';
     setMode('off');
     if (!recognitionRef.current) return;
     try { recognitionRef.current.stop(); } catch (_) { /* no-op */ }
