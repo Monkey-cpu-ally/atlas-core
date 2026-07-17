@@ -35,7 +35,279 @@ from models.vision_models import (
     Camera, Sensor, CameraCalibration, HandEyeCalibration,
     Frame, Detection, BoundingBox, Track, TrackSample, Pose,
     InspectionResult, InspectionDefect, TwinLink,
+    VisionDevice, VisionDeviceKind, VisionDeviceCapability,
+    VisionDeviceRegisterRequest,
 )
+
+
+# ============================================================================
+# 0. VisionDevice driver protocol + registry
+# ============================================================================
+# Every perception hardware family plugs in via a small driver object. The
+# driver knows its own capability list + default field values so route
+# handlers stay hardware-agnostic. New sensors are added by writing one
+# driver — no branching in the API layer.
+class VisionDeviceDriver:
+    """Base driver. Subclasses set `kind` + `capabilities` and may
+    override `fill_defaults()` to inject sensible defaults for their
+    hardware family. Drivers must be stateless — one instance is shared
+    across every request."""
+
+    kind: VisionDeviceKind = "camera"
+    capabilities: List[VisionDeviceCapability] = []
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        """Populate hardware-shaped defaults on a partially-supplied
+        device. Must never overwrite a caller-supplied value."""
+        return dev
+
+
+class _CameraDriver(VisionDeviceDriver):
+    kind = "camera"
+    capabilities = ["imaging"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.resolution is None:
+            dev.resolution = [640, 480]
+        if dev.fps is None:
+            dev.fps = 30.0
+        if dev.channels is None:
+            dev.channels = 3
+        return dev
+
+
+class _ThermalCameraDriver(VisionDeviceDriver):
+    kind = "thermal"
+    capabilities = ["imaging", "heat_map"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.resolution is None:
+            dev.resolution = [320, 240]
+        if dev.fps is None:
+            dev.fps = 9.0
+        if dev.channels is None:
+            dev.channels = 1
+        return dev
+
+
+class _EventCameraDriver(VisionDeviceDriver):
+    kind = "event_camera"
+    capabilities = ["imaging", "motion"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.resolution is None:
+            dev.resolution = [640, 480]
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 1000.0
+        return dev
+
+
+class _MultispectralDriver(VisionDeviceDriver):
+    kind = "multispectral"
+    capabilities = ["imaging", "spectral"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.resolution is None:
+            dev.resolution = [512, 512]
+        if dev.channels is None:
+            dev.channels = 9         # e.g. Micasense-style 9-band
+        return dev
+
+
+class _DepthDriver(VisionDeviceDriver):
+    kind = "depth"
+    capabilities = ["depth_map", "imaging"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.resolution is None:
+            dev.resolution = [640, 480]
+        if dev.fps is None:
+            dev.fps = 30.0
+        return dev
+
+
+class _LiDARDriver(VisionDeviceDriver):
+    kind = "lidar"
+    capabilities = ["point_cloud", "depth_map"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 10.0
+        if dev.channels is None:
+            dev.channels = 32       # scan lines
+        return dev
+
+
+class _RadarDriver(VisionDeviceDriver):
+    kind = "radar"
+    capabilities = ["point_cloud", "motion"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 20.0
+        return dev
+
+
+class _SonarDriver(VisionDeviceDriver):
+    kind = "sonar"
+    capabilities = ["depth_map"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 5.0
+        return dev
+
+
+class _IMUDriver(VisionDeviceDriver):
+    kind = "imu"
+    capabilities = ["motion"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 200.0
+        if dev.channels is None:
+            dev.channels = 6         # accel(3) + gyro(3)
+        return dev
+
+
+class _ForceDriver(VisionDeviceDriver):
+    kind = "force"
+    capabilities = ["wrench"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 1000.0
+        if dev.channels is None:
+            dev.channels = 6         # Fx,Fy,Fz + Tx,Ty,Tz
+        return dev
+
+
+class _TorqueDriver(VisionDeviceDriver):
+    kind = "torque"
+    capabilities = ["wrench"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 500.0
+        if dev.channels is None:
+            dev.channels = 3
+        return dev
+
+
+class _NIRBridgeDriver(VisionDeviceDriver):
+    kind = "nir_bridge"
+    capabilities = ["spectral"]
+
+    def fill_defaults(self, dev: VisionDevice) -> VisionDevice:
+        # Forwards spectra to /api/nir — no imaging/frame shape.
+        if dev.sample_rate_hz is None:
+            dev.sample_rate_hz = 1.0
+        return dev
+
+
+DRIVERS: Dict[str, VisionDeviceDriver] = {
+    d.kind: d for d in (
+        _CameraDriver(), _ThermalCameraDriver(), _EventCameraDriver(),
+        _MultispectralDriver(), _DepthDriver(), _LiDARDriver(),
+        _RadarDriver(), _SonarDriver(), _IMUDriver(), _ForceDriver(),
+        _TorqueDriver(), _NIRBridgeDriver(),
+    )
+}
+
+
+def list_drivers() -> List[Dict[str, Any]]:
+    """Return every registered driver + its capability set — used by
+    `GET /api/vision/devices/drivers` so callers can discover the
+    supported hardware surface at runtime."""
+    return [
+        {"kind": d.kind, "capabilities": list(d.capabilities)}
+        for d in DRIVERS.values()
+    ]
+
+
+async def register_vision_device(req: VisionDeviceRegisterRequest) -> VisionDevice:
+    """Driver-agnostic registration. The driver keyed by `req.kind`
+    fills in per-hardware defaults for any field the caller left blank,
+    then the row is persisted to `vision_devices`.
+    """
+    driver = DRIVERS.get(req.kind)
+    if driver is None:
+        raise ValueError(f"unsupported device kind: {req.kind!r}")
+    dev = VisionDevice(
+        name=req.name, kind=req.kind,
+        capabilities=list(driver.capabilities),
+        resolution=req.resolution, fps=req.fps, lens_mm=req.lens_mm,
+        sample_rate_hz=req.sample_rate_hz, channels=req.channels,
+        mount=req.mount, twin_id=req.twin_id, robot_id=req.robot_id,
+        ai_owner=req.ai_owner, tags=list(req.tags),
+        driver=driver.__class__.__name__, metadata=dict(req.metadata),
+    )
+    dev = driver.fill_defaults(dev)
+    await _db()["vision_devices"].insert_one(dev.model_dump())
+    return dev
+
+
+async def get_vision_device(device_id: str) -> Optional[Dict[str, Any]]:
+    """Unified lookup — searches the new `vision_devices` collection
+    first, then falls back to the legacy `vision_cameras` /
+    `vision_sensors` collections so backwards-compat rows keep working."""
+    row = await _db()["vision_devices"].find_one({"id": device_id}, {"_id": 0})
+    if row:
+        return row
+    return await get_device(device_id)         # legacy fallback
+
+
+async def list_vision_devices(
+    kind: Optional[str] = None,
+    capability: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Return every device across new + legacy collections in a single
+    unified list. `kind` filters by device family, `capability` by
+    semantic interface."""
+    devices: List[Dict[str, Any]] = []
+    q: Dict[str, Any] = {}
+    if kind:
+        q["kind"] = kind
+    if capability:
+        q["capabilities"] = capability
+    async for row in _db()["vision_devices"].find(q, {"_id": 0}):
+        devices.append(row)
+    # Legacy — project old camera + sensor rows into the unified shape.
+    if kind in (None, "camera"):
+        async for cam in _db()["vision_cameras"].find({}, {"_id": 0}):
+            devices.append(_project_legacy_camera(cam))
+    if kind is None or kind in DRIVERS and kind != "camera":
+        async for sen in _db()["vision_sensors"].find({}, {"_id": 0}):
+            legacy = _project_legacy_sensor(sen)
+            if kind and legacy["kind"] != kind:
+                continue
+            devices.append(legacy)
+    if capability:
+        devices = [d for d in devices if capability in (d.get("capabilities") or [])]
+    return {"count": len(devices), "devices": devices}
+
+
+def _project_legacy_camera(cam: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        **cam, "kind": "camera", "capabilities": ["imaging"],
+        "channels": cam.get("channels") or 3,
+        "driver": "_CameraDriver", "legacy": True,
+    }
+
+
+def _project_legacy_sensor(sen: Dict[str, Any]) -> Dict[str, Any]:
+    kind = sen.get("kind") or "depth"
+    caps = DRIVERS[kind].capabilities if kind in DRIVERS else []
+    return {**sen, "kind": kind, "capabilities": list(caps),
+            "driver": f"_{kind.title()}Driver", "legacy": True}
+
+
+async def delete_vision_device(device_id: str) -> bool:
+    r = await _db()["vision_devices"].delete_one({"id": device_id})
+    if r.deleted_count:
+        return True
+    # Legacy fallback
+    return await delete_device(device_id)
 
 
 # ============================================================================
@@ -553,3 +825,176 @@ async def link_to_twin(link: TwinLink) -> TwinLink:
 
 async def links_for_twin(twin_id: str) -> List[Dict[str, Any]]:
     return await _db()["vision_twin_links"].find({"twin_id": twin_id}, {"_id": 0}).to_list(200)
+
+
+# ============================================================================
+# 11. Video ingestion — chunked upload session
+# ============================================================================
+# Long-form video is uploaded in 4 MB chunks (default) so we bypass the
+# ingress body-size limit and stream directly into Mongo. On completion
+# the session synthesises N Frame documents (fps_extract per real
+# second of clip) so the rest of the perception pipeline can consume it
+# via the standard frame endpoints — no code branches for video vs image.
+import base64                          # local import: only needed here
+
+VIDEO_MAX_MB       = int(os.environ.get("VISION_VIDEO_MAX_MB", "128"))
+VIDEO_MAX_SECONDS  = int(os.environ.get("VISION_VIDEO_MAX_SECONDS", "60"))
+VIDEO_CHUNK_MB     = int(os.environ.get("VISION_VIDEO_CHUNK_MB", "4"))
+VIDEO_MAX_BYTES    = VIDEO_MAX_MB * 1024 * 1024
+VIDEO_CHUNK_BYTES  = VIDEO_CHUNK_MB * 1024 * 1024
+
+
+async def start_video_session(
+    *,
+    device_id: str,
+    total_bytes: int,
+    codec: str,
+    fps_extract: int,
+    metadata: Dict[str, Any],
+) -> Dict[str, Any]:
+    if total_bytes > VIDEO_MAX_BYTES:
+        raise ValueError(
+            f"video too large: {total_bytes} > {VIDEO_MAX_BYTES} "
+            f"(configure via VISION_VIDEO_MAX_MB env var)"
+        )
+    dev = await get_vision_device(device_id)
+    if not dev:
+        raise LookupError(f"device '{device_id}' not found")
+    from models.vision_models import VideoSession
+    session = VideoSession(
+        device_id=device_id,
+        total_bytes_declared=int(total_bytes),
+        max_bytes=VIDEO_MAX_BYTES,
+        max_seconds=VIDEO_MAX_SECONDS,
+        fps_extract=int(fps_extract),
+        codec=codec,
+        metadata=dict(metadata),
+    )
+    doc = session.model_dump()
+    doc["_chunks"] = []                # scratch space for chunk bytes
+    await _db()["vision_video_sessions"].insert_one(doc)
+    row = session.model_dump()
+    row["chunk_size_bytes"] = VIDEO_CHUNK_BYTES
+    return row
+
+
+async def append_video_chunk(
+    session_id: str, index: int, payload_b64: str,
+) -> Dict[str, Any]:
+    session = await _db()["vision_video_sessions"].find_one({"id": session_id})
+    if not session:
+        raise LookupError(f"session '{session_id}' not found")
+    if session["status"] != "open":
+        raise ValueError(f"session {session_id} is {session['status']}")
+    try:
+        raw = base64.b64decode(payload_b64, validate=True)
+    except Exception as exc:
+        raise ValueError(f"invalid base64: {exc}")
+    new_total = session["total_bytes_received"] + len(raw)
+    if new_total > session["total_bytes_declared"]:
+        raise ValueError(
+            f"chunk overflow: {new_total} > declared {session['total_bytes_declared']}"
+        )
+    if new_total > VIDEO_MAX_BYTES:
+        raise ValueError(f"chunk overflow: {new_total} > absolute cap {VIDEO_MAX_BYTES}")
+    # Store the chunk as binary in the same doc — cheap for small clips,
+    # swap for GridFS if the architect raises VISION_VIDEO_MAX_MB > 128.
+    await _db()["vision_video_sessions"].update_one(
+        {"id": session_id},
+        {
+            "$push": {"_chunks": {"index": int(index), "bytes": raw}},
+            "$inc": {"total_bytes_received": len(raw), "chunk_count": 1},
+        },
+    )
+    session = await _db()["vision_video_sessions"].find_one({"id": session_id})
+    return {
+        "session_id": session_id,
+        "chunk_count": session["chunk_count"],
+        "total_bytes_received": session["total_bytes_received"],
+        "total_bytes_declared": session["total_bytes_declared"],
+        "progress": round(
+            session["total_bytes_received"] / max(1, session["total_bytes_declared"]), 4
+        ),
+    }
+
+
+async def complete_video_session(
+    session_id: str, duration_seconds: Optional[float] = None,
+) -> Dict[str, Any]:
+    import hashlib
+    from datetime import datetime, timezone
+    from models.vision_models import Frame
+    session = await _db()["vision_video_sessions"].find_one({"id": session_id})
+    if not session:
+        raise LookupError(f"session '{session_id}' not found")
+    if session["status"] != "open":
+        raise ValueError(f"session {session_id} is {session['status']}")
+    # Concatenate chunks in index order and compute a single checksum.
+    chunks = sorted(session.get("_chunks") or [], key=lambda c: c["index"])
+    blob = b"".join(c["bytes"] for c in chunks)
+    if not blob:
+        raise ValueError("no chunks received before completion")
+    checksum = hashlib.sha256(blob).hexdigest()
+    duration = float(duration_seconds or session["metadata"].get("duration_seconds") or 1.0)
+    if duration > VIDEO_MAX_SECONDS:
+        raise ValueError(
+            f"clip too long: {duration:.2f}s > {VIDEO_MAX_SECONDS}s "
+            f"(configure via VISION_VIDEO_MAX_SECONDS env var)"
+        )
+    # Materialise Frame rows — one per keyframe at fps_extract.
+    fps = max(1, int(session["fps_extract"]))
+    n_frames = max(1, int(duration * fps))
+    dev = await get_vision_device(session["device_id"])
+    resolution = (dev or {}).get("resolution") or [640, 480]
+    width = int(resolution[0])
+    height = int(resolution[1])
+    frame_ids: List[str] = []
+    frames_docs = []
+    for i in range(n_frames):
+        f = Frame(
+            device_id=session["device_id"],
+            width=width, height=height, channels=3,
+            format="raw", bytes_size=len(blob) // n_frames,
+            checksum=hashlib.sha256(f"{checksum}:{i}".encode()).hexdigest(),
+            payload_ref=f"session:{session_id}:frame:{i}",
+            seed=i, metadata={"source": "video", "session_id": session_id,
+                              "extracted_at_second": round(i / fps, 3)},
+        )
+        frame_ids.append(f.id)
+        frames_docs.append(f.model_dump())
+    if frames_docs:
+        await _db()["vision_frames"].insert_many(frames_docs)
+    await _db()["vision_video_sessions"].update_one(
+        {"id": session_id},
+        {"$set": {
+            "status": "completed",
+            "checksum": checksum,
+            "frames_created": n_frames,
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+        }, "$unset": {"_chunks": ""}},
+    )
+    return {
+        "session_id": session_id,
+        "status": "completed",
+        "checksum": checksum,
+        "duration_seconds": duration,
+        "frames_created": n_frames,
+        "frame_ids": frame_ids,
+    }
+
+
+async def get_video_session(session_id: str) -> Optional[Dict[str, Any]]:
+    row = await _db()["vision_video_sessions"].find_one(
+        {"id": session_id}, {"_id": 0, "_chunks": 0}
+    )
+    return row
+
+
+def video_config() -> Dict[str, Any]:
+    return {
+        "max_mb": VIDEO_MAX_MB,
+        "max_seconds": VIDEO_MAX_SECONDS,
+        "chunk_mb": VIDEO_CHUNK_MB,
+        "chunk_bytes": VIDEO_CHUNK_BYTES,
+        "max_bytes": VIDEO_MAX_BYTES,
+    }

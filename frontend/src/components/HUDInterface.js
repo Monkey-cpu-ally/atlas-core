@@ -16,6 +16,7 @@ import WeaverPanel from './HUD/WeaverPanel';
 import NIRScannerPanel from './HUD/NIRScannerPanel';
 import KnowledgeBankPanel from './HUD/KnowledgeBankPanel';
 import EngineeringConsole from './HUD/EngineeringConsole';
+import VisionConsole from './HUD/VisionConsole';
 import { Youtube, Code2, Network, Globe2, GraduationCap, Hammer, Scan, BookOpen } from 'lucide-react';
 import { useAudioFeedback } from '../hooks/useAudioFeedback';
 import { useAudioReactive } from '../hooks/useAudioReactive';
@@ -109,6 +110,7 @@ export default function HUDInterface() {
   const [nirOpen, setNirOpen] = useState(false);
   const [kbOpen, setKbOpen] = useState(false);
   const [engConsoleOpen, setEngConsoleOpen] = useState(false);
+  const [visionOpen, setVisionOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');     // 'listening' | error code | ''
 
   const { playTone, playSnap, playGlide } = useAudioFeedback(soundEnabled);
@@ -155,11 +157,17 @@ export default function HUDInterface() {
   }, [playTone]);
 
   // --- Hidden dev overlay: Ctrl+Shift+E toggles the Engineering Console.
+  //     Ctrl+Alt+V toggles the Vision Console (Ctrl+Shift+V is claimed
+  //     by browsers for paste-unformatted, so we use Alt).
   useEffect(() => {
     const onKey = (e) => {
       if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
         e.preventDefault();
         setEngConsoleOpen((v) => !v);
+      }
+      if (e.ctrlKey && e.altKey && (e.key === 'V' || e.key === 'v')) {
+        e.preventDefault();
+        setVisionOpen((v) => !v);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -480,6 +488,10 @@ export default function HUDInterface() {
       <EngineeringConsole
         open={engConsoleOpen}
         onClose={() => setEngConsoleOpen(false)}
+      />
+      <VisionConsole
+        open={visionOpen}
+        onClose={() => setVisionOpen(false)}
       />
     </div>
   );

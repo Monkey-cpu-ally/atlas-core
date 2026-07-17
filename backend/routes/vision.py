@@ -45,6 +45,8 @@ from models.vision_models import (
     IntrinsicCalibrationRequest, HandEyeRequest,
     FrameIngestRequest, DetectRequest, TrackRequest, PoseRequest,
     InspectionRequest, FusionRequest, TwinLinkRequest,
+    VisionDeviceRegisterRequest,
+    VideoStartRequest, VideoChunkRequest, VideoCompleteRequest,
 )
 from services import vision as vsvc
 
@@ -55,14 +57,18 @@ router = APIRouter(prefix="/api/vision", tags=["Vision Systems"])
 # --- Health ------------------------------------------------------------------
 @router.get("/health")
 async def health() -> Dict[str, Any]:
-    devices = await vsvc.list_devices()
+    devices = await vsvc.list_vision_devices()
+    drivers = vsvc.list_drivers()
     return {
         "status": "ok",
         "layer": "vision-systems",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "camera_count": len(devices["cameras"]),
-        "sensor_count": len(devices["sensors"]),
+        "device_count": devices["count"],
+        "driver_count": len(drivers),
+        "supported_kinds": [d["kind"] for d in drivers],
         "capabilities": [
+            "vision_device_registry",
+            "driver_plugin_interface",
             "camera_registry", "sensor_registry",
             "intrinsic_calibration", "hand_eye_calibration",
             "image_frame_ingest", "synthetic_frame_generation",
@@ -70,14 +76,50 @@ async def health() -> Dict[str, Any]:
             "pose_estimation",
             "industrial_inspection", "pcb_inspection",
             "sensor_fusion", "digital_twin_link",
+            "chunked_video_ingest",
         ],
     }
 
 
-# --- Registry ----------------------------------------------------------------
+# --- Unified VisionDevice registry ------------------------------------------
+@router.get("/devices/drivers")
+async def get_drivers():
+    """Return the full plugin catalogue — one row per registered
+    driver + its capability set. Route handlers use this to advertise
+    the supported hardware surface at runtime."""
+    return {"drivers": vsvc.list_drivers()}
+
+
+@router.post("/devices")
+async def register_vision_device(req: VisionDeviceRegisterRequest):
+    try:
+        dev = await vsvc.register_vision_device(req)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return dev.model_dump()
+
+
+# --- Legacy per-kind convenience wrappers (backwards-compat) ----------------
 @router.get("/devices")
-async def get_devices(kind: Optional[str] = Query(None, pattern="^(camera|sensor)$")):
-    return await vsvc.list_devices(kind=kind)
+async def get_devices(
+    kind: Optional[str] = Query(None),
+    capability: Optional[str] = Query(None),
+):
+    """Unified listing across new + legacy device collections.
+
+    Also returns backwards-compat `cameras` / `sensors` splits so existing
+    HUD panels keep working without a rewrite."""
+    unified = await vsvc.list_vision_devices(kind=kind, capability=capability)
+    if kind in (None, "camera", "sensor"):
+        legacy = await vsvc.list_devices(kind=None)
+    else:
+        legacy = {"cameras": [], "sensors": [], "total": 0}
+    return {
+        "count": unified["count"],
+        "devices": unified["devices"],
+        "cameras": legacy.get("cameras", []),
+        "sensors": legacy.get("sensors", []),
+    }
 
 
 @router.post("/devices/camera")
@@ -92,7 +134,7 @@ async def register_sensor(req: SensorRegisterRequest) -> Sensor:
 
 @router.get("/devices/{device_id}")
 async def get_device(device_id: str):
-    row = await vsvc.get_device(device_id)
+    row = await vsvc.get_vision_device(device_id)
     if not row:
         raise HTTPException(404, f"device '{device_id}' not found")
     return row
@@ -100,7 +142,7 @@ async def get_device(device_id: str):
 
 @router.delete("/devices/{device_id}")
 async def delete_device(device_id: str):
-    ok = await vsvc.delete_device(device_id)
+    ok = await vsvc.delete_vision_device(device_id)
     if not ok:
         raise HTTPException(404, f"device '{device_id}' not found")
     return {"deleted": device_id}
@@ -109,7 +151,7 @@ async def delete_device(device_id: str):
 # --- Calibration -------------------------------------------------------------
 @router.post("/calibration/intrinsic")
 async def calibrate_intrinsic(req: IntrinsicCalibrationRequest) -> CameraCalibration:
-    dev = await vsvc.get_device(req.device_id)
+    dev = await vsvc.get_vision_device(req.device_id)
     if not dev:
         raise HTTPException(404, f"device '{req.device_id}' not found")
     return await vsvc.store_intrinsic(CameraCalibration(**req.model_dump()))
@@ -125,7 +167,7 @@ async def get_intrinsic(device_id: str):
 
 @router.post("/calibration/hand-eye")
 async def calibrate_hand_eye(req: HandEyeRequest) -> HandEyeCalibration:
-    dev = await vsvc.get_device(req.device_id)
+    dev = await vsvc.get_vision_device(req.device_id)
     if not dev:
         raise HTTPException(404, f"device '{req.device_id}' not found")
     return await vsvc.store_hand_eye(HandEyeCalibration(**req.model_dump()))
@@ -142,7 +184,7 @@ async def get_hand_eye(device_id: str):
 # --- Frame ingest ------------------------------------------------------------
 @router.post("/ingest/frame")
 async def ingest_frame(req: FrameIngestRequest) -> Frame:
-    dev = await vsvc.get_device(req.device_id)
+    dev = await vsvc.get_vision_device(req.device_id)
     if not dev:
         raise HTTPException(404, f"device '{req.device_id}' not found")
     try:
@@ -270,3 +312,56 @@ async def link_twin(req: TwinLinkRequest):
 @router.get("/twin-link/{twin_id}")
 async def get_twin_links(twin_id: str):
     return {"items": await vsvc.links_for_twin(twin_id)}
+
+
+# --- Video ingestion (chunked upload) ---------------------------------------
+@router.get("/ingest/video/config")
+async def video_config():
+    """Advertise the pod's chunked-upload limits so clients can size
+    their PUTs correctly. Configurable via VISION_VIDEO_MAX_MB /
+    VISION_VIDEO_MAX_SECONDS / VISION_VIDEO_CHUNK_MB env vars."""
+    return vsvc.video_config()
+
+
+@router.post("/ingest/video/start")
+async def video_start(req: VideoStartRequest):
+    try:
+        return await vsvc.start_video_session(
+            device_id=req.device_id, total_bytes=req.total_bytes,
+            codec=req.codec, fps_extract=req.fps_extract,
+            metadata={**req.metadata,
+                      **({"duration_seconds": req.duration_seconds}
+                         if req.duration_seconds is not None else {})},
+        )
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.post("/ingest/video/chunk")
+async def video_chunk(req: VideoChunkRequest):
+    try:
+        return await vsvc.append_video_chunk(req.session_id, req.index, req.payload_b64)
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.post("/ingest/video/complete")
+async def video_complete(req: VideoCompleteRequest):
+    try:
+        return await vsvc.complete_video_session(req.session_id, req.duration_seconds)
+    except LookupError as e:
+        raise HTTPException(404, str(e))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.get("/ingest/video/{session_id}")
+async def video_session(session_id: str):
+    row = await vsvc.get_video_session(session_id)
+    if not row:
+        raise HTTPException(404, f"session '{session_id}' not found")
+    return row

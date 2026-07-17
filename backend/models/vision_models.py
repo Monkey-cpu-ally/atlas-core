@@ -37,7 +37,90 @@ def _now_iso() -> str:
 
 
 # ---------------------------------------------------------------------------
-# Devices
+# Unified VisionDevice abstraction
+# ---------------------------------------------------------------------------
+# Every perception device (camera, depth, LIDAR, IMU, force, thermal, NIR
+# bridge, radar, event-camera, …) surfaces through the same shape so route
+# handlers, drivers, and downstream services (tracking, fusion, inspection,
+# digital-twin linking) never need to branch on hardware type.
+#
+# `kind` is the union of every supported hardware family — additions are
+# non-breaking (existing Camera / Sensor rows keep working).
+# `capabilities` is the *semantic* interface each device exposes and is
+# what pipelines actually key off of (e.g. anything with "imaging" flows
+# into the detector chain; anything with "depth_map" feeds fusion).
+
+VisionDeviceKind = Literal[
+    # imaging
+    "camera", "thermal", "event_camera", "multispectral",
+    # ranging
+    "depth", "lidar", "radar", "sonar",
+    # inertial / force
+    "imu", "force", "torque",
+    # bridge / composite
+    "nir_bridge",
+]
+
+VisionDeviceCapability = Literal[
+    "imaging",       # produces 2D pixel frames (RGB, IR, event stream)
+    "depth_map",     # produces per-pixel or per-point range
+    "point_cloud",   # sparse 3D points (LiDAR / radar)
+    "motion",        # linear + angular accel/velocity
+    "wrench",        # 6-axis force/torque
+    "heat_map",      # temperature per pixel/point
+    "spectral",      # multi-band spectral samples
+]
+
+
+class VisionDevice(BaseModel):
+    """Unified perception device.
+
+    Concrete `Camera` / `Sensor` still exist for backwards-compat and are
+    thin projections of this shape. Drivers should target this model.
+    """
+    id: str = Field(default_factory=_uid)
+    name: str
+    kind: VisionDeviceKind
+    capabilities: List[VisionDeviceCapability] = Field(default_factory=list)
+    # Optional imaging metadata — populated by drivers whose kind is imaging.
+    resolution: Optional[List[int]] = None       # [w, h] or [w, h, d]
+    fps: Optional[float] = None
+    lens_mm: Optional[float] = None
+    # Optional stream metadata — populated by drivers whose kind is sampled.
+    sample_rate_hz: Optional[float] = None
+    channels: Optional[int] = None               # e.g. 3 (imu), 6 (force+torque)
+    # Common
+    mount: Literal["fixed", "arm", "gimbal", "handheld"] = "fixed"
+    twin_id: Optional[str] = None
+    robot_id: Optional[str] = None
+    ai_owner: str = "hermes"
+    calibrated: bool = False
+    registered_at: str = Field(default_factory=_now_iso)
+    tags: List[str] = Field(default_factory=list)
+    driver: Optional[str] = None                 # driver key that produced this row
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class VisionDeviceRegisterRequest(BaseModel):
+    """Driver-agnostic registration payload. The driver keyed by `kind`
+    fills in defaults for any unspecified optional fields."""
+    name: str
+    kind: VisionDeviceKind
+    resolution: Optional[List[int]] = None
+    fps: Optional[float] = None
+    lens_mm: Optional[float] = None
+    sample_rate_hz: Optional[float] = None
+    channels: Optional[int] = None
+    mount: Literal["fixed", "arm", "gimbal", "handheld"] = "fixed"
+    twin_id: Optional[str] = None
+    robot_id: Optional[str] = None
+    ai_owner: str = "hermes"
+    tags: List[str] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+# ---------------------------------------------------------------------------
+# Devices  (concrete shapes — retained for backwards compat)
 # ---------------------------------------------------------------------------
 class Camera(BaseModel):
     id: str = Field(default_factory=_uid)
@@ -305,3 +388,45 @@ class TwinLinkRequest(BaseModel):
     entity_kind: Literal["camera", "sensor", "inspection", "track"]
     entity_id: str
     note: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Video ingestion — chunked-upload session state.
+# ---------------------------------------------------------------------------
+class VideoSession(BaseModel):
+    """Server-side accumulator for a chunked video upload."""
+    id: str = Field(default_factory=_uid)
+    device_id: str
+    total_bytes_declared: int
+    total_bytes_received: int = 0
+    chunk_count: int = 0
+    max_bytes: int
+    max_seconds: int
+    fps_extract: int = 1                       # keyframes-per-second we materialise
+    codec: str = "mp4"
+    status: Literal["open", "completed", "aborted"] = "open"
+    frames_created: int = 0
+    checksum: Optional[str] = None
+    started_at: str = Field(default_factory=_now_iso)
+    completed_at: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class VideoStartRequest(BaseModel):
+    device_id: str
+    total_bytes: int = Field(gt=0)
+    codec: Literal["mp4", "webm", "mov", "raw"] = "mp4"
+    fps_extract: int = Field(default=1, ge=1, le=30)
+    duration_seconds: Optional[float] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class VideoChunkRequest(BaseModel):
+    session_id: str
+    index: int = Field(ge=0)
+    payload_b64: str = Field(min_length=1)
+
+
+class VideoCompleteRequest(BaseModel):
+    session_id: str
+    duration_seconds: Optional[float] = None

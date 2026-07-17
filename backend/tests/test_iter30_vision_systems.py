@@ -79,18 +79,119 @@ def test_vision_health_returns_full_capability_list():
     assert body["status"] == "ok"
     caps = set(body["capabilities"])
     required = {
+        "vision_device_registry", "driver_plugin_interface",
         "camera_registry", "sensor_registry",
         "intrinsic_calibration", "hand_eye_calibration",
         "image_frame_ingest", "object_detection", "object_tracking",
         "pose_estimation", "industrial_inspection", "pcb_inspection",
-        "sensor_fusion", "digital_twin_link",
+        "sensor_fusion", "digital_twin_link", "chunked_video_ingest",
     }
     missing = required - caps
     assert not missing, f"missing capabilities: {missing}"
+    # New unified fields
+    assert body["driver_count"] >= 12
+    assert "camera" in body["supported_kinds"]
+    assert "lidar" in body["supported_kinds"]
+    assert "imu" in body["supported_kinds"]
 
 
 # ---------------------------------------------------------------------------
-# 2. Camera + Sensor registry
+# 1b. VisionDevice driver registry
+# ---------------------------------------------------------------------------
+class TestDriverRegistry:
+    def test_list_drivers_covers_full_hardware_surface(self):
+        r = requests.get(f"{V}/devices/drivers", timeout=TIMEOUT)
+        assert r.status_code == 200
+        drivers = r.json()["drivers"]
+        kinds = {d["kind"] for d in drivers}
+        # Every hardware family the abstraction claims to support.
+        expected = {
+            "camera", "thermal", "event_camera", "multispectral",
+            "depth", "lidar", "radar", "sonar",
+            "imu", "force", "torque", "nir_bridge",
+        }
+        missing = expected - kinds
+        assert not missing, f"missing driver kinds: {missing}"
+        # Every driver declares at least one capability.
+        for d in drivers:
+            assert d["capabilities"], f"driver {d['kind']!r} has no capabilities"
+
+    def test_register_unified_device_lidar_gets_driver_defaults(self):
+        r = requests.post(
+            f"{V}/devices",
+            json={"name": f"lidar-{uuid.uuid4().hex[:6]}", "kind": "lidar"},
+            timeout=TIMEOUT,
+        )
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["kind"] == "lidar"
+        assert set(body["capabilities"]) == {"point_cloud", "depth_map"}
+        # Driver defaults populated:
+        assert body["sample_rate_hz"] == 10.0
+        assert body["channels"] == 32
+        assert body["driver"] == "_LiDARDriver"
+
+    def test_register_unified_device_thermal_gets_imaging_defaults(self):
+        r = requests.post(
+            f"{V}/devices",
+            json={"name": f"therm-{uuid.uuid4().hex[:6]}", "kind": "thermal"},
+            timeout=TIMEOUT,
+        )
+        body = r.json()
+        assert body["resolution"] == [320, 240]
+        assert body["fps"] == 9.0
+        assert "heat_map" in body["capabilities"]
+
+    def test_unknown_kind_rejected_400(self):
+        r = requests.post(
+            f"{V}/devices",
+            json={"name": "unknown", "kind": "not-a-real-sensor"},
+            timeout=TIMEOUT,
+        )
+        # Pydantic Literal validation → 422 (before driver dispatch)
+        assert r.status_code in (400, 422)
+
+    def test_unified_lookup_finds_new_device(self):
+        r = requests.post(
+            f"{V}/devices",
+            json={"name": "imu-1", "kind": "imu"},
+            timeout=TIMEOUT,
+        )
+        dev_id = r.json()["id"]
+        r2 = requests.get(f"{V}/devices/{dev_id}", timeout=TIMEOUT)
+        assert r2.status_code == 200
+        assert r2.json()["kind"] == "imu"
+        # Delete + confirm 404
+        assert requests.delete(f"{V}/devices/{dev_id}", timeout=TIMEOUT).status_code == 200
+        assert requests.get(f"{V}/devices/{dev_id}", timeout=TIMEOUT).status_code == 404
+
+    def test_capability_filter_lists_only_matching_devices(self):
+        # Register one imaging + one non-imaging device, then filter.
+        cam = requests.post(f"{V}/devices",
+                            json={"name": f"cf-cam-{uuid.uuid4().hex[:6]}", "kind": "camera"},
+                            timeout=TIMEOUT).json()
+        force = requests.post(f"{V}/devices",
+                              json={"name": f"cf-force-{uuid.uuid4().hex[:6]}", "kind": "force"},
+                              timeout=TIMEOUT).json()
+        r = requests.get(f"{V}/devices?capability=wrench", timeout=TIMEOUT)
+        assert r.status_code == 200
+        devs = r.json()["devices"]
+        ids = {d["id"] for d in devs}
+        assert force["id"] in ids
+        assert cam["id"] not in ids
+
+    def test_legacy_camera_projection_still_visible(self):
+        # Register via legacy endpoint, list via unified — must appear.
+        cam = _register_camera(name=f"legacy-{uuid.uuid4().hex[:6]}")
+        r = requests.get(f"{V}/devices?kind=camera", timeout=TIMEOUT)
+        body = r.json()
+        # Either in unified `devices` list OR the legacy `cameras` split.
+        all_ids = {d["id"] for d in body.get("devices", [])} | {c["id"] for c in body.get("cameras", [])}
+        assert cam["id"] in all_ids
+
+
+# ---------------------------------------------------------------------------
+# 2. Camera + Sensor registry (backwards compat)
 # ---------------------------------------------------------------------------
 class TestRegistry:
     def test_register_camera_returns_uid(self):
@@ -107,12 +208,18 @@ class TestRegistry:
         assert r.json()["kind"] == "lidar"
 
     def test_list_devices_kind_filter(self):
-        _register_camera()
-        _register_sensor("imu")
+        cam = _register_camera()
+        sen = _register_sensor("imu")
+        # Legacy split still works — cameras only in cameras[]
         cams = requests.get(f"{V}/devices?kind=camera", timeout=TIMEOUT).json()
-        sens = requests.get(f"{V}/devices?kind=sensor", timeout=TIMEOUT).json()
-        assert cams["cameras"] and cams["sensors"] == []
-        assert sens["sensors"] and sens["cameras"] == []
+        assert any(c["id"] == cam["id"] for c in cams.get("cameras", []))
+        # Unified device listing surfaces both, filterable by capability.
+        imu_hits = requests.get(f"{V}/devices?capability=motion", timeout=TIMEOUT).json()
+        motion_ids = {d["id"] for d in imu_hits["devices"]}
+        # sen was registered via legacy /devices/sensor as kind=imu → motion
+        assert sen["id"] in motion_ids or any(
+            s["id"] == sen["id"] for s in imu_hits.get("sensors", [])
+        )
 
     def test_delete_device_roundtrip(self):
         cam = _register_camera()
@@ -526,3 +633,119 @@ def test_end_to_end_camera_to_inspection():
     ).json()
     assert ins["kind"] == "industrial"
     assert ins["verdict"] in ("pass", "warn", "fail")
+
+
+# ---------------------------------------------------------------------------
+# 12. Chunked video ingestion
+# ---------------------------------------------------------------------------
+import base64  # noqa: E402
+
+
+class TestVideoIngest:
+    def test_video_config_advertises_limits(self):
+        r = requests.get(f"{V}/ingest/video/config", timeout=TIMEOUT)
+        assert r.status_code == 200
+        body = r.json()
+        for key in ("max_mb", "max_seconds", "chunk_mb",
+                    "chunk_bytes", "max_bytes"):
+            assert key in body
+        assert body["chunk_bytes"] == body["chunk_mb"] * 1024 * 1024
+
+    def test_full_chunked_upload_creates_frames(self):
+        cam = _register_camera()
+        # Fake a tiny "video" — 3 chunks of 32 bytes each = 96 bytes.
+        chunks = [b"A" * 32, b"B" * 32, b"C" * 32]
+        total = sum(len(c) for c in chunks)
+        session = requests.post(
+            f"{V}/ingest/video/start",
+            json={"device_id": cam["id"], "total_bytes": total,
+                  "codec": "mp4", "fps_extract": 2,
+                  "duration_seconds": 3.0},
+            timeout=TIMEOUT,
+        ).json()
+        assert session["status"] == "open"
+        sid = session["id"]
+        # Upload chunks out of order to test the sort step
+        for i in [1, 0, 2]:
+            r = requests.post(
+                f"{V}/ingest/video/chunk",
+                json={"session_id": sid, "index": i,
+                      "payload_b64": base64.b64encode(chunks[i]).decode()},
+                timeout=TIMEOUT,
+            )
+            assert r.status_code == 200, r.text
+        # Progress should now be 1.0
+        got = requests.get(f"{V}/ingest/video/{sid}", timeout=TIMEOUT).json()
+        assert got["total_bytes_received"] == total
+        # Complete the session
+        r = requests.post(
+            f"{V}/ingest/video/complete",
+            json={"session_id": sid},
+            timeout=TIMEOUT,
+        )
+        assert r.status_code == 200, r.text
+        result = r.json()
+        assert result["status"] == "completed"
+        # fps_extract=2, duration=3s → 6 frames materialised
+        assert result["frames_created"] == 6
+        assert len(result["frame_ids"]) == 6
+        # Each frame is fetchable via /frames/{id}
+        for fid in result["frame_ids"][:2]:
+            fr = requests.get(f"{V}/frames/{fid}", timeout=TIMEOUT).json()
+            assert fr["device_id"] == cam["id"]
+            assert fr["metadata"]["source"] == "video"
+
+    def test_video_rejects_overflow_chunk(self):
+        cam = _register_camera()
+        sid = requests.post(
+            f"{V}/ingest/video/start",
+            json={"device_id": cam["id"], "total_bytes": 10,
+                  "codec": "mp4", "fps_extract": 1},
+            timeout=TIMEOUT,
+        ).json()["id"]
+        r = requests.post(
+            f"{V}/ingest/video/chunk",
+            json={"session_id": sid, "index": 0,
+                  "payload_b64": base64.b64encode(b"X" * 100).decode()},
+            timeout=TIMEOUT,
+        )
+        assert r.status_code == 400
+        assert "overflow" in r.json()["detail"].lower()
+
+    def test_video_rejects_too_large_declared_bytes(self):
+        cam = _register_camera()
+        r = requests.post(
+            f"{V}/ingest/video/start",
+            json={"device_id": cam["id"],
+                  "total_bytes": 10 * 1024 * 1024 * 1024,  # 10 GB
+                  "codec": "mp4", "fps_extract": 1},
+            timeout=TIMEOUT,
+        )
+        assert r.status_code == 400
+        assert "too large" in r.json()["detail"].lower()
+
+    def test_video_rejects_missing_device(self):
+        r = requests.post(
+            f"{V}/ingest/video/start",
+            json={"device_id": "does-not-exist", "total_bytes": 100,
+                  "codec": "mp4", "fps_extract": 1},
+            timeout=TIMEOUT,
+        )
+        assert r.status_code == 404
+
+    def test_video_complete_rejects_empty_session(self):
+        cam = _register_camera()
+        sid = requests.post(
+            f"{V}/ingest/video/start",
+            json={"device_id": cam["id"], "total_bytes": 100,
+                  "codec": "mp4", "fps_extract": 1},
+            timeout=TIMEOUT,
+        ).json()["id"]
+        # Complete without uploading any chunks
+        r = requests.post(
+            f"{V}/ingest/video/complete",
+            json={"session_id": sid},
+            timeout=TIMEOUT,
+        )
+        assert r.status_code == 400
+
