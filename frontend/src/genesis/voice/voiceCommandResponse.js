@@ -25,6 +25,14 @@ function buildConversationResponse(command) {
   return `${opener} About ${topic}: ${action}`;
 }
 
+function buildClarificationResponse(command) {
+  const names = (command.options || []).map((option) => option.title || option.id).filter(Boolean);
+  if (!names.length) return "Which project did you mean?";
+  if (names.length === 1) return `Did you mean ${names[0]}?`;
+  if (names.length === 2) return `Which project did you mean: ${names[0]} or ${names[1]}?`;
+  return `Which project did you mean: ${names[0]}, ${names[1]}, or ${names[2]}?`;
+}
+
 export function buildVoiceCommandResponse(
   transcript,
   { projects = [], mission = null, currentProject = null, lastResponse = "" } = {},
@@ -37,7 +45,9 @@ export function buildVoiceCommandResponse(
     case "repeat":
       return { command, message: lastResponse || "There is no previous response to repeat." };
     case "cancel":
-      return { command, message: "Cancelled." };
+      return { command, message: command.clarificationCancelled ? "Clarification cancelled." : "Cancelled." };
+    case "clarification":
+      return { command, message: buildClarificationResponse(command) };
     case "project":
       return { command, message: command.contextual ? `Continuing ${command.project?.title || "the project"}.` : `Opening ${command.project?.title || "the project"}.` };
     case "persona":
@@ -61,4 +71,4 @@ export function buildVoiceCommandResponse(
   }
 }
 
-export { buildConversationResponse };
+export { buildConversationResponse, buildClarificationResponse };
