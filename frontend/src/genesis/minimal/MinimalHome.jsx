@@ -6,13 +6,7 @@ import { buildVoiceCommandResponse } from "../voice/voiceCommandResponse";
 import "./minimal-home.css";
 
 const HOLD_THRESHOLD_MS = 320;
-
-function navigationTranscriptFor(command, originalTranscript) {
-  if (command?.type !== "conversation") return originalTranscript;
-  if (command.project?.title) return `open ${command.project.title}`;
-  if (command.persona && command.persona !== "atlas") return command.persona;
-  return null;
-}
+const NON_NAVIGATING_COMMANDS = new Set(["wake", "repeat", "cancel", "clarification"]);
 
 export default function MinimalHome({
   mission,
@@ -52,16 +46,13 @@ export default function MinimalHome({
       return;
     }
 
-    if (response.command.type === "repeat" || response.command.type === "wake") {
-      setLastResponse(response.message);
-      speech.speak(response.message);
-      return;
+    setLastResponse(response.message);
+    if (response.command.type !== "wake") lastCompletedResponse.current = response.message;
+
+    if (!NON_NAVIGATING_COMMANDS.has(response.command.type)) {
+      onVoiceCommand?.(response.command);
     }
 
-    setLastResponse(response.message);
-    lastCompletedResponse.current = response.message;
-    const navigationTranscript = navigationTranscriptFor(response.command, transcript);
-    if (navigationTranscript) onVoiceCommand?.(navigationTranscript);
     speech.speak(response.message);
   }, [currentProject, mission, onVoiceCommand, projects, speech]);
 
@@ -181,4 +172,4 @@ export default function MinimalHome({
   );
 }
 
-export { navigationTranscriptFor };
+export { NON_NAVIGATING_COMMANDS };
