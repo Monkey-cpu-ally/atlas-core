@@ -17,6 +17,7 @@ const HERMES_BRANCH_ROUTES = {
 export default function WorkspaceController() {
   const [workspaceAI, setWorkspaceAI] = useState(null);
   const [workspaceRequest, setWorkspaceRequest] = useState(null);
+  const hermesOpen = workspaceAI === 'hermes';
 
   useEffect(() => {
     const onFocus = (event) => {
@@ -48,6 +49,20 @@ export default function WorkspaceController() {
     };
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const hud = document.querySelector('.atlas-container');
+
+    root.classList.toggle('atlas-workspace-docked', hermesOpen);
+    hud?.classList.toggle('workspace-docked', hermesOpen);
+    hud?.setAttribute('aria-hidden', hermesOpen ? 'false' : 'false');
+
+    return () => {
+      root.classList.remove('atlas-workspace-docked');
+      hud?.classList.remove('workspace-docked');
+    };
+  }, [hermesOpen]);
+
   const closeWorkspace = () => {
     setWorkspaceAI(null);
     setWorkspaceRequest(null);
@@ -71,7 +86,7 @@ export default function WorkspaceController() {
 
   return (
     <HermesWorkspace
-      open={workspaceAI === 'hermes'}
+      open={hermesOpen}
       requestedSection={workspaceRequest?.section || null}
       requestedBranch={workspaceRequest?.branch || null}
       requestId={workspaceRequest?.requestId || 0}
