@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import HermesWorkspace from './HermesWorkspace';
+import './WorkspaceDock.css';
 
 const FOCUS_EVENT = 'atlas-ai-focus-mode';
 const BRANCH_EVENT = 'atlas-ai-focus-branch';
@@ -55,7 +56,6 @@ export default function WorkspaceController() {
 
     root.classList.toggle('atlas-workspace-docked', hermesOpen);
     hud?.classList.toggle('workspace-docked', hermesOpen);
-    hud?.setAttribute('aria-hidden', hermesOpen ? 'false' : 'false');
 
     return () => {
       root.classList.remove('atlas-workspace-docked');
