@@ -18,11 +18,13 @@ export default function AtlasSidePanel({ content, activeAI, aiPersonas, onClose,
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (content) {
-      setTimeout(() => setIsVisible(true), 50);
-    } else {
+    if (!content) {
       setIsVisible(false);
+      return undefined;
     }
+
+    const visibilityTimer = window.setTimeout(() => setIsVisible(true), 50);
+    return () => window.clearTimeout(visibilityTimer);
   }, [content]);
 
   if (!content) return null;
