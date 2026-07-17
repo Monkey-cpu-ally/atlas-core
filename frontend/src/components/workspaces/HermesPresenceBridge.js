@@ -14,17 +14,42 @@ const STATUS_LABELS = {
   reviewing: 'Reviewing',
 };
 
+const VALID_SECTIONS = new Set([
+  'dashboard',
+  'projects',
+  'blueprints',
+  'notebook',
+  'simulation',
+  'tasks',
+]);
+
+function cleanText(value, maxLength = 120) {
+  return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
+}
+
+function sanitizePresence(detail = {}) {
+  const status = Object.prototype.hasOwnProperty.call(STATUS_LABELS, detail.status)
+    ? detail.status
+    : 'ready';
+
+  return {
+    status,
+    project: cleanText(detail.project),
+    section: VALID_SECTIONS.has(detail.section) ? detail.section : '',
+  };
+}
+
 function readStoredPresence() {
   try {
     const saved = JSON.parse(window.localStorage?.getItem(SESSION_KEY) || '{}');
     const project = getAllProjects().find((item) => item.id === saved.activeProjectId);
-    return {
-      status: saved.hermesStatus || 'ready',
+    return sanitizePresence({
+      status: saved.hermesStatus,
       project: project?.name || '',
-      section: saved.section || '',
-    };
+      section: saved.section,
+    });
   } catch (_) {
-    return { status: 'ready', project: '', section: '' };
+    return sanitizePresence();
   }
 }
 
@@ -32,10 +57,8 @@ function applyHermesPresence(detail = {}) {
   const card = document.querySelector('[data-testid="ai-face-hermes"]');
   if (!card) return false;
 
-  const status = detail.status || 'ready';
-  const label = STATUS_LABELS[status] || status;
-  const project = detail.project || '';
-  const section = detail.section || '';
+  const { status, project, section } = sanitizePresence(detail);
+  const label = STATUS_LABELS[status];
 
   card.dataset.aiStatus = status;
   card.dataset.workspaceSection = section;
@@ -73,12 +96,9 @@ export default function HermesPresenceBridge() {
 
     const onStatus = (event) => {
       if (event.detail?.ai !== 'hermes') return;
-      if (applyHermesPresence(event.detail)) {
-        lastSignature = JSON.stringify({
-          status: event.detail.status || 'ready',
-          project: event.detail.project || '',
-          section: event.detail.section || '',
-        });
+      const presence = sanitizePresence(event.detail);
+      if (applyHermesPresence(presence)) {
+        lastSignature = JSON.stringify(presence);
       } else {
         lastSignature = '';
       }
