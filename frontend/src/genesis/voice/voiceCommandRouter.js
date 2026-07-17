@@ -5,6 +5,7 @@ import {
   rememberConversationTurn,
   resetConversationMemory,
 } from "./conversationMemory";
+import { attachConversationTask } from "./conversationTask";
 import {
   clearPendingClarification,
   getPendingClarification,
@@ -111,8 +112,9 @@ export function rememberVoiceContext(command) {
 }
 
 function rememberAndReturn(command) {
-  rememberVoiceContext(command);
-  return command;
+  const enrichedCommand = attachConversationTask(command);
+  rememberVoiceContext(enrichedCommand);
+  return enrichedCommand;
 }
 
 export function findVoiceProjectCandidates(transcript, projects = []) {
