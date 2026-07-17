@@ -1,5 +1,11 @@
 import { buildConversationCommand } from "./conversationIntent";
 import {
+  conversationFollowUpDefaults,
+  looksLikeConversationFollowUp,
+  rememberConversationTurn,
+  resetConversationMemory,
+} from "./conversationMemory";
+import {
   clearPendingClarification,
   getPendingClarification,
   requestProjectClarification,
@@ -13,13 +19,7 @@ const PERSONA_ALIASES = Object.freeze({
   council: ["council", "team review"],
 });
 
-const WAKE_WORDS = Object.freeze([
-  "hey atlas",
-  "okay atlas",
-  "ok atlas",
-  "atlas",
-]);
-
+const WAKE_WORDS = Object.freeze(["hey atlas", "okay atlas", "ok atlas", "atlas"]);
 const EMPTY_CONTEXT = Object.freeze({ type: null, id: null, value: null });
 let voiceContext = { ...EMPTY_CONTEXT };
 
@@ -58,15 +58,12 @@ function projectSearchTerms(project) {
 }
 
 function scoreProjectMatch(text, project) {
-  const terms = projectSearchTerms(project);
   let bestScore = 0;
-
-  terms.forEach((term) => {
+  projectSearchTerms(project).forEach((term) => {
     if (text === term) bestScore = Math.max(bestScore, 100 + term.length);
     else if (text.includes(term)) bestScore = Math.max(bestScore, 60 + term.length);
     else if (term.includes(text) && text.length >= 3) bestScore = Math.max(bestScore, 30 + text.length);
   });
-
   return bestScore;
 }
 
@@ -85,24 +82,11 @@ function findExplicitPersona(text) {
 }
 
 function looksConversational(text, project, explicitPersona) {
-  if (project || explicitPersona) return true;
+  if (project || explicitPersona || looksLikeConversationFollowUp(text)) return true;
   return includesAny(text, [
-    "i'm thinking",
-    "im thinking",
-    "i want",
-    "we should",
-    "let's",
-    "lets",
-    "could we",
-    "can we",
-    "what if",
-    "help me",
-    "explain",
-    "teach me",
-    "review",
-    "redesign",
-    "research",
-    "brainstorm",
+    "i'm thinking", "im thinking", "i want", "we should", "let's", "lets",
+    "could we", "can we", "what if", "help me", "explain", "teach me",
+    "review", "redesign", "research", "brainstorm",
   ]);
 }
 
@@ -113,6 +97,7 @@ export function getVoiceContext() {
 export function resetVoiceContext() {
   voiceContext = { ...EMPTY_CONTEXT };
   clearPendingClarification();
+  resetConversationMemory();
 }
 
 export function rememberVoiceContext(command) {
@@ -121,6 +106,7 @@ export function rememberVoiceContext(command) {
   } else if ((command?.type === "persona" || command?.type === "conversation") && command.persona) {
     voiceContext = { type: "persona", id: command.persona, value: command.persona };
   }
+  if (["project", "persona", "conversation"].includes(command?.type)) rememberConversationTurn(command);
   return getVoiceContext();
 }
 
@@ -132,7 +118,6 @@ function rememberAndReturn(command) {
 export function findVoiceProjectCandidates(transcript, projects = []) {
   const text = normalizeProjectName(transcript);
   if (!text) return [];
-
   return projects
     .map((project) => ({ project, score: scoreProjectMatch(text, project) }))
     .filter((match) => match.project?.id && match.score > 0)
@@ -151,17 +136,8 @@ function hasAmbiguousProjectMatch(matches) {
 
 function contextualReferenceCommand(text, originalTranscript, projects) {
   const referencesPriorTarget = includesAny(text, [
-    "open it",
-    "continue it",
-    "resume it",
-    "show it",
-    "open that",
-    "continue that",
-    "resume that",
-    "show that",
-    "go to it",
-    "what is next for it",
-    "what's next for it",
+    "open it", "continue it", "resume it", "show it", "open that", "continue that",
+    "resume that", "show that", "go to it", "what is next for it", "what's next for it",
     "show me the next step",
   ]);
   if (!referencesPriorTarget || !voiceContext.type) return null;
@@ -170,12 +146,8 @@ function contextualReferenceCommand(text, originalTranscript, projects) {
     const project = projects.find((item) => item.id === voiceContext.id) || voiceContext.value;
     if (project?.id) {
       return {
-        type: "project",
-        projectId: project.id,
-        project,
-        transcript: originalTranscript,
-        contextual: true,
-        resolvedFromMemory: true,
+        type: "project", projectId: project.id, project, transcript: originalTranscript,
+        contextual: true, resolvedFromMemory: true,
         intent: includesAny(text, ["next", "next step"]) ? "next-step" : "open",
       };
     }
@@ -183,14 +155,10 @@ function contextualReferenceCommand(text, originalTranscript, projects) {
 
   if (voiceContext.type === "persona" && voiceContext.id) {
     return {
-      type: "persona",
-      persona: voiceContext.id,
-      transcript: originalTranscript,
-      contextual: true,
-      resolvedFromMemory: true,
+      type: "persona", persona: voiceContext.id, transcript: originalTranscript,
+      contextual: true, resolvedFromMemory: true,
     };
   }
-
   return null;
 }
 
@@ -214,13 +182,9 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
   const pendingClarification = getPendingClarification();
   if (pendingClarification.kind === "project" && pendingClarification.options.length) {
     return {
-      type: "clarification",
-      clarificationKind: "project",
-      options: pendingClarification.options,
-      originalCommand: pendingClarification.originalCommand,
-      transcript: originalTranscript,
-      contextual: true,
-      retry: true,
+      type: "clarification", clarificationKind: "project", options: pendingClarification.options,
+      originalCommand: pendingClarification.originalCommand, transcript: originalTranscript,
+      contextual: true, retry: true,
     };
   }
 
@@ -238,71 +202,46 @@ export function routeVoiceCommand(transcript, { projects = [], currentProject = 
   if (includesAny(text, ["what's next", "what is next", "next step", "what should i do next"])) {
     return { type: "mission", transcript: originalTranscript, contextual: true };
   }
-
   if (includesAny(text, ["go back", "back", "previous screen", "return"])) {
     return { type: "home", transcript: originalTranscript, contextual: true };
   }
 
   const projectMatches = findVoiceProjectCandidates(text, projects);
-  const project = projectMatches[0]?.project || null;
+  const explicitProject = projectMatches[0]?.project || null;
   const explicitPersona = findExplicitPersona(text);
-  const projectAction = project && includesAny(text, ["open", "continue", "resume", "show", "workspace", project.title?.toLowerCase() || project.id]);
+  const projectAction = explicitProject && includesAny(text, ["open", "continue", "resume", "show", "workspace", explicitProject.title?.toLowerCase() || explicitProject.id]);
 
   if (projectAction && hasAmbiguousProjectMatch(projectMatches)) {
-    return requestProjectClarification(
-      projectMatches.slice(0, 3).map((match) => match.project),
-      { type: "project", transcript: originalTranscript },
-    );
+    return requestProjectClarification(projectMatches.slice(0, 3).map((match) => match.project), { type: "project", transcript: originalTranscript });
   }
-
   if (projectAction) {
-    return rememberAndReturn({
-      type: "project",
-      projectId: project.id,
-      project,
-      transcript: originalTranscript,
-    });
+    return rememberAndReturn({ type: "project", projectId: explicitProject.id, project: explicitProject, transcript: originalTranscript });
   }
 
   const isPersonaOnly = explicitPersona && PERSONA_ALIASES[explicitPersona].some((alias) => text === alias);
-  if (isPersonaOnly) {
-    return rememberAndReturn({ type: "persona", persona: explicitPersona, transcript: originalTranscript });
-  }
+  if (isPersonaOnly) return rememberAndReturn({ type: "persona", persona: explicitPersona, transcript: originalTranscript });
 
-  if (includesAny(text, ["status", "observatory", "system status", "show status"])) {
-    return { type: "observatory", transcript: originalTranscript };
-  }
-  if (includesAny(text, ["show projects", "open projects", "project wall", "all projects"])) {
-    return { type: "projects", transcript: originalTranscript };
-  }
-  if (includesAny(text, ["show mission", "open mission", "current mission"])) {
-    return { type: "mission", transcript: originalTranscript };
-  }
-  if (includesAny(text, ["show pulse", "open pulse", "github activity", "latest updates"])) {
-    return { type: "pulse", transcript: originalTranscript };
-  }
-  if (includesAny(text, ["show awareness", "open awareness", "show alerts", "what needs attention"])) {
-    return { type: "awareness", transcript: originalTranscript };
-  }
-  if (includesAny(text, ["go home", "return home", "close", "quiet mode", "idle"])) {
-    return { type: "home", transcript: originalTranscript };
-  }
+  if (includesAny(text, ["status", "observatory", "system status", "show status"])) return { type: "observatory", transcript: originalTranscript };
+  if (includesAny(text, ["show projects", "open projects", "project wall", "all projects"])) return { type: "projects", transcript: originalTranscript };
+  if (includesAny(text, ["show mission", "open mission", "current mission"])) return { type: "mission", transcript: originalTranscript };
+  if (includesAny(text, ["show pulse", "open pulse", "github activity", "latest updates"])) return { type: "pulse", transcript: originalTranscript };
+  if (includesAny(text, ["show awareness", "open awareness", "show alerts", "what needs attention"])) return { type: "awareness", transcript: originalTranscript };
+  if (includesAny(text, ["go home", "return home", "close", "quiet mode", "idle"])) return { type: "home", transcript: originalTranscript };
 
-  if (looksConversational(text, project, explicitPersona)) {
+  if (looksConversational(text, explicitProject, explicitPersona)) {
+    const followUp = looksLikeConversationFollowUp(text) ? conversationFollowUpDefaults() : {};
+    const project = explicitProject || followUp.project || null;
     const conversationCommand = buildConversationCommand({
       text,
       originalTranscript,
       project,
-      persona: explicitPersona,
+      persona: explicitPersona || followUp.persona || null,
     });
+    if (!explicitProject && followUp.project) conversationCommand.resolvedFromConversationMemory = true;
 
-    if (project && hasAmbiguousProjectMatch(projectMatches)) {
-      return requestProjectClarification(
-        projectMatches.slice(0, 3).map((match) => match.project),
-        conversationCommand,
-      );
+    if (explicitProject && hasAmbiguousProjectMatch(projectMatches)) {
+      return requestProjectClarification(projectMatches.slice(0, 3).map((match) => match.project), conversationCommand);
     }
-
     return rememberAndReturn(conversationCommand);
   }
 
