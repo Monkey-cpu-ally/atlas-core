@@ -159,8 +159,12 @@ export default function GenesisHub({ visualBridge }) {
     dispatch(withEnvelope({ event: "awareness.alert.dismissed", payload: id ? { id } : {} }));
   }, []);
 
-  const handleVoiceCommand = useCallback((transcript) => {
-    const command = routeVoiceCommand(transcript, { projects: allProjects });
+  const handleVoiceCommand = useCallback((commandOrTranscript) => {
+    const command = typeof commandOrTranscript === "string"
+      ? routeVoiceCommand(commandOrTranscript, { projects: allProjects, currentProject: activeProject })
+      : commandOrTranscript;
+    if (!command?.type) return;
+
     dispatch(withEnvelope({
       event: "hud.mode.changed",
       payload: { mode: "voice-command", message: command.transcript, data: command },
@@ -169,6 +173,10 @@ export default function GenesisHub({ visualBridge }) {
     switch (command.type) {
       case "project":
         selectProject(command.project);
+        break;
+      case "conversation":
+        if (command.project?.id) selectProject(command.project);
+        else if (command.persona && command.persona !== "atlas") selectPersona(command.persona);
         break;
       case "persona":
         selectPersona(command.persona);
@@ -204,13 +212,13 @@ export default function GenesisHub({ visualBridge }) {
           payload: {
             persona: "atlas",
             title: "Command not recognized",
-            reason: transcript,
+            reason: command.transcript || "Unknown voice command",
             action: "Try a project name, status, projects, mission, Pulse, Awareness, Ajani, Minerva, Hermes, or Council.",
             urgency: "normal",
           },
         }));
     }
-  }, [allProjects, kernel, mission.id, selectPersona, selectProject]);
+  }, [activeProject, allProjects, kernel, mission.id, selectPersona, selectProject]);
 
   return (
     <main
@@ -285,7 +293,7 @@ export default function GenesisHub({ visualBridge }) {
         </nav>
       ) : null}
 
-      <DeveloperMode enabled={developerMode} onToggle={() => setDeveloperMode((current) => !current)} scene={scene} persona={persona} quality={quality.profile} bridgeStatus={visualBridge?.status} activeProjectId={kernelSnapshot?.activeProjectId} />
+      <DeveloperMode enabled={developerMode} onToggle={() => setDeveloperMode((current) => !current)} scene={scene} />
 
       {process.env.NODE_ENV !== "production" && developerMode ? (
         <nav className="genesis-preview" aria-label="Genesis development preview controls">
