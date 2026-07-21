@@ -1,3 +1,10 @@
+from .certification import (
+    CertificationResult,
+    FailureArchive,
+    FailureRecord,
+    MasterpieceCertificationEngine,
+)
+from .collections import CollectionProduct, DesignCollection
 from .council import CouncilReviewEngine
 from .critique import LuxuryCritiqueEngine, OriginalityEngine
 from .database import LuxuryDatabase
@@ -33,8 +40,10 @@ from .models import (
     ReviewVerdict,
 )
 from .progress import AcademyProgressTracker, ProgressModule, ProgressRepository
+from .prototypes import PrototypeLaboratory, PrototypeRecord, PrototypeTest, TestStatus
 from .repositories import DesignProjectRepository, MaterialRepository
 from .service import LuxuryDesignService
+from .suppliers import Supplier, SupplierRegistry, SupplierStatus
 from .workflow import ForgeStateMachine, ForgeTransitionError, StageRequirement
 
 __all__ = [
@@ -44,17 +53,22 @@ __all__ = [
     "ApparelEngineeringResult",
     "BagEngineeringCalculator",
     "BagEngineeringResult",
+    "CertificationResult",
+    "CollectionProduct",
     "CouncilDecision",
     "CouncilReviewEngine",
     "CostLine",
     "CritiqueFinding",
     "DEFAULT_CATEGORIES",
+    "DesignCollection",
     "DesignConcept",
     "DesignForge",
     "DesignGenome",
     "DesignGenomeEngine",
     "DesignProjectRepository",
     "EvaluationStore",
+    "FailureArchive",
+    "FailureRecord",
     "FootwearEngineeringCalculator",
     "FootwearEngineeringResult",
     "ForgeRecord",
@@ -70,11 +84,19 @@ __all__ = [
     "ManufacturingCostEngine",
     "ManufacturingEstimate",
     "ManufacturingInputs",
+    "MasterpieceCertificationEngine",
     "MaterialProfile",
     "MaterialRepository",
     "OriginalityEngine",
     "ProgressModule",
     "ProgressRepository",
+    "PrototypeLaboratory",
+    "PrototypeRecord",
+    "PrototypeTest",
     "ReviewVerdict",
     "StageRequirement",
+    "Supplier",
+    "SupplierRegistry",
+    "SupplierStatus",
+    "TestStatus",
 ]
