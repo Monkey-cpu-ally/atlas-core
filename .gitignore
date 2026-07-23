@@ -86,3 +86,19 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Ll]ogs/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+UserSettings/
+
+# Unity Visual Studio files
+.vs/
+*.csproj
+*.sln
+*.user
+*.pidb
+*.booproj
