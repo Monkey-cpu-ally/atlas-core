@@ -4,6 +4,7 @@ import './HermesPresenceBridge.css';
 
 const STATUS_EVENT = 'atlas-ai-status';
 const SESSION_KEY = 'atlas.workspace.hermes.v1';
+const LIVE_EVENT_PRIORITY_MS = 1000;
 
 const STATUS_LABELS = {
   ready: 'Ready',
@@ -81,8 +82,13 @@ function applyHermesPresence(detail = {}) {
 export default function HermesPresenceBridge() {
   useEffect(() => {
     let lastSignature = '';
+    let preferLiveEventUntil = 0;
 
     const syncStoredPresence = () => {
+      // A live workspace event is newer than localStorage until the workspace's
+      // persistence effect has had time to commit the same state.
+      if (Date.now() < preferLiveEventUntil) return;
+
       const presence = readStoredPresence();
       const signature = JSON.stringify(presence);
       if (signature === lastSignature) return;
@@ -97,6 +103,7 @@ export default function HermesPresenceBridge() {
     const onStatus = (event) => {
       if (event.detail?.ai !== 'hermes') return;
       const presence = sanitizePresence(event.detail);
+      preferLiveEventUntil = Date.now() + LIVE_EVENT_PRIORITY_MS;
       if (applyHermesPresence(presence)) {
         lastSignature = JSON.stringify(presence);
       } else {
