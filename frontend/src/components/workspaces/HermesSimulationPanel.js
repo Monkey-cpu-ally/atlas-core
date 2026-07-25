@@ -5,15 +5,6 @@ function storageKey(projectId) {
   return `atlas.workspace.hermes.simulation.${projectId || 'general'}`;
 }
 
-function loadState(projectId) {
-  try {
-    const stored = window.localStorage?.getItem(storageKey(projectId));
-    return stored ? JSON.parse(stored) : null;
-  } catch (_) {
-    return null;
-  }
-}
-
 const INITIAL = {
   status: 'idle',
   progress: 0,
@@ -23,6 +14,45 @@ const INITIAL = {
   completedAt: null,
 };
 
+const VALID_STATUSES = new Set(['idle', 'running', 'paused', 'complete']);
+
+function cleanText(value, fallback = '', maxLength = 2000) {
+  return typeof value === 'string' ? value.slice(0, maxLength) : fallback;
+}
+
+function cleanTimestamp(value) {
+  if (value === null || value === undefined) return null;
+  const timestamp = Number(value);
+  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : null;
+}
+
+function sanitizeState(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ...INITIAL };
+  }
+
+  const progress = Number(value.progress);
+  return {
+    status: VALID_STATUSES.has(value.status) ? value.status : INITIAL.status,
+    progress: Number.isFinite(progress) ? Math.min(100, Math.max(0, progress)) : INITIAL.progress,
+    runName: cleanText(value.runName, INITIAL.runName, 160),
+    objective: cleanText(value.objective, INITIAL.objective, 4000),
+    startedAt: cleanTimestamp(value.startedAt),
+    completedAt: cleanTimestamp(value.completedAt),
+  };
+}
+
+function loadState(projectId) {
+  try {
+    const stored = window.localStorage?.getItem(storageKey(projectId));
+    if (!stored) return { ...INITIAL };
+    return sanitizeState(JSON.parse(stored));
+  } catch (_) {
+    try { window.localStorage?.removeItem(storageKey(projectId)); } catch (_) {}
+    return { ...INITIAL };
+  }
+}
+
 /**
  * HermesSimulationPanel tracks a simulation workflow locally. It does not claim
  * to be a physics solver: the panel prepares, times, pauses and records a run so
@@ -31,10 +61,10 @@ const INITIAL = {
 export default function HermesSimulationPanel({ project, onStatusChange, onActivity }) {
   const projectId = project?.id || 'general';
   const saved = useMemo(() => loadState(projectId), [projectId]);
-  const [run, setRun] = useState(saved || INITIAL);
+  const [run, setRun] = useState(saved);
 
   useEffect(() => {
-    setRun(loadState(projectId) || INITIAL);
+    setRun(loadState(projectId));
   }, [projectId]);
 
   useEffect(() => {
