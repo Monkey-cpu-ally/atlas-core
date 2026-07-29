@@ -27,6 +27,8 @@ public class AISpecialistCard : MonoBehaviour
 
     // ── Preset specialists ─────────────────────────────────────────────────────
 
+    // Each specialist has a unique domain-keyed accent colour intentionally
+    // distinct from the shared palette — these are identity colours, not UI chrome.
     public static readonly CardData[] Specialists =
     {
         new CardData { Name = "ATLAS PRIME",  Specialty = "General Intelligence",  StatusText = "ACTIVE",   AccentColor = new Color(0.00f, 0.80f, 1.00f), GlyphChar = "◈" },

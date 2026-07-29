@@ -31,7 +31,13 @@ public class EnvironmentTransitionManager : MonoBehaviour
     private AISelectionHubEnvironment aiHubEnv;
     private Image                     warpOverlay;
 
-    private bool isRunning;
+    // ── Warp flash colour ─────────────────────────────────────────────────────
+    // Cyan tone that matches HolographicPanel.BorderCyan at partial opacity.
+    private static readonly Color WarpColor = new Color(
+        HolographicPanel.BorderCyan.r,
+        HolographicPanel.BorderCyan.g,
+        HolographicPanel.BorderCyan.b,
+        0f);   // alpha driven by the flash coroutine
 
     // ── Setup ─────────────────────────────────────────────────────────────────
 
@@ -43,7 +49,7 @@ public class EnvironmentTransitionManager : MonoBehaviour
     {
         var rt   = AtlasUIFactory.CreateFullStretch("WarpOverlay", canvasRoot);
         warpOverlay       = rt.gameObject.AddComponent<Image>();
-        warpOverlay.color = new Color(0.00f, 0.70f, 1.00f, 0f);   // transparent cyan
+        warpOverlay.color = WarpColor;   // starts transparent
         // Overlay sits on top of everything
         rt.SetAsLastSibling();
     }
@@ -122,13 +128,15 @@ public class EnvironmentTransitionManager : MonoBehaviour
     {
         if (warpOverlay == null) yield break;
 
-        // Fade in quickly
         float half    = duration * 0.5f;
         float elapsed = 0f;
+
+        // Fade in
         while (elapsed < half)
         {
             elapsed += Time.deltaTime;
-            warpOverlay.color = new Color(0f, 0.70f, 1f, Mathf.Clamp01(elapsed / half) * 0.55f);
+            float a = Mathf.Clamp01(elapsed / half) * 0.55f;
+            warpOverlay.color = new Color(WarpColor.r, WarpColor.g, WarpColor.b, a);
             yield return null;
         }
 
@@ -137,10 +145,11 @@ public class EnvironmentTransitionManager : MonoBehaviour
         while (elapsed < half)
         {
             elapsed += Time.deltaTime;
-            warpOverlay.color = new Color(0f, 0.70f, 1f, (1f - Mathf.Clamp01(elapsed / half)) * 0.55f);
+            float a = (1f - Mathf.Clamp01(elapsed / half)) * 0.55f;
+            warpOverlay.color = new Color(WarpColor.r, WarpColor.g, WarpColor.b, a);
             yield return null;
         }
 
-        warpOverlay.color = new Color(0f, 0.70f, 1f, 0f);
+        warpOverlay.color = WarpColor;   // fully transparent (alpha = 0)
     }
 }

@@ -107,6 +107,7 @@ public class ATLASMANAGER : MonoBehaviour
 
     private static void EnsureEventSystem()
     {
+        // FindFirstObjectByType requires Unity 6 (6000.x) — this project targets Unity 6000.5.4f1.
         if (FindFirstObjectByType<EventSystem>() != null) return;
         var esGO = new GameObject("EventSystem");
         esGO.AddComponent<EventSystem>();

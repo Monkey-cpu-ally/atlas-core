@@ -9,7 +9,8 @@ using UnityEngine.UI;
 /// Drives continuous glow pulsing and occasional flicker to sell the
 /// "transparent holographic glass" aesthetic.
 ///
-/// Colour palette used across all Atlas HUD environments:
+/// Colour palette constants are declared here so every Atlas HUD script
+/// shares a single source of truth for all UI colours.
 /// </summary>
 [RequireComponent(typeof(RectTransform))]
 public class HolographicPanel : MonoBehaviour
