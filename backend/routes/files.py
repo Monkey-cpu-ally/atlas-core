@@ -4,8 +4,9 @@ Handles file uploads, AI categorization, and file management
 """
 import os
 import shutil
-from uuid import uuid4
+from pathlib import Path
 from typing import List
+from uuid import uuid4
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import FileResponse
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -22,8 +23,28 @@ client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
 # File storage directory
-UPLOAD_DIR = "/app/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+_DEFAULT_UPLOAD_DIR = Path("/app/uploads")
+_FALLBACK_UPLOAD_DIR = Path(__file__).resolve().parents[1] / "_data" / "uploads"
+
+
+def _initialize_upload_dir() -> Path:
+    configured = os.environ.get("ATLAS_UPLOAD_DIR")
+    if configured:
+        upload_dir = Path(configured)
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        return upload_dir
+
+    for upload_dir in (_DEFAULT_UPLOAD_DIR, _FALLBACK_UPLOAD_DIR):
+        try:
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            return upload_dir
+        except PermissionError:
+            continue
+
+    raise PermissionError(f"Unable to create upload directory at {_DEFAULT_UPLOAD_DIR} or {_FALLBACK_UPLOAD_DIR}")
+
+
+UPLOAD_DIR = _initialize_upload_dir()
 
 # File size limit: 50MB
 MAX_FILE_SIZE = 50 * 1024 * 1024
@@ -47,7 +68,7 @@ async def upload_file(file: UploadFile = File(...)):
         file_id = f"file_{uuid4().hex[:12]}"
         file_extension = os.path.splitext(file.filename)[1]
         stored_filename = f"{file_id}{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, stored_filename)
+        file_path = UPLOAD_DIR / stored_filename
         
         # Save file to disk
         with open(file_path, "wb") as buffer:
@@ -63,7 +84,7 @@ async def upload_file(file: UploadFile = File(...)):
         file_metadata = FileMetadata(
             id=file_id,
             filename=file.filename,
-            file_path=file_path,
+            file_path=str(file_path),
             file_type=file.content_type or "application/octet-stream",
             file_size=file_size,
             ai_persona=ai_suggestion["ai_persona"],
@@ -154,8 +175,9 @@ async def delete_file(file_id: str):
     
     # Delete physical file
     try:
-        if os.path.exists(file_doc["file_path"]):
-            os.remove(file_doc["file_path"])
+        path = Path(file_doc["file_path"])
+        if path.exists():
+            path.unlink()
     except Exception as e:
         print(f"Error deleting file: {e}")
     
@@ -174,7 +196,7 @@ async def download_file(file_id: str):
     if not file_doc:
         raise HTTPException(status_code=404, detail="File not found")
     
-    if not os.path.exists(file_doc["file_path"]):
+    if not Path(file_doc["file_path"]).exists():
         raise HTTPException(status_code=404, detail="File not found on disk")
     
     return FileResponse(
