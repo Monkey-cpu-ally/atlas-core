@@ -6,8 +6,10 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 from pydantic import BaseModel
 from services.knowledge_core import get_knowledge_core
+from routes.knowledge_governance import router as governance_router
 
 router = APIRouter(prefix="/api/knowledge", tags=["Knowledge"])
+router.include_router(governance_router)
 
 # Get the shared knowledge core
 knowledge_core = get_knowledge_core()
