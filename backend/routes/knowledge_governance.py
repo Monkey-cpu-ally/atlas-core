@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from services import knowledge_governance_engine as engine
 
 
-router = APIRouter(prefix="/api/knowledge-governance", tags=["Knowledge Governance"])
+router = APIRouter(prefix="/governance", tags=["Knowledge Governance"])
 
 
 class StatusTransitionRequest(BaseModel):
