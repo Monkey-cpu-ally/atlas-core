@@ -4,14 +4,15 @@ Handles file uploads, AI categorization, and file management
 """
 import os
 import shutil
-from uuid import uuid4
 from typing import List
+from uuid import uuid4
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import FileResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from models.file_model import FileMetadata, FileUploadResponse, FileCategoryUpdate
 from services.ai_categorizer import categorize_file_with_ai, get_available_sections
+from utils.filesystem import initialize_upload_dir
 
 router = APIRouter(prefix="/api/files", tags=["Files"])
 
@@ -22,8 +23,7 @@ client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
 # File storage directory
-UPLOAD_DIR = "/app/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR = initialize_upload_dir()
 
 # File size limit: 50MB
 MAX_FILE_SIZE = 50 * 1024 * 1024
