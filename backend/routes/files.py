@@ -2,10 +2,13 @@
 File Upload and Management Routes
 Handles file uploads, AI categorization, and file management
 """
+import logging
 import os
 import shutil
-from uuid import uuid4
+import tempfile
+from pathlib import Path
 from typing import List
+from uuid import uuid4
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import FileResponse
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -14,6 +17,7 @@ from models.file_model import FileMetadata, FileUploadResponse, FileCategoryUpda
 from services.ai_categorizer import categorize_file_with_ai, get_available_sections
 
 router = APIRouter(prefix="/api/files", tags=["Files"])
+logger = logging.getLogger(__name__)
 
 # MongoDB connection
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
@@ -21,9 +25,24 @@ DB_NAME = os.environ.get("DB_NAME", "atlas_core")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
+def _initialize_upload_dir() -> str:
+    configured_dir = Path(os.environ.get("UPLOAD_DIR", "/app/uploads"))
+    try:
+        configured_dir.mkdir(parents=True, exist_ok=True)
+        return str(configured_dir)
+    except PermissionError:
+        fallback_dir = Path(tempfile.gettempdir()) / "atlas-uploads"
+        fallback_dir.mkdir(parents=True, exist_ok=True)
+        logger.warning(
+            "Upload directory %s is not writable; using fallback %s",
+            configured_dir,
+            fallback_dir,
+        )
+        return str(fallback_dir)
+
+
 # File storage directory
-UPLOAD_DIR = "/app/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR = _initialize_upload_dir()
 
 # File size limit: 50MB
 MAX_FILE_SIZE = 50 * 1024 * 1024
