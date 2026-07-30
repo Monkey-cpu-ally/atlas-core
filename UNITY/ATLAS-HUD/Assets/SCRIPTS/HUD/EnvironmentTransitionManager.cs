@@ -30,6 +30,7 @@ public class EnvironmentTransitionManager : MonoBehaviour
     private AtlasFaceEnvironment      atlasFaceEnv;
     private AISelectionHubEnvironment aiHubEnv;
     private Image                     warpOverlay;
+    private bool                      isRunning;
 
     // ── Warp flash colour ─────────────────────────────────────────────────────
     // Cyan tone that matches HolographicPanel.BorderCyan at partial opacity.
