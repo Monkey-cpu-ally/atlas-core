@@ -16,9 +16,11 @@ using UnityEngine.UI;
 public class AtlasFaceEnvironment : AtlasEnvironmentBase
 {
     // ── Animated elements ─────────────────────────────────────────────────────
-    private Image      statusDot;
-    private AtlasCoreOrb _coreOrb;
-    private Coroutine  statusPulseRoutine;
+    private Image          statusDot;
+    private AtlasCoreOrb   _coreOrb;
+    private AIPortraitPanel _portraitPanel;
+    private DialoguePanel  _dialoguePanel;
+    private Coroutine      statusPulseRoutine;
 
     // ── Factory ───────────────────────────────────────────────────────────────
 
@@ -50,7 +52,9 @@ public class AtlasFaceEnvironment : AtlasEnvironmentBase
 
         BuildTopBar(root);
         BuildCenterPanel(root);
+        BuildStatusWidgetBar(root);
         BuildBottomBar(root);
+        BuildSidePanels(root);
     }
 
     // ── Top bar ───────────────────────────────────────────────────────────────
@@ -160,6 +164,23 @@ public class AtlasFaceEnvironment : AtlasEnvironmentBase
                 fontSize: 11, color: HolographicPanel.TextPrimary,
                 alignment: TextAnchor.MiddleLeft);
         }
+    }
+
+    // ── Status widget bar ─────────────────────────────────────────────────────
+
+    private void BuildStatusWidgetBar(RectTransform root)
+    {
+        StatusWidgetBar.Create(root);
+    }
+
+    // ── Side panels (portrait + dialogue) ────────────────────────────────────
+
+    private void BuildSidePanels(RectTransform root)
+    {
+        // Load Atlas personality data for the portrait panel
+        var atlasData = Resources.Load<AIPersonalityData>("AI/Atlas");
+        _portraitPanel = AIPortraitPanel.Create(root, atlasData);
+        _dialoguePanel = DialoguePanel.Create(root);
     }
 
     // ── Bottom navigation bar ─────────────────────────────────────────────────

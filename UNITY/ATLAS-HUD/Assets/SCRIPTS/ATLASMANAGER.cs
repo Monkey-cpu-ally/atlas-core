@@ -33,6 +33,10 @@ public class ATLASMANAGER : MonoBehaviour
     private EnvironmentTransitionManager    transitionMgr;
     private AtlasEnvironmentBase            currentEnv;
 
+    // ── Persistent HUD layers ─────────────────────────────────────────────────
+    private NavigationDock    navDock;
+    private NotificationLayer notifLayer;
+
     // ─────────────────────────────────────────────────────────────────────────
     private void Awake()
     {
@@ -52,6 +56,12 @@ public class ATLASMANAGER : MonoBehaviour
         EnsureEventSystem();
 
         Canvas canvas = BuildCanvas();
+
+        // ── Persistent layers (NavigationDock + NotificationLayer) ────────────
+        // Built before environments so environments render on top of dock,
+        // then transition overlay goes on top of everything.
+        navDock    = NavigationDock.Create(canvas.transform);
+        notifLayer = NotificationLayer.Create(canvas.transform);
 
         // Transition overlay rendered on top of all environments
         GameObject tmGO = new GameObject("TransitionManager");
@@ -85,6 +95,9 @@ public class ATLASMANAGER : MonoBehaviour
         archiveEnv.HideImmediate();
         coreOpsEnv.HideImmediate();
         currentEnv = atlasFaceEnv;
+
+        // Initialise navigation dock highlight
+        navDock.SetActiveState(AtlasHUDState.AtlasFace);
     }
 
     // ── Public Navigation API ─────────────────────────────────────────────────
@@ -96,15 +109,21 @@ public class ATLASMANAGER : MonoBehaviour
     /// <summary>Navigate to the Atlas Face environment (deepest back).</summary>
     public void NavigateToAtlasFace()
     {
-        transitionMgr.RequestStateChange(AtlasHUDState.AtlasFace,
-            () => currentEnv = atlasFaceEnv);
+        transitionMgr.RequestStateChange(AtlasHUDState.AtlasFace, () =>
+        {
+            currentEnv = atlasFaceEnv;
+            navDock?.SetActiveState(AtlasHUDState.AtlasFace);
+        });
     }
 
     /// <summary>Navigate to the AI Selection Hub.</summary>
     public void NavigateToAIHub()
     {
-        transitionMgr.RequestStateChange(AtlasHUDState.AISelectionHub,
-            () => currentEnv = aiHubEnv);
+        transitionMgr.RequestStateChange(AtlasHUDState.AISelectionHub, () =>
+        {
+            currentEnv = aiHubEnv;
+            navDock?.SetActiveState(AtlasHUDState.AISelectionHub);
+        });
     }
 
     /// <summary>
@@ -114,8 +133,11 @@ public class ATLASMANAGER : MonoBehaviour
     public void NavigateToSpecialistWorkspace(AISpecialistCard.CardData specialist)
     {
         workspaceEnv.LoadSpecialist(specialist);
-        transitionMgr.RequestStateChange(AtlasHUDState.SpecialistWorkspace,
-            () => currentEnv = workspaceEnv);
+        transitionMgr.RequestStateChange(AtlasHUDState.SpecialistWorkspace, () =>
+        {
+            currentEnv = workspaceEnv;
+            navDock?.SetActiveState(AtlasHUDState.SpecialistWorkspace);
+        });
     }
 
     /// <summary>
@@ -124,22 +146,31 @@ public class ATLASMANAGER : MonoBehaviour
     /// </summary>
     public void NavigateToSpecialistWorkspace()
     {
-        transitionMgr.RequestStateChange(AtlasHUDState.SpecialistWorkspace,
-            () => currentEnv = workspaceEnv);
+        transitionMgr.RequestStateChange(AtlasHUDState.SpecialistWorkspace, () =>
+        {
+            currentEnv = workspaceEnv;
+            navDock?.SetActiveState(AtlasHUDState.SpecialistWorkspace);
+        });
     }
 
     /// <summary>Navigate to the Research Archive.</summary>
     public void NavigateToResearchArchive()
     {
-        transitionMgr.RequestStateChange(AtlasHUDState.ResearchArchive,
-            () => currentEnv = archiveEnv);
+        transitionMgr.RequestStateChange(AtlasHUDState.ResearchArchive, () =>
+        {
+            currentEnv = archiveEnv;
+            navDock?.SetActiveState(AtlasHUDState.ResearchArchive);
+        });
     }
 
     /// <summary>Navigate to Core Operations.</summary>
     public void NavigateToCoreOperations()
     {
-        transitionMgr.RequestStateChange(AtlasHUDState.CoreOperations,
-            () => currentEnv = coreOpsEnv);
+        transitionMgr.RequestStateChange(AtlasHUDState.CoreOperations, () =>
+        {
+            currentEnv = coreOpsEnv;
+            navDock?.SetActiveState(AtlasHUDState.CoreOperations);
+        });
     }
 
     // ── Private Helpers ───────────────────────────────────────────────────────
