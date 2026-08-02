@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle } from 'lucide-react';
 
 function storageKey(projectId) {
@@ -62,9 +62,12 @@ export default function HermesSimulationPanel({ project, onStatusChange, onActiv
   const projectId = project?.id || 'general';
   const saved = useMemo(() => loadState(projectId), [projectId]);
   const [run, setRun] = useState(saved);
+  const reportedCompletionRef = useRef(saved.completedAt);
 
   useEffect(() => {
-    setRun(loadState(projectId));
+    const restored = loadState(projectId);
+    reportedCompletionRef.current = restored.completedAt;
+    setRun(restored);
   }, [projectId]);
 
   useEffect(() => {
@@ -78,20 +81,26 @@ export default function HermesSimulationPanel({ project, onStatusChange, onActiv
   }, [run.status, onStatusChange]);
 
   useEffect(() => {
+    if (run.status !== 'complete' || !run.completedAt) return;
+    if (reportedCompletionRef.current === run.completedAt) return;
+
+    reportedCompletionRef.current = run.completedAt;
+    onActivity?.('Simulation workflow completed');
+  }, [run.status, run.completedAt, onActivity]);
+
+  useEffect(() => {
     if (run.status !== 'running') return undefined;
     const timer = window.setInterval(() => {
       setRun((current) => {
         const nextProgress = Math.min(100, current.progress + 2);
         if (nextProgress >= 100) {
-          const completed = { ...current, status: 'complete', progress: 100, completedAt: Date.now() };
-          onActivity?.('Simulation workflow completed');
-          return completed;
+          return { ...current, status: 'complete', progress: 100, completedAt: Date.now() };
         }
         return { ...current, progress: nextProgress };
       });
     }, 700);
     return () => window.clearInterval(timer);
-  }, [run.status, onActivity]);
+  }, [run.status]);
 
   const startOrResume = () => {
     setRun((current) => ({
