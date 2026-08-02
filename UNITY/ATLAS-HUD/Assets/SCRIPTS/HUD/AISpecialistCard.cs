@@ -43,13 +43,15 @@ public class AISpecialistCard : MonoBehaviour
 
     private CardData data;
     private Image    accentBar;
-    private Image    glowBorder;
     private float    shimmerPhase;
+    private System.Action<CardData> _onSelect;
 
     // ── Factory ───────────────────────────────────────────────────────────────
 
     /// <summary>Creates a card under <paramref name="parent"/> at its natural size.</summary>
-    public static AISpecialistCard Create(Transform parent, CardData cardData)
+    /// <param name="onSelect">Optional callback invoked when the card is clicked.</param>
+    public static AISpecialistCard Create(Transform parent, CardData cardData,
+        System.Action<CardData> onSelect = null)
     {
         var go = new GameObject($"Card_{cardData.Name}");
         go.transform.SetParent(parent, false);
@@ -57,8 +59,9 @@ public class AISpecialistCard : MonoBehaviour
         var rt       = go.AddComponent<RectTransform>();
         rt.sizeDelta = new Vector2(260, 160);
 
-        var card   = go.AddComponent<AISpecialistCard>();
-        card.data  = cardData;
+        var card         = go.AddComponent<AISpecialistCard>();
+        card.data        = cardData;
+        card._onSelect   = onSelect;
         card.BuildUI(rt);
         return card;
     }
@@ -67,6 +70,16 @@ public class AISpecialistCard : MonoBehaviour
 
     private void BuildUI(RectTransform root)
     {
+        // Transparent hit-area Image for the Button's targetGraphic.
+        // Must be added before BuildPanelLayers so it renders at the root level.
+        var hitImg = root.gameObject.AddComponent<Image>();
+        hitImg.color = Color.clear;
+
+        var btn = root.gameObject.AddComponent<Button>();
+        btn.targetGraphic = hitImg;
+        if (_onSelect != null)
+            btn.onClick.AddListener(() => _onSelect(data));
+
         var content = HolographicPanel.BuildPanelLayers(root);
 
         // Coloured accent stripe at the top of the card

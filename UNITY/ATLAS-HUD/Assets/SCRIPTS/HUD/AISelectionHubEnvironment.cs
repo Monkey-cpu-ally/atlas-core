@@ -106,7 +106,8 @@ public class AISelectionHubEnvironment : AtlasEnvironmentBase
         grid.constraintCount     = 3;
 
         foreach (var specialist in AISpecialistCard.Specialists)
-            AISpecialistCard.Create(gridArea, specialist);
+            AISpecialistCard.Create(gridArea, specialist,
+                s => ATLASMANAGER.Instance.NavigateToSpecialistWorkspace(s));
     }
 
     // ── Footer bar ────────────────────────────────────────────────────────────

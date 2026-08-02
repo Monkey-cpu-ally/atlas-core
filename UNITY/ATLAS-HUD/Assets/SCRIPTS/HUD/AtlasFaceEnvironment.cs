@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// The default landing environment. Displays:
 ///   • Full-screen deep-space background
 ///   • Top status bar  (title, version, system-status indicator)
-///   • Central identity panel (animated hexagonal emblem, name, readout lines)
+///   • Central identity panel (AtlasCoreOrb in orange Atlas identity, name, readout lines)
 ///   • Bottom navigation bar  (environment label + "Enter AI Hub" button)
 ///
 /// Usage: call AtlasFaceEnvironment.Create(canvasTransform) once from ATLASMANAGER.
@@ -16,10 +16,9 @@ using UnityEngine.UI;
 public class AtlasFaceEnvironment : AtlasEnvironmentBase
 {
     // ── Animated elements ─────────────────────────────────────────────────────
-    private Image  statusDot;
-    private Image  emblemRing;
-    private float  ringPhase;
-    private Coroutine statusPulseRoutine;
+    private Image      statusDot;
+    private AtlasCoreOrb _coreOrb;
+    private Coroutine  statusPulseRoutine;
 
     // ── Factory ───────────────────────────────────────────────────────────────
 
@@ -106,38 +105,22 @@ public class AtlasFaceEnvironment : AtlasEnvironmentBase
 
         var content = HolographicPanel.BuildPanelLayers(panel);
 
-        // ── Emblem ring (animated) ────────────────────────────────────────────
-        var ringContainer = AtlasUIFactory.CreateElement(
-            "EmblemContainer", content,
-            anchor: new Vector2(0.5f, 0.74f), pivot: new Vector2(0.5f, 0.5f),
-            position: Vector2.zero, size: new Vector2(160, 160));
+        // ── Atlas Core Orb ────────────────────────────────────────────────────
+        // The orb is the living centrepiece of the Atlas Face environment.
+        // It uses the Atlas orange identity (loaded from Resources/AI/Atlas).
+        var orbContainer = AtlasUIFactory.CreateElement(
+            "OrbContainer", content,
+            anchor: new Vector2(0.5f, 0.70f), pivot: new Vector2(0.5f, 0.5f),
+            position: Vector2.zero, size: new Vector2(260, 260));
 
-        // Pulsing outer ring
-        var ringRT  = AtlasUIFactory.CreateElement(
-            "Ring", ringContainer,
-            anchor: new Vector2(0.5f, 0.5f), pivot: new Vector2(0.5f, 0.5f),
-            position: Vector2.zero, size: new Vector2(150, 150));
-        emblemRing  = ringRT.gameObject.AddComponent<Image>();
-        emblemRing.color = new Color(0f, 0.80f, 1f, 0.45f);
+        _coreOrb = AtlasCoreOrb.Create(orbContainer, 260f);
 
-        // Inner filled circle (emblem background)
-        var innerRT = AtlasUIFactory.CreateElement(
-            "EmblemBG", ringContainer,
-            anchor: new Vector2(0.5f, 0.5f), pivot: new Vector2(0.5f, 0.5f),
-            position: Vector2.zero, size: new Vector2(118, 118));
-        var innerImg = innerRT.gameObject.AddComponent<Image>();
-        innerImg.color = new Color(0f, 0.28f, 0.58f, 0.85f);
+        // Apply Atlas orange identity
+        var atlasData = Resources.Load<AIPersonalityData>("AI/Atlas");
+        if (atlasData != null)
+            _coreOrb.SetAIIdentity(atlasData);
 
-        // Glyph: hexagonal lattice symbol
-        var glyphRT  = AtlasUIFactory.CreateElement(
-            "Glyph", ringContainer,
-            anchor: new Vector2(0.5f, 0.5f), pivot: new Vector2(0.5f, 0.5f),
-            position: Vector2.zero, size: new Vector2(110, 110));
-        var glyph    = glyphRT.gameObject.AddComponent<Text>();
-        glyph.text   = "⬡";
-        glyph.fontSize     = 58;
-        glyph.color        = HolographicPanel.TextAccent;
-        glyph.alignment    = TextAnchor.MiddleCenter;
+        _coreOrb.SetState(OrbState.Active);
 
         // ── Name & subtitle ───────────────────────────────────────────────────
         AtlasUIFactory.CreateLabel("Lbl_Name", content,
@@ -223,19 +206,6 @@ public class AtlasFaceEnvironment : AtlasEnvironmentBase
             StopCoroutine(statusPulseRoutine);
             statusPulseRoutine = null;
         }
-    }
-
-    private void Update()
-    {
-        if (emblemRing == null) return;
-
-        ringPhase += Time.deltaTime * 0.75f;
-        float scale = 0.88f + Mathf.Sin(ringPhase) * 0.12f;
-        emblemRing.transform.localScale = new Vector3(scale, scale, 1f);
-
-        Color c = emblemRing.color;
-        c.a     = 0.30f + Mathf.Sin(ringPhase * 1.4f) * 0.18f;
-        emblemRing.color = c;
     }
 
     private IEnumerator PulseStatusDot()

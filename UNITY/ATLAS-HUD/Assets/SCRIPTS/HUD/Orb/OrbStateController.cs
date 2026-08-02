@@ -143,6 +143,20 @@ public class OrbStateController : MonoBehaviour
             yield return null;
         }
     }
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    private void OnEnable()
+    {
+        // Restart the active pulse after a hide/show cycle.
+        if (orb == null) return;   // Initialize() has not run yet; skip.
+
+        if (pulseRoutine != null)
+        {
+            StopCoroutine(pulseRoutine);
+            pulseRoutine = null;
+        }
+        ApplyState(currentState);
+    }
 }
 
 /// <summary>Operational states of the Atlas Core Orb.</summary>

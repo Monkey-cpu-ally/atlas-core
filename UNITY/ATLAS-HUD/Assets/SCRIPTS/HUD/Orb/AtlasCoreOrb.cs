@@ -267,6 +267,20 @@ public class AtlasCoreOrb : MonoBehaviour
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
+    private void OnEnable()
+    {
+        // Restart coroutines that were stopped when the parent hierarchy was deactivated.
+        if (outerRing == null) return;   // Build() has not run yet; skip.
+
+        if (breathRoutine != null)
+            StopCoroutine(breathRoutine);
+        breathRoutine = StartCoroutine(BreathingRoutine());
+
+        outerRing.StartIdleRotation();
+        middleRing.StartIdleRotation();
+        innerRing.StartIdleRotation();
+    }
+
     private void OnDestroy()
     {
         if (breathRoutine != null)

@@ -4,7 +4,7 @@ using UnityEngine;
 /// Identifies which Atlas AI specialist this data describes.
 /// Matches the four entries in the AI Personality Bible (UX_DIVISION/05_AI_PERSONALITY_INTERACTION_BIBLE.md).
 /// </summary>
-public enum AIIdentity { Ajani = 0, Minerva = 1, Hermes = 2, Council = 3 }
+public enum AIIdentity { Ajani = 0, Minerva = 1, Hermes = 2, Council = 3, Atlas = 4 }
 
 /// <summary>
 /// ScriptableObject that captures a single AI specialist's visual identity and animation timing.

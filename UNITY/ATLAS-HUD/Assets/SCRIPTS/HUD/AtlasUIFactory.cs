@@ -105,11 +105,12 @@ public static class AtlasUIFactory
         int fontSize, Color color, TextAnchor alignment = TextAnchor.MiddleLeft)
     {
         var rt = CreateElement(name, parent, anchor, pivot, position, size);
-        var lbl           = rt.gameObject.AddComponent<Text>();
-        lbl.text          = text;
-        lbl.fontSize      = fontSize;
-        lbl.color         = color;
-        lbl.alignment     = alignment;
+        var lbl                  = rt.gameObject.AddComponent<Text>();
+        lbl.font                 = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        lbl.text                 = text;
+        lbl.fontSize             = fontSize;
+        lbl.color                = color;
+        lbl.alignment            = alignment;
         lbl.resizeTextForBestFit = false;
         return lbl;
     }
@@ -129,6 +130,7 @@ public static class AtlasUIFactory
         img.color = bgColor;
 
         var btn = rt.gameObject.AddComponent<Button>();
+        btn.targetGraphic = img;
         if (onClick != null)
             btn.onClick.AddListener(() => onClick());
 
@@ -136,6 +138,7 @@ public static class AtlasUIFactory
         var lblRT = CreateElement("Label", rt, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
             Vector2.zero, size - new Vector2(16, 0));
         var lbl       = lblRT.gameObject.AddComponent<Text>();
+        lbl.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         lbl.text      = label;
         lbl.fontSize  = fontSize;
         lbl.color     = textColor;

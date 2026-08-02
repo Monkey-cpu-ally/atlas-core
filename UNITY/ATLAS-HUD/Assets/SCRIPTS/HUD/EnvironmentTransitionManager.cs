@@ -1,44 +1,58 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Manages cinematic transitions between Atlas HUD environments (Phase 1).
+/// Manages cinematic transitions between Atlas HUD environments.
 ///
 /// Transition sequence for A → B:
-///   1. Full-screen warp flash (white → transparent) signals "travel"
-///   2. Environment A slides out to the left  (0.35 s)
-///   3. Environment B slides in from the right (0.35 s)
+///   1. Warp flash (cyan → transparent) signals "travel"
+///   2. Environment A slides out (direction-keyed)
+///   3. Environment B slides in from the opposite side
 ///
-/// For B → A (reverse navigation), directions are mirrored.
+/// Usage:
+///   1. Call BuildOverlay(canvasRoot) to create the warp flash overlay.
+///   2. Call Initialize(registry) with a state → environment dictionary.
+///   3. Call RequestStateChange(destination) to trigger a guarded transition.
 ///
-/// The warp overlay is a full-screen Image that sits on top of all environments.
-/// Call Initialize() after constructing both environments so the overlay can
-/// be placed at the correct sibling index.
+/// The legacy Transition(from, to, direction, onComplete) API is preserved
+/// for backward compatibility.
 /// </summary>
 public class EnvironmentTransitionManager : MonoBehaviour
 {
-    // ── Settings ──────────────────────────────────────────────────────────────
+    // ── Default timing constants ──────────────────────────────────────────────
 
-    private const float SlideDistance = 200f;   // pixels
-    private const float SlideDuration = 0.35f;
-    private const float FlashDuration = 0.20f;
+    private const float DefaultSlideDistance = 200f;
+    private const float DefaultSlideDuration = 0.35f;
+    private const float DefaultFlashDuration = 0.20f;
 
-    // ── Internal references ───────────────────────────────────────────────────
+    // ── Internal state ────────────────────────────────────────────────────────
 
-    private AtlasFaceEnvironment      atlasFaceEnv;
-    private AISelectionHubEnvironment aiHubEnv;
-    private Image                     warpOverlay;
-    private bool                      isRunning;
+    private Image   warpOverlay;
+    private bool    isRunning;
+
+    private AtlasHUDState currentState = AtlasHUDState.AtlasFace;
+    private Dictionary<AtlasHUDState, AtlasEnvironmentBase> registry;
+    private RectTransform   heroElement;
+    private HUDTransitionProfile[] profiles;
 
     // ── Warp flash colour ─────────────────────────────────────────────────────
-    // Cyan tone that matches HolographicPanel.BorderCyan at partial opacity.
+    // Cyan tone that matches HolographicPanel.BorderCyan at zero alpha.
     private static readonly Color WarpColor = new Color(
         HolographicPanel.BorderCyan.r,
         HolographicPanel.BorderCyan.g,
         HolographicPanel.BorderCyan.b,
-        0f);   // alpha driven by the flash coroutine
+        0f);
+
+    // ── Public read-only properties ───────────────────────────────────────────
+
+    /// <summary>True while a transition coroutine is running. Use to guard input.</summary>
+    public bool IsTransitioning => isRunning;
+
+    /// <summary>The HUD state that is currently active (or being transitioned from).</summary>
+    public AtlasHUDState CurrentState => currentState;
 
     // ── Setup ─────────────────────────────────────────────────────────────────
 
@@ -48,61 +62,113 @@ public class EnvironmentTransitionManager : MonoBehaviour
     /// </summary>
     public void BuildOverlay(Transform canvasRoot)
     {
-        var rt   = AtlasUIFactory.CreateFullStretch("WarpOverlay", canvasRoot);
+        var rt      = AtlasUIFactory.CreateFullStretch("WarpOverlay", canvasRoot);
         warpOverlay       = rt.gameObject.AddComponent<Image>();
-        warpOverlay.color = WarpColor;   // starts transparent
-        // Overlay sits on top of everything
+        warpOverlay.color = WarpColor;   // starts fully transparent
+        // Overlay rendered on top of all environments
         rt.SetAsLastSibling();
     }
 
     /// <summary>
-    /// Stores references to both environments so Transition() can drive them.
-    /// Call after both environments have been created.
+    /// Initialises the transition system with a complete environment registry.
+    /// Call after all environments have been created.
     /// </summary>
-    public void Initialize(AtlasFaceEnvironment face, AISelectionHubEnvironment hub)
+    /// <param name="envRegistry">Maps each AtlasHUDState to its environment.</param>
+    /// <param name="hero">
+    ///   Optional shared hero element (Atlas Orb). Reserved for Phase 2 hero-motion support.
+    /// </param>
+    /// <param name="transitionProfiles">
+    ///   Optional per-pair timing overrides. Falls back to defaults when null or unmatched.
+    /// </param>
+    public void Initialize(
+        Dictionary<AtlasHUDState, AtlasEnvironmentBase> envRegistry,
+        RectTransform hero = null,
+        HUDTransitionProfile[] transitionProfiles = null)
     {
-        atlasFaceEnv = face;
-        aiHubEnv     = hub;
+        registry  = envRegistry;
+        heroElement = hero;
+        profiles  = transitionProfiles;
+        currentState = AtlasHUDState.AtlasFace;
 
-        // Ensure overlay remains on top
         if (warpOverlay != null)
             warpOverlay.transform.SetAsLastSibling();
     }
 
-    // ── Public transition API ─────────────────────────────────────────────────
+    // ── State-machine API ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// Cinematic transition from <paramref name="from"/> → <paramref name="to"/>.
+    /// Requests a guarded transition to <paramref name="destination"/>.
+    /// Ignored while a transition is already running or if destination equals current state.
     /// </summary>
-    /// <param name="direction">+1 = going deeper (left→right); -1 = going back.</param>
-    /// <param name="onComplete">Callback invoked after the transition finishes.</param>
+    public void RequestStateChange(AtlasHUDState destination, Action onComplete = null)
+    {
+        if (isRunning) return;
+        if (registry == null) return;
+        if (currentState == destination) return;
+
+        if (!registry.TryGetValue(currentState, out var from)) return;
+        if (!registry.TryGetValue(destination, out var to)) return;
+
+        HUDTransitionProfile profile = FindProfile(currentState, destination);
+        float duration  = profile != null ? profile.duration : DefaultSlideDuration;
+        bool  useFlash  = profile == null  || profile.useWarpFlash;
+        int   direction = (int)destination > (int)currentState ? 1 : -1;
+
+        AtlasHUDState nextState = destination;
+        StartCoroutine(RunTransition(from, to, direction, duration, useFlash, () =>
+        {
+            currentState = nextState;
+            onComplete?.Invoke();
+        }));
+    }
+
+    // ── Legacy transition API (backward compatibility) ────────────────────────
+
+    /// <summary>
+    /// Direct transition between two environments. Does not update the internal
+    /// state machine; prefer RequestStateChange() for new code.
+    /// </summary>
     public void Transition(AtlasEnvironmentBase from, AtlasEnvironmentBase to,
                            int direction, Action onComplete = null)
     {
         if (isRunning) return;
-        StartCoroutine(RunTransition(from, to, direction, onComplete));
+        StartCoroutine(RunTransition(from, to, direction,
+                                     DefaultSlideDuration, true, onComplete));
     }
 
-    // ── Coroutine ─────────────────────────────────────────────────────────────
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private HUDTransitionProfile FindProfile(AtlasHUDState from, AtlasHUDState to)
+    {
+        if (profiles == null) return null;
+        for (int i = 0; i < profiles.Length; i++)
+        {
+            var p = profiles[i];
+            if (p != null && p.fromState == from && p.toState == to)
+                return p;
+        }
+        return null;
+    }
+
+    // ── Coroutines ────────────────────────────────────────────────────────────
 
     private IEnumerator RunTransition(AtlasEnvironmentBase from, AtlasEnvironmentBase to,
-                                      int direction, Action onComplete)
+                                       int direction, float duration,
+                                       bool useFlash, Action onComplete)
     {
         isRunning = true;
 
-        float slideOut = -SlideDistance * direction;   // 'from' exits this direction
-        float slideIn  =  SlideDistance * direction;   // 'to' enters from opposite side
+        float slideOut = -DefaultSlideDistance * direction;
+        float slideIn  =  DefaultSlideDistance * direction;
 
-        // ── Phase 1: warp flash ───────────────────────────────────────────────
-        yield return StartCoroutine(FlashOverlay(FlashDuration));
+        if (useFlash)
+            yield return StartCoroutine(FlashOverlay(DefaultFlashDuration));
 
-        // ── Phase 2: slide-out current + slide-in next (overlapping) ─────────
-        // Run both coroutines concurrently by launching as separate child routines
         bool outDone = false;
         bool inDone  = false;
 
-        StartCoroutine(RunOut(from, slideOut, () => outDone = true));
-        StartCoroutine(RunIn( to,  slideIn,  () => inDone  = true));
+        StartCoroutine(RunOut(from, slideOut, duration, () => outDone = true));
+        StartCoroutine(RunIn( to,  slideIn,  duration, () => inDone  = true));
 
         while (!outDone || !inDone)
             yield return null;
@@ -111,15 +177,15 @@ public class EnvironmentTransitionManager : MonoBehaviour
         onComplete?.Invoke();
     }
 
-    private IEnumerator RunOut(AtlasEnvironmentBase env, float offset, Action done)
+    private IEnumerator RunOut(AtlasEnvironmentBase env, float offset, float duration, Action done)
     {
-        yield return StartCoroutine(env.SlideOut(SlideDuration, offset));
+        yield return StartCoroutine(env.SlideOut(duration, offset));
         done();
     }
 
-    private IEnumerator RunIn(AtlasEnvironmentBase env, float offset, Action done)
+    private IEnumerator RunIn(AtlasEnvironmentBase env, float offset, float duration, Action done)
     {
-        yield return StartCoroutine(env.SlideIn(SlideDuration, offset));
+        yield return StartCoroutine(env.SlideIn(duration, offset));
         done();
     }
 
