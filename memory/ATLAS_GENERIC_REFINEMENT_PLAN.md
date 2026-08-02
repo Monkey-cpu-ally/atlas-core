@@ -105,12 +105,16 @@ Refinement path:
 - Added `GET /api/global-sources/reliability-rankings`.
 - Added `backend/tests/test_source_reliability.py`.
 - Added `memory/SOURCE_RELIABILITY_STANDARD.md` with reliability bands, scoring rules, limitations, and safety policy.
+- Connected Source Reliability Ranking into `backend/services/evidence_scoring.py`.
+- Added bounded reliability modifiers, registered/unregistered source reporting, corroboration counts, domain-match visibility, and transparent per-source evidence factors.
+- Added `backend/tests/test_evidence_source_reliability.py`.
+- Added Discovery Approval route coverage proving draft evidence scores expose registered source reliability without treating source reputation as proof.
 
 ## Next Work
 
-1. Connect Source Reliability Ranking to Discovery Approval evidence scoring so source quality influences evidence review transparently.
-2. Run CI confirmation for World Knowledge Graph and Source Reliability tests; close `DEBT-KNOW-001` after passing results.
-3. Continue Knowledge Division hardening with provenance conflict detection and source review history.
+1. Add provenance conflict detection across evidence items and registered sources.
+2. Add source review history so reliability decisions are auditable over time.
+3. Run CI confirmation for World Knowledge Graph, Source Reliability, and Discovery Approval integration tests; close `DEBT-KNOW-001` after passing results.
 4. Begin the Digital Twin engineering stack after Headquarters and Knowledge Division hardening.
 
 ## Standard
