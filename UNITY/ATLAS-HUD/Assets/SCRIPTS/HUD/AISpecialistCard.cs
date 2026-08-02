@@ -82,50 +82,78 @@ public class AISpecialistCard : MonoBehaviour
 
         var content = HolographicPanel.BuildPanelLayers(root);
 
-        // Coloured accent stripe at the top of the card
+        // ── Accent stripe at top of card ──────────────────────────────────────
         var stripeRT = AtlasUIFactory.CreateStretchRect("AccentStripe", content,
             new Vector2(0, 0.88f), new Vector2(1, 1f),
             Vector2.zero, Vector2.zero);
         accentBar       = stripeRT.gameObject.AddComponent<Image>();
         accentBar.color = new Color(data.AccentColor.r, data.AccentColor.g, data.AccentColor.b, 0.55f);
 
-        // Glyph / icon
+        // ── Circular icon area (left column) ──────────────────────────────────
+        var iconBG = AtlasUIFactory.CreateElement(
+            "IconBG", content,
+            anchor: new Vector2(0.15f, 0.62f), pivot: new Vector2(0.5f, 0.5f),
+            position: Vector2.zero, size: new Vector2(44, 44));
+
+        var iconBGImg   = iconBG.gameObject.AddComponent<Image>();
+        iconBGImg.color = new Color(data.AccentColor.r, data.AccentColor.g, data.AccentColor.b, 0.18f);
+        if (AtlasVisualAssets.GlowCircleSprite != null)
+        {
+            iconBGImg.sprite = AtlasVisualAssets.GlowCircleSprite;
+            iconBGImg.type   = Image.Type.Simple;
+            iconBGImg.color  = new Color(data.AccentColor.r, data.AccentColor.g, data.AccentColor.b, 0.55f);
+        }
+
+        // Glyph / icon text centred in icon circle
         AtlasUIFactory.CreateLabel("Glyph", content,
             data.GlyphChar,
-            anchor: new Vector2(0.18f, 0.62f), pivot: new Vector2(0.5f, 0.5f),
-            position: Vector2.zero, size: new Vector2(48, 48),
-            fontSize: 26, color: data.AccentColor,
+            anchor: new Vector2(0.15f, 0.62f), pivot: new Vector2(0.5f, 0.5f),
+            position: Vector2.zero, size: new Vector2(36, 36),
+            fontSize: 20, color: data.AccentColor,
             alignment: TextAnchor.MiddleCenter);
 
-        // Specialist name
+        // ── Specialist name ───────────────────────────────────────────────────
         AtlasUIFactory.CreateLabel("Lbl_Name", content,
             data.Name,
-            anchor: new Vector2(0.5f, 0.60f), pivot: new Vector2(0.5f, 0.5f),
-            position: new Vector2(14, 0), size: new Vector2(210, 28),
-            fontSize: 14, color: HolographicPanel.TextAccent,
+            anchor: new Vector2(0.55f, 0.62f), pivot: new Vector2(0.5f, 0.5f),
+            position: Vector2.zero, size: new Vector2(155, 28),
+            fontSize: 13, color: HolographicPanel.TextAccent,
             alignment: TextAnchor.MiddleLeft);
 
-        // Specialty sub-label
+        // ── Specialty sub-label ───────────────────────────────────────────────
         AtlasUIFactory.CreateLabel("Lbl_Specialty", content,
             data.Specialty,
-            anchor: new Vector2(0.5f, 0.44f), pivot: new Vector2(0.5f, 0.5f),
-            position: new Vector2(14, 0), size: new Vector2(210, 20),
-            fontSize: 10, color: HolographicPanel.TextMuted,
+            anchor: new Vector2(0.55f, 0.45f), pivot: new Vector2(0.5f, 0.5f),
+            position: Vector2.zero, size: new Vector2(155, 20),
+            fontSize: 9, color: HolographicPanel.TextMuted,
             alignment: TextAnchor.MiddleLeft);
 
-        // Thin divider
+        // ── Thin divider ──────────────────────────────────────────────────────
         AtlasUIFactory.CreateHorizontalDivider("Div", content,
-            yAnchor: 0.32f, xPadding: 10f, HolographicPanel.BorderCyan);
+            yAnchor: 0.30f, xPadding: 10f, HolographicPanel.BorderCyan);
 
-        // Status badge
-        bool online     = data.StatusText == "ACTIVE";
-        var  badgeColor = online ? Color.green : new Color(1f, 0.6f, 0f);
+        // ── Status badge row ──────────────────────────────────────────────────
+        bool   online     = data.StatusText == "ACTIVE";
+        Color  badgeColor = online ? new Color(0.10f, 0.95f, 0.45f, 1f) : new Color(1f, 0.6f, 0f, 1f);
+
+        // Status dot — uses glow-circle sprite for a softly glowing indicator
+        var dotRT = AtlasUIFactory.CreateElement(
+            "StatusDot", content,
+            anchor: new Vector2(0.28f, 0.17f), pivot: new Vector2(0.5f, 0.5f),
+            position: Vector2.zero, size: new Vector2(10, 10));
+        var dotImg   = dotRT.gameObject.AddComponent<Image>();
+        dotImg.color = badgeColor;
+        if (AtlasVisualAssets.GlowCircleSprite != null)
+        {
+            dotImg.sprite = AtlasVisualAssets.GlowCircleSprite;
+            dotImg.type   = Image.Type.Simple;
+        }
 
         AtlasUIFactory.CreateLabel("Lbl_Status", content,
-            $"● {data.StatusText}",
-            anchor: new Vector2(0.5f, 0.18f), pivot: new Vector2(0.5f, 0.5f),
-            position: Vector2.zero, size: new Vector2(200, 20),
-            fontSize: 11, color: badgeColor,
+            data.StatusText,
+            anchor: new Vector2(0.60f, 0.17f), pivot: new Vector2(0.5f, 0.5f),
+            position: Vector2.zero, size: new Vector2(120, 20),
+            fontSize: 10, color: badgeColor,
             alignment: TextAnchor.MiddleCenter);
     }
 

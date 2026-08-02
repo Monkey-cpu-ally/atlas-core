@@ -45,6 +45,9 @@ public class ResearchArchiveEnvironment : AtlasEnvironmentBase
         BuildHeaderBar(root);
         BuildArchiveArea(root);
         BuildFooterBar(root);
+
+        // Slightly purple-tinted space feel for the archive environment
+        AtlasBackgroundFX.Attach(root, new Color(0.90f, 0.85f, 1.00f, 1f));
     }
 
     private void BuildHeaderBar(RectTransform root)

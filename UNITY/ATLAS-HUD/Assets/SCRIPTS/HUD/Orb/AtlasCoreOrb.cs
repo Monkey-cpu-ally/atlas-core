@@ -142,9 +142,11 @@ public class AtlasCoreOrb : MonoBehaviour
         coreGlow   = BuildCoreLayer("CoreGlow",   coreGroup, glowSize,
                          new Color(0f, 0.45f, 1.00f, 0.22f));
 
-        // Field: the body of the orb — dark blue base, tinted by active AI.
+        // Field: the body of the orb — uses the plasma sphere shader.
         coreField  = BuildCoreLayer("CoreField",  coreGroup, fieldSize,
                          new Color(0.03f, 0.07f, 0.16f, 0.92f));
+        if (AtlasVisualAssets.OrbCoreMat != null)
+            coreField.material = AtlasVisualAssets.OrbCoreMat;
 
         // Bright: the brilliant inner point — full AI primary colour.
         coreBright = BuildCoreLayer("CoreBright", coreGroup, brightSize,

@@ -40,7 +40,7 @@ public class AISelectionHubEnvironment : AtlasEnvironmentBase
     {
         var root = GetComponent<RectTransform>();
 
-        // Full-screen background (slightly different shade to distinguish from Atlas Face)
+        // Full-screen background — replaced by star-field shader via AtlasBackgroundFX.
         var bgRT  = AtlasUIFactory.CreateFullStretch("DeepBG", root);
         var bgImg = bgRT.gameObject.AddComponent<Image>();
         bgImg.color = new Color(0.01f, 0.03f, 0.09f, 1f);
@@ -48,6 +48,9 @@ public class AISelectionHubEnvironment : AtlasEnvironmentBase
         BuildHeaderBar(root);
         BuildCardGrid(root);
         BuildFooterBar(root);
+
+        // Slightly cooler tint than AtlasFace to visually distinguish environments.
+        AtlasBackgroundFX.Attach(root, new Color(0.85f, 0.90f, 1.00f, 1f));
     }
 
     // ── Header bar ────────────────────────────────────────────────────────────

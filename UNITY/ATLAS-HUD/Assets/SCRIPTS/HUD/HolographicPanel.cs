@@ -97,7 +97,7 @@ public class HolographicPanel : MonoBehaviour
     /// where child widgets should be placed.
     ///
     /// Layer order (bottom → top):
-    ///   DeepBackground → GlowHalo → PanelFill → BorderStrips → Content
+    ///   DeepBackground → GlowHalo (holographic shader) → PanelFill → BorderStrips → ScanlineOverlay → Content
     /// </summary>
     public static RectTransform BuildPanelLayers(RectTransform root)
     {
@@ -105,22 +105,43 @@ public class HolographicPanel : MonoBehaviour
         AtlasUIFactory.CreateBackground("BG_Deep", root, DeepBackground);
 
         // 2 – Outer glow halo (slightly oversized, rendered before fill)
+        //     Uses the Holographic shader for animated scan lines + edge glow.
         var glowRT   = AtlasUIFactory.CreateStretchRect("BG_Glow", root,
             Vector2.zero, Vector2.one, new Vector2(-5, -5), new Vector2(5, 5));
         glowRT.SetSiblingIndex(1);
         var glowImg  = glowRT.gameObject.AddComponent<Image>();
         glowImg.color = PanelGlow;
+        if (AtlasVisualAssets.HolographicMat != null)
+            glowImg.material = AtlasVisualAssets.HolographicMat;
 
         // 3 – Panel fill
         AtlasUIFactory.CreateBackground("BG_Fill", root, PanelFill);
 
         // 4 – Four border strips (top / bottom / left / right)
+        //     Use the glow-divider sprite for top/bottom to add a glow falloff.
         AtlasUIFactory.CreateBorderStrip("Border_Top",    root, horizontal: true,  isTopOrLeft: true,  BorderCyan);
         AtlasUIFactory.CreateBorderStrip("Border_Bottom", root, horizontal: true,  isTopOrLeft: false, BorderCyan);
         AtlasUIFactory.CreateBorderStrip("Border_Left",   root, horizontal: false, isTopOrLeft: true,  BorderCyan);
         AtlasUIFactory.CreateBorderStrip("Border_Right",  root, horizontal: false, isTopOrLeft: false, BorderCyan);
 
-        // 5 – Content area (inset by border width)
+        // 5 – Scanline overlay (full stretch, very low alpha)
+        if (AtlasTextureFactory.ScanLineOverlay != null)
+        {
+            var slGO       = new GameObject("ScanlineOverlay");
+            slGO.transform.SetParent(root, false);
+            var slRT       = slGO.AddComponent<RectTransform>();
+            slRT.anchorMin = Vector2.zero;
+            slRT.anchorMax = Vector2.one;
+            slRT.offsetMin = Vector2.zero;
+            slRT.offsetMax = Vector2.zero;
+            var slImg              = slGO.AddComponent<UnityEngine.UI.RawImage>();
+            slImg.texture          = AtlasTextureFactory.ScanLineOverlay;
+            slImg.color            = new Color(1f, 1f, 1f, 1f);
+            slImg.uvRect           = new Rect(0, 0, 1f, 60f);   // tile vertically
+            slImg.raycastTarget    = false;
+        }
+
+        // 6 – Content area (inset by border width)
         var content  = AtlasUIFactory.CreateStretchRect("Content", root,
             Vector2.zero, Vector2.one, new Vector2(5, 5), new Vector2(-5, -5));
 

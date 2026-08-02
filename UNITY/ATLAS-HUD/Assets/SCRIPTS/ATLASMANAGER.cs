@@ -55,6 +55,12 @@ public class ATLASMANAGER : MonoBehaviour
     {
         EnsureEventSystem();
 
+        // Initialise visual assets (materials + procedural textures) before any
+        // environment is built.  All HolographicPanel.BuildPanelLayers() calls,
+        // OrbRingLayer.Create() calls, and AtlasUIFactory.CreateButton() calls
+        // rely on AtlasVisualAssets being ready.
+        AtlasVisualAssets.Initialize();
+
         Canvas canvas = BuildCanvas();
 
         // ── Persistent layers (NavigationDock + NotificationLayer) ────────────

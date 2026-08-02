@@ -88,12 +88,21 @@ public class AIPortraitPanel : MonoBehaviour
         frameGlow       = glowRT.gameObject.AddComponent<Image>();
         frameGlow.color = new Color(_primaryColor.r, _primaryColor.g, _primaryColor.b, 0.12f);
 
-        // Portrait core placeholder
-        var coreRT     = AtlasUIFactory.CreateStretchRect("PortraitCore", frameRT,
-            new Vector2(0.25f, 0.18f), new Vector2(0.75f, 0.82f),
+        // Portrait core — uses procedural placeholder graphic
+        var coreRT   = AtlasUIFactory.CreateStretchRect("PortraitCore", frameRT,
+            new Vector2(0.12f, 0.08f), new Vector2(0.88f, 0.92f),
             Vector2.zero, Vector2.zero);
-        portraitCore       = coreRT.gameObject.AddComponent<Image>();
-        portraitCore.color = new Color(_primaryColor.r, _primaryColor.g, _primaryColor.b, 0.22f);
+        portraitCore = coreRT.gameObject.AddComponent<Image>();
+        if (AtlasVisualAssets.PortraitSprite != null)
+        {
+            portraitCore.sprite = AtlasVisualAssets.PortraitSprite;
+            portraitCore.type   = Image.Type.Simple;
+            portraitCore.color  = new Color(_primaryColor.r, _primaryColor.g, _primaryColor.b, 0.75f);
+        }
+        else
+        {
+            portraitCore.color = new Color(_primaryColor.r, _primaryColor.g, _primaryColor.b, 0.22f);
+        }
 
         BuildCrossHair(frameRT);
 

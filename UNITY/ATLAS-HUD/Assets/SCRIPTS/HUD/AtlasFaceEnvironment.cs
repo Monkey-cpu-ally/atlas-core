@@ -47,7 +47,8 @@ public class AtlasFaceEnvironment : AtlasEnvironmentBase
     {
         var root = GetComponent<RectTransform>();
 
-        // Full-screen deep background
+        // Full-screen deep background — replaced at runtime by AtlasBackgroundFX
+        // with the animated star-field DeepSpace shader.
         AtlasUIFactory.CreateBackground("DeepBG", root, HolographicPanel.DeepBackground);
 
         BuildTopBar(root);
@@ -55,6 +56,11 @@ public class AtlasFaceEnvironment : AtlasEnvironmentBase
         BuildStatusWidgetBar(root);
         BuildBottomBar(root);
         BuildSidePanels(root);
+
+        // Attach animated background effects (star field + grid overlay).
+        // Must be called after all environment children are built so the
+        // sibling index placement is correct.
+        AtlasBackgroundFX.Attach(root, Color.white);
     }
 
     // ── Top bar ───────────────────────────────────────────────────────────────

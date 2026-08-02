@@ -44,6 +44,9 @@ public class CoreOperationsEnvironment : AtlasEnvironmentBase
         BuildHeaderBar(root);
         BuildOperationsArea(root);
         BuildFooterBar(root);
+
+        // Desaturated red-orange tint — "warmer" system-heat feel for ops
+        AtlasBackgroundFX.Attach(root, new Color(1.00f, 0.90f, 0.80f, 1f));
     }
 
     private void BuildHeaderBar(RectTransform root)

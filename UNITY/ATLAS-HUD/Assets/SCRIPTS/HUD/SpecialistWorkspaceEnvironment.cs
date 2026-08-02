@@ -67,6 +67,9 @@ public class SpecialistWorkspaceEnvironment : AtlasEnvironmentBase
         BuildHeaderBar(root);
         BuildWorkspaceArea(root);
         BuildFooterBar(root);
+
+        // Warm-teal tint to distinguish this environment from AtlasFace
+        AtlasBackgroundFX.Attach(root, new Color(0.85f, 1.00f, 0.95f, 1f));
     }
 
     private void BuildHeaderBar(RectTransform root)

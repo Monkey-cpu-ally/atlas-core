@@ -118,7 +118,9 @@ public static class AtlasUIFactory
     // ── Buttons ───────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Creates a holographic-style button with a coloured background and label.
+    /// Creates a holographic-style button.
+    /// Uses the rounded-rect sprite from AtlasVisualAssets when available,
+    /// falling back to a plain coloured rectangle.
     /// </summary>
     public static Button CreateButton(string name, Transform parent,
         Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size,
@@ -127,10 +129,31 @@ public static class AtlasUIFactory
     {
         var rt = CreateElement(name, parent, anchor, pivot, position, size);
         var img   = rt.gameObject.AddComponent<Image>();
-        img.color = bgColor;
+
+        // Use sliced rounded-rect sprite for a polished button look.
+        if (AtlasVisualAssets.RoundedButtonSprite != null)
+        {
+            img.sprite = AtlasVisualAssets.RoundedButtonSprite;
+            img.type   = Image.Type.Sliced;
+            img.color  = bgColor;
+        }
+        else
+        {
+            img.color = bgColor;
+        }
 
         var btn = rt.gameObject.AddComponent<Button>();
         btn.targetGraphic = img;
+
+        // Brighter highlight and subtle scale on hover
+        var colors               = btn.colors;
+        colors.normalColor       = Color.white;
+        colors.highlightedColor  = new Color(1.25f, 1.25f, 1.25f, 1f);
+        colors.pressedColor      = new Color(0.75f, 0.75f, 0.75f, 1f);
+        colors.selectedColor     = Color.white;
+        colors.fadeDuration      = 0.08f;
+        btn.colors               = colors;
+
         if (onClick != null)
             btn.onClick.AddListener(() => onClick());
 
@@ -149,7 +172,11 @@ public static class AtlasUIFactory
 
     // ── Divider lines ─────────────────────────────────────────────────────────
 
-    /// <summary>Horizontal 1-pixel divider at a fractional vertical position.</summary>
+    /// <summary>
+    /// Horizontal glow divider at a fractional vertical position.
+    /// Uses the pre-generated glow-divider sprite when available for a
+    /// centre-bright gradient instead of a plain 1-pixel line.
+    /// </summary>
     public static Image CreateHorizontalDivider(string name, Transform parent,
         float yAnchor, float xPadding, Color color)
     {
@@ -158,9 +185,15 @@ public static class AtlasUIFactory
         var rt       = go.AddComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, yAnchor);
         rt.anchorMax = new Vector2(1, yAnchor);
-        rt.offsetMin = new Vector2(xPadding,  -1);
-        rt.offsetMax = new Vector2(-xPadding,  1);
+        rt.offsetMin = new Vector2(xPadding, -2);
+        rt.offsetMax = new Vector2(-xPadding, 2);
+
         var img   = go.AddComponent<Image>();
+        if (AtlasVisualAssets.GlowDividerSprite != null)
+        {
+            img.sprite = AtlasVisualAssets.GlowDividerSprite;
+            img.type   = Image.Type.Sliced;
+        }
         img.color = color;
         return img;
     }

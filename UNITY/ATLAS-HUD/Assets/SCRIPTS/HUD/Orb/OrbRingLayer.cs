@@ -66,6 +66,11 @@ public class OrbRingLayer : MonoBehaviour
         var img   = go.AddComponent<Image>();
         img.color = color;
 
+        // Apply the procedural ring shader so the Image renders as a torus
+        // with a soft glow halo instead of a plain coloured square.
+        if (AtlasVisualAssets.OrbRingMat != null)
+            img.material = AtlasVisualAssets.OrbRingMat;
+
         var ring                 = go.AddComponent<OrbRingLayer>();
         ring.ringImage           = img;
         ring.revolutionSeconds   = revolutionSec;
