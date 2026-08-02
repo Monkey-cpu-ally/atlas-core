@@ -51,6 +51,20 @@ Adjustments are then applied for:
 
 Scores are always clamped between 0 and 100.
 
+## Discovery Approval Integration
+
+Evidence items may include a `source_id` matching a record in the Global Source Library and an optional `domain`.
+
+During `score_evidence()` ATLAS:
+
+1. Resolves the registered source.
+2. Runs the Source Reliability assessment.
+3. Converts the source score into a bounded evidence modifier between `-8` and `+8`.
+4. Records the source score, band, modifier, domain match, warnings, and corroboration requirement inside the draft's `evidence_score.source_reliability` report.
+5. Applies a small conservative penalty when a supplied `source_id` is not registered.
+
+The reliability modifier is deliberately bounded so source reputation cannot overpower direct evidence, citations, conflicts, recency, or Council review.
+
 ## Safety Rules
 
 1. A source score is not a truth score.
@@ -59,11 +73,14 @@ Scores are always clamped between 0 and 100.
 4. Domain mismatch lowers ranking and produces a warning.
 5. Missing provenance or missing ATLAS review produces a warning.
 6. High-impact engineering, medical, legal, financial, or safety claims require claim-level evidence review regardless of source score.
+7. Source reliability can adjust evidence routing but cannot approve a discovery.
+8. Council approval remains mandatory before promotion into trusted ATLAS knowledge.
 
 ## API Surfaces
 
 - `GET /api/global-sources/sources/{source_id}/reliability`
 - `GET /api/global-sources/reliability-rankings`
+- `POST /api/discovery-approval/drafts` returns reliability factors inside `evidence_score` when registered source IDs are supplied.
 
 Supported ranking filters:
 
@@ -73,4 +90,4 @@ Supported ranking filters:
 
 ## Headquarters Standard
 
-Source Reliability Ranking supports the Knowledge Division and Source Clearance surfaces. It should remain explainable, deterministic, testable, and conservative. ATLAS must always show why a source received its score.
+Source Reliability Ranking supports the Knowledge Division, Knowledge Gate, and Source Clearance surfaces. It should remain explainable, deterministic, testable, and conservative. ATLAS must always show why a source received its score and how that score affected evidence review.
