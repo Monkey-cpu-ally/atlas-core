@@ -400,4 +400,525 @@ public static class AtlasTextureFactory
         float dy = py - size;
         return Mathf.Sign(py - size) * Mathf.Sqrt(dx * dx + dy * dy);
     }
+
+    // ── Per-AI face portrait ───────────────────────────────────────────────────
+
+    private static System.Collections.Generic.Dictionary<int, Texture2D> _faceCache;
+
+    /// <summary>
+    /// Generates (or returns from cache) a 128×128 holographic line-art portrait
+    /// texture for the given AI identity and expression state.
+    ///
+    /// All seven PortraitExpression values produce visually distinct results.
+    /// Each of the four recognised identities (Atlas, Ajani, Hermes, Minerva) has
+    /// a unique head silhouette and identity detail.
+    ///
+    /// Combat expression is fully rendered for Ajani; other identities fall back to
+    /// Serious for Combat so the caller never needs to special-case it.
+    /// </summary>
+    public static Texture2D BuildPortraitFace(AIIdentity identity,
+        PortraitExpression expression, Color primaryColor)
+    {
+        if (_faceCache == null)
+            _faceCache = new System.Collections.Generic.Dictionary<int, Texture2D>();
+
+        int key = ((int)identity << 8) | (int)expression;
+        Texture2D cached;
+        if (_faceCache.TryGetValue(key, out cached) && cached != null)
+            return cached;
+
+        var tex = GenerateFaceTex(identity, expression, primaryColor, 128);
+        _faceCache[key] = tex;
+        return tex;
+    }
+
+    // ── Face params ─────────────────────────────────────────────────────────
+
+    private struct FaceParams
+    {
+        // Head ellipse (centred at (0, headCY) in UV [-1,1] space)
+        public float headW, headH, headCY;
+        // Eyes: mirrored at ±eyeX, centred at eyeY
+        public float eyeX, eyeY, eyeW, eyeH;
+        // Brows: one brow centred at (±eyeX, browY), extends ±browHW outward
+        public float browY, browHW, browThick;
+        // base brow slope (positive = outer corner UP for each eye)
+        public float browSlope;
+        // Nose
+        public float noseY, noseHW;
+        // Mouth
+        public float mouthY, mouthHW, mouthThick;
+    }
+
+    private struct ExprParams
+    {
+        public float browRaise;       // overall Y offset for both brows
+        public float slopeDelta;      // added to browSlope (+= outer up, -= outer down/concerned)
+        public float eyeVScale;       // multiplier on eyeH (1=normal, 0.5=squint, 1.3=wide)
+        public float pupilDY;         // pupil Y offset inside eye (+ = looking up)
+        public float mouthCurve;      // +1=full smile, -1=full frown
+        public float mouthOpen;       // 0=closed line, 1=fully open
+        public float glowBoost;       // extra radial glow intensity
+        public bool  scanLines;       // analytical scan-line overlay (Thinking)
+        public bool  warMarks;        // diagonal cheek marks (Ajani Combat only)
+    }
+
+    private static FaceParams GetFaceParams(AIIdentity id)
+    {
+        switch (id)
+        {
+            case AIIdentity.Ajani:   // Bold, angular, strong jaw
+                return new FaceParams
+                {
+                    headW=0.50f, headH=0.64f, headCY=0.06f,
+                    eyeX=0.18f,  eyeY=0.28f, eyeW=0.068f, eyeH=0.030f,
+                    browY=0.42f, browHW=0.11f, browThick=0.022f, browSlope=-0.03f,
+                    noseY=0.07f, noseHW=0.06f,
+                    mouthY=-0.16f, mouthHW=0.22f, mouthThick=0.018f,
+                };
+            case AIIdentity.Hermes: // Lean, technical, thin-framed
+                return new FaceParams
+                {
+                    headW=0.44f, headH=0.68f, headCY=0.05f,
+                    eyeX=0.15f,  eyeY=0.29f, eyeW=0.072f, eyeH=0.027f,
+                    browY=0.43f, browHW=0.09f, browThick=0.016f, browSlope=0.01f,
+                    noseY=0.09f, noseHW=0.05f,
+                    mouthY=-0.17f, mouthHW=0.17f, mouthThick=0.016f,
+                };
+            case AIIdentity.Minerva: // Smooth oval, large eyes
+                return new FaceParams
+                {
+                    headW=0.51f, headH=0.66f, headCY=0.06f,
+                    eyeX=0.17f,  eyeY=0.30f, eyeW=0.072f, eyeH=0.044f,
+                    browY=0.44f, browHW=0.10f, browThick=0.020f, browSlope=0.04f,
+                    noseY=0.10f, noseHW=0.05f,
+                    mouthY=-0.15f, mouthHW=0.19f, mouthThick=0.018f,
+                };
+            default:                // Atlas — balanced, slightly geometric
+                return new FaceParams
+                {
+                    headW=0.52f, headH=0.62f, headCY=0.06f,
+                    eyeX=0.17f,  eyeY=0.29f, eyeW=0.070f, eyeH=0.035f,
+                    browY=0.42f, browHW=0.10f, browThick=0.019f, browSlope=0.00f,
+                    noseY=0.09f, noseHW=0.055f,
+                    mouthY=-0.14f, mouthHW=0.20f, mouthThick=0.018f,
+                };
+        }
+    }
+
+    private static ExprParams GetExprParams(PortraitExpression expr, AIIdentity id)
+    {
+        switch (expr)
+        {
+            case PortraitExpression.Neutral:
+                return new ExprParams
+                {
+                    browRaise=0f, slopeDelta=0f, eyeVScale=1.0f,
+                    pupilDY=0f, mouthCurve=0f, mouthOpen=0f,
+                    glowBoost=0f, scanLines=false, warMarks=false,
+                };
+            case PortraitExpression.Thinking:
+                return new ExprParams
+                {
+                    browRaise=0.04f, slopeDelta=0.04f, eyeVScale=0.88f,
+                    pupilDY=0.4f, mouthCurve=-0.05f, mouthOpen=0f,
+                    glowBoost=0.30f, scanLines=true, warMarks=false,
+                };
+            case PortraitExpression.Speaking:
+                return new ExprParams
+                {
+                    browRaise=0.03f, slopeDelta=0f, eyeVScale=1.18f,
+                    pupilDY=0f, mouthCurve=0.1f, mouthOpen=0.60f,
+                    glowBoost=0.50f, scanLines=false, warMarks=false,
+                };
+            case PortraitExpression.Approval:
+                return new ExprParams
+                {
+                    browRaise=0.04f, slopeDelta=0.06f, eyeVScale=0.82f,
+                    pupilDY=0f, mouthCurve=0.88f, mouthOpen=0.12f,
+                    glowBoost=0.20f, scanLines=false, warMarks=false,
+                };
+            case PortraitExpression.Concern:
+                return new ExprParams
+                {
+                    browRaise=0.02f, slopeDelta=-0.26f, eyeVScale=1.22f,
+                    pupilDY=0f, mouthCurve=-0.55f, mouthOpen=0.08f,
+                    glowBoost=0.12f, scanLines=false, warMarks=false,
+                };
+            case PortraitExpression.Serious:
+                return new ExprParams
+                {
+                    browRaise=-0.02f, slopeDelta=-0.08f, eyeVScale=0.70f,
+                    pupilDY=0f, mouthCurve=-0.10f, mouthOpen=0f,
+                    glowBoost=0.08f, scanLines=false, warMarks=false,
+                };
+            case PortraitExpression.Combat:
+                // Only Ajani has true Combat — other identities reuse Serious params
+                if (id != AIIdentity.Ajani)
+                    return GetExprParams(PortraitExpression.Serious, id);
+                return new ExprParams
+                {
+                    browRaise=-0.03f, slopeDelta=-0.32f, eyeVScale=0.58f,
+                    pupilDY=-0.15f, mouthCurve=-0.05f, mouthOpen=0f,
+                    glowBoost=1.0f, scanLines=false, warMarks=true,
+                };
+            default:
+                return new ExprParams { eyeVScale=1.0f };
+        }
+    }
+
+    // ── Core generator ───────────────────────────────────────────────────────
+
+    private static Texture2D GenerateFaceTex(AIIdentity id,
+        PortraitExpression expr, Color primary, int size)
+    {
+        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode   = TextureWrapMode.Clamp;
+        tex.hideFlags  = HideFlags.DontSave;
+
+        FaceParams fp = GetFaceParams(id);
+        ExprParams ep = GetExprParams(expr, id);
+
+        float half = size * 0.5f;
+        var   px   = new Color[size * size];
+
+        float effectiveEyeH = fp.eyeH * ep.eyeVScale;
+        float browY         = fp.browY + ep.browRaise;
+        float browSlope     = fp.browSlope + ep.slopeDelta;
+
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float fx = (x + 0.5f - half) / half;   // −1 … +1
+            float fy = (y + 0.5f - half) / half;
+
+            // ── Background: deep dark + radial AI-colour glow ────────────
+            float rDist = Mathf.Sqrt(fx * fx + fy * fy);
+            float bg    = Mathf.Pow(Mathf.Clamp01(1f - rDist), 2.8f)
+                          * (0.16f + ep.glowBoost * 0.20f);
+            Color c = new Color(primary.r * bg, primary.g * bg, primary.b * bg, 1f);
+
+            // ── Head silhouette ───────────────────────────────────────────
+            float hSDF = FaceEllipseSDF(fx, fy - fp.headCY, fp.headW, fp.headH);
+
+            // Interior tint (darker AI colour)
+            float headFill = Mathf.SmoothStep(0.02f, -0.02f, hSDF);
+            c = Color.Lerp(c,
+                new Color(primary.r * 0.14f, primary.g * 0.14f, primary.b * 0.14f, 1f),
+                headFill);
+
+            // Outer glow halo
+            float haloA = Mathf.Clamp01(1f - Mathf.Abs(hSDF + 0.03f) * 14f) * 0.35f;
+            c.r += primary.r * haloA;
+            c.g += primary.g * haloA;
+            c.b += primary.b * haloA;
+
+            // Crisp outline
+            float outlineA = Mathf.Clamp01(1f - Mathf.Abs(hSDF) * 22f) * 0.85f;
+            c.r += primary.r * outlineA;
+            c.g += primary.g * outlineA;
+            c.b += primary.b * outlineA;
+            c.a  = 1f;
+
+            // ── Eyes (only inside head) ───────────────────────────────────
+            if (effectiveEyeH > 0.005f && hSDF < 0.05f)
+            {
+                float eyePY = fp.eyeY + ep.pupilDY * fp.eyeH * 0.35f;
+
+                float lEye = FaceEllipseSDF(fx + fp.eyeX, fy - fp.eyeY, fp.eyeW, effectiveEyeH);
+                float rEye = FaceEllipseSDF(fx - fp.eyeX, fy - fp.eyeY, fp.eyeW, effectiveEyeH);
+                float eyeIn = Mathf.Max(
+                    Mathf.SmoothStep(0.015f, -0.015f, lEye),
+                    Mathf.SmoothStep(0.015f, -0.015f, rEye));
+
+                // Eye fill (bright AI colour)
+                c = Color.Lerp(c, new Color(primary.r, primary.g, primary.b, 1f), eyeIn * 0.88f);
+
+                // Pupil (darker centre)
+                float lPup = FaceEllipseSDF(fx + fp.eyeX, fy - eyePY, fp.eyeW * 0.38f, effectiveEyeH * 0.38f);
+                float rPup = FaceEllipseSDF(fx - fp.eyeX, fy - eyePY, fp.eyeW * 0.38f, effectiveEyeH * 0.38f);
+                float pupIn = Mathf.Max(
+                    Mathf.SmoothStep(0.010f, -0.010f, lPup),
+                    Mathf.SmoothStep(0.010f, -0.010f, rPup));
+                c = Color.Lerp(c,
+                    new Color(primary.r * 0.06f, primary.g * 0.06f, primary.b * 0.06f, 1f),
+                    pupIn);
+
+                // Eye edge glow
+                float eGlowA = Mathf.Max(
+                    Mathf.Clamp01(1f - Mathf.Abs(lEye) * 20f),
+                    Mathf.Clamp01(1f - Mathf.Abs(rEye) * 20f)) * 0.50f;
+                c.r += primary.r * eGlowA;
+                c.g += primary.g * eGlowA;
+                c.b += primary.b * eGlowA;
+                c.a  = 1f;
+
+                // ── Thinking: small upward directional glints ─────────────
+                if (ep.scanLines)
+                {
+                    float glintL = FaceEllipseSDF(fx + fp.eyeX - 0.02f, fy - fp.eyeY + effectiveEyeH * 0.20f,
+                                        fp.eyeW * 0.18f, effectiveEyeH * 0.18f);
+                    float glintR = FaceEllipseSDF(fx - fp.eyeX + 0.02f, fy - fp.eyeY + effectiveEyeH * 0.20f,
+                                        fp.eyeW * 0.18f, effectiveEyeH * 0.18f);
+                    float glintA = Mathf.Max(
+                        Mathf.SmoothStep(0.008f, -0.008f, glintL),
+                        Mathf.SmoothStep(0.008f, -0.008f, glintR));
+                    c = Color.Lerp(c, Color.white, glintA * 0.75f);
+                }
+            }
+
+            // ── Brows ─────────────────────────────────────────────────────
+            if (hSDF < 0.06f)
+            {
+                // Left brow segment: from inner (eyeX, browY) to outer (eyeX+browHW, browY + browHW*slope)
+                float lbA = LineStroke(fx, fy,
+                     fp.eyeX,              browY,
+                     fp.eyeX + fp.browHW,  browY + fp.browHW * browSlope,
+                     fp.browThick);
+                // Right brow (mirrored): from inner (−eyeX, browY) to outer (−eyeX−browHW, …)
+                float rbA = LineStroke(fx, fy,
+                    -fp.eyeX,              browY,
+                    -fp.eyeX - fp.browHW,  browY + fp.browHW * browSlope,
+                     fp.browThick);
+                float browA = Mathf.Max(lbA, rbA);
+                c.r += primary.r * browA * 0.95f;
+                c.g += primary.g * browA * 0.95f;
+                c.b += primary.b * browA * 0.95f;
+                c.a  = 1f;
+            }
+
+            // ── Nose bridge (subtle V lines) ──────────────────────────────
+            if (hSDF < 0.04f)
+            {
+                float nL = LineStroke(fx, fy,
+                     0f,             fp.eyeY - 0.02f,
+                    -fp.noseHW * 0.4f, fp.noseY,
+                     0.010f);
+                float nR = LineStroke(fx, fy,
+                     0f,             fp.eyeY - 0.02f,
+                     fp.noseHW * 0.4f, fp.noseY,
+                     0.010f);
+                float noseA = Mathf.Max(nL, nR) * 0.35f;
+                c.r += primary.r * noseA;
+                c.g += primary.g * noseA;
+                c.b += primary.b * noseA;
+                c.a  = 1f;
+            }
+
+            // ── Mouth ─────────────────────────────────────────────────────
+            if (hSDF < 0.04f)
+            {
+                float mouthA = MouthStroke(fx, fy,
+                    fp.mouthY, fp.mouthHW,
+                    ep.mouthCurve, ep.mouthOpen, fp.mouthThick);
+                c.r += primary.r * mouthA * 0.92f;
+                c.g += primary.g * mouthA * 0.92f;
+                c.b += primary.b * mouthA * 0.92f;
+                c.a  = 1f;
+            }
+
+            // ── AI-specific identity detail ───────────────────────────────
+            c = ApplyFaceDetail(c, fx, fy, primary, id, fp, hSDF);
+
+            // ── Expression overlays ───────────────────────────────────────
+
+            // Thinking — analytical scan lines across forehead
+            if (ep.scanLines && hSDF < 0f)
+            {
+                float scanY = fy - fp.headCY;
+                // Lines spaced ~0.09 apart, only in upper head
+                float linePattern = Mathf.Abs(Mathf.Sin(scanY * Mathf.PI / 0.09f));
+                float lineA = Mathf.Pow(linePattern, 14f) * 0.22f;
+                // Restrict to upper half of head
+                float upperMask = Mathf.Clamp01((fy - (fp.headCY + 0.05f)) / (fp.headH * 0.55f));
+                c.r += primary.r * lineA * upperMask;
+                c.g += primary.g * lineA * upperMask;
+                c.b += primary.b * lineA * upperMask;
+                c.a  = 1f;
+            }
+
+            // Combat (Ajani) — diagonal cheek war-marks
+            if (ep.warMarks)
+            {
+                float lMark = LineStroke(fx, fy,
+                     fp.eyeX * 0.8f,  fp.eyeY - 0.08f,
+                     fp.headW * 0.82f, -0.18f,
+                     0.016f);
+                float rMark = LineStroke(fx, fy,
+                    -fp.eyeX * 0.8f,  fp.eyeY - 0.08f,
+                    -fp.headW * 0.82f, -0.18f,
+                     0.016f);
+                float markA = Mathf.Max(lMark, rMark) * 0.85f;
+                c.r += primary.r * markA;
+                c.g += primary.g * markA;
+                c.b += primary.b * markA;
+                c.a  = 1f;
+            }
+
+            // ── Circular clip: fade at extreme edges ──────────────────────
+            float clipFade = 1f - Mathf.SmoothStep(0.82f, 0.98f, rDist);
+            c.a *= clipFade;
+
+            px[y * size + x] = c;
+        }
+
+        tex.SetPixels(px);
+        tex.Apply(false, true);
+        return tex;
+    }
+
+    // ── Face SDF helpers ─────────────────────────────────────────────────────
+
+    // Approximate signed distance to an ellipse: negative = inside.
+    private static float FaceEllipseSDF(float x, float y, float rx, float ry)
+    {
+        float k = Mathf.Sqrt((x / rx) * (x / rx) + (y / ry) * (y / ry));
+        return (k - 1f) * Mathf.Min(rx, ry);
+    }
+
+    // Alpha for a line-segment stroke (1 = on the line, 0 = away).
+    private static float LineStroke(float px, float py,
+        float x0, float y0, float x1, float y1, float thick)
+    {
+        float dx = x1 - x0, dy = y1 - y0;
+        float len2 = dx * dx + dy * dy;
+        if (len2 < 1e-9f) return 0f;
+        float t  = Mathf.Clamp01(((px - x0) * dx + (py - y0) * dy) / len2);
+        float ex = px - (x0 + t * dx);
+        float ey = py - (y0 + t * dy);
+        float d  = Mathf.Sqrt(ex * ex + ey * ey);
+        return Mathf.Clamp01(1f - Mathf.SmoothStep(0f, thick, d));
+    }
+
+    // Mouth: parabolic upper lip, optional lower lip for open mouth.
+    private static float MouthStroke(float px, float py,
+        float cy, float hw, float curve, float openF, float thick)
+    {
+        // Clamp to mouth width region
+        float xClamped = Mathf.Clamp(px, -hw, hw);
+        float t        = xClamped / hw;                          // −1 … +1
+        // Upper lip — parabola curving with 'curve'
+        float upperY   = cy + curve * 0.06f * (t * t - 0.5f);
+        float dUpper   = Mathf.Abs(py - upperY);
+        float upperA   = Mathf.Abs(px) <= hw
+                         ? Mathf.Clamp01(1f - Mathf.SmoothStep(0f, thick, dUpper))
+                         : 0f;
+
+        if (openF < 0.04f) return upperA;
+
+        // Lower lip (open mouth)
+        float lowerY = upperY - openF * 0.065f;
+        float dLower = Mathf.Abs(py - lowerY);
+        float lowerA = Mathf.Abs(px) <= hw
+                       ? Mathf.Clamp01(1f - Mathf.SmoothStep(0f, thick, dLower))
+                       : 0f;
+
+        // Corner connectors
+        float cornerW = 0.014f;
+        float lCorner = 0f, rCorner = 0f;
+        if (Mathf.Abs(px + hw) < cornerW)
+            lCorner = Mathf.Clamp01((py - lowerY) * 18f) * Mathf.Clamp01((upperY - py) * 18f);
+        if (Mathf.Abs(px - hw) < cornerW)
+            rCorner = Mathf.Clamp01((py - lowerY) * 18f) * Mathf.Clamp01((upperY - py) * 18f);
+
+        return Mathf.Max(upperA, Mathf.Max(lowerA, Mathf.Max(lCorner, rCorner)));
+    }
+
+    // ── Per-AI identity details ───────────────────────────────────────────────
+
+    private static Color ApplyFaceDetail(Color c, float fx, float fy,
+        Color primary, AIIdentity id, FaceParams fp, float headSDF)
+    {
+        if (headSDF > 0.06f) return c;   // outside head region — skip
+
+        switch (id)
+        {
+            case AIIdentity.Ajani:
+            {
+                // Bold cheekbone accent lines from outer eye toward jaw edge
+                float lChk = LineStroke(fx, fy,
+                    fp.eyeX * 0.3f,   fp.eyeY - 0.10f,
+                    fp.headW * 0.88f, -0.08f,
+                    0.013f);
+                float rChk = LineStroke(fx, fy,
+                   -fp.eyeX * 0.3f,   fp.eyeY - 0.10f,
+                   -fp.headW * 0.88f, -0.08f,
+                    0.013f);
+                float chkA = Mathf.Max(lChk, rChk) * 0.45f;
+                c.r += primary.r * chkA;
+                c.g += primary.g * chkA;
+                c.b += primary.b * chkA;
+                c.a  = 1f;
+                break;
+            }
+            case AIIdentity.Hermes:
+            {
+                // Spectacle oval rings around each eye
+                float ringRX = fp.eyeW * 1.55f;
+                float ringRY = fp.eyeH * 2.10f;
+                float lRing  = Mathf.Abs(FaceEllipseSDF(fx + fp.eyeX, fy - fp.eyeY, ringRX, ringRY));
+                float rRing  = Mathf.Abs(FaceEllipseSDF(fx - fp.eyeX, fy - fp.eyeY, ringRX, ringRY));
+                float glassA = Mathf.Max(
+                    Mathf.Clamp01(1f - lRing * 22f),
+                    Mathf.Clamp01(1f - rRing * 22f)) * 0.50f;
+                c.r += primary.r * glassA;
+                c.g += primary.g * glassA;
+                c.b += primary.b * glassA;
+                c.a  = 1f;
+                // Nose bridge between spectacles
+                float bridgeX0 = -fp.eyeX + ringRX;
+                float bridgeX1 =  fp.eyeX - ringRX;
+                if (bridgeX0 < bridgeX1)
+                {
+                    float bridgeA = LineStroke(fx, fy,
+                        bridgeX0, fp.eyeY, bridgeX1, fp.eyeY, 0.009f) * 0.40f;
+                    c.r += primary.r * bridgeA;
+                    c.g += primary.g * bridgeA;
+                    c.b += primary.b * bridgeA;
+                    c.a  = 1f;
+                }
+                break;
+            }
+            case AIIdentity.Minerva:
+            {
+                // Three crown dots above the head
+                float crownY  = fp.headCY + fp.headH * 0.96f;
+                float[] cxArr = { -0.11f, 0f, 0.11f };
+                float[] crArr = {  0.020f, 0.028f, 0.020f };
+                for (int i = 0; i < 3; i++)
+                {
+                    float dotSDF = FaceEllipseSDF(fx - cxArr[i], fy - crownY, crArr[i], crArr[i]);
+                    float dotA   = Mathf.SmoothStep(0.008f, -0.008f, dotSDF);
+                    c.r = Mathf.Lerp(c.r, primary.r, dotA);
+                    c.g = Mathf.Lerp(c.g, primary.g, dotA);
+                    c.b = Mathf.Lerp(c.b, primary.b, dotA);
+                    c.a = 1f;
+                }
+                break;
+            }
+            case AIIdentity.Atlas:
+            {
+                // Three horizontal data lines across the upper forehead
+                float baseY = fp.headCY + fp.headH * 0.70f;
+                for (int li = 0; li < 3; li++)
+                {
+                    float lineY  = baseY - li * 0.09f;
+                    float lineHW = fp.headW * (0.78f - li * 0.10f);
+                    // Only inside head
+                    float headCheck = FaceEllipseSDF(fx, fy - fp.headCY, fp.headW, fp.headH);
+                    if (headCheck < 0f)
+                    {
+                        float lineA = LineStroke(fx, fy, -lineHW, lineY, lineHW, lineY, 0.007f) * 0.42f;
+                        c.r += primary.r * lineA;
+                        c.g += primary.g * lineA;
+                        c.b += primary.b * lineA;
+                        c.a  = 1f;
+                    }
+                }
+                break;
+            }
+        }
+        return c;
+    }
 }
