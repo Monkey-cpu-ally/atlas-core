@@ -21,7 +21,8 @@
     "ai_pulse_ajani":   1800,
     "ai_pulse_minerva": 2200,
     "ai_pulse_hermes":  1400,
-    "ai_pulse_council": 2600
+    "ai_pulse_council": 2600,
+    "ai_pulse_atlas":   2400
   },
   "easings": {
     "snap_back":   "cubic-bezier(0.18, 0.9, 0.22, 1.02)",

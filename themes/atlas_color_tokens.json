@@ -4,6 +4,7 @@
   "kind": "tokens_color",
   "version": "2.0.0",
   "agents": {
+    "atlas":   { "primary": "#F6A53A", "soft": "rgba(246, 165, 58, 0.35)",  "edge": "rgba(246, 165, 58, 0.55)" },
     "ajani":   { "primary": "#E63946", "soft": "rgba(230, 57, 70, 0.18)",  "edge": "rgba(230, 57, 70, 0.55)" },
     "minerva": { "primary": "#2EC4B6", "soft": "rgba(46, 196, 182, 0.18)", "edge": "rgba(46, 196, 182, 0.55)" },
     "hermes":  { "primary": "#F4EFE4", "soft": "rgba(244, 239, 228, 0.10)", "edge": "rgba(244, 239, 228, 0.40)" },
