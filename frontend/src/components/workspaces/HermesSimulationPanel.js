@@ -63,14 +63,24 @@ export default function HermesSimulationPanel({ project, onStatusChange, onActiv
   const saved = useMemo(() => loadState(projectId), [projectId]);
   const [run, setRun] = useState(saved);
   const reportedCompletionRef = useRef(saved.completedAt);
+  const hydratingProjectRef = useRef(false);
 
   useEffect(() => {
     const restored = loadState(projectId);
+    hydratingProjectRef.current = true;
     reportedCompletionRef.current = restored.completedAt;
     setRun(restored);
   }, [projectId]);
 
   useEffect(() => {
+    // When the selected project changes, this effect first sees the previous
+    // project's in-memory run. Skip that write so one project's simulation
+    // can never overwrite another project's storage during hydration.
+    if (hydratingProjectRef.current) {
+      hydratingProjectRef.current = false;
+      return;
+    }
+
     try {
       window.localStorage?.setItem(storageKey(projectId), JSON.stringify(run));
     } catch (_) {}
