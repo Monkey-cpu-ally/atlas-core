@@ -12,6 +12,8 @@ except ImportError as exc:  # pragma: no cover - exercised only without optional
 else:
     _IMPORT_ERROR = None
 
+from .digital_twin import LifecycleEvent, LifecycleEventType, ProductDigitalTwin
+from .digital_twin_store import DigitalTwinStore
 from .engineering import (
     ApparelEngineeringCalculator,
     BagEngineeringCalculator,
@@ -77,7 +79,39 @@ if FastAPI is not None:
         layout_factor: float = Field(default=1.35, ge=1)
 
 
-def create_app():
+    class DigitalTwinCreateRequest(BaseModel):
+        product_id: str
+        product_name: str
+        collection_id: str | None = None
+        serial_number: str | None = None
+        materials: List[str] = []
+        hardware: List[str] = []
+        readiness_level: int = Field(default=1, ge=1, le=9)
+        owner_reference: str | None = None
+
+
+    class DigitalTwinEventRequest(BaseModel):
+        event_type: LifecycleEventType
+        summary: str
+        metadata: dict[str, object] = {}
+
+
+    class DigitalTwinRevisionRequest(BaseModel):
+        revision: int = Field(ge=2)
+        summary: str
+
+
+    class DigitalTwinRepairRequest(BaseModel):
+        summary: str
+        provider: str | None = None
+        cost: float | None = Field(default=None, ge=0)
+
+
+    class DigitalTwinReadinessRequest(BaseModel):
+        readiness_level: int = Field(ge=1, le=9)
+
+
+def create_app(database_path: str = "atlas_luxury.db"):
     if FastAPI is None:
         raise RuntimeError(
             "FastAPI support requires optional dependencies: pip install fastapi uvicorn"
@@ -85,9 +119,10 @@ def create_app():
 
     app = FastAPI(
         title="ATLAS House of Frazier API",
-        version="0.1.0",
-        description="Engineering, manufacturing, and design workflow services.",
+        version="0.2.0",
+        description="Engineering, manufacturing, design workflow, and lifecycle services.",
     )
+    twin_store = DigitalTwinStore(database_path)
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -128,6 +163,61 @@ def create_app():
     @app.post("/engineering/apparel")
     def engineer_apparel(request: ApparelRequest):
         return asdict(ApparelEngineeringCalculator().analyze(**request.model_dump()))
+
+    @app.post("/digital-twins")
+    def create_digital_twin(request: DigitalTwinCreateRequest):
+        if twin_store.load(request.product_id) is not None:
+            raise HTTPException(status_code=409, detail="Digital twin already exists")
+        twin = ProductDigitalTwin(**request.model_dump())
+        twin.add_event(LifecycleEvent(LifecycleEventType.CREATED, "Digital twin created"))
+        twin_store.save(twin)
+        return asdict(twin)
+
+    @app.get("/digital-twins/{product_id}")
+    def get_digital_twin(product_id: str):
+        twin = twin_store.load(product_id)
+        if twin is None:
+            raise HTTPException(status_code=404, detail="Digital twin not found")
+        return asdict(twin)
+
+    @app.post("/digital-twins/{product_id}/events")
+    def add_digital_twin_event(product_id: str, request: DigitalTwinEventRequest):
+        twin = twin_store.load(product_id)
+        if twin is None:
+            raise HTTPException(status_code=404, detail="Digital twin not found")
+        twin.add_event(LifecycleEvent(request.event_type, request.summary, request.metadata))
+        twin_store.save(twin)
+        return asdict(twin)
+
+    @app.post("/digital-twins/{product_id}/revisions")
+    def revise_digital_twin(product_id: str, request: DigitalTwinRevisionRequest):
+        twin = twin_store.load(product_id)
+        if twin is None:
+            raise HTTPException(status_code=404, detail="Digital twin not found")
+        try:
+            twin.record_revision(request.revision, request.summary)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        twin_store.save(twin)
+        return asdict(twin)
+
+    @app.post("/digital-twins/{product_id}/repairs")
+    def repair_digital_twin(product_id: str, request: DigitalTwinRepairRequest):
+        twin = twin_store.load(product_id)
+        if twin is None:
+            raise HTTPException(status_code=404, detail="Digital twin not found")
+        twin.record_repair(request.summary, request.provider, request.cost)
+        twin_store.save(twin)
+        return asdict(twin)
+
+    @app.put("/digital-twins/{product_id}/readiness")
+    def set_digital_twin_readiness(product_id: str, request: DigitalTwinReadinessRequest):
+        twin = twin_store.load(product_id)
+        if twin is None:
+            raise HTTPException(status_code=404, detail="Digital twin not found")
+        twin.readiness_level = request.readiness_level
+        twin_store.save(twin)
+        return asdict(twin)
 
     return app
 
