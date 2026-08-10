@@ -1,0 +1,47 @@
+{
+  "schema_name": "ATLAS Design DNA",
+  "version": "1.0.0",
+  "record": {
+    "id": "INS-000000",
+    "source": {
+      "type": "image|sketch|blueprint|document|other",
+      "uri_or_reference": null,
+      "imported_at": null,
+      "provenance_notes": null
+    },
+    "project_context": [],
+    "categories": [],
+    "objects": [],
+    "materials": [],
+    "colors": [],
+    "shape_language": [],
+    "textures": [],
+    "functional_principles": [],
+    "aesthetic_principles": [],
+    "possible_connections": [],
+    "council_analysis": {
+      "minerva": {
+        "observations": [],
+        "confidence": 0.0
+      },
+      "hermes": {
+        "observations": [],
+        "confidence": 0.0
+      },
+      "ajani": {
+        "observations": [],
+        "confidence": 0.0
+      }
+    },
+    "overall_confidence": 0.0,
+    "facts": [],
+    "inferences": [],
+    "originality_constraints": {
+      "copy_reference": false,
+      "extract_general_principles": true,
+      "require_original_atlas_synthesis": true
+    },
+    "memory_links": [],
+    "review_status": "unreviewed"
+  }
+}
