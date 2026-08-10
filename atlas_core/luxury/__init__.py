@@ -8,6 +8,9 @@ from .collections import CollectionProduct, DesignCollection
 from .council import CouncilReviewEngine
 from .critique import LuxuryCritiqueEngine, OriginalityEngine
 from .database import LuxuryDatabase
+from .design_dna import DNAComparison, DesignDNA, DesignDNAEngine
+from .digital_twin import LifecycleEvent, LifecycleEventType, ProductDigitalTwin
+from .digital_twin_store import DigitalTwinStore
 from .engineering import (
     ApparelEngineeringCalculator,
     ApparelEngineeringResult,
@@ -19,6 +22,7 @@ from .engineering import (
     FurnitureEngineeringResult,
 )
 from .evaluation_store import EvaluationStore
+from .evolution import DesignEvolutionEngine, DesignRevision, RevisionDelta
 from .forge import DesignForge
 from .genome import DEFAULT_CATEGORIES, DesignGenomeEngine
 from .manufacturing import (
@@ -41,6 +45,7 @@ from .models import (
 )
 from .progress import AcademyProgressTracker, ProgressModule, ProgressRepository
 from .prototypes import PrototypeLaboratory, PrototypeRecord, PrototypeTest, TestStatus
+from .readiness import ProductReadiness, ProductReadinessLevel
 from .repositories import DesignProjectRepository, MaterialRepository
 from .service import LuxuryDesignService
 from .suppliers import Supplier, SupplierRegistry, SupplierStatus
@@ -60,12 +65,18 @@ __all__ = [
     "CostLine",
     "CritiqueFinding",
     "DEFAULT_CATEGORIES",
+    "DNAComparison",
     "DesignCollection",
     "DesignConcept",
+    "DesignDNA",
+    "DesignDNAEngine",
+    "DesignEvolutionEngine",
     "DesignForge",
     "DesignGenome",
     "DesignGenomeEngine",
     "DesignProjectRepository",
+    "DesignRevision",
+    "DigitalTwinStore",
     "EvaluationStore",
     "FailureArchive",
     "FailureRecord",
@@ -78,6 +89,8 @@ __all__ = [
     "FurnitureEngineeringCalculator",
     "FurnitureEngineeringResult",
     "GenomeScore",
+    "LifecycleEvent",
+    "LifecycleEventType",
     "LuxuryCritiqueEngine",
     "LuxuryDatabase",
     "LuxuryDesignService",
@@ -88,11 +101,15 @@ __all__ = [
     "MaterialProfile",
     "MaterialRepository",
     "OriginalityEngine",
+    "ProductDigitalTwin",
+    "ProductReadiness",
+    "ProductReadinessLevel",
     "ProgressModule",
     "ProgressRepository",
     "PrototypeLaboratory",
     "PrototypeRecord",
     "PrototypeTest",
+    "RevisionDelta",
     "ReviewVerdict",
     "StageRequirement",
     "Supplier",
