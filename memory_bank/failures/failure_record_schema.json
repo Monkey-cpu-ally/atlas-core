@@ -1,0 +1,31 @@
+{
+  "schema_name": "ATLAS Failure Record",
+  "version": "1.0.0",
+  "purpose": "Preserve failed experiments and rejected approaches as reusable engineering knowledge.",
+  "failure": {
+    "id": null,
+    "project_id": null,
+    "experiment_id": null,
+    "date": null,
+    "goal": null,
+    "expected_result": null,
+    "observed_result": null,
+    "failure_mode": null,
+    "root_cause": null,
+    "root_cause_confidence": 0.0,
+    "evidence": [],
+    "assumptions_that_failed": [],
+    "safety_impact": null,
+    "cost_impact": null,
+    "lessons": [],
+    "recommended_next_tests": [],
+    "do_not_repeat_without_change": [],
+    "related_failures": [],
+    "council_review": {
+      "minerva": [],
+      "hermes": [],
+      "ajani": []
+    },
+    "status": "open|understood|resolved|superseded"
+  }
+}
