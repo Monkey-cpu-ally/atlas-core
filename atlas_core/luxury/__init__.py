@@ -43,6 +43,7 @@ from .models import (
     MaterialProfile,
     ReviewVerdict,
 )
+from .product_orchestrator import LuxuryProductOrchestrator, ProductAssessment
 from .progress import AcademyProgressTracker, ProgressModule, ProgressRepository
 from .prototypes import PrototypeLaboratory, PrototypeRecord, PrototypeTest, TestStatus
 from .readiness import ProductReadiness, ProductReadinessLevel
@@ -94,6 +95,7 @@ __all__ = [
     "LuxuryCritiqueEngine",
     "LuxuryDatabase",
     "LuxuryDesignService",
+    "LuxuryProductOrchestrator",
     "ManufacturingCostEngine",
     "ManufacturingEstimate",
     "ManufacturingInputs",
@@ -101,6 +103,7 @@ __all__ = [
     "MaterialProfile",
     "MaterialRepository",
     "OriginalityEngine",
+    "ProductAssessment",
     "ProductDigitalTwin",
     "ProductReadiness",
     "ProductReadinessLevel",
