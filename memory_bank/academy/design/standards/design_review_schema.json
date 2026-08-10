@@ -1,0 +1,37 @@
+{
+  "schema_name": "ATLAS Council Design Review",
+  "version": "1.0.0",
+  "purpose": "Standard review record for concepts before promotion to prototype or implementation.",
+  "review": {
+    "concept_id": null,
+    "project_id": null,
+    "reviewed_at": null,
+    "scores": {
+      "purpose_clarity": 0,
+      "originality": 0,
+      "engineering_feasibility": 0,
+      "safety": 0,
+      "manufacturability": 0,
+      "maintainability": 0,
+      "material_logic": 0,
+      "usability": 0,
+      "visual_hierarchy": 0,
+      "atlas_identity": 0,
+      "sustainability": 0,
+      "cost_awareness": 0,
+      "evidence_quality": 0
+    },
+    "scale": "0-100",
+    "council": {
+      "minerva": {"verdict":"pending","strengths":[],"concerns":[],"recommendations":[]},
+      "hermes": {"verdict":"pending","strengths":[],"concerns":[],"recommendations":[]},
+      "ajani": {"verdict":"pending","strengths":[],"concerns":[],"recommendations":[]}
+    },
+    "known_unknowns": [],
+    "assumptions": [],
+    "required_tests": [],
+    "decision": "revise|research|prototype|approve|reject",
+    "decision_reason": null,
+    "codex_version": "1.0"
+  }
+}
