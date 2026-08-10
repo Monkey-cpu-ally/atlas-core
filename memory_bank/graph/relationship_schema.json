@@ -1,0 +1,25 @@
+{
+  "schema_name": "ATLAS Knowledge Relationship",
+  "version": "1.0.0",
+  "purpose": "Connect knowledge, inspiration, projects, experiments, creators, materials, and lessons without reducing memory to folders.",
+  "node_types": ["creator","studio","reference","principle","material","academy_topic","project","blueprint","experiment","failure","lesson","standard"],
+  "relationship_types": ["inspired_by","derived_principle_from","applies_to","related_to","uses_material","tested_by","failed_because","improved_by","supersedes","supports","contradicts","validated_by","proposes_standard","descended_from"],
+  "edge": {
+    "id": null,
+    "from_node": null,
+    "relationship": null,
+    "to_node": null,
+    "confidence": 0.0,
+    "evidence": [],
+    "created_at": null,
+    "created_by": "user|minerva|hermes|ajani|council|system",
+    "review_status": "unreviewed|reviewed|validated|rejected"
+  },
+  "rules": [
+    "Do not treat similarity as causation.",
+    "Record evidence for factual relationships.",
+    "Label speculative relationships as hypotheses.",
+    "Preserve source provenance.",
+    "Allow relationships to be revised when better evidence appears."
+  ]
+}
