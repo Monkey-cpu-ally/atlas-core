@@ -1,0 +1,38 @@
+{
+  "schema_name": "ATLAS Project Memory",
+  "version": "1.0.0",
+  "project": {
+    "id": null,
+    "name": null,
+    "mission": null,
+    "problem_statement": null,
+    "status": "concept|research|prototype|testing|revision|production|archived",
+    "created_at": null,
+    "updated_at": null,
+    "why_it_exists": [],
+    "requirements": [],
+    "constraints": [],
+    "research_links": [],
+    "inspiration_links": [],
+    "academy_links": [],
+    "blueprints": [],
+    "experiments": [],
+    "failures_and_lessons": [],
+    "decisions": [],
+    "versions": [],
+    "materials": [],
+    "manufacturing_notes": [],
+    "safety_notes": [],
+    "known_unknowns": [],
+    "council_notes": {
+      "minerva": [],
+      "hermes": [],
+      "ajani": []
+    },
+    "parent_projects": [],
+    "descendant_projects": [],
+    "related_projects": [],
+    "codex_lessons_proposed": [],
+    "provenance": []
+  }
+}
