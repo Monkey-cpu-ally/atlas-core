@@ -12,6 +12,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from models.file_model import FileMetadata, FileUploadResponse, FileCategoryUpdate
 from services.ai_categorizer import categorize_file_with_ai, get_available_sections
+from utils.filesystem import initialize_upload_dir
 
 router = APIRouter(prefix="/api/files", tags=["Files"])
 
@@ -21,9 +22,9 @@ DB_NAME = os.environ.get("DB_NAME", "atlas_core")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
-# File storage directory
-UPLOAD_DIR = "/app/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# File storage directory. Initialization must never make API startup fail just
+# because a container/CI runner cannot write to the historical /app path.
+UPLOAD_DIR = initialize_upload_dir()
 
 # File size limit: 50MB
 MAX_FILE_SIZE = 50 * 1024 * 1024
