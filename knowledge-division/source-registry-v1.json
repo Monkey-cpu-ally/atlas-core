@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "purpose": "ATLAS Knowledge Bank source registry for the first ten high-value connectors",
+  "sources": [
+    {"id": "wikipedia", "status": "structured", "authority_tier": 3, "best_for": ["orientation", "terminology", "history", "cross-domain discovery"]},
+    {"id": "wikidata", "status": "structured", "authority_tier": 3, "best_for": ["entities", "relationships", "timelines", "knowledge graph"]},
+    {"id": "openalex", "status": "structured", "authority_tier": 2, "best_for": ["paper discovery", "authors", "citations", "research graph"]},
+    {"id": "arxiv", "status": "existing_structured", "authority_tier": 2, "best_for": ["ai", "software", "mathematics", "physics", "engineering"]},
+    {"id": "nasa_ntrs", "status": "structured", "authority_tier": 1, "best_for": ["aerospace", "robotics", "materials", "space science", "engineering"]},
+    {"id": "nist", "status": "provider_aware_web_v1", "authority_tier": 1, "best_for": ["standards", "cybersecurity", "physics", "chemistry", "manufacturing", "measurement"]},
+    {"id": "pubmed", "status": "structured", "authority_tier": 1, "best_for": ["biology", "neuroscience", "psychology", "biomedicine"]},
+    {"id": "github", "status": "existing_structured", "authority_tier": 2, "best_for": ["software engineering", "ai", "robotics", "simulation", "open source"]},
+    {"id": "uspto_patents", "status": "existing_patent_pipeline", "authority_tier": 1, "best_for": ["patents", "inventions", "prior art", "engineering"]},
+    {"id": "library_of_congress", "status": "structured", "authority_tier": 1, "best_for": ["history", "creative writing", "music", "film", "visual arts", "culture"]}
+  ],
+  "rules": {
+    "persist_raw_source_text": false,
+    "distill_before_storage": true,
+    "deduplicate_by_normalized_url": true,
+    "retain_source_url": true,
+    "prefer_primary_sources_for_high_stakes_claims": true,
+    "wikipedia_role": "orientation_not_final_authority"
+  }
+}
