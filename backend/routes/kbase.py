@@ -3,7 +3,8 @@ Knowledge Ingestion routes (prefix /api/kbase).
 
 This is the external Knowledge Bank ingestion API. It turns public sources
 into distilled records, exposes source classification, provides the canonical
-22-subject source-routing policy, and exposes the Existing Resource Library.
+22-subject source-routing policy, exposes the Existing Resource Library, and
+provides supported book discovery through Project Gutenberg OPDS.
 """
 from typing import Optional
 
@@ -20,6 +21,7 @@ from services.existing_resource_library import (
     get_resource,
     search_resources,
 )
+from services.project_gutenberg_connector import search_books as search_gutenberg_books
 
 router = APIRouter(prefix="/api/kbase", tags=["KnowledgeIngestion"])
 
@@ -54,6 +56,21 @@ async def search(
         tag=tag, limit=limit,
     )
     return {"count": len(rows), "items": rows}
+
+
+@router.get("/books/gutenberg/search")
+async def gutenberg_search(q: str = Query(min_length=2, max_length=200)):
+    try:
+        rows = await search_gutenberg_books(q)
+    except Exception as exc:  # provider/network boundary
+        raise HTTPException(503, f"Project Gutenberg search failed: {exc}") from exc
+    return {
+        "provider": "Project Gutenberg",
+        "query": q,
+        "count": len(rows),
+        "items": rows,
+        "policy": "OPDS discovery only; bulk downloads must use official Gutenberg mirrors/catalog guidance",
+    }
 
 
 @router.get("/resources")
