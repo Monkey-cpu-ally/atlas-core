@@ -1,18 +1,9 @@
 """
 Knowledge Ingestion routes (prefix /api/kbase).
 
-Distinct from the legacy `/api/knowledge` 22-subject teaching endpoints
-(see routes/knowledge_core.py) — this module is the new Knowledge
-Ingestion System that turns external URLs into distilled MemoryRecords.
-
-Endpoints:
-  POST   /api/kbase/ingest                    → ingest a URL (or PDF blob)
-  GET    /api/kbase/search                    → search records
-  GET    /api/kbase/{id}                      → fetch a single record
-  GET    /api/kbase/by-url                    → fetch by exact URL
-  DELETE /api/kbase/{id}                      → remove a record (does NOT drop mb row)
-  GET    /api/kbase/agents/route              → preview the routing decision
-  GET    /api/kbase/classify                  → preview source-type classification
+This is the external Knowledge Bank ingestion API. It turns public sources
+into distilled records, exposes source classification, and now provides the
+canonical 22-subject source-routing policy used by ATLAS research agents.
 """
 from typing import Optional
 
@@ -22,6 +13,7 @@ from models.knowledge_models import IngestRequest, SourceType
 from services import knowledge_ingestion as ki
 from services.knowledge_distiller import route_agent
 from services.source_fetchers import IngestError, classify
+from services.subject_source_router import SUBJECTS, route_subject, subjects_for_agent
 
 router = APIRouter(prefix="/api/kbase", tags=["KnowledgeIngestion"])
 
@@ -62,6 +54,31 @@ async def search(
 async def preview_routing(text: str = Query(min_length=2, max_length=2000)):
     return {"text": text[:120] + ("..." if len(text) > 120 else ""),
             "suggested_agent": route_agent(text)}
+
+
+@router.get("/agents/{agent}/subjects")
+async def agent_subject_affinity(agent: str):
+    subjects = subjects_for_agent(agent)
+    if not subjects:
+        raise HTTPException(404, "unknown agent or no subject affinity configured")
+    return {
+        "agent": agent.lower(),
+        "preferred_subjects": subjects,
+        "access_policy": "all ATLAS personas may query all 22 subjects",
+    }
+
+
+@router.get("/subjects")
+async def knowledge_bank_subjects():
+    return {"count": len(SUBJECTS), "subjects": SUBJECTS}
+
+
+@router.get("/subjects/{subject}/sources")
+async def subject_sources(subject: str):
+    decision = route_subject(subject)
+    if not decision["found"]:
+        raise HTTPException(404, f"unknown ATLAS subject: {subject}")
+    return decision
 
 
 @router.get("/classify")
