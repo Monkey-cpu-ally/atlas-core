@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "purpose": "ATLAS Knowledge Bank source registry and 22-subject routing policy",
   "sources": [
     {"id": "wikipedia", "status": "structured", "authority_tier": 3, "best_for": ["orientation", "terminology", "history", "cross-domain discovery"]},
@@ -11,7 +11,8 @@
     {"id": "pubmed", "status": "structured", "authority_tier": 1, "best_for": ["biology", "neuroscience", "psychology", "biomedicine"]},
     {"id": "github", "status": "existing_structured", "authority_tier": 2, "best_for": ["software engineering", "ai", "robotics", "simulation", "open source"]},
     {"id": "uspto_patents", "status": "existing_patent_pipeline", "authority_tier": 1, "best_for": ["patents", "inventions", "prior art", "engineering"]},
-    {"id": "library_of_congress", "status": "structured", "authority_tier": 1, "best_for": ["history", "creative writing", "music", "film", "visual arts", "culture"]}
+    {"id": "library_of_congress", "status": "structured", "authority_tier": 1, "best_for": ["history", "creative writing", "music", "film", "visual arts", "culture"]},
+    {"id": "project_gutenberg", "status": "opds_structured", "authority_tier": 2, "best_for": ["public-domain books", "creative writing", "literature", "history", "philosophy", "classic works"], "automation_policy": "use OPDS/catalog feeds; do not crawl main website; bulk content uses official mirrors/catalog guidance"}
   ],
   "subject_router": {
     "implementation": "backend/services/subject_source_router.py",
@@ -25,6 +26,7 @@
     "deduplicate_by_normalized_url": true,
     "retain_source_url": true,
     "prefer_primary_sources_for_high_stakes_claims": true,
-    "wikipedia_role": "orientation_not_final_authority"
+    "wikipedia_role": "orientation_not_final_authority",
+    "book_rights_policy": "verify item rights and user jurisdiction before local copying; preserve title, author, source, and license metadata"
   }
 }
