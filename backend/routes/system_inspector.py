@@ -21,56 +21,79 @@ _runtime: Dict[str, Any] = {
 _ST_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 
+async def _configure_memory_runtime() -> Dict[str, Any]:
+    """Choose an embedding backend without mixing incompatible vector spaces.
+
+    Existing memory rows may have been embedded by the hash backend. Hash and
+    sentence-transformer vectors are both 384-dimensional, but cosine scores
+    across those two spaces are meaningless. Therefore automatic provider
+    upgrades are allowed only for an empty Memory Bank. Existing banks keep
+    their persisted persona settings unless the operator explicitly requests
+    a provider through ATLAS_EMBED_PROVIDER (which should be paired with a
+    deliberate re-embedding/migration).
+    """
+    from services import memory_bank as mb
+
+    explicit_provider = (os.environ.get("ATLAS_EMBED_PROVIDER") or "").strip().lower()
+    explicit_model = (os.environ.get("ATLAS_EMBED_MODEL") or "").strip()
+    existing_rows = await mb._memory().count_documents({})
+
+    current = {}
+    for persona in mb.DEFAULT_EMBED_SETTINGS:
+        provider, model = await mb.get_embed_settings(persona)
+        current[persona] = {"provider": provider, "model": model}
+
+    if existing_rows and not explicit_provider:
+        providers = sorted({cfg["provider"] for cfg in current.values()})
+        models = sorted({cfg["model"] for cfg in current.values()})
+        return {
+            "provider": providers[0] if len(providers) == 1 else "mixed",
+            "model": models[0] if len(models) == 1 else None,
+            "reason": "existing_vectors_preserved_to_avoid_vector_space_mismatch",
+            "existing_memory_rows": existing_rows,
+            "settings_updated": 0,
+            "personas": current,
+        }
+
+    if explicit_provider:
+        provider = explicit_provider
+        model = explicit_model or {
+            "st": _ST_MODEL,
+            "ollama": mb.DEFAULT_OLLAMA_EMBED,
+            "emergent": mb.DEFAULT_OPENAI_EMBED,
+            "hash": mb.DEFAULT_EMBED_MODEL,
+        }.get(provider, mb.DEFAULT_EMBED_MODEL)
+        reason = "explicit_environment_configuration"
+    elif importlib.util.find_spec("sentence_transformers") is not None:
+        provider = "st"
+        model = _ST_MODEL
+        reason = "empty_bank_local_semantic_embeddings_available"
+    else:
+        provider = "hash"
+        model = mb.DEFAULT_EMBED_MODEL
+        reason = "empty_bank_hash_fallback"
+
+    updates = {
+        persona: {"provider": provider, "model": model}
+        for persona in mb.DEFAULT_EMBED_SETTINGS
+    }
+    result = await mb.set_embed_settings(updates)
+    return {
+        "provider": provider,
+        "model": model,
+        "reason": reason,
+        "existing_memory_rows": existing_rows,
+        "settings_updated": result.get("updated", 0),
+    }
+
+
 @router.on_event("startup")
 async def _bootstrap_atlas_runtime() -> None:
-    """Wire optional runtime services without making app startup brittle.
-
-    Memory preference order:
-      1. ATLAS_EMBED_PROVIDER / ATLAS_EMBED_MODEL when explicitly configured.
-      2. Local sentence-transformers when installed (real semantic vectors).
-      3. Existing hash backend as a deterministic last-resort fallback.
-
-    MQTT is also attached to the FastAPI event loop here so the paho network
-    thread can forward device telemetry into the async robot pipeline.
-    """
+    """Wire optional runtime services without making app startup brittle."""
     global _runtime
 
-    # ---- Memory Bank semantic embeddings ---------------------------------
     try:
-        from services import memory_bank as mb
-
-        explicit_provider = (os.environ.get("ATLAS_EMBED_PROVIDER") or "").strip().lower()
-        explicit_model = (os.environ.get("ATLAS_EMBED_MODEL") or "").strip()
-
-        if explicit_provider:
-            provider = explicit_provider
-            model = explicit_model or {
-                "st": _ST_MODEL,
-                "ollama": mb.DEFAULT_OLLAMA_EMBED,
-                "emergent": mb.DEFAULT_OPENAI_EMBED,
-                "hash": mb.DEFAULT_EMBED_MODEL,
-            }.get(provider, mb.DEFAULT_EMBED_MODEL)
-            reason = "explicit_environment_configuration"
-        elif importlib.util.find_spec("sentence_transformers") is not None:
-            provider = "st"
-            model = _ST_MODEL
-            reason = "local_semantic_embeddings_available"
-        else:
-            provider = "hash"
-            model = mb.DEFAULT_EMBED_MODEL
-            reason = "sentence_transformers_unavailable_fallback"
-
-        updates = {
-            persona: {"provider": provider, "model": model}
-            for persona in mb.DEFAULT_EMBED_SETTINGS
-        }
-        result = await mb.set_embed_settings(updates)
-        _runtime["memory"] = {
-            "provider": provider,
-            "model": model,
-            "reason": reason,
-            "settings_updated": result.get("updated", 0),
-        }
+        _runtime["memory"] = await _configure_memory_runtime()
     except Exception as exc:  # noqa: BLE001
         _runtime["memory"] = {
             "provider": "existing",
@@ -78,7 +101,6 @@ async def _bootstrap_atlas_runtime() -> None:
             "reason": f"bootstrap_failed: {str(exc)[:180]}",
         }
 
-    # ---- MQTT bidirectional bridge ---------------------------------------
     try:
         from services import mqtt_bridge
 
