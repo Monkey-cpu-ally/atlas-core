@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -194,15 +194,25 @@ async def ingest_gutenberg_book(
 
 
 async def search_book_memory(query: str, *, persona: str, top_k: int = 6) -> List[Dict[str, Any]]:
-    """Semantic recall over ingested book chunks for one ATLAS persona."""
-    if persona.lower() not in DEFAULT_PERSONAS:
+    """Semantic recall over only ingested book chunks for one ATLAS persona."""
+    persona_key = persona.lower()
+    if persona_key not in DEFAULT_PERSONAS:
         raise ValueError("persona must be ajani, minerva, or hermes")
-    rows = await mb.search_memory(
-        query,
-        persona=persona.lower(),
-        category="research",
-        top_k=max(25, top_k * 6),
-        min_score=0.05,
+
+    qvec, _ = await mb.embed(query, persona=persona_key)
+    cursor = _memory_collection().find(
+        {"persona": persona_key, "source_type": "book"},
+        {"_id": 0},
     )
-    books = [r for r in rows if r.get("source_type") == "book" or "book" in (r.get("tags") or [])]
-    return books[:top_k]
+    rows = await cursor.to_list(length=5000)
+    scored: List[Tuple[float, Dict[str, Any]]] = []
+    for row in rows:
+        embedding = row.pop("embedding", None) or []
+        score = mb._cosine(qvec, embedding)  # shared vector math from Memory Bank
+        if score <= 0:
+            continue
+        row["sim"] = round(score, 4)
+        row["score"] = round(score, 4)
+        scored.append((score, row))
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [row for _, row in scored[:top_k]]
