@@ -24,14 +24,16 @@ TIMEOUT = 20.0
 
 
 def provider_for_url(url: str) -> Optional[str]:
-    host = (urlparse(url).hostname or "").lower()
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    path = parsed.path or ""
     if host.endswith("wikipedia.org"):
         return "wikipedia"
     if host.endswith("wikidata.org"):
         return "wikidata"
     if host.endswith("openalex.org"):
         return "openalex"
-    if host.endswith("ncbi.nlm.nih.gov") or host.endswith("pubmed.ncbi.nlm.nih.gov"):
+    if host == "pubmed.ncbi.nlm.nih.gov" or (host == "www.ncbi.nlm.nih.gov" and path.startswith("/pubmed/")):
         return "pubmed"
     if host.endswith("ntrs.nasa.gov"):
         return "nasa_ntrs"
