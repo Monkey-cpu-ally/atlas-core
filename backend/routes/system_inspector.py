@@ -18,6 +18,8 @@ _runtime: Dict[str, Any] = {
     "mqtt": {"uplink_enabled": False, "reason": "not_started"},
 }
 
+_ST_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
 
 @router.on_event("startup")
 async def _bootstrap_atlas_runtime() -> None:
@@ -43,19 +45,19 @@ async def _bootstrap_atlas_runtime() -> None:
         if explicit_provider:
             provider = explicit_provider
             model = explicit_model or {
-                "st": mb.DEFAULT_ST_EMBED,
+                "st": _ST_MODEL,
                 "ollama": mb.DEFAULT_OLLAMA_EMBED,
                 "emergent": mb.DEFAULT_OPENAI_EMBED,
-                "hash": mb.DEFAULT_HASH_MODEL,
-            }.get(provider, mb.DEFAULT_HASH_MODEL)
+                "hash": mb.DEFAULT_EMBED_MODEL,
+            }.get(provider, mb.DEFAULT_EMBED_MODEL)
             reason = "explicit_environment_configuration"
         elif importlib.util.find_spec("sentence_transformers") is not None:
             provider = "st"
-            model = mb.DEFAULT_ST_EMBED
+            model = _ST_MODEL
             reason = "local_semantic_embeddings_available"
         else:
             provider = "hash"
-            model = mb.DEFAULT_HASH_MODEL
+            model = mb.DEFAULT_EMBED_MODEL
             reason = "sentence_transformers_unavailable_fallback"
 
         updates = {
