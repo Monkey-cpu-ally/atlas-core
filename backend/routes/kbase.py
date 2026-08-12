@@ -4,14 +4,16 @@ Knowledge Ingestion routes (prefix /api/kbase).
 This is the external Knowledge Bank ingestion API. It turns public sources
 into distilled records, exposes source classification, provides the canonical
 22-subject source-routing policy, exposes the Existing Resource Library, and
-provides supported book discovery through Project Gutenberg OPDS.
+provides supported Project Gutenberg discovery plus book-memory ingestion.
 """
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from models.knowledge_models import IngestRequest, SourceType
 from services import knowledge_ingestion as ki
+from services.book_memory import ingest_gutenberg_book, search_book_memory
 from services.knowledge_distiller import route_agent
 from services.source_fetchers import IngestError, classify
 from services.subject_source_router import SUBJECTS, route_subject, subjects_for_agent
@@ -24,6 +26,13 @@ from services.existing_resource_library import (
 from services.project_gutenberg_connector import search_books as search_gutenberg_books
 
 router = APIRouter(prefix="/api/kbase", tags=["KnowledgeIngestion"])
+
+
+class GutenbergIngestRequest(BaseModel):
+    query: str = Field(min_length=2, max_length=200)
+    book_id: Optional[str] = Field(default=None, max_length=120)
+    subjects: List[str] = Field(default_factory=list)
+    confirm_public_domain_or_permitted: bool = False
 
 
 @router.post("/ingest")
@@ -69,7 +78,49 @@ async def gutenberg_search(q: str = Query(min_length=2, max_length=200)):
         "query": q,
         "count": len(rows),
         "items": rows,
-        "policy": "OPDS discovery only; bulk downloads must use official Gutenberg mirrors/catalog guidance",
+        "policy": "OPDS discovery; selected plain-text books may be ingested only after rights confirmation",
+    }
+
+
+@router.post("/books/gutenberg/ingest")
+async def gutenberg_ingest(req: GutenbergIngestRequest):
+    if not req.confirm_public_domain_or_permitted:
+        raise HTTPException(
+            400,
+            "confirm_public_domain_or_permitted must be true before ATLAS stores a full book text",
+        )
+    unknown = [s for s in req.subjects if not route_subject(s).get("found")]
+    if unknown:
+        raise HTTPException(400, f"unknown ATLAS subjects: {', '.join(unknown)}")
+    canonical_subjects = [route_subject(s)["subject"] for s in req.subjects]
+    try:
+        return await ingest_gutenberg_book(
+            req.query,
+            book_id=req.book_id,
+            subjects=canonical_subjects,
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except Exception as exc:  # provider/database boundary
+        raise HTTPException(503, f"Project Gutenberg ingestion failed: {exc}") from exc
+
+
+@router.get("/books/memory/search")
+async def book_memory_search(
+    q: str = Query(min_length=2, max_length=500),
+    persona: str = Query(pattern="^(ajani|minerva|hermes)$"),
+    limit: int = Query(default=6, ge=1, le=20),
+):
+    try:
+        rows = await search_book_memory(q, persona=persona, top_k=limit)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return {
+        "query": q,
+        "persona": persona,
+        "count": len(rows),
+        "items": rows,
+        "retrieval": "vector-memory cosine search",
     }
 
 
