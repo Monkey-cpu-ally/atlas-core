@@ -2,8 +2,8 @@
 Knowledge Ingestion routes (prefix /api/kbase).
 
 This is the external Knowledge Bank ingestion API. It turns public sources
-into distilled records, exposes source classification, and now provides the
-canonical 22-subject source-routing policy used by ATLAS research agents.
+into distilled records, exposes source classification, provides the canonical
+22-subject source-routing policy, and exposes the Existing Resource Library.
 """
 from typing import Optional
 
@@ -14,6 +14,12 @@ from services import knowledge_ingestion as ki
 from services.knowledge_distiller import route_agent
 from services.source_fetchers import IngestError, classify
 from services.subject_source_router import SUBJECTS, route_subject, subjects_for_agent
+from services.existing_resource_library import (
+    all_resources,
+    coverage as resource_coverage,
+    get_resource,
+    search_resources,
+)
 
 router = APIRouter(prefix="/api/kbase", tags=["KnowledgeIngestion"])
 
@@ -48,6 +54,34 @@ async def search(
         tag=tag, limit=limit,
     )
     return {"count": len(rows), "items": rows}
+
+
+@router.get("/resources")
+async def existing_resources(
+    subject: Optional[str] = None,
+    resource_type: Optional[str] = None,
+    provider: Optional[str] = None,
+    q: Optional[str] = None,
+):
+    rows = search_resources(subject=subject, resource_type=resource_type, provider=provider, q=q)
+    return {"count": len(rows), "items": rows}
+
+
+@router.get("/resources/coverage")
+async def existing_resource_coverage():
+    rows = all_resources()
+    return {
+        "resource_count": len(rows),
+        "subjects": resource_coverage(SUBJECTS),
+    }
+
+
+@router.get("/resources/{resource_id}")
+async def existing_resource(resource_id: str):
+    row = get_resource(resource_id)
+    if not row:
+        raise HTTPException(404, "existing resource not found")
+    return row
 
 
 @router.get("/agents/route")
