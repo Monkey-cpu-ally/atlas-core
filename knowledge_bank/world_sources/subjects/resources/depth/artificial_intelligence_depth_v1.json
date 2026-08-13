@@ -1,0 +1,20 @@
+{
+  "subject": "artificial_intelligence",
+  "phase": "depth_v1",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"Elements of AI","provider":"University of Helsinki / MinnaLearn","type":"open_course","subsubjects":["ai_foundations","ai_ethics"],"levels":["foundation","beginner"],"url":"https://www.elementsofai.com/","access":"open_course"},
+    {"title":"Google Machine Learning Crash Course","provider":"Google","type":"official_course","subsubjects":["machine_learning","ml_systems"],"levels":["beginner","intermediate"],"url":"https://developers.google.com/machine-learning/crash-course","access":"open_learning"},
+    {"title":"Dive into Deep Learning","provider":"D2L.ai","type":"open_textbook_course","subsubjects":["machine_learning","deep_learning","natural_language_processing","computer_vision"],"levels":["intermediate","advanced","undergraduate"],"url":"https://d2l.ai/","access":"full_text_and_code"},
+    {"title":"Introduction to Artificial Intelligence","provider":"MIT OpenCourseWare","type":"course","subsubjects":["ai_foundations","knowledge_representation","machine_learning"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/6-034-artificial-intelligence-fall-2010/","access":"lectures_notes_problem_sets_exams"},
+    {"title":"Introduction to Machine Learning","provider":"MIT OpenCourseWare","type":"course","subsubjects":["machine_learning"],"levels":["undergraduate","advanced"],"url":"https://ocw.mit.edu/courses/6-036-introduction-to-machine-learning-fall-2020/","access":"course_materials"},
+    {"title":"Deep Learning","provider":"MIT OpenCourseWare","type":"course","subsubjects":["deep_learning","computer_vision","natural_language_processing"],"levels":["undergraduate","graduate"],"url":"https://ocw.mit.edu/courses/6-s191-introduction-to-deep-learning-january-iap-2020/","access":"lectures_and_materials"},
+    {"title":"Hugging Face Course","provider":"Hugging Face","type":"official_course","subsubjects":["natural_language_processing","generative_ai","ml_systems"],"levels":["intermediate","advanced","undergraduate"],"url":"https://huggingface.co/learn","access":"open_learning"},
+    {"title":"PyTorch Tutorials","provider":"PyTorch","type":"official_documentation","subsubjects":["deep_learning","computer_vision","natural_language_processing","ml_systems"],"levels":["intermediate","advanced","undergraduate"],"url":"https://pytorch.org/tutorials/","access":"open_docs"},
+    {"title":"Stanford CS231n","provider":"Stanford University","type":"course","subsubjects":["computer_vision","deep_learning"],"levels":["advanced","undergraduate","graduate"],"url":"https://cs231n.stanford.edu/","access":"course_materials"},
+    {"title":"Stanford CS224N","provider":"Stanford University","type":"course","subsubjects":["natural_language_processing","deep_learning","generative_ai"],"levels":["advanced","undergraduate","graduate"],"url":"https://web.stanford.edu/class/cs224n/","access":"course_materials"},
+    {"title":"Berkeley CS285 Deep Reinforcement Learning","provider":"UC Berkeley","type":"course","subsubjects":["reinforcement_learning"],"levels":["graduate"],"url":"https://rail.eecs.berkeley.edu/deeprlcourse/","access":"course_materials"},
+    {"title":"arXiv Artificial Intelligence and Machine Learning","provider":"arXiv","type":"research_repository","subsubjects":["machine_learning","deep_learning","natural_language_processing","computer_vision","reinforcement_learning","generative_ai","multi_agent_systems","ai_safety","ml_systems"],"levels":["graduate","research"],"url":"https://arxiv.org/list/cs.AI/recent","access":"papers"}
+  ],
+  "coverage_status": "expanded_not_complete"
+}
