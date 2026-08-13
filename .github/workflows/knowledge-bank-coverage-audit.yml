@@ -1,0 +1,138 @@
+name: ATLAS Knowledge Bank Coverage Audit
+
+on:
+  push:
+    branches:
+      - main
+      - feature/knowledge-connectors-v1
+    paths:
+      - "knowledge_bank/world_sources/subjects/**"
+      - ".github/workflows/knowledge-bank-coverage-audit.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "knowledge_bank/world_sources/subjects/**"
+      - ".github/workflows/knowledge-bank-coverage-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knowledge-bank-coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage-audit:
+    name: Knowledge Bank coverage audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile coverage auditor
+        run: python -m py_compile knowledge_bank/world_sources/subjects/coverage_audit.py
+
+      - name: Run coverage audit
+        run: python knowledge_bank/world_sources/subjects/coverage_audit.py
+
+      - name: Validate generated matrix
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("knowledge_bank/world_sources/subjects/coverage_matrix_v2.json")
+          if not path.is_file():
+              raise SystemExit("coverage_matrix_v2.json was not generated")
+
+          report = json.loads(path.read_text(encoding="utf-8"))
+          summary = report.get("summary", {})
+          subjects = report.get("subjects", {})
+
+          required_summary = {
+              "subject_count",
+              "level_count",
+              "total_cells",
+              "covered_cells",
+              "gap_cells",
+              "coverage_percent",
+          }
+          missing = sorted(required_summary - summary.keys())
+          if missing:
+              raise SystemExit(f"Coverage summary missing fields: {missing}")
+
+          if summary["subject_count"] != 22:
+              raise SystemExit(
+                  f"Expected 22 subjects, got {summary['subject_count']}"
+              )
+          if summary["level_count"] != 7:
+              raise SystemExit(
+                  f"Expected 7 levels, got {summary['level_count']}"
+              )
+          if summary["total_cells"] != 2044:
+              raise SystemExit(
+                  f"Expected 2044 coverage cells, got {summary['total_cells']}"
+              )
+          if len(subjects) != 22:
+              raise SystemExit(f"Expected 22 subject reports, got {len(subjects)}")
+          if summary["covered_cells"] + summary["gap_cells"] != summary["total_cells"]:
+              raise SystemExit("Coverage cell accounting is inconsistent")
+          if not 0 <= summary["coverage_percent"] <= 100:
+              raise SystemExit("Coverage percent is outside 0-100")
+
+          print("Coverage matrix validation passed.")
+          PY
+
+      - name: Publish coverage summary
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+
+          report = json.loads(
+              Path("knowledge_bank/world_sources/subjects/coverage_matrix_v2.json")
+              .read_text(encoding="utf-8")
+          )
+          summary = report["summary"]
+
+          print("# ATLAS Knowledge Bank Coverage")
+          print()
+          print(f"- **Subjects:** {summary['subject_count']}")
+          print(f"- **Learning levels:** {summary['level_count']}")
+          print(f"- **Total coverage cells:** {summary['total_cells']}")
+          print(f"- **Covered cells:** {summary['covered_cells']}")
+          print(f"- **Gap cells:** {summary['gap_cells']}")
+          print(f"- **Coverage:** {summary['coverage_percent']}%")
+          print()
+          print("## Subjects ranked by lowest coverage")
+          print()
+          print("| Subject | Coverage | Covered | Gaps |")
+          print("|---|---:|---:|---:|")
+          ranked = sorted(
+              report["subjects"].items(),
+              key=lambda item: (item[1]["coverage_percent"], item[0]),
+          )
+          for subject, data in ranked:
+              label = subject.replace("_", " ").title()
+              print(
+                  f"| {label} | {data['coverage_percent']}% | "
+                  f"{data['covered_cells']}/{data['total_cells']} | {data['gap_count']} |"
+              )
+          PY
+
+      - name: Upload coverage matrix
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-bank-coverage-matrix-v2
+          path: knowledge_bank/world_sources/subjects/coverage_matrix_v2.json
+          if-no-files-found: error
+          retention-days: 30
