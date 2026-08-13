@@ -15,6 +15,13 @@ from dataclasses import dataclass
 
 import httpx
 
+# Route modules import this compatibility layer before they snapshot
+# EMERGENT_LLM_KEY from the environment. In test mode expose a sentinel early
+# so their existing "configured" guard reaches the deterministic shim below.
+# The value is never used for a network request while ATLAS_TEST_MODE=1.
+if os.environ.get("ATLAS_TEST_MODE") == "1":
+    os.environ.setdefault("EMERGENT_LLM_KEY", "atlas-test-key-not-used")
+
 
 @dataclass(frozen=True)
 class UserMessage:
@@ -88,7 +95,6 @@ class LlmChat:
         retrieval, parsing and orchestration code without provider secrets.
         """
         system = self.system_message.lower()
-        user = (user_text or "").lower()
 
         if "slider tweak" in system or '"control"' in system:
             return json.dumps({
@@ -120,7 +126,7 @@ class LlmChat:
                 "next_steps": ["Run verification tests"],
             })
 
-        if "five-phase blueprint" in system or "philosophy" in system and "research" in system:
+        if "five-phase blueprint" in system or ("philosophy" in system and "research" in system):
             return json.dumps({
                 "philosophy": "Build for measurable human value.",
                 "research": "Verify assumptions against trusted sources.",
