@@ -16,7 +16,10 @@ def load_json(path: Path) -> dict:
 
 
 def iter_subject_manifests(subject: str):
-    for path in sorted(RESOURCES.glob(f"{subject}*.json")):
+    """Yield every resource manifest for a subject, including nested depth folders."""
+    for path in sorted(RESOURCES.rglob(f"{subject}*.json")):
+        if path.name == OUTPUT.name:
+            continue
         yield path, load_json(path)
 
 
@@ -31,7 +34,6 @@ def build_coverage() -> dict:
         "subjects": {},
         "summary": {},
     }
-
     total_cells = 0
     covered_cells = 0
 
@@ -47,7 +49,7 @@ def build_coverage() -> dict:
                     "title": resource.get("title"),
                     "provider": resource.get("provider"),
                     "resource_type": resource.get("resource_type"),
-                    "manifest": path.name,
+                    "manifest": str(path.relative_to(RESOURCES)),
                     "url": resource.get("url"),
                 }
                 for subsubject in resource_subsubjects:
