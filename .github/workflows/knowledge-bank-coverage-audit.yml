@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   coverage-audit:
-    name: Knowledge Bank coverage audit
+    name: Knowledge Bank coverage and quality audit
     runs-on: ubuntu-latest
 
     steps:
@@ -36,103 +36,83 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Compile coverage auditor
-        run: python -m py_compile knowledge_bank/world_sources/subjects/coverage_audit.py
+      - name: Compile auditors
+        run: |
+          python -m py_compile knowledge_bank/world_sources/subjects/coverage_audit.py
+          python -m py_compile knowledge_bank/world_sources/subjects/quality_audit_v3.py
 
       - name: Run coverage audit
         run: python knowledge_bank/world_sources/subjects/coverage_audit.py
 
-      - name: Validate generated matrix
+      - name: Run V3 quality audit
+        run: python knowledge_bank/world_sources/subjects/quality_audit_v3.py
+
+      - name: Validate reports
         shell: bash
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          path = Path("knowledge_bank/world_sources/subjects/coverage_matrix_v2.json")
-          if not path.is_file():
+          coverage_path = Path("knowledge_bank/world_sources/subjects/coverage_matrix_v2.json")
+          quality_path = Path("knowledge_bank/world_sources/subjects/quality_matrix_v3.json")
+          if not coverage_path.is_file():
               raise SystemExit("coverage_matrix_v2.json was not generated")
+          if not quality_path.is_file():
+              raise SystemExit("quality_matrix_v3.json was not generated")
 
-          report = json.loads(path.read_text(encoding="utf-8"))
-          summary = report.get("summary", {})
-          subjects = report.get("subjects", {})
+          coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+          quality = json.loads(quality_path.read_text(encoding="utf-8"))
+          c = coverage.get("summary", {})
+          q = quality.get("summary", {})
 
-          required_summary = {
-              "subject_count",
-              "level_count",
-              "total_cells",
-              "covered_cells",
-              "gap_cells",
-              "coverage_percent",
-          }
-          missing = sorted(required_summary - summary.keys())
-          if missing:
-              raise SystemExit(f"Coverage summary missing fields: {missing}")
-
-          if summary["subject_count"] != 22:
-              raise SystemExit(
-                  f"Expected 22 subjects, got {summary['subject_count']}"
-              )
-          if summary["level_count"] != 7:
-              raise SystemExit(
-                  f"Expected 7 levels, got {summary['level_count']}"
-              )
-          if summary["total_cells"] != 2044:
-              raise SystemExit(
-                  f"Expected 2044 coverage cells, got {summary['total_cells']}"
-              )
-          if len(subjects) != 22:
-              raise SystemExit(f"Expected 22 subject reports, got {len(subjects)}")
-          if summary["covered_cells"] + summary["gap_cells"] != summary["total_cells"]:
+          if c.get("subject_count") != 22 or c.get("level_count") != 7 or c.get("total_cells") != 2044:
+              raise SystemExit("Coverage taxonomy dimensions changed unexpectedly")
+          if c["covered_cells"] + c["gap_cells"] != c["total_cells"]:
               raise SystemExit("Coverage cell accounting is inconsistent")
-          if not 0 <= summary["coverage_percent"] <= 100:
-              raise SystemExit("Coverage percent is outside 0-100")
 
-          print("Coverage matrix validation passed.")
+          required = {
+              "resource_count", "source_quality_percent", "ingestion_percent",
+              "retrieval_test_percent", "citation_ready_percent", "usable_knowledge_percent"
+          }
+          missing = sorted(required - q.keys())
+          if missing:
+              raise SystemExit(f"V3 quality summary missing fields: {missing}")
+          for key in required - {"resource_count"}:
+              if not 0 <= q[key] <= 100:
+                  raise SystemExit(f"{key} outside 0-100")
+
+          print("Coverage and V3 quality reports validated.")
           PY
 
-      - name: Publish coverage summary
+      - name: Publish audit summary
         shell: bash
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           from pathlib import Path
 
-          report = json.loads(
-              Path("knowledge_bank/world_sources/subjects/coverage_matrix_v2.json")
-              .read_text(encoding="utf-8")
-          )
-          summary = report["summary"]
+          coverage = json.loads(Path("knowledge_bank/world_sources/subjects/coverage_matrix_v2.json").read_text(encoding="utf-8"))
+          quality = json.loads(Path("knowledge_bank/world_sources/subjects/quality_matrix_v3.json").read_text(encoding="utf-8"))
+          c = coverage["summary"]
+          q = quality["summary"]
 
-          print("# ATLAS Knowledge Bank Coverage")
+          print("# ATLAS Knowledge Bank V3 Audit")
           print()
-          print(f"- **Subjects:** {summary['subject_count']}")
-          print(f"- **Learning levels:** {summary['level_count']}")
-          print(f"- **Total coverage cells:** {summary['total_cells']}")
-          print(f"- **Covered cells:** {summary['covered_cells']}")
-          print(f"- **Gap cells:** {summary['gap_cells']}")
-          print(f"- **Coverage:** {summary['coverage_percent']}%")
-          print()
-          print("## Subjects ranked by lowest coverage")
-          print()
-          print("| Subject | Coverage | Covered | Gaps |")
-          print("|---|---:|---:|---:|")
-          ranked = sorted(
-              report["subjects"].items(),
-              key=lambda item: (item[1]["coverage_percent"], item[0]),
-          )
-          for subject, data in ranked:
-              label = subject.replace("_", " ").title()
-              print(
-                  f"| {label} | {data['coverage_percent']}% | "
-                  f"{data['covered_cells']}/{data['total_cells']} | {data['gap_count']} |"
-              )
+          print(f"- **Coverage:** {c['coverage_percent']}% ({c['covered_cells']}/{c['total_cells']})")
+          print(f"- **Source quality:** {q['source_quality_percent']}%")
+          print(f"- **Ingested:** {q['ingestion_percent']}%")
+          print(f"- **Retrieval tested:** {q['retrieval_test_percent']}%")
+          print(f"- **Citation ready:** {q['citation_ready_percent']}%")
+          print(f"- **Usable knowledge:** {q['usable_knowledge_percent']}%")
           PY
 
-      - name: Upload coverage matrix
+      - name: Upload Knowledge Bank audit reports
         uses: actions/upload-artifact@v4
         with:
-          name: knowledge-bank-coverage-matrix-v2
-          path: knowledge_bank/world_sources/subjects/coverage_matrix_v2.json
+          name: knowledge-bank-audit-v3
+          path: |
+            knowledge_bank/world_sources/subjects/coverage_matrix_v2.json
+            knowledge_bank/world_sources/subjects/quality_matrix_v3.json
           if-no-files-found: error
           retention-days: 30
