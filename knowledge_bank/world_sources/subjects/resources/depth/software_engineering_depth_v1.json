@@ -1,0 +1,18 @@
+{
+  "subject": "software_engineering",
+  "phase": "depth_v1",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"Python Tutorial","provider":"Python Software Foundation","type":"official_documentation","subsubjects":["programming_foundations","object_oriented_programming"],"levels":["foundation","beginner"],"url":"https://docs.python.org/3/tutorial/","access":"open_docs"},
+    {"title":"MDN Learn Web Development","provider":"Mozilla","type":"official_learning_path","subsubjects":["web_development","api_design","programming_foundations"],"levels":["beginner","intermediate"],"url":"https://developer.mozilla.org/en-US/docs/Learn_web_development","access":"open_docs"},
+    {"title":"Git Book","provider":"Git Project","type":"open_book","subsubjects":["devops","software_engineering_practice"],"levels":["beginner","intermediate"],"url":"https://git-scm.com/book/en/v2","access":"full_text"},
+    {"title":"Introduction to Algorithms","provider":"MIT OpenCourseWare","type":"course","subsubjects":["data_structures","algorithms"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/","access":"lectures_notes_problem_sets_exams"},
+    {"title":"Database Systems","provider":"MIT OpenCourseWare","type":"course","subsubjects":["databases"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/6-830-database-systems-fall-2010/","access":"course_materials"},
+    {"title":"Operating System Engineering","provider":"MIT OpenCourseWare","type":"course","subsubjects":["operating_systems","systems_programming"],"levels":["undergraduate","advanced"],"url":"https://ocw.mit.edu/courses/6-828-operating-system-engineering-fall-2012/","access":"course_materials"},
+    {"title":"Computer System Engineering","provider":"MIT OpenCourseWare","type":"course","subsubjects":["computer_networks","distributed_systems","software_architecture"],"levels":["undergraduate","advanced"],"url":"https://ocw.mit.edu/courses/6-033-computer-system-engineering-spring-2018/","access":"course_materials"},
+    {"title":"Docker Documentation","provider":"Docker","type":"official_documentation","subsubjects":["devops","cloud_computing"],"levels":["intermediate","advanced"],"url":"https://docs.docker.com/","access":"open_docs"},
+    {"title":"Kubernetes Documentation","provider":"Kubernetes","type":"official_documentation","subsubjects":["devops","cloud_computing","distributed_systems","site_reliability_engineering"],"levels":["advanced","undergraduate","graduate"],"url":"https://kubernetes.io/docs/","access":"open_docs"},
+    {"title":"ACM Digital Library Software and Systems Research","provider":"ACM","type":"research_library","subsubjects":["software_architecture","testing","security","distributed_systems","compilers","performance_engineering","site_reliability_engineering","ml_engineering"],"levels":["graduate","research"],"url":"https://dl.acm.org/","access":"metadata_and_content_per_item_rights"}
+  ],
+  "coverage_status": "expanded_not_complete"
+}
