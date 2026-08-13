@@ -4,15 +4,15 @@ This test uses five fixed, public Knowledge Bank catalog URLs. For each source i
 1. calls the existing /api/kbase/ingest route,
 2. verifies a KnowledgeRecord + Memory Bank row were created,
 3. retrieves the distilled memory through /api/membank/search,
-4. writes machine-readable runtime evidence keyed by the stable catalog resource ID.
-
-The evidence file is consumed by quality_audit_v3.py in CI; no manifest is allowed
-to award itself ingestion/retrieval credit.
+4. writes machine-readable runtime evidence keyed by the stable catalog resource ID,
+5. runs the V3 quality auditor and verifies those five resources become usable knowledge.
 """
 from __future__ import annotations
 
 import json
 import os
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,7 +23,10 @@ BACKEND = os.environ.get("REACT_APP_BACKEND_URL") or os.environ.get(
 )
 API = f"{BACKEND.rstrip('/')}/api"
 ROOT = Path(__file__).resolve().parents[2]
-STATUS_PATH = ROOT / "knowledge_bank/world_sources/subjects/runtime_status_v1.json"
+SUBJECT_ROOT = ROOT / "knowledge_bank/world_sources/subjects"
+STATUS_PATH = SUBJECT_ROOT / "runtime_status_v1.json"
+QUALITY_PATH = SUBJECT_ROOT / "quality_matrix_v3.json"
+AUDITOR_PATH = SUBJECT_ROOT / "quality_audit_v3.py"
 
 PROOF_RESOURCES = [
     {
@@ -81,9 +84,6 @@ def test_five_catalog_resources_ingest_and_retrieve():
                 if not record.get("id") or not memory_bank_id:
                     raise AssertionError("ingest did not return record.id and memory_bank_id")
 
-                # Use catalog title as the retrieval query. The stored distilled body
-                # includes the fetched title and metadata, so this verifies the real
-                # Memory Bank search path rather than a direct Mongo lookup.
                 search = client.get(
                     f"{API}/membank/search",
                     params={"q": item["title"], "top_k": 20, "min_score": 0.0},
@@ -114,7 +114,7 @@ def test_five_catalog_resources_ingest_and_retrieve():
                     "verified_at": _utc_now(),
                     "proof": "live /api/kbase/ingest -> /api/membank/search",
                 }
-            except Exception as exc:  # collect all five diagnostics before failing
+            except Exception as exc:
                 evidence[item["id"]] = {
                     "ingested": False,
                     "retrieval_tested": False,
@@ -131,3 +131,13 @@ def test_five_catalog_resources_ingest_and_retrieve():
     )
 
     assert not failures, "Five-resource runtime proof failed:\n" + "\n".join(failures)
+
+    subprocess.run([sys.executable, str(AUDITOR_PATH)], cwd=ROOT, check=True)
+    quality = json.loads(QUALITY_PATH.read_text(encoding="utf-8"))
+    summary = quality["summary"]
+
+    assert summary["runtime_status_resources"] == 5, summary
+    assert summary["ingested_resources"] == 5, summary
+    assert summary["retrieval_tested_resources"] == 5, summary
+    assert summary["usable_resources"] == 5, summary
+    assert summary["usable_knowledge_percent"] == round(5 / summary["resource_count"] * 100, 2), summary
