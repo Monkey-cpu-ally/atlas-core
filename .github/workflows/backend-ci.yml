@@ -62,9 +62,9 @@ jobs:
 
       - name: Prepare CI environment
         run: |
-          sudo mkdir -p /app/frontend /app/uploads
+          sudo mkdir -p /app/frontend /app/uploads /app/backend/_data/mtls
           printf 'REACT_APP_BACKEND_URL=http://127.0.0.1:8000\n' | sudo tee /app/frontend/.env >/dev/null
-          sudo chown -R "$(id -u):$(id -g)" /app/uploads
+          sudo chown -R "$(id -u):$(id -g)" /app/uploads /app/backend
           mkdir -p test_reports
 
       - name: Install backend dependencies
@@ -112,6 +112,16 @@ jobs:
               cat "../test_reports/server-${port}.log" || true
               exit 1
             fi
+          done
+
+          # Historical integration tests expect these deterministic registries
+          # to be populated before pytest begins. Each endpoint is idempotent.
+          for port in 8000 8001; do
+            for endpoint in subjects/seed environments/seed robot/seed nir/library/seed; do
+              echo "Seeding ${endpoint} on port ${port}"
+              curl --silent --show-error --fail --request POST \
+                "http://127.0.0.1:${port}/api/${endpoint}" >/dev/null
+            done
           done
 
       - name: Run backend unit and integration tests
