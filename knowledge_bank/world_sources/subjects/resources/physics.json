@@ -1,0 +1,11 @@
+{
+  "subject": "physics",
+  "status": "phase1_populated",
+  "resources": [
+    {"id":"mit_8_01sc","title":"Classical Mechanics","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["classical_mechanics"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/8-01sc-classical-mechanics-fall-2016/","access":"lecture_videos_problem_sets","local_ingestion":"verify_item_license","notes":"First-course mechanics with no formal prerequisite; single-variable calculus is a corequisite."},
+    {"id":"mit_8_012","title":"Physics I: Classical Mechanics","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["classical_mechanics"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/8-012-physics-i-classical-mechanics-fall-2008/","access":"problem_sets_exams_projects","local_ingestion":"verify_item_license","notes":"Faster and deeper first-year mechanics track."},
+    {"id":"mit_8_223","title":"Classical Mechanics II","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["classical_mechanics"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/8-223-classical-mechanics-ii-january-iap-2017/","access":"lecture_notes_problem_sets_projects","local_ingestion":"verify_item_license","notes":"Lagrangian and Hamiltonian mechanics; preparation for statistical and quantum physics."},
+    {"id":"mit_8_09","title":"Classical Mechanics III","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["classical_mechanics","waves_and_optics"],"levels":["advanced","undergraduate","graduate"],"url":"https://ocw.mit.edu/courses/8-09-classical-mechanics-iii-fall-2014/","access":"lecture_notes_problem_sets","local_ingestion":"verify_item_license","notes":"Advanced mechanics including constraints, perturbation, nonlinear dynamics and fluids."},
+    {"id":"arxiv_physics","title":"arXiv Physics","provider":"arXiv","resource_type":"research_repository","subsubjects":["quantum_mechanics","condensed_matter","particle_physics","nuclear_physics","astrophysics","computational_physics"],"levels":["graduate","research"],"url":"https://arxiv.org/archive/physics","access":"papers_metadata_and_fulltext_when_available","local_ingestion":"paper_license_dependent","notes":"Research/preprint layer; verify each paper and license before local storage."}
+  ]
+}
