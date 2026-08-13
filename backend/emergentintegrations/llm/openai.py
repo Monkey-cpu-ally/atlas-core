@@ -37,11 +37,12 @@ class OpenAITextToSpeech:
             raise ValueError("text is required")
 
         if os.environ.get("ATLAS_TEST_MODE") == "1":
-            # ID3 header + deterministic payload. The route tests only need a
-            # non-trivial audio response and provider/voice headers; no test
-            # should depend on a paid network TTS call.
+            # ID3 header + deterministic payload. Keep this comfortably above
+            # the integration contract (>10 KB for persona TTS) while avoiding
+            # any paid network TTS call in CI.
             seed = f"{model}|{voice}|{speed}|{text}".encode("utf-8")
-            payload = (seed * ((6000 // max(len(seed), 1)) + 1))[:6000]
+            target_size = 12_000
+            payload = (seed * ((target_size // max(len(seed), 1)) + 1))[:target_size]
             return b"ID3\x04\x00\x00\x00\x00\x00\x00" + payload
 
         if not self.api_key:
