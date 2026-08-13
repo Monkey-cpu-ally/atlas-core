@@ -1,0 +1,11 @@
+{
+  "subject": "music_theory",
+  "population_status": "seeded",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"Introduction to Western Music","provider":"MIT OpenCourseWare","type":"course","levels":["foundation","beginner","undergraduate"],"subsubjects":["notation","rhythm","harmony","form","analysis","ear_training"],"url":"https://ocw.mit.edu/search/?q=Introduction+to+Western+Music","access":"open_course_materials","ingestion":"metadata_and_permitted_course_materials"},
+    {"title":"Open Music Theory","provider":"Open Music Theory","type":"open_textbook","levels":["foundation","beginner","intermediate","advanced","undergraduate"],"subsubjects":["notation","rhythm","scales_and_modes","intervals","harmony","counterpoint","form","analysis"],"url":"https://viva.pressbooks.pub/openmusictheory/","access":"open_educational_resource","ingestion":"according_to_resource_license"},
+    {"title":"Music Information Retrieval Research","provider":"arXiv","type":"research_repository","levels":["graduate","research"],"subsubjects":["analysis","music_technology","composition"],"url":"https://arxiv.org/","access":"mixed_open_access","ingestion":"metadata_abstract_and_open_full_text_when_permitted"}
+  ],
+  "all_levels_populated": false
+}
