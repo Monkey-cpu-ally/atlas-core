@@ -1,0 +1,18 @@
+{
+  "subject": "physics",
+  "phase": "depth_v1",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"Khan Academy Physics","provider":"Khan Academy","type":"course","subsubjects":["classical_mechanics","thermodynamics","electromagnetism","waves_and_optics"],"levels":["foundation","beginner","intermediate"],"url":"https://www.khanacademy.org/science/physics","access":"open_learning"},
+    {"title":"College Physics 2e","provider":"OpenStax","type":"open_textbook","subsubjects":["classical_mechanics","thermodynamics","electromagnetism","waves_and_optics"],"levels":["intermediate","advanced","undergraduate"],"url":"https://openstax.org/details/books/college-physics-2e","access":"full_text"},
+    {"title":"University Physics Volume 1","provider":"OpenStax","type":"open_textbook","subsubjects":["classical_mechanics","waves_and_optics"],"levels":["advanced","undergraduate"],"url":"https://openstax.org/details/books/university-physics-volume-1","access":"full_text"},
+    {"title":"Physics I: Classical Mechanics","provider":"MIT OpenCourseWare","type":"course","subsubjects":["classical_mechanics"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/8-01sc-classical-mechanics-fall-2016/","access":"lectures_notes_problem_sets_exams"},
+    {"title":"Physics II: Electricity and Magnetism","provider":"MIT OpenCourseWare","type":"course","subsubjects":["electromagnetism"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/8-02-physics-ii-electricity-and-magnetism-spring-2019/","access":"lecture_videos"},
+    {"title":"Physics III: Vibrations and Waves","provider":"MIT OpenCourseWare","type":"course","subsubjects":["waves_and_optics"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/8-03sc-physics-iii-vibrations-and-waves-fall-2016/","access":"lectures_notes_problem_sets_exams"},
+    {"title":"Quantum Physics I","provider":"MIT OpenCourseWare","type":"course","subsubjects":["quantum_mechanics"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2013/","access":"course_materials"},
+    {"title":"Statistical Physics I","provider":"MIT OpenCourseWare","type":"course","subsubjects":["statistical_mechanics","thermodynamics"],"levels":["graduate"],"url":"https://ocw.mit.edu/courses/8-333-statistical-mechanics-i-statistical-mechanics-of-particles-fall-2013/","access":"course_materials"},
+    {"title":"General Relativity","provider":"MIT OpenCourseWare","type":"course","subsubjects":["general_relativity"],"levels":["graduate"],"url":"https://ocw.mit.edu/courses/8-962-general-relativity-spring-2020/","access":"course_materials"},
+    {"title":"arXiv Physics","provider":"arXiv","type":"research_repository","subsubjects":["quantum_mechanics","general_relativity","condensed_matter","particle_physics","nuclear_physics","astrophysics","computational_physics"],"levels":["graduate","research"],"url":"https://arxiv.org/archive/physics","access":"papers"}
+  ],
+  "coverage_status": "expanded_not_complete"
+}
