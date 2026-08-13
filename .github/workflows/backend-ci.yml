@@ -62,8 +62,9 @@ jobs:
 
       - name: Prepare CI environment
         run: |
-          sudo mkdir -p /app/frontend
+          sudo mkdir -p /app/frontend /app/uploads
           printf 'REACT_APP_BACKEND_URL=http://127.0.0.1:8000\n' | sudo tee /app/frontend/.env >/dev/null
+          sudo chown -R "$(id -u):$(id -g)" /app/uploads
           mkdir -p test_reports
 
       - name: Install backend dependencies
