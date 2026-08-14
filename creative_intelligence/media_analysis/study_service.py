@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from creative_intelligence.creative_memory import CreativeMemory
-from .adapters import ObservationAdapter
+from .adapters import ObservationAdapter, VideoObservationAdapter
 from .memory_bridge import MediaStudyMemoryBridge
 from .pipeline import ReferenceMediaAnalyzer
 from .providers import CallableVisionProvider
@@ -30,13 +30,17 @@ class CreativeReferenceStudyService:
         observations = []
         for frame in frames:
             raw = self.vision_provider.analyze_image(frame.image_path)
-            obs = ObservationAdapter.visual_from_mapping(
-                subject=f"{source_name} @ {frame.timestamp_seconds:.2f}s",
-                payload=raw,
+            obs = ObservationAdapter._visual_from_mapping(
+                raw,
+                fallback_subject=f"{source_name} @ {frame.timestamp_seconds:.2f}s",
             )
             observations.append(obs)
 
-        merged = ObservationAdapter.merge_visuals(source_name, observations)
+        merged = VideoObservationAdapter._merge_visual(source_name, observations)
         report = self.analyzer.study(source_name=source_name, source_type="video", visual=merged)
-        lessons = self.memory_bridge.remember_report(project=project, report=report)
+        lessons = self.memory_bridge.remember_report(
+            project=project,
+            task=f"reference media study: {source_name}",
+            report=report,
+        )
         return StudyResult(source_name, report.to_markdown(), len(lessons))
