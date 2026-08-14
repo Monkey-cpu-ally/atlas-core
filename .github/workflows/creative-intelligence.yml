@@ -7,6 +7,8 @@ on:
       - 'tests/test_reference_media_provider.py'
       - 'tests/test_creative_reference_study_e2e.py'
       - 'tests/test_sqlite_creative_memory.py'
+      - 'tests/test_creative_live_ingestion.py'
+      - 'tests/test_creative_runtime.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
@@ -14,6 +16,8 @@ on:
       - 'tests/test_reference_media_provider.py'
       - 'tests/test_creative_reference_study_e2e.py'
       - 'tests/test_sqlite_creative_memory.py'
+      - 'tests/test_creative_live_ingestion.py'
+      - 'tests/test_creative_runtime.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -41,3 +45,5 @@ jobs:
           tests/test_reference_media_provider.py
           tests/test_creative_reference_study_e2e.py
           tests/test_sqlite_creative_memory.py
+          tests/test_creative_live_ingestion.py
+          tests/test_creative_runtime.py
