@@ -10,6 +10,7 @@ from .adapters import (
 )
 from .memory_bridge import MediaStudyMemoryBridge
 from .pipeline import ReferenceMediaAnalyzer
+from .providers import CallableVisionProvider, VisionRequest
 from .schemas import MediaStudyReport, StoryObservation, VisualObservation
 from .story_analyzer import StoryStructureAnalyzer
 from .visual_analyzer import VisualCraftAnalyzer
@@ -21,6 +22,8 @@ __all__ = [
     "VideoObservationAdapter",
     "VideoProvider",
     "VisionProvider",
+    "CallableVisionProvider",
+    "VisionRequest",
     "MediaStudyMemoryBridge",
     "ReferenceMediaAnalyzer",
     "MediaStudyReport",
