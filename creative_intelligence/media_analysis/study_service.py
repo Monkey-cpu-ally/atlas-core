@@ -37,7 +37,11 @@ class CreativeReferenceStudyService:
             observations.append(obs)
 
         merged = VideoObservationAdapter._merge_visual(source_name, observations)
-        report = self.analyzer.study(source_name=source_name, source_type="video", visual=merged)
+        report = self.analyzer.build_report(
+            source_name=source_name,
+            source_type="video",
+            visual=merged,
+        )
         lessons = self.memory_bridge.remember_report(
             project=project,
             task=f"reference media study: {source_name}",
