@@ -16,8 +16,15 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from services import self_improvement as si
+from services.ci_demo_seed import seed_ci_demo_data
 
 router = APIRouter(prefix="/api/self-improve", tags=["SelfImprovement"])
+
+
+@router.on_event("startup")
+async def _seed_ci_hud_records():
+    """Populate deterministic HUD baselines only when ATLAS_TEST_MODE is enabled."""
+    await seed_ci_demo_data()
 
 
 class ProposeReq(BaseModel):
