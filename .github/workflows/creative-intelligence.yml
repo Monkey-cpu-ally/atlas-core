@@ -5,6 +5,8 @@ on:
     paths:
       - 'creative_intelligence/**'
       - 'story_foundry/**'
+      - 'academy/__init__.py'
+      - 'academy/schemas.py'
       - 'academy/school_of_visual_development/**'
       - 'atlas_animation_studio/**'
       - 'tests/test_reference_media_provider.py'
@@ -20,6 +22,8 @@ on:
     paths:
       - 'creative_intelligence/**'
       - 'story_foundry/**'
+      - 'academy/__init__.py'
+      - 'academy/schemas.py'
       - 'academy/school_of_visual_development/**'
       - 'atlas_animation_studio/**'
       - 'tests/test_reference_media_provider.py'
