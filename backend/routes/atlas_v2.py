@@ -7,6 +7,7 @@ Prefixes:
   /api/learning/*
   /api/style/*
 """
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -17,6 +18,14 @@ from services import self_code as sc
 from services import adaptation as ad
 
 router = APIRouter(tags=["AtlasV2"])
+
+
+def _themes_dir() -> Path:
+    """Resolve deployed /app themes first, then the checked-out repo themes."""
+    deployed = Path("/app/themes")
+    if deployed.exists():
+        return deployed
+    return Path(__file__).resolve().parents[2] / "themes"
 
 
 # --- /api/worldwatch ------------------------------------------------------
@@ -63,7 +72,6 @@ async def selfcode_proposals(
 ):
     from services import self_improvement as si
     items = await si.list_proposals(status=status, limit=limit)
-    # filter to scanner-sourced ones
     items = [d for d in items if d.get("source") == "self-code-scanner"]
     return {"count": len(items), "items": items}
 
@@ -77,7 +85,8 @@ async def selfcode_scan(root: Optional[str] = None):
 async def selfcode_approve(improvement_id: str):
     from services import self_improvement as si
     res = await si.decide(improvement_id, status="approved", note="approved via self-code")
-    if not res: raise HTTPException(404, "proposal not found")
+    if not res:
+        raise HTTPException(404, "proposal not found")
     return res
 
 
@@ -85,7 +94,8 @@ async def selfcode_approve(improvement_id: str):
 async def selfcode_reject(improvement_id: str):
     from services import self_improvement as si
     res = await si.decide(improvement_id, status="rejected", note="rejected via self-code")
-    if not res: raise HTTPException(404, "proposal not found")
+    if not res:
+        raise HTTPException(404, "proposal not found")
     return res
 
 
@@ -145,7 +155,7 @@ async def style_note(req: StyleNoteReq):
 
 
 class StyleWarningReq(BaseModel):
-    kind: str   # 'too_plain' | 'too_messy'
+    kind: str
 
 
 @router.post("/api/style/warning")
@@ -160,8 +170,7 @@ async def style_warning(req: StyleWarningReq):
 @router.get("/api/themes/list")
 async def themes_list():
     import json
-    from pathlib import Path
-    base = Path("/app/themes")
+    base = _themes_dir()
     out = []
     if base.exists():
         for f in sorted(base.glob("*.json")):
@@ -182,8 +191,7 @@ async def themes_list():
 @router.get("/api/themes/{theme_id}")
 async def themes_get(theme_id: str):
     import json
-    from pathlib import Path
-    f = Path(f"/app/themes/{theme_id}.json")
+    f = _themes_dir() / f"{theme_id}.json"
     if not f.exists():
         raise HTTPException(404, "theme not found")
     return json.loads(f.read_text(encoding="utf-8"))
