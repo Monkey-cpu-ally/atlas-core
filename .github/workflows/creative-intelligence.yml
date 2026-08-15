@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'creative_intelligence/**'
+      - 'creative_production/**'
       - 'story_foundry/**'
       - 'academy/__init__.py'
       - 'academy/schemas.py'
@@ -17,10 +18,12 @@ on:
       - 'tests/test_story_foundry_creative_bridge.py'
       - 'tests/test_mini_screenplay_creative_context.py'
       - 'tests/test_visual_animation_creative_context.py'
+      - 'tests/test_creative_production_orchestrator.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
       - 'creative_intelligence/**'
+      - 'creative_production/**'
       - 'story_foundry/**'
       - 'academy/__init__.py'
       - 'academy/schemas.py'
@@ -34,6 +37,7 @@ on:
       - 'tests/test_story_foundry_creative_bridge.py'
       - 'tests/test_mini_screenplay_creative_context.py'
       - 'tests/test_visual_animation_creative_context.py'
+      - 'tests/test_creative_production_orchestrator.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -54,7 +58,7 @@ jobs:
       - name: Verify FFmpeg
         run: ffmpeg -version | head -n 1
       - name: Compile creative systems
-        run: python -m compileall -q creative_intelligence story_foundry academy/school_of_visual_development atlas_animation_studio
+        run: python -m compileall -q creative_intelligence creative_production story_foundry academy/school_of_visual_development atlas_animation_studio
       - name: Run creative intelligence tests
         run: >-
           python -m pytest -q
@@ -66,3 +70,4 @@ jobs:
           tests/test_story_foundry_creative_bridge.py
           tests/test_mini_screenplay_creative_context.py
           tests/test_visual_animation_creative_context.py
+          tests/test_creative_production_orchestrator.py
