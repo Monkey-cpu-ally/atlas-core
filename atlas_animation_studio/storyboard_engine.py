@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Protocol
+
+
+class CreativeBriefProvider(Protocol):
+    def build_brief(self, *, project: str, task: str): ...
 
 
 @dataclass
@@ -48,17 +52,23 @@ class StoryboardFrame:
 class StoryboardSequence:
     title: str
     frames: List[StoryboardFrame] = field(default_factory=list)
+    creative_context: str = ""
 
     def to_markdown(self) -> str:
         lines = [f"# {self.title}", ""]
         for frame in self.frames:
             lines.append(frame.to_markdown())
             lines.append("")
+        if self.creative_context:
+            lines.extend(["## Creative Intelligence Context", self.creative_context, ""])
         return "\n".join(lines)
 
 
 class StoryboardEngine:
     """Creates scene-to-beat-to-shot plans using ATLAS visual storytelling rules."""
+
+    def __init__(self, creative_bridge: CreativeBriefProvider | None = None) -> None:
+        self.creative_bridge = creative_bridge
 
     def build_frame(
         self,
@@ -100,7 +110,16 @@ class StoryboardEngine:
                 emotional_purpose=f"Deliver beat {beat_index}: {beat_goal}",
                 story_consequence="The scene must end this beat with a changed relationship, threat, choice, or understanding.",
             ))
-        return StoryboardSequence(title=title, frames=frames)
+
+        creative_context = ""
+        if self.creative_bridge is not None:
+            brief = self.creative_bridge.build_brief(
+                project=title,
+                task="animation storyboard: " + "; ".join(beat_goals),
+            )
+            creative_context = brief.to_prompt_context()
+
+        return StoryboardSequence(title=title, frames=frames, creative_context=creative_context)
 
     def visual_storytelling_questions(self) -> List[str]:
         return [
