@@ -11,6 +11,7 @@ on:
       - 'tests/test_creative_live_ingestion.py'
       - 'tests/test_creative_runtime.py'
       - 'tests/test_story_foundry_creative_bridge.py'
+      - 'tests/test_mini_screenplay_creative_context.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
@@ -22,6 +23,7 @@ on:
       - 'tests/test_creative_live_ingestion.py'
       - 'tests/test_creative_runtime.py'
       - 'tests/test_story_foundry_creative_bridge.py'
+      - 'tests/test_mini_screenplay_creative_context.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -52,3 +54,4 @@ jobs:
           tests/test_creative_live_ingestion.py
           tests/test_creative_runtime.py
           tests/test_story_foundry_creative_bridge.py
+          tests/test_mini_screenplay_creative_context.py
