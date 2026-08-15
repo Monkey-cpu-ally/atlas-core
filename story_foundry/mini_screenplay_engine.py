@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Protocol
+
+
+class CreativeBriefProvider(Protocol):
+    def build_brief(self, *, project: str, task: str): ...
 
 
 @dataclass
@@ -30,6 +34,7 @@ class MiniScreenplayPlan:
     characters: List[ScreenplayCharacter]
     scenes: List[StoryScene]
     notes: List[str]
+    creative_context: str = ""
 
     def to_markdown(self) -> str:
         lines: List[str] = [f"# {self.title}", "", "## Logline", self.logline, "", "## Characters"]
@@ -53,11 +58,24 @@ class MiniScreenplayPlan:
         lines.append("")
         lines.append("## ATLAS Notes")
         lines.extend(f"- {item}" for item in self.notes)
+        if self.creative_context:
+            lines.extend(["", "## Creative Intelligence Context", self.creative_context])
         return "\n".join(lines)
 
 
 class MiniScreenplayEngine:
+    def __init__(self, creative_bridge: CreativeBriefProvider | None = None) -> None:
+        self.creative_bridge = creative_bridge
+
     def build_plan(self, title: str, idea: str, emotion: str) -> MiniScreenplayPlan:
+        creative_context = ""
+        if self.creative_bridge is not None:
+            brief = self.creative_bridge.build_brief(
+                project=title,
+                task=f"mini screenplay: {idea}; target emotion: {emotion}",
+            )
+            creative_context = brief.to_prompt_context()
+
         return MiniScreenplayPlan(
             title=title,
             logline=f"A short cinematic story about {idea}, designed to create {emotion}.",
@@ -111,5 +129,7 @@ class MiniScreenplayEngine:
                 "No scene should exist without pressure or change.",
                 "Show first. Speak second.",
                 "Reject generic speech.",
+                "Creative Memory informs craft decisions through reusable principles; preserve original expression.",
             ],
+            creative_context=creative_context,
         )
