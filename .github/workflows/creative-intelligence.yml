@@ -21,6 +21,7 @@ on:
       - 'tests/test_creative_production_orchestrator.py'
       - 'tests/test_creative_design_sheets.py'
       - 'tests/test_creative_shot_planning.py'
+      - 'tests/test_creative_production_manifest.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
@@ -42,6 +43,7 @@ on:
       - 'tests/test_creative_production_orchestrator.py'
       - 'tests/test_creative_design_sheets.py'
       - 'tests/test_creative_shot_planning.py'
+      - 'tests/test_creative_production_manifest.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -77,3 +79,4 @@ jobs:
           tests/test_creative_production_orchestrator.py
           tests/test_creative_design_sheets.py
           tests/test_creative_shot_planning.py
+          tests/test_creative_production_manifest.py
