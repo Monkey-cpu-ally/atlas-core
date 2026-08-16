@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import List
 
 from .art_style import ArtStyleAssessment
+from .story_quality import StoryQualityReport
 from .visual_quality import VisualQualityAssessment
 
 
@@ -24,9 +25,9 @@ class ProductionQualityDecision:
 class ProductionQualityGate:
     """Fail-closed gate: every creative quality director must approve production."""
 
-    def evaluate(self, *, story_assessment, art_style_assessment: ArtStyleAssessment,
+    def evaluate(self, *, story_assessment: StoryQualityReport, art_style_assessment: ArtStyleAssessment,
                  visual_assessment: VisualQualityAssessment, continuity_ready: bool) -> ProductionQualityDecision:
-        story_ready = bool(getattr(story_assessment, "production_ready", False))
+        story_ready = story_assessment.passes
         art_ready = art_style_assessment.production_ready
         visual_ready = visual_assessment.production_ready
         blockers: List[str] = []
