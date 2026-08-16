@@ -6,7 +6,7 @@ from typing import Callable, Generic, Tuple, TypeVar
 
 from .critic_council import CouncilDecision
 from .reference_library.loader import CreativeReference, CreativeReferenceLibrary
-from .reference_provenance import OriginalityAssessment
+from creative_production.reference_provenance import OriginalityAssessment
 from .revision_loop import CreativeRevisionLoop, RevisionResult
 
 T = TypeVar("T")
