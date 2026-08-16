@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import List
+from typing import List, Optional
 
 from story_foundry.mini_screenplay_engine import MiniScreenplayEngine, MiniScreenplayPlan
 from academy.school_of_visual_development.visual_development_engine import VisualDevelopmentEngine, VisualDevelopmentPlan
 from atlas_animation_studio.storyboard_engine import StoryboardEngine, StoryboardSequence
+from .continuity import ContinuityEngine, ContinuityIssue, ContinuityState
 from .design_sheets import CharacterSheet, DesignSheetEngine, EnvironmentSheet, PropSheet
 from .manifest import ProductionAsset, ProductionManifest, ProductionScene, ProductionStatus
 from .project_store import CreativeProjectStore, ProjectRevision
@@ -43,6 +44,12 @@ class CreativeProductionPackage:
     prop_sheet: PropSheet
     timing: SceneTimingPlan
     manifest: ProductionManifest
+    continuity_state: Optional[ContinuityState] = None
+    continuity_issues: List[ContinuityIssue] = None
+
+    def __post_init__(self) -> None:
+        if self.continuity_issues is None:
+            self.continuity_issues = []
 
     @property
     def has_creative_intelligence(self) -> bool:
@@ -60,6 +67,8 @@ class CreativeProductionPackage:
             "prop_sheet": asdict(self.prop_sheet),
             "timing": {"scene_number": self.timing.scene_number, "total_frames": self.timing.total_frames,
                        "total_seconds": self.timing.total_seconds, "shots": [asdict(s) for s in self.timing.shots]},
+            "continuity_state": asdict(self.continuity_state) if self.continuity_state else None,
+            "continuity_issues": [asdict(issue) for issue in self.continuity_issues],
             "manifest": self.manifest.summary(),
             "screenplay_markdown": self.screenplay.to_markdown(),
             "visual_development_markdown": self.visual_development.to_markdown(),
@@ -80,24 +89,35 @@ class CreativeProductionPackage:
 
 
 class CreativeProductionOrchestrator:
-    """Generates, validates, and optionally versions one coherent creative production package."""
+    """Generates, validates, continuity-checks, and versions a creative production package."""
 
     def __init__(self, *, creative_bridge=None, project_store: CreativeProjectStore | None = None) -> None:
         self.creative_bridge = creative_bridge
         self.project_store = project_store
+        self.continuity_engine = ContinuityEngine()
         self.screenplay_engine = MiniScreenplayEngine(creative_bridge=creative_bridge)
         self.visual_engine = VisualDevelopmentEngine(creative_bridge=creative_bridge)
         self.storyboard_engine = StoryboardEngine(creative_bridge=creative_bridge)
         self.design_sheet_engine = DesignSheetEngine(creative_bridge=creative_bridge)
 
-    def produce_and_save(self, request: CreativeProductionRequest, *, message: str = "creative production revision") -> tuple[CreativeProductionPackage, ProjectRevision]:
+    @staticmethod
+    def _issue_id(issue: ContinuityIssue) -> str:
+        return f"{issue.category}:{issue.subject}:{issue.previous_scene}-{issue.current_scene}"
+
+    def produce_and_save(self, request: CreativeProductionRequest, *, message: str = "creative production revision", continuity_state: ContinuityState | None = None) -> tuple[CreativeProductionPackage, ProjectRevision]:
         if self.project_store is None:
             raise RuntimeError("project_store is required for produce_and_save")
-        package = self.produce(request)
+        package = self.produce(request, continuity_state=continuity_state)
+        previous = self.project_store.latest(request.project)
+        if previous is not None and continuity_state is not None:
+            issues = self.continuity_engine.compare_revisions(previous.payload, {"continuity_state": asdict(continuity_state)})
+            package.continuity_issues.extend(issues)
+            scene = package.manifest.scenes[request.scene_number]
+            scene.continuity_issue_ids.extend(self._issue_id(issue) for issue in issues)
         revision = self.project_store.save_revision(project=request.project, payload=package.snapshot(), message=message)
         return package, revision
 
-    def produce(self, request: CreativeProductionRequest) -> CreativeProductionPackage:
+    def produce(self, request: CreativeProductionRequest, *, continuity_state: ContinuityState | None = None) -> CreativeProductionPackage:
         screenplay = self.screenplay_engine.build_plan(request.project, request.idea, request.emotion)
         visual_development = self.visual_engine.build_plan(project=request.project, subject=request.visual_subject, purpose=request.visual_purpose)
         storyboard = self.storyboard_engine.build_sequence(request.project, request.scene_number, request.beat_goals)
@@ -126,5 +146,5 @@ class CreativeProductionOrchestrator:
         return CreativeProductionPackage(
             request=request, screenplay=screenplay, visual_development=visual_development, storyboard=storyboard,
             character_sheet=character_sheet, environment_sheet=environment_sheet, prop_sheet=prop_sheet,
-            timing=timing, manifest=manifest,
+            timing=timing, manifest=manifest, continuity_state=continuity_state,
         )
