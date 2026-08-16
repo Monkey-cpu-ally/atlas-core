@@ -7,6 +7,7 @@ falls back to the existing GitHub, YouTube, PDF, patent, arXiv and web paths.
 import base64
 import logging
 import re
+from html import unescape
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -72,6 +73,7 @@ async def fetch(url: str, *, pdf_blob_b64: Optional[str] = None, pdf_filename: O
 
 _GH_PATH_RE = re.compile(r"^/([^/]+)/([^/]+)")
 
+
 async def _fetch_github(url: str) -> FetchedSource:
     m = _GH_PATH_RE.match(urlparse(url).path)
     if not m:
@@ -93,6 +95,7 @@ async def _fetch_github(url: str) -> FetchedSource:
 
 
 _YT_VIDEO_ID_RE = re.compile(r"(?:v=|/embed/|/v/|youtu\.be/|/shorts/)([0-9A-Za-z_-]{11})")
+
 
 def _yt_video_id(url: str) -> Optional[str]:
     m = _YT_VIDEO_ID_RE.search(url)
@@ -155,6 +158,7 @@ async def _fetch_pdf(url: str, blob_b64: Optional[str], filename: Optional[str])
 
 _PATENT_ID_RE = re.compile(r"/patent/([A-Z0-9\-]{4,40})(?=/|$|\?)", re.IGNORECASE)
 
+
 async def _fetch_patent(url: str) -> FetchedSource:
     m = _PATENT_ID_RE.search(url)
     if not m:
@@ -170,21 +174,35 @@ async def _fetch_patent(url: str) -> FetchedSource:
 _ARXIV_ID_RE = re.compile(r"(\d{4}\.\d{4,5})(v\d+)?")
 _ARXIV_OLD_ID_RE = re.compile(r"([a-z\-]+/\d{7})(v\d+)?", re.IGNORECASE)
 
+
 def _extract_arxiv_id(url: str) -> Optional[str]:
     m = _ARXIV_ID_RE.search(url) or _ARXIV_OLD_ID_RE.search(url)
     return (m.group(1) + (m.group(2) or "")) if m else None
 
 
 def _parse_arxiv_entry(xml_text: str) -> dict:
+    """Parse metadata from the Atom <entry>, never from feed-level fields.
+
+    arXiv's Atom response contains a feed-level <title> such as
+    ``ArXiv Query: search_query=...`` before the paper <entry>. The previous
+    regex searched the whole document and could therefore store the query title
+    instead of the paper title. Scope extraction to the first entry and decode
+    XML/HTML entities before normalizing whitespace.
+    """
+    entry_match = re.search(r"<entry\b[^>]*>(.*?)</entry>", xml_text, re.DOTALL | re.IGNORECASE)
+    entry_xml = entry_match.group(1) if entry_match else xml_text
+
     def _grab(tag: str) -> str:
-        m = re.search(rf"<{tag}[^>]*>(.*?)</{tag}>", xml_text, re.DOTALL | re.IGNORECASE)
-        return (m.group(1) if m else "").strip()
-    authors = re.findall(r"<author>\s*<name>(.*?)</name>", xml_text, re.DOTALL | re.IGNORECASE)
+        m = re.search(rf"<{tag}[^>]*>(.*?)</{tag}>", entry_xml, re.DOTALL | re.IGNORECASE)
+        return unescape(m.group(1) if m else "").strip()
+
+    authors = re.findall(r"<author>\s*<name>(.*?)</name>", entry_xml, re.DOTALL | re.IGNORECASE)
     return {
         "title": re.sub(r"\s+", " ", _grab("title")).strip(),
         "summary": re.sub(r"\s+", " ", _grab("summary")).strip(),
-        "authors": [a.strip() for a in authors if a.strip()],
-        "published": _grab("published"), "updated": _grab("updated"),
+        "authors": [unescape(a).strip() for a in authors if a.strip()],
+        "published": _grab("published"),
+        "updated": _grab("updated"),
     }
 
 
