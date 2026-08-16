@@ -1,22 +1,26 @@
 /* eslint-disable */
 import React, { useEffect, useState } from 'react';
-import { Loader2, Archive, FileText } from 'lucide-react';
+import { Loader2, Archive, FileText, BookOpen } from 'lucide-react';
+import KnowledgeBookshelf from './KnowledgeBookshelf';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL;
 
 /**
- * ArchiveBrowser — embedded inline browser for the ARCHIVE outer-ring tile.
- * Reads both the uploaded-files list (/api/files/list) and the Atlas
- * cognitive archive (/api/atlas/archive/list). Tabbed so the architect
- * can switch between raw uploads and classified Atlas entries.
+ * ArchiveBrowser — ARCHIVE is the HUD's unified research archive.
+ * Knowledge Bookshelf is the primary surface; cognitive archive and uploaded
+ * files remain available as supporting tabs. Knowledge data stays backend-owned.
  */
 export default function ArchiveBrowser({ aiColor }) {
-  const [tab, setTab] = useState('atlas');
+  const [tab, setTab] = useState('knowledge');
   const [files, setFiles] = useState([]);
   const [archive, setArchive] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (tab === 'knowledge') {
+      setLoading(false);
+      return undefined;
+    }
     let cancelled = false;
     setLoading(true);
     (async () => {
@@ -38,26 +42,20 @@ export default function ArchiveBrowser({ aiColor }) {
 
   return (
     <div className="bp-workbench" data-testid="archive-browser">
-      <h3 className="bp-title" style={{ color: aiColor }}><Archive size={14} /> Archive</h3>
+      <h3 className="bp-title" style={{ color: aiColor }}><Archive size={14} /> Research Archive</h3>
       <div className="bp-actions">
-        <button
-          className={`bp-btn ${tab === 'atlas' ? 'primary' : ''}`}
-          onClick={() => setTab('atlas')}
-          data-testid="archive-tab-atlas"
-          style={tab === 'atlas' ? { borderColor: aiColor, color: aiColor } : undefined}
-        >
+        <button className={`bp-btn ${tab === 'knowledge' ? 'primary' : ''}`} onClick={() => setTab('knowledge')} data-testid="archive-tab-knowledge" style={tab === 'knowledge' ? { borderColor: aiColor, color: aiColor } : undefined}>
+          <BookOpen size={11} /> Bookshelf
+        </button>
+        <button className={`bp-btn ${tab === 'atlas' ? 'primary' : ''}`} onClick={() => setTab('atlas')} data-testid="archive-tab-atlas" style={tab === 'atlas' ? { borderColor: aiColor, color: aiColor } : undefined}>
           Atlas memory
         </button>
-        <button
-          className={`bp-btn ${tab === 'files' ? 'primary' : ''}`}
-          onClick={() => setTab('files')}
-          data-testid="archive-tab-files"
-          style={tab === 'files' ? { borderColor: aiColor, color: aiColor } : undefined}
-        >
+        <button className={`bp-btn ${tab === 'files' ? 'primary' : ''}`} onClick={() => setTab('files')} data-testid="archive-tab-files" style={tab === 'files' ? { borderColor: aiColor, color: aiColor } : undefined}>
           Uploaded files
         </button>
       </div>
 
+      {tab === 'knowledge' && <KnowledgeBookshelf aiColor={aiColor} />}
       {loading && <div className="bp-section"><Loader2 size={14} className="spin" /> Loading…</div>}
 
       {!loading && tab === 'atlas' && (
@@ -65,11 +63,7 @@ export default function ArchiveBrowser({ aiColor }) {
           {archive.length === 0 && <div className="bp-section">No archive entries yet. Upload an artefact or run an intake.</div>}
           {archive.map((e, i) => (
             <div key={e.id || i} className="archive-row" style={{ borderLeftColor: aiColor }}>
-              <div className="archive-row-head">
-                <FileText size={11} />
-                <span className="archive-row-title">{e.filename || e.topic || e.id || 'untitled'}</span>
-                <span className="archive-row-tag">{e.classification?.routed_core || e.routed_to || e.kind || ''}</span>
-              </div>
+              <div className="archive-row-head"><FileText size={11} /><span className="archive-row-title">{e.filename || e.topic || e.id || 'untitled'}</span><span className="archive-row-tag">{e.classification?.routed_core || e.routed_to || e.kind || ''}</span></div>
               {e.summary && <div className="bp-voice-body">{e.summary}</div>}
               {e.lesson?.summary && <div className="bp-voice-body">{e.lesson.summary.slice(0, 220)}…</div>}
             </div>
@@ -82,11 +76,7 @@ export default function ArchiveBrowser({ aiColor }) {
           {files.length === 0 && <div className="bp-section">No files uploaded. Use the upload button in the HUD top-bar.</div>}
           {files.map((f) => (
             <div key={f.id} className="archive-row" style={{ borderLeftColor: aiColor }}>
-              <div className="archive-row-head">
-                <FileText size={11} />
-                <span className="archive-row-title">{f.filename}</span>
-                <span className="archive-row-tag">{f.section || f.ai_persona || ''}</span>
-              </div>
+              <div className="archive-row-head"><FileText size={11} /><span className="archive-row-title">{f.filename}</span><span className="archive-row-tag">{f.section || f.ai_persona || ''}</span></div>
             </div>
           ))}
         </div>
