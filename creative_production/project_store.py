@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -60,30 +60,38 @@ class CreativeProjectStore:
 
     def get(self, project: str, version: int) -> Optional[ProjectRevision]:
         row = self.connection.execute(
-            "SELECT * FROM creative_project_revisions WHERE project=? AND version=?",
-            (project, version),
+            "SELECT * FROM creative_project_revisions WHERE project=? AND version=?", (project, version)
         ).fetchone()
         return self._row(row) if row else None
 
     def latest(self, project: str) -> Optional[ProjectRevision]:
         row = self.connection.execute(
-            "SELECT * FROM creative_project_revisions WHERE project=? ORDER BY version DESC LIMIT 1",
-            (project,),
+            "SELECT * FROM creative_project_revisions WHERE project=? ORDER BY version DESC LIMIT 1", (project,)
         ).fetchone()
         return self._row(row) if row else None
 
     def history(self, project: str) -> List[ProjectRevision]:
         rows = self.connection.execute(
-            "SELECT * FROM creative_project_revisions WHERE project=? ORDER BY version",
-            (project,),
+            "SELECT * FROM creative_project_revisions WHERE project=? ORDER BY version", (project,)
         ).fetchall()
         return [self._row(row) for row in rows]
+
+    def compare(self, *, project: str, from_version: int, to_version: int) -> Dict[str, Dict[str, Any]]:
+        before = self.get(project, from_version)
+        after = self.get(project, to_version)
+        if before is None or after is None:
+            raise KeyError(f"unknown revision comparison: {project} v{from_version}->v{to_version}")
+        keys = sorted(set(before.payload) | set(after.payload))
+        return {
+            key: {"before": before.payload.get(key), "after": after.payload.get(key)}
+            for key in keys
+            if before.payload.get(key) != after.payload.get(key)
+        }
 
     def restore(self, *, project: str, version: int, message: str = "restore prior revision") -> ProjectRevision:
         source = self.get(project, version)
         if source is None:
             raise KeyError(f"unknown revision: {project} v{version}")
-        # Restoration creates a NEW revision rather than mutating history.
         return self.save_revision(project=project, payload=source.payload, message=message)
 
     @staticmethod
