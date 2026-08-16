@@ -33,6 +33,7 @@ on:
       - 'tests/test_visual_quality_director.py'
       - 'tests/test_production_quality_gate.py'
       - 'tests/test_reference_provenance.py'
+      - 'tests/test_creative_reference_library.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
@@ -66,6 +67,7 @@ on:
       - 'tests/test_visual_quality_director.py'
       - 'tests/test_production_quality_gate.py'
       - 'tests/test_reference_provenance.py'
+      - 'tests/test_creative_reference_library.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -113,3 +115,4 @@ jobs:
           tests/test_visual_quality_director.py
           tests/test_production_quality_gate.py
           tests/test_reference_provenance.py
+          tests/test_creative_reference_library.py
