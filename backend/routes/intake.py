@@ -116,11 +116,14 @@ def _build_lesson(transcript: str, ai_owner: str) -> dict:
 
 
 def _build_quiz(lesson: dict) -> list[dict]:
-    """Generate up to 10 short-answer questions from the lesson's key
-    concepts. Concept list is expanded by combining the original keyword
-    detector with the lesson's transcript-derived nouns when available."""
-    concepts = list(lesson.get("key_concepts", []))[:10]
-    # Pad to 10 questions with generic but useful prompts.
+    """Generate a compact 1–5 question quick check from key concepts.
+
+    The intake surface is intentionally a short comprehension check; richer
+    quizzes belong to the Teaching/Learning pipeline. Keeping this bounded also
+    preserves the historical HUD contract and avoids turning a quick intake
+    into a ten-question lesson by default.
+    """
+    concepts = list(lesson.get("key_concepts", []))[:5]
     fillers = [
         "Explain the underlying mechanism in your own words.",
         "Where could this concept appear in everyday life?",
@@ -128,11 +131,15 @@ def _build_quiz(lesson: dict) -> list[dict]:
         "Describe a real-world experiment that could test this idea.",
         "Who benefits most when this knowledge spreads?",
     ]
-    qs = [{"question": f"What role does {c} play in this material?", "answer_type": "short_answer"}
-          for c in concepts]
-    while len(qs) < 10:
-        qs.append({"question": fillers[(len(qs) - len(concepts)) % len(fillers)], "answer_type": "short_answer"})
-    return qs[:10]
+    qs = [
+        {"question": f"What role does {c} play in this material?", "answer_type": "short_answer"}
+        for c in concepts
+    ]
+    if not qs:
+        qs.append({"question": fillers[0], "answer_type": "short_answer"})
+    while len(qs) < min(5, max(1, len(concepts) + 1)):
+        qs.append({"question": fillers[len(qs) % len(fillers)], "answer_type": "short_answer"})
+    return qs[:5]
 
 
 # ---------------------------------------------------------------------------
