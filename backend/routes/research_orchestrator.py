@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter,HTTPException,Query
 from pydantic import BaseModel,Field
 from services import research_orchestrator as ro
+from services import targeted_research as tr
 from services import blueprint_forge as bf
 from services import lesson_generator as lg
 router=APIRouter(prefix="/api/research-orch",tags=["ResearchOrchestrator"])
@@ -32,8 +33,8 @@ class InvestigateReq(BaseModel):
  subject:str=Field(...,min_length=1,max_length=120);title:str=Field(...,min_length=1,max_length=280);resource_id:Optional[str]=None;source_url:Optional[str]=None;context:Optional[str]=Field(None,max_length=4000);generate_lesson:bool=True;mode:str="lego"
 @router.post("/investigate")
 async def investigate(req:InvestigateReq):
- """Targeted Bookshelf research. Enqueues one selected resource/topic and processes that exact queue item without running global WorldWatch discovery."""
- return await ro.investigate_target(subject=req.subject,title=req.title,resource_id=req.resource_id,source_url=req.source_url,context=req.context,generate_lesson=req.generate_lesson,mode=req.mode)
+ """Targeted Bookshelf research without unrelated global discovery."""
+ return await tr.investigate_target(subject=req.subject,title=req.title,resource_id=req.resource_id,source_url=req.source_url,context=req.context,generate_lesson=req.generate_lesson,mode=req.mode)
 @router.post("/curiosity/scan")
 async def curiosity_scan():return await ro.curiosity_scan()
 @router.post("/projects/evaluate")
