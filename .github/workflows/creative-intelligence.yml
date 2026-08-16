@@ -36,6 +36,7 @@ on:
       - 'tests/test_creative_reference_library.py'
       - 'tests/test_craft_rubrics.py'
       - 'tests/test_creative_critic_council.py'
+      - 'tests/test_creative_revision_loop.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
@@ -72,6 +73,7 @@ on:
       - 'tests/test_creative_reference_library.py'
       - 'tests/test_craft_rubrics.py'
       - 'tests/test_creative_critic_council.py'
+      - 'tests/test_creative_revision_loop.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -122,3 +124,4 @@ jobs:
           tests/test_creative_reference_library.py
           tests/test_craft_rubrics.py
           tests/test_creative_critic_council.py
+          tests/test_creative_revision_loop.py
