@@ -29,6 +29,7 @@ on:
       - 'tests/test_creative_continuity_persistence.py'
       - 'tests/test_creative_production_final_e2e.py'
       - 'tests/test_story_quality_director.py'
+      - 'tests/test_art_style_director.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
@@ -58,6 +59,7 @@ on:
       - 'tests/test_creative_continuity_persistence.py'
       - 'tests/test_creative_production_final_e2e.py'
       - 'tests/test_story_quality_director.py'
+      - 'tests/test_art_style_director.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -101,3 +103,4 @@ jobs:
           tests/test_creative_continuity_persistence.py
           tests/test_creative_production_final_e2e.py
           tests/test_story_quality_director.py
+          tests/test_art_style_director.py
