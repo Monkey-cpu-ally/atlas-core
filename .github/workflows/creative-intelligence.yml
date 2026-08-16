@@ -37,6 +37,8 @@ on:
       - 'tests/test_craft_rubrics.py'
       - 'tests/test_creative_critic_council.py'
       - 'tests/test_creative_revision_loop.py'
+      - 'tests/test_creative_quality_pipeline.py'
+      - 'tests/test_master_creative_quality_pipeline.py'
       - '.github/workflows/creative-intelligence.yml'
   pull_request:
     paths:
@@ -74,6 +76,8 @@ on:
       - 'tests/test_craft_rubrics.py'
       - 'tests/test_creative_critic_council.py'
       - 'tests/test_creative_revision_loop.py'
+      - 'tests/test_creative_quality_pipeline.py'
+      - 'tests/test_master_creative_quality_pipeline.py'
       - '.github/workflows/creative-intelligence.yml'
 
 jobs:
@@ -125,3 +129,5 @@ jobs:
           tests/test_craft_rubrics.py
           tests/test_creative_critic_council.py
           tests/test_creative_revision_loop.py
+          tests/test_creative_quality_pipeline.py
+          tests/test_master_creative_quality_pipeline.py
