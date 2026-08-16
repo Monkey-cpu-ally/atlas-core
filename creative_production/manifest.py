@@ -37,6 +37,19 @@ class ProductionScene:
     total_frames: int = 0
     total_seconds: float = 0.0
     continuity_notes: List[str] = field(default_factory=list)
+    continuity_issue_ids: List[str] = field(default_factory=list)
+    approved_continuity_issue_ids: List[str] = field(default_factory=list)
+
+    @property
+    def unresolved_continuity_issue_ids(self) -> List[str]:
+        approved = set(self.approved_continuity_issue_ids)
+        return sorted(issue_id for issue_id in self.continuity_issue_ids if issue_id not in approved)
+
+    def approve_continuity_change(self, issue_id: str) -> None:
+        if issue_id not in self.continuity_issue_ids:
+            raise KeyError(f"unknown continuity issue: {issue_id}")
+        if issue_id not in self.approved_continuity_issue_ids:
+            self.approved_continuity_issue_ids.append(issue_id)
 
 
 @dataclass
@@ -70,10 +83,18 @@ class ProductionManifest:
                     missing.append(f"scene:{scene.scene_number}->{asset_id}")
         return sorted(set(missing))
 
+    def unresolved_continuity(self) -> Dict[int, List[str]]:
+        return {
+            scene.scene_number: scene.unresolved_continuity_issue_ids
+            for scene in self.scenes.values()
+            if scene.unresolved_continuity_issue_ids
+        }
+
     @property
     def is_ready_for_production(self) -> bool:
         return (
             not self.validate_dependencies()
+            and not self.unresolved_continuity()
             and self.screenplay_status in {ProductionStatus.APPROVED, ProductionStatus.COMPLETE}
             and self.visual_development_status in {ProductionStatus.APPROVED, ProductionStatus.COMPLETE}
             and self.storyboard_status in {ProductionStatus.APPROVED, ProductionStatus.COMPLETE}
@@ -86,6 +107,7 @@ class ProductionManifest:
             "asset_count": len(self.assets),
             "scene_count": len(self.scenes),
             "missing_dependencies": self.validate_dependencies(),
+            "unresolved_continuity": self.unresolved_continuity(),
             "ready_for_production": self.is_ready_for_production,
             "total_frames": sum(scene.total_frames for scene in self.scenes.values()),
             "total_seconds": round(sum(scene.total_seconds for scene in self.scenes.values()), 3),
