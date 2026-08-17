@@ -9,6 +9,9 @@ from creative_intelligence.critic_council import CreativeCriticCouncil
 from creative_intelligence.executor_registry import ExecutionRequest, ExecutorUnavailable, registry
 from creative_intelligence.job_store import CreativeJobStore, VALID_STAGES
 from creative_intelligence.reference_library.loader import CreativeReferenceLibrary
+from services.creative_story_executor import register_story_executor
+
+register_story_executor()
 
 router = APIRouter(prefix="/api/creative-studio", tags=["creative-studio"])
 job_store = CreativeJobStore()
@@ -101,7 +104,7 @@ async def execute_job(job_id: str, body: CreativeJobExecute):
 
     running = job_store.transition(job.id, status="running")
     try:
-        result = registry.execute(ExecutionRequest(
+        result = await registry.execute(ExecutionRequest(
             job_id=running.id,
             project_id=running.project_id,
             stage=running.stage,
