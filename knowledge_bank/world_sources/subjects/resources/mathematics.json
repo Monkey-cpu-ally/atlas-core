@@ -1,0 +1,11 @@
+{
+  "subject": "mathematics",
+  "status": "phase1_populated",
+  "resources": [
+    {"id":"openstax_calculus_v1","title":"Calculus Volume 1","provider":"OpenStax","resource_type":"open_textbook","subsubjects":["calculus"],"levels":["advanced","undergraduate"],"url":"https://openstax.org/details/books/calculus-volume-1","access":"full_text","local_ingestion":"verify_title_license_then_allowed","notes":"Functions, limits, derivatives, integration."},
+    {"id":"mit_18_01sc","title":"Single Variable Calculus","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["calculus"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/","access":"lectures_notes_problem_sets_exams","local_ingestion":"verify_item_license","notes":"Independent-study calculus course with videos, worked examples, problem sets and exams."},
+    {"id":"mit_18_02sc","title":"Multivariable Calculus","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["calculus","linear_algebra"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/","access":"lectures_notes_problem_sets_exams","local_ingestion":"verify_item_license","notes":"Vector and multivariable calculus; follows single-variable calculus."},
+    {"id":"mit_calculus_strang","title":"Calculus Open Textbook","provider":"MIT OpenCourseWare","resource_type":"open_textbook","subsubjects":["calculus"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/res-18-001-calculus-fall-2023/","access":"full_text_reference","local_ingestion":"verify_item_license","notes":"Gilbert Strang calculus textbook resource."},
+    {"id":"arxiv_math","title":"arXiv Mathematics","provider":"arXiv","resource_type":"research_repository","subsubjects":["abstract_algebra","real_analysis","complex_analysis","topology","mathematical_logic","optimization","probability","statistics"],"levels":["graduate","research"],"url":"https://arxiv.org/archive/math","access":"papers_metadata_and_fulltext_when_available","local_ingestion":"paper_license_dependent","notes":"Research and preprint layer; individual paper quality and license must be evaluated."}
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "description": "Initial mapping of approved ATLAS World Knowledge Network sources to the canonical 22 learning subjects. This is a routing/catalog map, not a claim that every subsubject or learning level is fully populated.",
+  "status": "initial_mapping",
+  "subjects": {
+    "aerospace": {"sources": ["nasa", "jaxa", "smithsonian", "nist", "ieee", "mit_ocw", "arxiv", "aist_japan", "wipo", "uspto", "epo_espacenet"], "coverage": ["courses", "research_papers", "technical_references", "archives", "patents", "datasets"]},
+    "architecture": {"sources": ["mit_ocw", "smithsonian", "library_of_congress", "europeana", "internet_archive", "nist", "wipo", "uspto", "epo_espacenet"], "coverage": ["courses", "archives", "technical_references", "historical_material", "patents"]},
+    "artificial_intelligence": {"sources": ["arxiv", "ieee", "acm", "mit_ocw", "stanford_online", "riken", "kaist", "etri", "tsinghua", "peking_university", "astar_singapore"], "coverage": ["courses", "research_papers", "technical_references", "research_programs"]},
+    "biology": {"sources": ["pubmed", "nih", "nature", "science_mag", "cell_press", "mit_ocw", "harvard_ocw", "riken", "jst", "cas_china", "peking_university", "astar_singapore"], "coverage": ["courses", "research_papers", "reviews", "technical_references", "research_programs"]},
+    "business": {"sources": ["stanford_online", "harvard_ocw", "mit_ocw", "library_of_congress", "internet_archive", "wipo", "uspto"], "coverage": ["courses", "historical_material", "case_reference", "intellectual_property"]},
+    "chemistry": {"sources": ["nature", "science_mag", "mit_ocw", "nist", "arxiv", "jst", "riken", "cas_china", "aist_japan", "astar_singapore"], "coverage": ["courses", "research_papers", "reference_data", "research_programs"]},
+    "creative_writing": {"sources": ["project_gutenberg", "internet_archive", "library_of_congress", "british_library", "harvard_ocw", "mit_ocw", "europeana"], "coverage": ["books", "primary_texts", "courses", "archives", "historical_material"]},
+    "economics": {"sources": ["mit_ocw", "harvard_ocw", "stanford_online", "library_of_congress", "internet_archive", "national_archives_us", "arxiv"], "coverage": ["courses", "research_papers", "historical_material", "archives"]},
+    "electronics": {"sources": ["ieee", "nist", "mit_ocw", "arxiv", "etri", "aist_japan", "kaist", "tsinghua", "wipo", "uspto", "epo_espacenet"], "coverage": ["courses", "research_papers", "standards", "technical_references", "patents"]},
+    "environmental_science": {"sources": ["nrel", "doe", "nature", "science_mag", "mit_ocw", "harvard_ocw", "jst", "cas_china", "astar_singapore"], "coverage": ["courses", "research_papers", "datasets", "technical_reports", "policy_reference"]},
+    "film_studies": {"sources": ["library_of_congress", "internet_archive", "british_library", "europeana", "smithsonian", "harvard_ocw", "mit_ocw"], "coverage": ["archives", "historical_material", "courses", "primary_sources"]},
+    "game_design": {"sources": ["acm", "ieee", "mit_ocw", "arxiv", "internet_archive", "wipo", "uspto"], "coverage": ["courses", "research_papers", "technical_references", "historical_material", "patents"]},
+    "history": {"sources": ["library_of_congress", "national_archives_us", "smithsonian", "british_library", "europeana", "internet_archive", "project_gutenberg", "harvard_ocw", "mit_ocw"], "coverage": ["primary_sources", "books", "archives", "courses", "historical_material"]},
+    "mathematics": {"sources": ["arxiv", "mit_ocw", "harvard_ocw", "internet_archive", "project_gutenberg"], "coverage": ["courses", "lecture_notes", "problem_sets", "research_papers", "books"]},
+    "music_theory": {"sources": ["library_of_congress", "internet_archive", "project_gutenberg", "british_library", "europeana", "mit_ocw"], "coverage": ["scores_and_archives", "books", "historical_material", "courses"]},
+    "nanotechnology": {"sources": ["nist", "nature", "science_mag", "ieee", "arxiv", "mit_ocw", "aist_japan", "riken", "cas_china", "tsinghua", "astar_singapore", "wipo", "uspto", "epo_espacenet"], "coverage": ["research_papers", "technical_references", "courses", "research_programs", "patents"]},
+    "philosophy": {"sources": ["project_gutenberg", "internet_archive", "british_library", "library_of_congress", "harvard_ocw", "mit_ocw", "europeana"], "coverage": ["primary_texts", "books", "courses", "archives"]},
+    "physics": {"sources": ["arxiv", "nature", "science_mag", "mit_ocw", "nist", "riken", "cas_china", "jst"], "coverage": ["courses", "lecture_notes", "problem_sets", "research_papers", "reference_data"]},
+    "psychology": {"sources": ["pubmed", "nih", "nature", "science_mag", "harvard_ocw", "mit_ocw", "internet_archive"], "coverage": ["courses", "research_papers", "reviews", "books", "historical_material"]},
+    "robotics": {"sources": ["nasa", "ieee", "acm", "arxiv", "mit_ocw", "nist", "jaxa", "aist_japan", "riken", "kaist", "etri", "wipo", "uspto", "epo_espacenet"], "coverage": ["courses", "research_papers", "technical_references", "standards", "patents", "research_programs"]},
+    "software_engineering": {"sources": ["acm", "ieee", "arxiv", "mit_ocw", "stanford_online", "nist", "kaist", "etri", "tsinghua"], "coverage": ["courses", "research_papers", "standards", "technical_references", "research_programs"]},
+    "visual_arts": {"sources": ["smithsonian", "library_of_congress", "europeana", "british_library", "internet_archive", "project_gutenberg", "harvard_ocw", "mit_ocw"], "coverage": ["collections", "archives", "books", "courses", "historical_material"]}
+  },
+  "next_population_pass": {
+    "goal": "Attach individual resources to subsubjects and learning levels.",
+    "resource_types": ["textbook", "course", "lesson", "lecture_notes", "problem_set", "paper", "dataset", "documentation", "archive"],
+    "completion_rule": "A subject is not marked full until every required learning level and major subsubject has retrievable resources with provenance and licensing/access metadata."
+  }
+}

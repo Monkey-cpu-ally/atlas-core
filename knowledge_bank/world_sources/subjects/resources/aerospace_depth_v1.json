@@ -1,0 +1,12 @@
+{
+  "subject":"aerospace",
+  "status":"depth_v1_expanded_not_complete",
+  "levels":["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources":[
+    {"title":"Pilot's Handbook of Aeronautical Knowledge","provider":"FAA","type":"handbook","subsubjects":["aerodynamics","flight_mechanics","avionics","aircraft_design"],"levels":["foundation","beginner","intermediate"],"url":"https://www.faa.gov/regulations_policies/handbooks_manuals/aviation/phak"},
+    {"title":"Introduction to Aerospace Engineering and Design","provider":"MIT OpenCourseWare","type":"course","subsubjects":["aerodynamics","aircraft_design","spacecraft_design","structures_and_materials"],"levels":["beginner","intermediate","undergraduate"],"url":"https://ocw.mit.edu/courses/16-00-introduction-to-aerospace-engineering-and-design-spring-2003/"},
+    {"title":"Unified Engineering I-IV","provider":"MIT OpenCourseWare","type":"course_sequence","subsubjects":["aerodynamics","propulsion","structures_and_materials","guidance_navigation_control"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/16-01-unified-engineering-i-ii-iii-iv-fall-2005-spring-2006/"},
+    {"title":"Dynamics","provider":"MIT OpenCourseWare","type":"course","subsubjects":["flight_mechanics","orbital_mechanics","guidance_navigation_control"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/16-07-dynamics-fall-2009/"},
+    {"title":"NASA Technical Reports Server","provider":"NASA","type":"research_repository","subsubjects":["aerodynamics","propulsion","spacecraft_design","orbital_mechanics","space_systems","rocketry"],"levels":["graduate","research"],"url":"https://ntrs.nasa.gov/"}
+  ]
+}

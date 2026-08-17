@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "description": "Single source of truth for ATLAS Knowledge Bank subjects. The original HUD Core 22 are permanent; extension disciplines are additive.",
+  "core_subjects": [
+    {"order":1,"slug":"aerospace_engineering","name":"Aerospace Engineering","category":"Engineering","bank_paths":["knowledge-division/banks/aerospace"],"aliases":["aerospace"]},
+    {"order":2,"slug":"architecture","name":"Architecture","category":"Design","bank_paths":["knowledge-division/banks/architecture"],"aliases":["architecture_built_environment"]},
+    {"order":3,"slug":"artificial_intelligence","name":"Artificial Intelligence","category":"Technology","bank_paths":["knowledge-division/banks/artificial-intelligence"],"aliases":["ai"]},
+    {"order":4,"slug":"biology","name":"Biology","category":"Science","bank_paths":["knowledge-division/banks/biology"],"aliases":["biology_life_sciences"]},
+    {"order":5,"slug":"business","name":"Business","category":"Commerce","bank_paths":["knowledge-division/banks/economics-business"],"aliases":["business_operations"]},
+    {"order":6,"slug":"chemistry","name":"Chemistry","category":"Science","bank_paths":["knowledge-division/banks/chemistry"],"aliases":[]},
+    {"order":7,"slug":"creative_writing","name":"Creative Writing","category":"Arts","bank_paths":[],"aliases":[]},
+    {"order":8,"slug":"economics","name":"Economics","category":"Commerce","bank_paths":["knowledge-division/banks/economics-business"],"aliases":[]},
+    {"order":9,"slug":"electronics","name":"Electronics","category":"Engineering","bank_paths":["knowledge-division/banks/electrical-engineering"],"aliases":["electrical_engineering","electrical_electronics_engineering"]},
+    {"order":10,"slug":"environmental_science","name":"Environmental Science","category":"Science","bank_paths":["knowledge-division/banks/environmental-science"],"aliases":["earth_climate"]},
+    {"order":11,"slug":"film_studies","name":"Film Studies","category":"Arts","bank_paths":[],"aliases":[]},
+    {"order":12,"slug":"game_design","name":"Game Design","category":"Design","bank_paths":[],"aliases":["game_interactive_design"]},
+    {"order":13,"slug":"history","name":"History","category":"Humanities","bank_paths":["knowledge-division/banks/history"],"aliases":[]},
+    {"order":14,"slug":"mathematics","name":"Mathematics","category":"Science","bank_paths":["knowledge-division/banks/mathematics"],"aliases":[]},
+    {"order":15,"slug":"music_theory","name":"Music Theory","category":"Arts","bank_paths":[],"aliases":[]},
+    {"order":16,"slug":"nanotechnology","name":"Nanotechnology","category":"Technology","bank_paths":[],"aliases":[]},
+    {"order":17,"slug":"philosophy","name":"Philosophy","category":"Humanities","bank_paths":[],"aliases":[]},
+    {"order":18,"slug":"physics","name":"Physics","category":"Science","bank_paths":[],"aliases":[]},
+    {"order":19,"slug":"psychology","name":"Psychology","category":"Science","bank_paths":[],"aliases":["psychology_cognition"]},
+    {"order":20,"slug":"robotics","name":"Robotics","category":"Technology","bank_paths":["knowledge-division/banks/robotics"],"aliases":["robotics_autonomous_systems"]},
+    {"order":21,"slug":"software_engineering","name":"Software Engineering","category":"Technology","bank_paths":[],"aliases":[]},
+    {"order":22,"slug":"visual_arts","name":"Visual Arts","category":"Arts","bank_paths":["knowledge-division/banks/art-design"],"aliases":["art_design"]}
+  ],
+  "extensions": [
+    {"slug":"agriculture","name":"Agriculture & Agritech","parent_core":["biology","environmental_science"],"bank_paths":[]},
+    {"slug":"botany","name":"Botany","parent_core":["biology"],"bank_paths":["knowledge-division/banks/botany"]},
+    {"slug":"computer_science","name":"Computer Science","parent_core":["software_engineering","mathematics"],"bank_paths":[]},
+    {"slug":"energy_systems","name":"Energy & Power Systems","parent_core":["electronics","physics","chemistry"],"bank_paths":[]},
+    {"slug":"history_philosophy_science","name":"History & Philosophy of Science","parent_core":["history","philosophy"],"bank_paths":[],"aliases":["history_philosophy"]},
+    {"slug":"manufacturing","name":"Manufacturing","parent_core":["robotics","electronics"],"bank_paths":["knowledge-division/banks/manufacturing"]},
+    {"slug":"materials_science","name":"Materials Science","parent_core":["chemistry","physics","nanotechnology"],"bank_paths":["knowledge-division/banks/materials-science"]},
+    {"slug":"mechanical_engineering","name":"Mechanical Engineering","parent_core":["aerospace_engineering","robotics","physics"],"bank_paths":[]},
+    {"slug":"medicine_health","name":"Medicine & Health","parent_core":["biology","psychology"],"bank_paths":[]},
+    {"slug":"sustainability","name":"Sustainability & Green Tech","parent_core":["environmental_science","electronics","chemistry"],"bank_paths":[]}
+  ],
+  "rules": {
+    "core_subject_count": 22,
+    "core_subjects_are_permanent": true,
+    "extensions_may_be_added": true,
+    "extensions_must_not_replace_core": true,
+    "aliases_resolve_to_canonical_slugs": true
+  }
+}

@@ -1,29 +1,38 @@
 """
 Knowledge Ingestion routes (prefix /api/kbase).
 
-Distinct from the legacy `/api/knowledge` 22-subject teaching endpoints
-(see routes/knowledge_core.py) — this module is the new Knowledge
-Ingestion System that turns external URLs into distilled MemoryRecords.
-
-Endpoints:
-  POST   /api/kbase/ingest                    → ingest a URL (or PDF blob)
-  GET    /api/kbase/search                    → search records
-  GET    /api/kbase/{id}                      → fetch a single record
-  GET    /api/kbase/by-url                    → fetch by exact URL
-  DELETE /api/kbase/{id}                      → remove a record (does NOT drop mb row)
-  GET    /api/kbase/agents/route              → preview the routing decision
-  GET    /api/kbase/classify                  → preview source-type classification
+This is the external Knowledge Bank ingestion API. It turns public sources
+into distilled records, exposes source classification, provides the canonical
+22-subject source-routing policy, exposes the Existing Resource Library, and
+provides supported Project Gutenberg discovery plus book-memory ingestion.
 """
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from models.knowledge_models import IngestRequest, SourceType
 from services import knowledge_ingestion as ki
+from services.book_memory import ingest_gutenberg_book, search_book_memory
 from services.knowledge_distiller import route_agent
 from services.source_fetchers import IngestError, classify
+from services.subject_source_router import SUBJECTS, route_subject, subjects_for_agent
+from services.existing_resource_library import (
+    all_resources,
+    coverage as resource_coverage,
+    get_resource,
+    search_resources,
+)
+from services.project_gutenberg_connector import search_books as search_gutenberg_books
 
 router = APIRouter(prefix="/api/kbase", tags=["KnowledgeIngestion"])
+
+
+class GutenbergIngestRequest(BaseModel):
+    query: str = Field(min_length=2, max_length=200)
+    book_id: Optional[str] = Field(default=None, max_length=120)
+    subjects: List[str] = Field(default_factory=list)
+    confirm_public_domain_or_permitted: bool = False
 
 
 @router.post("/ingest")
@@ -58,10 +67,120 @@ async def search(
     return {"count": len(rows), "items": rows}
 
 
+@router.get("/books/gutenberg/search")
+async def gutenberg_search(q: str = Query(min_length=2, max_length=200)):
+    try:
+        rows = await search_gutenberg_books(q)
+    except Exception as exc:  # provider/network boundary
+        raise HTTPException(503, f"Project Gutenberg search failed: {exc}") from exc
+    return {
+        "provider": "Project Gutenberg",
+        "query": q,
+        "count": len(rows),
+        "items": rows,
+        "policy": "OPDS discovery; selected plain-text books may be ingested only after rights confirmation",
+    }
+
+
+@router.post("/books/gutenberg/ingest")
+async def gutenberg_ingest(req: GutenbergIngestRequest):
+    if not req.confirm_public_domain_or_permitted:
+        raise HTTPException(
+            400,
+            "confirm_public_domain_or_permitted must be true before ATLAS stores a full book text",
+        )
+    unknown = [s for s in req.subjects if not route_subject(s).get("found")]
+    if unknown:
+        raise HTTPException(400, f"unknown ATLAS subjects: {', '.join(unknown)}")
+    canonical_subjects = [route_subject(s)["subject"] for s in req.subjects]
+    try:
+        return await ingest_gutenberg_book(
+            req.query,
+            book_id=req.book_id,
+            subjects=canonical_subjects,
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except Exception as exc:  # provider/database boundary
+        raise HTTPException(503, f"Project Gutenberg ingestion failed: {exc}") from exc
+
+
+@router.get("/books/memory/search")
+async def book_memory_search(
+    q: str = Query(min_length=2, max_length=500),
+    persona: str = Query(pattern="^(ajani|minerva|hermes)$"),
+    limit: int = Query(default=6, ge=1, le=20),
+):
+    try:
+        rows = await search_book_memory(q, persona=persona, top_k=limit)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return {
+        "query": q,
+        "persona": persona,
+        "count": len(rows),
+        "items": rows,
+        "retrieval": "vector-memory cosine search",
+    }
+
+
+@router.get("/resources")
+async def existing_resources(
+    subject: Optional[str] = None,
+    resource_type: Optional[str] = None,
+    provider: Optional[str] = None,
+    q: Optional[str] = None,
+):
+    rows = search_resources(subject=subject, resource_type=resource_type, provider=provider, q=q)
+    return {"count": len(rows), "items": rows}
+
+
+@router.get("/resources/coverage")
+async def existing_resource_coverage():
+    rows = all_resources()
+    return {
+        "resource_count": len(rows),
+        "subjects": resource_coverage(SUBJECTS),
+    }
+
+
+@router.get("/resources/{resource_id}")
+async def existing_resource(resource_id: str):
+    row = get_resource(resource_id)
+    if not row:
+        raise HTTPException(404, "existing resource not found")
+    return row
+
+
 @router.get("/agents/route")
 async def preview_routing(text: str = Query(min_length=2, max_length=2000)):
     return {"text": text[:120] + ("..." if len(text) > 120 else ""),
             "suggested_agent": route_agent(text)}
+
+
+@router.get("/agents/{agent}/subjects")
+async def agent_subject_affinity(agent: str):
+    subjects = subjects_for_agent(agent)
+    if not subjects:
+        raise HTTPException(404, "unknown agent or no subject affinity configured")
+    return {
+        "agent": agent.lower(),
+        "preferred_subjects": subjects,
+        "access_policy": "all ATLAS personas may query all 22 subjects",
+    }
+
+
+@router.get("/subjects")
+async def knowledge_bank_subjects():
+    return {"count": len(SUBJECTS), "subjects": SUBJECTS}
+
+
+@router.get("/subjects/{subject}/sources")
+async def subject_sources(subject: str):
+    decision = route_subject(subject)
+    if not decision["found"]:
+        raise HTTPException(404, f"unknown ATLAS subject: {subject}")
+    return decision
 
 
 @router.get("/classify")

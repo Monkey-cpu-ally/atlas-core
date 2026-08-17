@@ -1,0 +1,46 @@
+{
+  "schema_version": "2.0",
+  "goal": "Drive population from measurable coverage gaps instead of subject-level placeholders.",
+  "coverage_unit": "subject x subsubject x level",
+  "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+  "minimum_resource_targets": {
+    "foundation": 2,
+    "beginner": 2,
+    "intermediate": 2,
+    "advanced": 2,
+    "undergraduate": 3,
+    "graduate": 2,
+    "research": 3
+  },
+  "preferred_resource_mix": [
+    "open_textbook_or_handbook",
+    "course_or_lesson_series",
+    "practice_or_problem_set",
+    "primary_or_authoritative_reference",
+    "research_paper_or_repository",
+    "dataset_or_technical_documentation_when_relevant"
+  ],
+  "quality_rules": [
+    "Prefer authoritative, university, government, standards-body, museum, archive, or peer-reviewed sources.",
+    "Do not count a resource toward a cell unless its manifest explicitly maps to that exact subsubject and level.",
+    "Do not mark a cell mature with only a generic repository link when named resources are reasonably available.",
+    "Research repositories are discovery layers; individual papers still require relevance, provenance, and license checks.",
+    "Track access and local-ingestion permissions separately from reference access.",
+    "Deduplicate equivalent resources across manifests by canonical URL and normalized title/provider.",
+    "Preserve the existing 12 core routing domains; V2 changes the 22-subject learning-resource layer only."
+  ],
+  "priority_order": [
+    "empty_cells",
+    "cells_with_only_generic_repository_coverage",
+    "foundation_and_beginner_gaps",
+    "undergraduate_core_sequence_gaps",
+    "graduate_and_research_specialization_gaps",
+    "cells_below_minimum_resource_target"
+  ],
+  "completion_definition": {
+    "covered": "At least one explicitly mapped resource exists for the cell.",
+    "healthy": "The cell meets its level-specific minimum target with at least two resource types where applicable.",
+    "mature": "The cell has a balanced mix of learning, practice/reference, and advanced/research resources appropriate to the level.",
+    "subject_complete": "Every subsubject x level cell is at least healthy; no subject is declared complete solely because a manifest exists."
+  }
+}

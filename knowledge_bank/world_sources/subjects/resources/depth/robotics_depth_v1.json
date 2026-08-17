@@ -1,0 +1,18 @@
+{
+  "subject": "robotics",
+  "phase": "depth_v1",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"ROS 2 Tutorials","provider":"Open Robotics","type":"official_learning_path","subsubjects":["robot_programming","ros"],"levels":["foundation","beginner","intermediate"],"url":"https://docs.ros.org/en/rolling/Tutorials.html","access":"open_docs"},
+    {"title":"Introduction to Robotics","provider":"MIT OpenCourseWare","type":"course","subsubjects":["robotics_foundations","kinematics","dynamics","control_systems","sensors_and_actuators","motion_planning"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/2-12-introduction-to-robotics-fall-2005/","access":"course_materials"},
+    {"title":"Underactuated Robotics","provider":"MIT","type":"open_course_notes","subsubjects":["dynamics","control_systems","motion_planning","manipulation","humanoid_robotics"],"levels":["undergraduate","graduate"],"url":"https://underactuated.mit.edu/","access":"open_notes"},
+    {"title":"Modern Robotics","provider":"Northwestern University","type":"open_textbook_course","subsubjects":["kinematics","dynamics","control_systems","motion_planning","manipulation"],"levels":["advanced","undergraduate","graduate"],"url":"https://modernrobotics.northwestern.edu/","access":"open_textbook_and_course"},
+    {"title":"OpenCV Documentation","provider":"OpenCV","type":"official_documentation","subsubjects":["computer_vision"],"levels":["intermediate","advanced","undergraduate"],"url":"https://docs.opencv.org/","access":"open_docs"},
+    {"title":"Navigation2 Documentation","provider":"Open Navigation LLC / ROS Community","type":"official_documentation","subsubjects":["localization_and_slam","motion_planning","autonomous_systems","ros"],"levels":["advanced","undergraduate"],"url":"https://docs.nav2.org/","access":"open_docs"},
+    {"title":"MoveIt 2 Documentation","provider":"MoveIt Project","type":"official_documentation","subsubjects":["motion_planning","manipulation","ros"],"levels":["advanced","undergraduate"],"url":"https://moveit.picknik.ai/main/index.html","access":"open_docs"},
+    {"title":"Probabilistic Robotics resources","provider":"Carnegie Mellon / academic ecosystem","type":"academic_reference_layer","subsubjects":["localization_and_slam","autonomous_systems"],"levels":["graduate"],"url":"https://www.cs.cmu.edu/~thrun/probabilistic-robotics/","access":"reference_materials"},
+    {"title":"IEEE Robotics and Automation Society","provider":"IEEE","type":"professional_research_library","subsubjects":["humanoid_robotics","swarm_robotics","human_robot_interaction","autonomous_systems","manipulation"],"levels":["graduate","research"],"url":"https://www.ieee-ras.org/","access":"metadata_and_content_per_item_rights"},
+    {"title":"arXiv Robotics","provider":"arXiv","type":"research_repository","subsubjects":["computer_vision","localization_and_slam","motion_planning","manipulation","autonomous_systems","human_robot_interaction","humanoid_robotics","swarm_robotics"],"levels":["graduate","research"],"url":"https://arxiv.org/list/cs.RO/recent","access":"papers"}
+  ],
+  "coverage_status": "expanded_not_complete"
+}

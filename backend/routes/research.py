@@ -1,11 +1,11 @@
 """
-Research routes — Phase 3.
+Research routes — Phase 3 + Knowledge Bank bridge.
 
 Public API:
   POST /api/research/web         — search + scrape + summarise + memory store
   POST /api/research/pdf         — multipart pdf upload → chunk + summarise + memory
-  POST /api/research/patent      — Google Patents search; deep=true pulls
-                                   per-result detail + Ajani's engineer take
+  POST /api/research/patent      — patent research
+  POST /api/research/orchestrate — subject-aware research using the existing pipeline
   GET  /api/research/recent      — list recent 'research' memories
 """
 import logging
@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from services import memory_bank as mb
 from services.patent_client import PatentUnreachable
+from services.research_orchestrator_bridge import orchestrate_research
 from services.research_pipeline import (
     research_patents,
     research_pdf,
@@ -26,7 +27,7 @@ from services.web_scraper import ResearchUnreachable
 logger = logging.getLogger("atlas.research")
 router = APIRouter(prefix="/api/research", tags=["Research"])
 
-MAX_PDF_BYTES = 12 * 1024 * 1024    # 12 MB
+MAX_PDF_BYTES = 12 * 1024 * 1024
 
 
 class WebRequest(BaseModel):
@@ -43,10 +44,41 @@ async def web(req: WebRequest):
         raise HTTPException(503, str(exc)) from exc
 
 
+class OrchestrateRequest(BaseModel):
+    subject: str = Field(min_length=2, max_length=100)
+    query: str = Field(min_length=2, max_length=400)
+    top_n: int = Field(default=5, ge=1, le=10)
+    use_live_web: bool = True
+    ingest_catalog_resources: bool = False
+
+
+@router.post("/orchestrate")
+async def orchestrate(req: OrchestrateRequest):
+    """Use the existing research pipeline with Knowledge Bank routing.
+
+    The bridge first resolves the canonical ATLAS subject, recommends trusted
+    source families, surfaces existing human-written resources, optionally
+    ingests those resources through the Knowledge Bank, and can then run the
+    existing live web research path.
+    """
+    try:
+        return await orchestrate_research(
+            subject=req.subject,
+            query=req.query,
+            top_n=req.top_n,
+            use_live_web=req.use_live_web,
+            ingest_catalog_resources=req.ingest_catalog_resources,
+        )
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ResearchUnreachable as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
 class PatentRequest(BaseModel):
     query: str = Field(min_length=2, max_length=400)
     top_n: int = Field(default=5, ge=1, le=10)
-    deep: bool = False     # pull detail page + Ajani engineer-take per result
+    deep: bool = False
 
 
 @router.post("/patent")
@@ -77,8 +109,6 @@ async def pdf(
 
 @router.get("/recent")
 async def recent(limit: int = 20, source_type: Optional[str] = None):
-    """Convenience wrapper around /api/membank/list — pre-filtered to
-    category=research with an optional source_type filter (web/pdf/patent)."""
     rows = await mb.list_memories(category="research", limit=limit, include_decayed=True)
     if source_type:
         rows = [r for r in rows if r.get("source_type") == source_type.lower()]

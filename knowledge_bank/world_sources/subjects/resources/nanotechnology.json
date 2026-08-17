@@ -1,0 +1,11 @@
+{
+  "subject": "nanotechnology",
+  "population_status": "seeded",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"Nano-to-Micro Transport Processes (2.57)","provider":"MIT OpenCourseWare","type":"course","levels":["advanced","undergraduate","graduate"],"subsubjects":["nanoscale_physics","nanomechanics","nanomaterials","computational_nanoscience"],"url":"https://ocw.mit.edu/courses/2-57-nano-to-micro-transport-processes-spring-2012/","access":"open_course_materials","ingestion":"metadata_and_permitted_course_materials"},
+    {"title":"MIT OpenCourseWare Nanotechnology/Nanoscience Materials","provider":"MIT OpenCourseWare","type":"course_collection","levels":["beginner","intermediate","advanced","undergraduate","graduate"],"subsubjects":["nanofabrication","characterization","nanoelectronics","nanophotonics","self_assembly"],"url":"https://ocw.mit.edu/search/?q=nanotechnology","access":"open_course_materials","ingestion":"metadata_and_permitted_course_materials"},
+    {"title":"Nanoscience and Nanotechnology Research","provider":"arXiv","type":"research_repository","levels":["graduate","research"],"subsubjects":["nanomaterials","nanoelectronics","nanophotonics","nanomechanics","computational_nanoscience"],"url":"https://arxiv.org/","access":"mixed_open_access","ingestion":"metadata_abstract_and_open_full_text_when_permitted"}
+  ],
+  "all_levels_populated": false
+}

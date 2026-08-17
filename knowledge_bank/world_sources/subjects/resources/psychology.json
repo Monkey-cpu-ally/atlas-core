@@ -1,0 +1,13 @@
+{
+  "subject": "psychology",
+  "status": "seeded_not_complete",
+  "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+  "resources": [
+    {"title":"Psychology 2e","provider":"OpenStax","type":"open_textbook","levels":["foundation","beginner","undergraduate"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","biological_psychology","learning_and_behavior","personality","research_methods"],"url":"https://openstax.org/details/books/psychology-2e","access":"open","ingestion":"full_text_when_license_terms_are_preserved"},
+    {"title":"Introduction to Psychology","provider":"MIT OpenCourseWare","type":"university_course","levels":["beginner","undergraduate"],"subsubjects":["cognitive_psychology","social_psychology","biological_psychology","learning_and_behavior"],"url":"https://ocw.mit.edu/search/?q=introduction+to+psychology","access":"open","ingestion":"course_metadata_and_permitted_materials"},
+    {"title":"Noba Psychology Modules","provider":"Noba Project","type":"open_educational_modules","levels":["beginner","intermediate","undergraduate"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","biological_psychology","learning_and_behavior","personality","research_methods","statistics"],"url":"https://nobaproject.com/","access":"open_educational_resource","ingestion":"license_aware"},
+    {"title":"PubMed Psychology and Behavioral Science Literature","provider":"NCBI / NIH","type":"research_index","levels":["graduate","research"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","biological_psychology","clinical_psychology","educational_psychology","human_factors"],"url":"https://pubmed.ncbi.nlm.nih.gov/","access":"mixed","ingestion":"metadata_abstracts_and_open_full_text_only"},
+    {"title":"APA PsycNet","provider":"American Psychological Association","type":"scholarly_index","levels":["advanced","graduate","research"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","personality","clinical_psychology","industrial_organizational_psychology"],"url":"https://psycnet.apa.org/","access":"mixed_restricted","ingestion":"metadata_and_citations_only_unless_authorized"},
+    {"title":"arXiv Quantitative Biology and Computation Research","provider":"arXiv","type":"research_repository","levels":["graduate","research"],"subsubjects":["cognitive_psychology","biological_psychology","human_factors","statistics"],"url":"https://arxiv.org/","access":"open_metadata_mixed_license_content","ingestion":"license_aware"}
+  ]
+}
