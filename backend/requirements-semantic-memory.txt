@@ -1,0 +1,4 @@
+# Optional ATLAS semantic-memory backend.
+# Install after the normal backend requirements only on hosts that should
+# run local sentence-transformer embeddings.
+sentence-transformers>=3.0,<4.0

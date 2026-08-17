@@ -5,18 +5,10 @@ Simulation-first command flow:
   2. allow-list check            — kind must be in ALLOWED_COMMANDS
   3. simulate via Phase-5 twin   — uses 'failure' sim on the bound twin
   4. validate                    — score ≥ 0.50 AND no hard failures
-  5. execute                     — for v1 this is the MQTT-bridge publish
-                                    (no real hardware; the device polls
-                                    /api/robot/devices/{id}/commands/inbox)
+  5. execute                     — publish to MQTT and/or HTTP-poll inbox
   6. log + memory wiring         — Phase-2 mb.auto_store + project log
 
 Hard constraint: this layer never bypasses simulation.
-
-For v1, the "MQTT bridge" is HTTP-only: devices POST telemetry to
-/api/robot/devices/{id}/telemetry and GET pending commands from
-/api/robot/devices/{id}/commands/inbox. A real MQTT broker can be slotted
-in by re-implementing _publish_command() against paho-mqtt; the API
-surface stays unchanged.
 """
 import logging
 import os
@@ -91,35 +83,66 @@ async def list_devices(
     *, status: Optional[str] = None, kind: Optional[str] = None, limit: int = 100,
 ) -> List[Dict[str, Any]]:
     filt: Dict[str, Any] = {}
-    if status: filt["status"] = status
-    if kind:   filt["kind"] = kind
+    if status:
+        filt["status"] = status
+    if kind:
+        filt["kind"] = kind
     cur = _devices().find(filt, {"_id": 0}).sort("updated_at", -1).limit(limit)
     return [d async for d in cur]
 
 
 async def bind_twin(device_id: str, twin_id: str) -> Optional[Dict[str, Any]]:
+    """Bind only when both sides exist; never leave a phantom twin binding."""
+    device = await get_device(device_id)
+    if not device:
+        return None
     twin = await dt.get_twin(twin_id)
     if not twin:
         return None
-    await _devices().update_one(
+
+    now = _now()
+    result = await _devices().update_one(
         {"id": device_id},
-        {"$set": {"twin_id": twin_id, "updated_at": _now()}},
+        {"$set": {"twin_id": twin_id, "updated_at": now}},
     )
-    # Mirror the binding into the twin so Phases 5/6 see it via state.hardware_binding.
-    state = twin.get("state") or {}
-    state["hardware_binding"] = {"device_id": device_id, "bridge": "mqtt-http"}
-    state["updated_at"] = _now()
-    await dt._twins().update_one({"id": twin_id}, {"$set": {"state": state}})
+    if result.matched_count != 1:
+        return None
+
+    # Mirror the binding into the twin only after the device update succeeds.
+    state = dict(twin.get("state") or {})
+    state["hardware_binding"] = {"device_id": device_id, "bridge": "mqtt"}
+    state["updated_at"] = now
+    twin_result = await dt._twins().update_one(
+        {"id": twin_id}, {"$set": {"state": state}}
+    )
+    if twin_result.matched_count != 1:
+        # Roll back the device side if the twin disappeared concurrently.
+        await _devices().update_one(
+            {"id": device_id, "twin_id": twin_id},
+            {"$set": {"twin_id": device.get("twin_id"), "updated_at": _now()}},
+        )
+        return None
     return await get_device(device_id)
 
 
-async def emergency_stop(device_id: str, *, role: Role) -> Optional[Dict[str, Any]]:
+async def emergency_stop(
+    device_id: str, *, role: Role, enqueue_command: bool = True,
+) -> Optional[Dict[str, Any]]:
+    """Put a real registered device in SAFE_STATE and optionally enqueue stop."""
     if role != Role.OWNER:
         return None
-    await _devices().update_one(
+    device = await get_device(device_id)
+    if not device:
+        return None
+
+    now = _now()
+    result = await _devices().update_one(
         {"id": device_id},
-        {"$set": {"status": DeviceStatus.SAFE_STATE.value, "updated_at": _now()}},
+        {"$set": {"status": DeviceStatus.SAFE_STATE.value, "updated_at": now}},
     )
+    if result.matched_count != 1:
+        return None
+
     await mb.auto_store(
         f"EMERGENCY STOP · device={device_id} · role=owner",
         persona="council", category="council",
@@ -127,28 +150,35 @@ async def emergency_stop(device_id: str, *, role: Role) -> Optional[Dict[str, An
         tags=["robot", "safety", "emergency_stop"],
     )
 
-    # CRITICAL: also enqueue an `emergency_stop` command so the device's
-    # next inbox poll learns to halt locally (motors → 0, LEDs off, etc.).
-    # Without this, the server state diverges from the physical state and
-    # actuators keep running until power-cycle.
-    stop_cmd = Command(
-        device_id=device_id,
-        kind=CommandKind.EMERGENCY_STOP,
-        payload={},
-        issued_by_role=Role.OWNER,
-        status=CommandStatus.EXECUTED,
-        executed_at=_now(),
-        pipeline_log=[{"step": "emergency_stop", "by": "owner", "at": _now()}],
-    )
-    await _commands().insert_one(stop_cmd.model_dump())
-    # Best-effort MQTT push (no-op when dormant).
-    try:
-        from services import mqtt_bridge
-        dev = await get_device(device_id)
-        if dev:
-            mqtt_bridge.publish_command(dev, stop_cmd.model_dump())
-    except Exception:    # noqa: BLE001
-        pass
+    # Direct emergency-stop calls need a command in the device inbox. When
+    # submit_command() called us, that command already exists, so do not
+    # create a duplicate audit/inbox record.
+    if enqueue_command:
+        stop_cmd = Command(
+            device_id=device_id,
+            kind=CommandKind.EMERGENCY_STOP,
+            payload={},
+            issued_by_role=Role.OWNER,
+            status=CommandStatus.EXECUTED,
+            executed_at=now,
+            pipeline_log=[{"step": "emergency_stop", "by": "owner", "at": now}],
+        )
+        await _commands().insert_one(stop_cmd.model_dump())
+        try:
+            from services import mqtt_bridge
+            pub = mqtt_bridge.publish_command(device, stop_cmd.model_dump())
+            stop_cmd.pipeline_log.append({
+                "step": "mqtt_publish",
+                "ok": bool(pub.get("published")),
+                "topic": pub.get("topic"),
+                "reason": pub.get("reason") or pub.get("error"),
+            })
+            await _commands().update_one(
+                {"id": stop_cmd.id},
+                {"$set": {"pipeline_log": stop_cmd.pipeline_log}},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("emergency-stop MQTT publish failed: %s", exc)
 
     return await get_device(device_id)
 
@@ -156,56 +186,30 @@ async def emergency_stop(device_id: str, *, role: Role) -> Optional[Dict[str, An
 async def clear_safe_state(
     device_id: str, *, role: Role, confirm: str, agent: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """
-    Owner-only release of a device from SAFE_STATE back to ONLINE/REGISTERED.
-
-    Safety contract (architect spec):
-      * Owner-only — guest/council/agents always rejected.
-      * Requires explicit confirmation: caller must pass the device's exact
-        name in `confirm` (anti-fat-finger guard).
-      * NEVER bypasses an active EMERGENCY_STOP — the device must already
-        BE in SAFE_STATE. If it isn't (e.g. an emergency-stop never fired),
-        we refuse so the operator cannot use this endpoint as a backdoor
-        actuator on a healthy device.
-      * Writes a Command record (kind=clear_safe_state, status=executed).
-      * Writes a Memory Bank entry (council/permanent).
-      * Updates the bound Digital Twin state with a clearance marker so
-        downstream simulations see the chronology.
-
-    Returns a dict carrying the new device snapshot + the audit Command id.
-    Raises HTTPException-like dict (callers map to 4xx) on policy failures.
-    """
-    # 1. Role gate (defence-in-depth — caller already checked once)
+    """Owner-only release of a device from SAFE_STATE."""
     if role != Role.OWNER:
         return {"ok": False, "status": 403, "reason": "clear_safe_state is owner-only"}
 
-    # 2. Look up the device
     device = await get_device(device_id)
     if not device:
         return {"ok": False, "status": 404, "reason": "device not found"}
 
-    # 3. Confirmation must match the device's exact name (case-sensitive)
     if not confirm or confirm != device.get("name"):
         return {
             "ok": False, "status": 400,
             "reason": f"confirmation mismatch — pass confirm='{device.get('name')}' to release",
         }
 
-    # 4. Device must actually BE in safe state. Refusing to "clear" a
-    #    non-safe device prevents this endpoint from being used as a
-    #    bypass for any other safety gate.
     if device.get("status") != DeviceStatus.SAFE_STATE.value:
         return {
             "ok": False, "status": 409,
             "reason": (
                 f"device is not in safe_state (current={device.get('status')}) — "
-                f"clear_safe_state cannot bypass an unrelated state"
+                "clear_safe_state cannot bypass an unrelated state"
             ),
         }
 
     cleared_at = _now()
-
-    # 5. Audit command (status executed, full pipeline log)
     cmd = Command(
         device_id=device_id,
         kind=CommandKind.CLEAR_SAFE_STATE,
@@ -215,25 +219,21 @@ async def clear_safe_state(
         status=CommandStatus.EXECUTED,
         pipeline_log=[
             {"step": "authorise", "ok": True, "ts": cleared_at, "note": "owner"},
-            {"step": "confirm",   "ok": True, "ts": cleared_at, "note": f"confirm={confirm}"},
+            {"step": "confirm", "ok": True, "ts": cleared_at, "note": f"confirm={confirm}"},
             {"step": "verify_safe_state", "ok": True, "ts": cleared_at,
              "note": "device was in safe_state, clear authorised"},
-            {"step": "execute",   "ok": True, "ts": cleared_at,
+            {"step": "execute", "ok": True, "ts": cleared_at,
              "note": "device released to registered; twin marked cleared"},
         ],
         executed_at=cleared_at,
     )
     await _commands().insert_one(cmd.model_dump())
 
-    # 6. Flip device back to REGISTERED (the next telemetry burst will
-    #    promote it to ONLINE — we don't fake that.)
     await _devices().update_one(
         {"id": device_id},
         {"$set": {"status": DeviceStatus.REGISTERED.value, "updated_at": cleared_at}},
     )
 
-    # 7. Update the bound Digital Twin's state with a clearance marker so
-    #    Phase-5/6 simulators can see the chronology.
     twin_id = device.get("twin_id")
     if twin_id:
         twin = await dt.get_twin(twin_id)
@@ -246,13 +246,12 @@ async def clear_safe_state(
                 "by_role": role.value,
                 "command_id": cmd.id,
             })
-            state["safety_history"] = history[-25:]   # cap
+            state["safety_history"] = history[-25:]
             state["safe_state"] = False
             state["last_safety_clear_at"] = cleared_at
             state["updated_at"] = cleared_at
             await dt._twins().update_one({"id": twin_id}, {"$set": {"state": state}})
 
-    # 8. Memory Bank — permanent council entry (parity with emergency_stop)
     await mb.auto_store(
         f"CLEAR SAFE STATE · device={device['name']} ({device_id}) · role=owner "
         f"· cleared at {cleared_at}",
@@ -270,32 +269,35 @@ async def clear_safe_state(
 
 
 # --- Telemetry --------------------------------------------------------------
-async def ingest_telemetry(device_id: str, payload: Dict[str, Any], *, source: str = "mqtt") -> Dict[str, Any]:
+async def ingest_telemetry(
+    device_id: str, payload: Dict[str, Any], *, source: str = "mqtt",
+) -> Dict[str, Any]:
+    """Persist telemetry only for registered devices.
+
+    MQTT callbacks bypass the HTTP route-level existence check, so this
+    service boundary must enforce registry integrity itself.
+    """
+    device = await get_device(device_id)
+    if not device:
+        raise ValueError(f"device {device_id} not registered")
+
     rec = TelemetryRecord(device_id=device_id, payload=payload, source=source)
     await _telemetry().insert_one(rec.model_dump())
 
-    # SAFETY: only promote to ONLINE if the device isn't already in a
-    # sticky safety state (safe_state / quarantined). Otherwise telemetry
-    # from the device would silently undo emergency_stop or an owner's
-    # quarantine — and motors would keep running.
-    cur = await _devices().find_one({"id": device_id}, {"_id": 0, "status": 1})
-    cur_status = (cur or {}).get("status")
+    cur_status = device.get("status")
     sticky = {DeviceStatus.SAFE_STATE.value, DeviceStatus.QUARANTINED.value}
     update = {"last_seen": rec.received_at, "updated_at": rec.received_at}
     if cur_status not in sticky:
         update["status"] = DeviceStatus.ONLINE.value
     await _devices().update_one({"id": device_id}, {"$set": update})
-    # Phase 8b — feed Sentinel anomaly detection. update_and_score reads
-    # the device doc we just touched, runs Welford's, and writes the
-    # envelope + anomaly flag back. Safe to fail open — anomaly detection
-    # never blocks telemetry intake.
+
     try:
-        from services import anomaly  # local import to avoid circular load
+        from services import anomaly
         _, drifting, z_scores = await anomaly.update_and_score(device_id, payload)
-    except Exception as exc:    # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         logger.warning("anomaly scoring failed for %s: %s", device_id, exc)
         drifting, z_scores = [], {}
-    # Telemetry is decaying research memory by design.
+
     extra_tags = ["anomaly"] if drifting else []
     drift_line = ""
     if drifting:
@@ -323,10 +325,11 @@ async def submit_command(
     device_id: str, kind: CommandKind, payload: Dict[str, Any],
     *, role: Role, agent: Optional[str] = None,
 ) -> Command:
-    cmd = Command(device_id=device_id, kind=kind, payload=payload,
-                  issued_by_role=role, issued_by_agent=agent)
+    cmd = Command(
+        device_id=device_id, kind=kind, payload=payload,
+        issued_by_role=role, issued_by_agent=agent,
+    )
 
-    # 1. Authorise
     reason = authorise(role, kind)
     if reason:
         cmd.status = CommandStatus.REJECTED
@@ -346,17 +349,21 @@ async def submit_command(
         await _log_memory(cmd)
         return cmd
 
-    # 2. Simulate via Phase-5 twin (if bound and command is non-trivial)
     non_trivial = kind in OWNER_ONLY_COMMANDS or kind == CommandKind.CONFIGURE
     if non_trivial and device.get("twin_id"):
         try:
-            sim = await dt.run_and_persist_simulation(device["twin_id"], SimulationKind.FAILURE)
+            sim = await dt.run_and_persist_simulation(
+                device["twin_id"], SimulationKind.FAILURE
+            )
+            if sim is None:
+                raise RuntimeError("bound digital twin no longer exists")
             cmd.sim_score = sim.score
             cmd.validation_findings.extend(sim.findings[:5])
-            cmd.pipeline_log.append({"step": "simulate", "ok": True, "score": sim.score,
-                                     "sim_id": sim.id})
+            cmd.pipeline_log.append({
+                "step": "simulate", "ok": True, "score": sim.score, "sim_id": sim.id,
+            })
             cmd.status = CommandStatus.SIMULATED
-        except Exception as exc:    # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             cmd.status = CommandStatus.REJECTED
             cmd.rejection_reason = f"simulation failed: {exc}"
             cmd.pipeline_log.append({"step": "simulate", "ok": False, "error": str(exc)})
@@ -366,7 +373,6 @@ async def submit_command(
     elif non_trivial:
         cmd.pipeline_log.append({"step": "simulate", "ok": True, "skipped": "no_twin_bound"})
 
-    # 3. Validate
     sim_ok = (cmd.sim_score is None) or (cmd.sim_score >= 0.5)
     if not sim_ok:
         cmd.status = CommandStatus.REJECTED
@@ -378,9 +384,10 @@ async def submit_command(
     cmd.status = CommandStatus.VALIDATED
     cmd.pipeline_log.append({"step": "validate", "ok": True})
 
-    # 4. Execute → publish on the MQTT-style bridge (v1 = HTTP-poll)
-    if device.get("status") == DeviceStatus.SAFE_STATE.value and \
-            kind != CommandKind.EMERGENCY_STOP and kind != CommandKind.PING:
+    if (
+        device.get("status") == DeviceStatus.SAFE_STATE.value
+        and kind not in (CommandKind.EMERGENCY_STOP, CommandKind.PING)
+    ):
         cmd.status = CommandStatus.REJECTED
         cmd.rejection_reason = "device is in SAFE_STATE — clear it first via owner"
         cmd.pipeline_log.append({"step": "execute", "ok": False, "reason": cmd.rejection_reason})
@@ -390,23 +397,36 @@ async def submit_command(
 
     cmd.status = CommandStatus.EXECUTED
     cmd.executed_at = _now()
-    cmd.pipeline_log.append({"step": "execute", "ok": True,
-                             "topic": device.get("mqtt_topic") or f"devices/{device_id}/down"})
+    cmd.pipeline_log.append({
+        "step": "execute", "ok": True,
+        "topic": device.get("mqtt_topic") or f"devices/{device_id}/down",
+    })
     await _commands().insert_one(cmd.model_dump())
 
-    # Phase 8c — best-effort MQTT publish. Dormant when MQTT_BROKER_HOST
-    # is unset; failure never blocks the HTTP-poll inbox path.
+    # Persist delivery diagnostics after publish; previously these existed
+    # only in the in-memory return object and were missing from the audit DB.
     try:
         from services import mqtt_bridge
         pub = mqtt_bridge.publish_command(device, cmd.model_dump())
-        if pub.get("published"):
-            cmd.pipeline_log.append({"step": "mqtt_publish", "ok": True, "topic": pub.get("topic")})
-    except Exception as exc:    # noqa: BLE001
+        cmd.pipeline_log.append({
+            "step": "mqtt_publish",
+            "ok": bool(pub.get("published")),
+            "topic": pub.get("topic"),
+            "reason": pub.get("reason") or pub.get("error"),
+        })
+    except Exception as exc:  # noqa: BLE001
         logger.debug("mqtt publish skipped: %s", exc)
+        cmd.pipeline_log.append({
+            "step": "mqtt_publish", "ok": False, "error": str(exc)[:200],
+        })
+    await _commands().update_one(
+        {"id": cmd.id}, {"$set": {"pipeline_log": cmd.pipeline_log}}
+    )
 
-    # 5. Side effect: emergency_stop changes device state
     if kind == CommandKind.EMERGENCY_STOP:
-        await emergency_stop(device_id, role=role)
+        # The command above is already the inbox/audit record. Only change
+        # device state here; do not create a duplicate stop command.
+        await emergency_stop(device_id, role=role, enqueue_command=False)
 
     await _log_memory(cmd)
     return cmd
@@ -423,9 +443,13 @@ async def list_commands(device_id: str, *, limit: int = 50) -> List[Dict[str, An
 
 
 async def inbox(device_id: str) -> List[Dict[str, Any]]:
-    """Commands the device should pick up next time it polls (v1 MQTT bridge)."""
+    """Commands the device should pick up next time it polls."""
     cur = _commands().find(
-        {"device_id": device_id, "status": CommandStatus.EXECUTED.value, "delivered": {"$ne": True}},
+        {
+            "device_id": device_id,
+            "status": CommandStatus.EXECUTED.value,
+            "delivered": {"$ne": True},
+        },
         {"_id": 0},
     ).sort("queued_at", 1).limit(20)
     items = [d async for d in cur]
@@ -463,30 +487,25 @@ def _now() -> str:
 
 # --- Seeding the three architect-spec twins + devices ----------------------
 SEED_DEVICES = [
-    {"name": "POSEIDON-BUOY",   "kind": "sensor",
+    {"name": "POSEIDON-BUOY", "kind": "sensor",
      "hardware_profile": {"sensors": ["water_temperature", "ph", "turbidity"]},
      "tags": ["water", "aquatic", "stationary"],
      "mqtt_topic": "devices/poseidon-buoy/up"},
-    {"name": "AETHER-STATION",  "kind": "sensor",
+    {"name": "AETHER-STATION", "kind": "sensor",
      "hardware_profile": {"sensors": ["co2", "pm2_5", "voc", "temperature"]},
      "tags": ["air", "atmosphere", "stationary"],
      "mqtt_topic": "devices/aether-station/up"},
-    {"name": "SOIL-WATCH",      "kind": "sensor",
+    {"name": "SOIL-WATCH", "kind": "sensor",
      "hardware_profile": {"sensors": ["soil_moisture", "soil_temperature", "nutrient_level"]},
      "tags": ["soil", "agriculture", "stationary"],
      "mqtt_topic": "devices/soil-watch/up"},
 ]
 
-_SEED_LOCK = None  # reserved — kept for future concurrent-seed guard
+_SEED_LOCK = None
 
 
 async def seed_if_needed() -> int:
-    """Idempotently provision the architect's three seed devices.
-
-    Previously gated on `count_documents({}) > 0`, which broke after tests
-    left non-seed devices behind. Now we check by-name and insert only the
-    seeds that are actually missing. Safe to call any number of times.
-    """
+    """Idempotently provision the architect's three seed devices."""
     inserted = 0
     for spec in SEED_DEVICES:
         existing = await _devices().find_one({"name": spec["name"]}, {"id": 1})
@@ -494,7 +513,6 @@ async def seed_if_needed() -> int:
             continue
         dev = Device(**spec)
         await register_device(dev)
-        # Auto-spawn a twin per device (environment category — matches the spec)
         from models.twin_models import (
             Component, DigitalTwin, SensorInput, TwinCategory, TwinState,
         )
