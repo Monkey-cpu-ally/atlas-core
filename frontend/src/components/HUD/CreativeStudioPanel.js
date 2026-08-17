@@ -14,28 +14,41 @@ const STAGES = [
 
 export default function CreativeStudioPanel({ aiColor, project, onBack }) {
   const [stage, setStage] = useState('brief');
-  const [status, setStatus] = useState(null);
   const [references, setReferences] = useState([]);
   const [critics, setCritics] = useState([]);
   const [rubrics, setRubrics] = useState(null);
+  const [qualityContract, setQualityContract] = useState(null);
+  const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const title = project?.title || project?.name || 'Untitled Creative Project';
   const summary = project?.summary || project?.description || 'Define the creative brief before production begins.';
+  const projectId = String(project?.id || project?._id || title);
+
+  const loadJobs = async () => {
+    try {
+      const res = await fetch(`${BACKEND}/api/creative-studio/jobs?project_id=${encodeURIComponent(projectId)}`);
+      if (!res.ok) throw new Error('jobs');
+      const data = await res.json();
+      setJobs(data.items || []);
+    } catch (_) { /* surfaced by integration status */ }
+  };
 
   useEffect(() => {
     let active = true;
     Promise.all([
-      fetch(`${BACKEND}/api/creative-studio/status`).then((r) => { if (!r.ok) throw new Error('status'); return r.json(); }),
-      fetch(`${BACKEND}/api/creative-studio/references?limit=80`).then((r) => { if (!r.ok) throw new Error('references'); return r.json(); }),
-      fetch(`${BACKEND}/api/creative-studio/critics`).then((r) => { if (!r.ok) throw new Error('critics'); return r.json(); }),
+      fetch(`${BACKEND}/api/creative-studio/references`).then((r) => { if (!r.ok) throw new Error('references'); return r.json(); }),
+      fetch(`${BACKEND}/api/creative-studio/critic-council`).then((r) => { if (!r.ok) throw new Error('critics'); return r.json(); }),
       fetch(`${BACKEND}/api/creative-studio/rubrics`).then((r) => { if (!r.ok) throw new Error('rubrics'); return r.json(); }),
-    ]).then(([s, refs, council, quality]) => {
+      fetch(`${BACKEND}/api/creative-studio/quality-contract`).then((r) => { if (!r.ok) throw new Error('quality'); return r.json(); }),
+      fetch(`${BACKEND}/api/creative-studio/jobs?project_id=${encodeURIComponent(projectId)}`).then((r) => { if (!r.ok) throw new Error('jobs'); return r.json(); }),
+    ]).then(([refs, council, quality, contract, jobData]) => {
       if (!active) return;
-      setStatus(s);
       setReferences(refs.items || []);
       setCritics(council.critics || []);
       setRubrics(quality);
+      setQualityContract(contract);
+      setJobs(jobData.items || []);
       setLoading(false);
     }).catch(() => {
       if (!active) return;
@@ -43,85 +56,53 @@ export default function CreativeStudioPanel({ aiColor, project, onBack }) {
       setLoading(false);
     });
     return () => { active = false; };
-  }, []);
+  }, [projectId]);
+
+  const queueJob = async (jobStage) => {
+    try {
+      const res = await fetch(`${BACKEND}/api/creative-studio/jobs`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: projectId, stage: jobStage }),
+      });
+      if (!res.ok) throw new Error('queue');
+      await loadJobs();
+    } catch (_) { setError('Could not queue Creative Studio job.'); }
+  };
 
   const stageData = useMemo(() => STAGES.find((item) => item.id === stage) || STAGES[0], [stage]);
   const StageIcon = stageData.icon;
-  const execution = status?.execution || {};
+  const generationEnabled = Boolean(qualityContract?.generation_enabled);
 
   return (
     <div className="bp-workbench" data-testid="creative-studio-panel">
-      <div className="bp-actions">
-        {onBack && <button className="bp-btn" onClick={onBack} data-testid="creative-studio-back">← Projects</button>}
-      </div>
+      <div className="bp-actions">{onBack && <button className="bp-btn" onClick={onBack}>← Projects</button>}</div>
       <h3 className="bp-title" style={{ color: aiColor }}><Clapperboard size={15} /> Creative Studio</h3>
-      <p className="bp-help">ATLAS production workspace. References inform craft; originality, Critic Council review, revisions, and production gates determine whether an asset becomes a master.</p>
-
-      <div className="bp-section" data-testid="creative-project-brief">
-        <div className="project-card-label">Project</div>
-        <div className="project-card-title">{title}</div>
-        <div className="bp-voice-body">{summary}</div>
-      </div>
-
+      <p className="bp-help">References inform craft; originality, Critic Council review, revisions, and production gates determine whether an asset becomes a master.</p>
+      <div className="bp-section"><div className="project-card-label">Project</div><div className="project-card-title">{title}</div><div className="bp-voice-body">{summary}</div></div>
       {loading && <div className="bp-section"><Loader2 size={14} className="spin" /> Loading Creative Intelligence…</div>}
-      {error && <div className="bp-section" data-testid="creative-studio-error">{error}</div>}
+      {error && <div className="bp-section">{error}</div>}
 
-      <div className="bp-actions" data-testid="creative-stage-nav">
-        {STAGES.map(({ id, label, icon: Icon }) => (
-          <button key={id} className={`bp-btn ${stage === id ? 'primary' : ''}`} onClick={() => setStage(id)} data-testid={`creative-stage-${id}`} style={stage === id ? { borderColor: aiColor, color: aiColor } : undefined}>
-            <Icon size={12} /> {label}
-          </button>
-        ))}
+      <div className="bp-actions">
+        {STAGES.map(({ id, label, icon: Icon }) => <button key={id} className={`bp-btn ${stage === id ? 'primary' : ''}`} onClick={() => setStage(id)} style={stage === id ? { borderColor: aiColor, color: aiColor } : undefined}><Icon size={12} /> {label}</button>)}
       </div>
 
-      <div className="bp-section" data-testid={`creative-stage-view-${stage}`}>
-        <h4 style={{ color: aiColor, display: 'flex', alignItems: 'center', gap: 8 }}><StageIcon size={14} /> {stageData.label}</h4>
-
+      <div className="bp-section">
+        <h4 style={{ color: aiColor, display: 'flex', gap: 8 }}><StageIcon size={14} /> {stageData.label}</h4>
         {stage === 'brief' && <p>Lock premise, audience, medium, tone, constraints, story/art bible, and intended emotional effect.</p>}
-
-        {stage === 'references' && (
-          <div data-testid="creative-live-references">
-            <p>{references.length} loaded references. Select references by the craft principles ATLAS should study—not by copying protected expression.</p>
-            {references.slice(0, 20).map((ref) => (
-              <div className="project-card" key={ref.id}>
-                <div className="project-card-title">{ref.title}</div>
-                <div className="project-card-meta">{ref.kind} · {ref.category}</div>
-                <div className="bp-voice-body">{(ref.study || []).join(' · ')}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {stage === 'create' && <p>Production execution is {execution.generation_jobs ? 'enabled' : 'locked until a real generation job service is connected'}. The HUD will not represent placeholder output as completed creative work.</p>}
-
-        {stage === 'critique' && (
-          <div data-testid="creative-live-critics">
-            {(critics || []).map((critic) => (
-              <div className="project-card" key={critic.id}>
-                <div className="project-card-title">{critic.id.toUpperCase()}</div>
-                <div className="bp-voice-body">{critic.focus}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {stage === 'revision' && <p>Revision jobs are {execution.revision_jobs ? 'enabled' : 'locked'}. When enabled, rejected work receives explicit revision requests and is re-evaluated rather than silently accepted.</p>}
-
-        {stage === 'master' && (
-          <div data-testid="creative-live-master-gate">
-            <p>Final master approval requires every applicable quality gate to pass.</p>
-            {rubrics?.quality_principles?.map((principle, index) => <div className="bp-voice-body" key={index}>• {principle}</div>)}
-            <div className="project-card-meta">Rubrics: {status?.available_rubrics?.join(' · ') || 'loading'}</div>
-          </div>
-        )}
+        {stage === 'references' && <div>{references.slice(0, 20).map((ref) => <div className="project-card" key={ref.id}><div className="project-card-title">{ref.title}</div><div className="project-card-meta">{ref.kind} · {ref.category}</div><div className="bp-voice-body">{(ref.study || []).join(' · ')}</div></div>)}</div>}
+        {stage === 'create' && <div><p>Creation jobs can be recorded now, but real generation remains {generationEnabled ? 'enabled' : 'locked'} until an executor is connected.</p><button className="bp-btn" onClick={() => queueJob('create')}>Queue Create Job</button></div>}
+        {stage === 'critique' && <div>{critics.map((critic) => <div className="project-card" key={critic.id}><div className="project-card-title">{critic.id.toUpperCase()}</div><div className="bp-voice-body">{critic.focus}</div></div>)}<button className="bp-btn" onClick={() => queueJob('critique')}>Queue Critique Job</button></div>}
+        {stage === 'revision' && <div><p>Rejected work receives explicit revision requests and re-evaluation.</p><button className="bp-btn" onClick={() => queueJob('revision')}>Queue Revision Job</button></div>}
+        {stage === 'master' && <div><p>Final master approval requires every applicable quality gate.</p>{rubrics?.quality_principles?.map((p, i) => <div className="bp-voice-body" key={i}>• {p}</div>)}<button className="bp-btn" onClick={() => queueJob('master')}>Queue Master Job</button></div>}
       </div>
 
-      <div className="bp-section" data-testid="creative-studio-integration-status">
-        <div className="project-card-label">Integration status</div>
-        <div className="bp-voice-body">
-          Reference browsing: {execution.reference_browsing ? 'LIVE' : 'LOCKED'} · Critic contract: {execution.critic_contract ? 'LIVE' : 'LOCKED'} · Generation: {execution.generation_jobs ? 'LIVE' : 'LOCKED'} · Revisions: {execution.revision_jobs ? 'LIVE' : 'LOCKED'} · Master jobs: {execution.master_jobs ? 'LIVE' : 'LOCKED'}
-        </div>
+      <div className="bp-section" data-testid="creative-job-history">
+        <div className="project-card-label">Production Job History</div>
+        {jobs.length === 0 && <div className="bp-voice-body">No production jobs recorded for this project.</div>}
+        {jobs.map((job) => <div className="project-card" key={job.id}><div className="project-card-title">{job.stage.toUpperCase()} · {job.status.toUpperCase()}</div><div className="project-card-meta">{job.id}</div>{job.blockers?.length > 0 && <div className="bp-voice-body">Blocked: {job.blockers.join(' · ')}</div>}</div>)}
       </div>
+
+      <div className="bp-section"><div className="project-card-label">Integration status</div><div className="bp-voice-body">Job API: {qualityContract?.job_api_enabled ? 'LIVE' : 'LOCKED'} · Generation executor: {generationEnabled ? 'LIVE' : 'LOCKED'}</div></div>
     </div>
   );
 }
