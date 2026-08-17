@@ -1,17 +1,21 @@
 """Story Production Service for ATLAS Creative Studio.
 
 This service constructs a production-grade story-generation specification from an
-explicit brief and curated reference principles. It does not fabricate prose by
-itself: a text-generation provider must be injected before an artifact can exist.
+explicit brief and curated reference principles. It requires an injected generator
+and never fabricates prose locally.
 """
 from __future__ import annotations
 
+import inspect
 import uuid
-from dataclasses import dataclass, asdict
-from typing import Callable, Mapping, Sequence
+from dataclasses import asdict, dataclass
+from typing import Awaitable, Callable, Mapping, Union
 
 from .executor_registry import ExecutionRequest, ExecutionResult
 from .reference_library.loader import CreativeReferenceLibrary
+
+GeneratorResult = Union[str, Awaitable[str]]
+StoryGenerator = Callable[[Mapping], GeneratorResult]
 
 
 @dataclass(frozen=True)
@@ -42,7 +46,7 @@ class StoryBrief:
 
 
 class StoryProductionService:
-    def __init__(self, generator: Callable[[Mapping], str], library: CreativeReferenceLibrary | None = None):
+    def __init__(self, generator: StoryGenerator, library: CreativeReferenceLibrary | None = None):
         if not callable(generator):
             raise ValueError("a real text-generation provider is required")
         self.generator = generator
@@ -68,17 +72,19 @@ class StoryProductionService:
             ],
         }
 
-    def create(self, brief: StoryBrief) -> dict:
+    async def create(self, brief: StoryBrief) -> dict:
         spec = self.build_spec(brief)
         text = self.generator(spec)
+        if inspect.isawaitable(text):
+            text = await text
         if not isinstance(text, str) or not text.strip():
             raise RuntimeError("story generator returned no artifact")
         return {"artifact_id": str(uuid.uuid4()), "kind": "story", "text": text.strip(), "spec": spec}
 
 
 def story_create_executor(service: StoryProductionService):
-    def execute(request: ExecutionRequest) -> ExecutionResult:
+    async def execute(request: ExecutionRequest) -> ExecutionResult:
         brief = StoryBrief.from_mapping(request.payload or {})
-        artifact = service.create(brief)
+        artifact = await service.create(brief)
         return ExecutionResult(artifact["artifact_id"], artifact, "story-production-service")
     return execute
