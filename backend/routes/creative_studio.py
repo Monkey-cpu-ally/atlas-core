@@ -10,8 +10,10 @@ from creative_intelligence.executor_registry import ExecutionRequest, ExecutorUn
 from creative_intelligence.job_store import CreativeJobStore, VALID_STAGES
 from creative_intelligence.reference_library.loader import CreativeReferenceLibrary
 from services.creative_story_executor import register_story_executor
+from services.creative_critique_executor import register_critique_executor
 
 register_story_executor()
+register_critique_executor()
 
 router = APIRouter(prefix="/api/creative-studio", tags=["creative-studio"])
 job_store = CreativeJobStore()
