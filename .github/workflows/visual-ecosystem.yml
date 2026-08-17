@@ -10,6 +10,8 @@ on:
       - "clients/atlas-unreal/**"
       - "visual-systems/**"
       - "shared/protocols/**"
+      - "knowledge-division/existing-resource-library-v1.json"
+      - "tests/test_knowledge_bookshelf_contract.py"
       - "tests/test_visual_hub.py"
       - "tests/test_genesis_*.py"
       - ".github/workflows/visual-ecosystem.yml"
@@ -27,6 +29,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r backend/requirements.txt pytest
+      - name: Run Knowledge Bookshelf contract
+        run: pytest -q tests/test_knowledge_bookshelf_contract.py
       - name: Run available visual and GENESIS smoke tests
         shell: bash
         run: |
