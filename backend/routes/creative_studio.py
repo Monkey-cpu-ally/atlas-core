@@ -1,16 +1,27 @@
-"""Read-only Creative Studio contracts for the ATLAS HUD.
+"""Creative Studio contracts and persistent job lifecycle for the ATLAS HUD.
 
-Mutation/generation endpoints are intentionally deferred until their production
-services have durable project persistence. These routes expose real reference,
-critic, rubric, and quality-gate metadata without pretending to generate work.
+Job creation records workflow intent only. Jobs remain queued until a real production
+service explicitly starts and completes them; this API never fabricates generation.
 """
-from fastapi import APIRouter, Query
+from dataclasses import asdict
+
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from creative_intelligence.craft_rubrics import MEDIUMS, QUALITY_PRINCIPLES, STORY, VISUAL_ART
 from creative_intelligence.critic_council import CreativeCriticCouncil
+from creative_intelligence.job_store import CreativeJobStore, VALID_STAGES
 from creative_intelligence.reference_library.loader import CreativeReferenceLibrary
 
 router = APIRouter(prefix="/api/creative-studio", tags=["creative-studio"])
+job_store = CreativeJobStore()
+
+
+class CreativeJobCreate(BaseModel):
+    project_id: str = Field(min_length=1, max_length=160)
+    stage: str
+    artifact_id: str | None = Field(default=None, max_length=200)
+    parent_job_id: str | None = Field(default=None, max_length=200)
 
 
 def _rubric_payload(rubric):
@@ -80,6 +91,36 @@ async def get_quality_contract():
         "stages": ["brief", "references", "create", "critique", "revision", "master"],
         "creative_gate": ["reference_context", "originality", "critic_council", "revision_re_evaluation"],
         "master_gate": ["creative_approval", "story_quality", "art_style", "visual_quality", "continuity", "originality"],
+        "job_api_enabled": True,
         "generation_enabled": False,
-        "reason": "Production mutation endpoints require durable Creative Studio project persistence before HUD activation.",
+        "reason": "Persistent workflow jobs are live; production executors are enabled only when real generation/review services are connected.",
     }
+
+
+@router.post("/jobs", status_code=201)
+async def create_job(payload: CreativeJobCreate):
+    if payload.stage not in VALID_STAGES:
+        raise HTTPException(status_code=422, detail=f"stage must be one of: {', '.join(VALID_STAGES)}")
+    if payload.parent_job_id and job_store.get(payload.parent_job_id) is None:
+        raise HTTPException(status_code=404, detail="parent creative job not found")
+    job = job_store.create(
+        project_id=payload.project_id,
+        stage=payload.stage,
+        artifact_id=payload.artifact_id,
+        parent_job_id=payload.parent_job_id,
+    )
+    return asdict(job)
+
+
+@router.get("/jobs")
+async def list_jobs(project_id: str | None = Query(default=None, max_length=160)):
+    jobs = job_store.list(project_id=project_id)
+    return {"total": len(jobs), "items": [asdict(job) for job in jobs]}
+
+
+@router.get("/jobs/{job_id}")
+async def get_job(job_id: str):
+    job = job_store.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="creative job not found")
+    return asdict(job)
