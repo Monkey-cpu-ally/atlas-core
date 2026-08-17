@@ -1,4 +1,4 @@
-"""Executor boundary for ATLAS Creative Studio.
+"""Async executor boundary for ATLAS Creative Studio.
 
 Executors are registered explicitly by creative stage and capability. The registry
 fails closed when a real executor is unavailable; queued jobs must never be marked
@@ -6,8 +6,9 @@ complete by fallback/placeholder generation.
 """
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Mapping
+from typing import Any, Awaitable, Callable, Dict, Mapping, Union
 
 
 class ExecutorUnavailable(RuntimeError):
@@ -30,11 +31,12 @@ class ExecutionResult:
     executor: str
 
 
-Executor = Callable[[ExecutionRequest], ExecutionResult]
+ExecutorReturn = Union[ExecutionResult, Awaitable[ExecutionResult]]
+Executor = Callable[[ExecutionRequest], ExecutorReturn]
 
 
 class CreativeExecutorRegistry:
-    """Small dependency-injection registry for real creative production services."""
+    """Dependency-injection registry for sync or async creative services."""
 
     def __init__(self):
         self._executors: Dict[str, Executor] = {}
@@ -53,11 +55,13 @@ class CreativeExecutorRegistry:
     def capabilities(self) -> Dict[str, bool]:
         return {stage: self.available(stage) for stage in ("create", "critique", "revision", "master")}
 
-    def execute(self, request: ExecutionRequest) -> ExecutionResult:
+    async def execute(self, request: ExecutionRequest) -> ExecutionResult:
         executor = self._executors.get(request.stage)
         if executor is None:
             raise ExecutorUnavailable(f"no real creative executor registered for stage: {request.stage}")
         result = executor(request)
+        if inspect.isawaitable(result):
+            result = await result
         if not isinstance(result, ExecutionResult):
             raise TypeError("creative executor must return ExecutionResult")
         return result
