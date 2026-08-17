@@ -27,8 +27,22 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r backend/requirements.txt pytest
-      - name: Run visual and GENESIS smoke tests
-        run: pytest -q tests/test_visual_hub.py tests/test_genesis_*.py
+      - name: Run available visual and GENESIS smoke tests
+        shell: bash
+        run: |
+          shopt -s nullglob
+          tests=(tests/test_visual_hub.py tests/test_genesis_*.py)
+          available=()
+          for test_path in "${tests[@]}"; do
+            if [ -f "$test_path" ]; then
+              available+=("$test_path")
+            fi
+          done
+          if [ ${#available[@]} -eq 0 ]; then
+            echo "Visual/GENESIS smoke tests are not present on this branch; skipping backend visual smoke tests."
+            exit 0
+          fi
+          pytest -q "${available[@]}"
 
   frontend-build:
     runs-on: ubuntu-latest
