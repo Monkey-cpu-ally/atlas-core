@@ -1,0 +1,53 @@
+{
+  "batch_id": "doe-energy-resources-v1",
+  "status": "verified_source_layer",
+  "verification_date": "2026-08-18",
+  "rules": {
+    "generic_portals_count_as_individual_resources": false,
+    "individual_records_require_document_or_dataset_level_metadata": true,
+    "restricted_material_must_not_be_copied_without_permission": true
+  },
+  "sources": [
+    {
+      "name": "DOE Data Explorer",
+      "provider": "U.S. Department of Energy Office of Scientific and Technical Information",
+      "type": "dataset_discovery_source",
+      "official_url": "https://www.osti.gov/dataexplorer/",
+      "description": "Discovery system for publicly available DOE-funded scientific dataset, collection, and project records.",
+      "subjects": ["Physics", "Chemistry", "Environmental Science", "Energy", "Materials Science", "Software Engineering"]
+    },
+    {
+      "name": "OSTI.GOV",
+      "provider": "U.S. Department of Energy Office of Scientific and Technical Information",
+      "type": "scientific_technical_information_source",
+      "official_url": "https://www.osti.gov/",
+      "description": "DOE search system for scientific and technical research outputs including reports, datasets, software, patents, theses, and publications.",
+      "subjects": ["Physics", "Chemistry", "Engineering", "Environmental Science", "Software Engineering", "Mathematics"]
+    },
+    {
+      "name": "DOE CODE",
+      "provider": "U.S. Department of Energy Office of Scientific and Technical Information",
+      "type": "software_discovery_source",
+      "official_url": "https://www.osti.gov/doecode/",
+      "description": "DOE software services and discovery platform for DOE-funded scientific and business software.",
+      "subjects": ["Software Engineering", "AI", "Mathematics", "Physics", "Engineering"]
+    },
+    {
+      "name": "DOE Open Data Catalog",
+      "provider": "U.S. Department of Energy",
+      "type": "open_data_catalog",
+      "official_url": "https://www.energy.gov/data/articles/open-data-catalog",
+      "description": "Machine-readable public data listing for datasets maintained by DOE offices and programs.",
+      "subjects": ["Energy", "Environmental Science", "Economics", "Engineering"]
+    },
+    {
+      "name": "DOE Open Energy Data",
+      "provider": "U.S. Department of Energy",
+      "type": "energy_data_source_index",
+      "official_url": "https://www.energy.gov/data/open-energy-data",
+      "description": "Official DOE index of open-energy data initiatives and data systems.",
+      "subjects": ["Energy", "Environmental Science", "Economics", "Engineering"]
+    }
+  ],
+  "ingestion_note": "These entries establish authoritative discovery sources. They are not counted as individual books, patents, datasets, reports, or software records. ATLAS must ingest and count individual records only after record-level title/identifier/provider/access metadata verification."
+}

@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "verified_on": "2026-08-18",
+  "purpose": "ATLAS Knowledge Bank NIST public-data discovery and provenance layer. This catalog intentionally distinguishes public-data repositories from copyrighted/licensed NIST Standard Reference Data products.",
+  "verification": {
+    "provider": "National Institute of Standards and Technology",
+    "official_sources": [
+      "https://data.nist.gov/pdr/",
+      "https://data.nist.gov/sdp/",
+      "https://www.nist.gov/data",
+      "https://www.nist.gov/open",
+      "https://www.nist.gov/srd",
+      "https://shop.nist.gov/ccrz__CCPage?pageKey=SRDTC"
+    ],
+    "rule": "Public Data Repository records may be discovered and linked with record-level metadata and terms. NIST Standard Reference Data is separately licensed/copyrighted and must not be bulk-copied or treated as unrestricted public-domain data."
+  },
+  "resources": [
+    {
+      "id": "nist-public-data-repository",
+      "title": "NIST Public Data Repository",
+      "resource_type": "dataset_repository",
+      "provider": "NIST",
+      "url": "https://data.nist.gov/pdr/",
+      "subjects": ["Artificial Intelligence","Biology","Chemistry","Electronics","Environmental Science","Mathematics","Nanotechnology","Physics","Robotics","Software Engineering"],
+      "capabilities": ["persistent identifiers","record landing pages","metadata","public data downloads","citation","machine-readable discovery","long-term preservation"],
+      "storage_policy": "metadata_and_link_by_default; download only public record files under record-level terms",
+      "status": "verified"
+    },
+    {
+      "id": "nist-science-data-portal",
+      "title": "NIST Science Data Portal",
+      "resource_type": "dataset_discovery_service",
+      "provider": "NIST",
+      "url": "https://data.nist.gov/sdp/",
+      "subjects": ["Artificial Intelligence","Biology","Chemistry","Electronics","Environmental Science","Mathematics","Nanotechnology","Physics","Robotics","Software Engineering"],
+      "storage_policy": "discovery/index only; individual records must be verified before cataloging",
+      "status": "verified"
+    },
+    {
+      "id": "nist-public-access-research",
+      "title": "Public Access to NIST Research",
+      "resource_type": "research_access_index",
+      "provider": "NIST",
+      "url": "https://www.nist.gov/open",
+      "subjects": ["Artificial Intelligence","Biology","Chemistry","Electronics","Environmental Science","Mathematics","Nanotechnology","Physics","Robotics","Software Engineering"],
+      "storage_policy": "index only; follow linked publication/data repository rights and embargo rules",
+      "status": "verified"
+    },
+    {
+      "id": "nist-standard-reference-data-catalog",
+      "title": "NIST Standard Reference Data Catalog",
+      "resource_type": "licensed_reference_data_index",
+      "provider": "NIST",
+      "url": "https://www.nist.gov/srd",
+      "subjects": ["Chemistry","Engineering","Materials Science","Mathematics","Computer Science","Physics","Biology"],
+      "storage_policy": "metadata_and_link_only unless explicit SRD license permits additional use; no systematic bulk downloading",
+      "status": "verified",
+      "rights_note": "NIST SRD may be copyrighted and subject to separate terms; free web access does not imply unrestricted redistribution."
+    }
+  ]
+}
