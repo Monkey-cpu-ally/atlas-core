@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "provider": "U.S. Department of Energy Office of Scientific and Technical Information (OSTI)",
+  "verified_at": "2026-08-18",
+  "official_catalog": "https://www.osti.gov/",
+  "resource_scope": [
+    "technical_reports",
+    "scientific_datasets",
+    "scientific_software",
+    "patents",
+    "conference_papers",
+    "theses_dissertations",
+    "journal_records",
+    "scientific_videos"
+  ],
+  "catalog_rule": "Discovery portals and search tools are connectors and do not count as individual ATLAS resources. Only record-level items with verifiable metadata count.",
+  "record_requirements": [
+    "exact_title",
+    "author_or_creator_when_available",
+    "DOE_or_laboratory_provenance",
+    "resource_type",
+    "persistent_identifier_or_OSTI_record_identifier_when_available",
+    "official_record_url",
+    "access_status",
+    "license_or_storage_policy_when_known",
+    "ATLAS_subject_classification",
+    "verification_status"
+  ],
+  "access_policy": {
+    "public_full_text": "May be referenced and ingested only according to the item's stated rights and access terms.",
+    "metadata_only_or_commercial": "Store metadata and official availability link only; do not copy restricted copyrighted content.",
+    "restricted_or_controlled": "Do not ingest protected, controlled, classified, UCNI, CUI, or otherwise access-restricted content.",
+    "datasets": "Dataset records must point to a publicly accessible repository/landing page; preserve DOI when available.",
+    "software": "Preserve repository/source provenance and license before any local code ingestion."
+  },
+  "quality_gate": "No generic, invented, inferred, or unverified DOE resource may be marked verified or counted toward Bookshelf population totals."
+}
