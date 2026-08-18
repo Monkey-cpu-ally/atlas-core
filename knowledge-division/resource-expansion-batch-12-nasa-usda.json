@@ -1,0 +1,13 @@
+{
+  "batch": "resource-expansion-batch-12-nasa-usda",
+  "verification_date": "2026-08-18",
+  "policy": "Official-source resource collections only. These are source/catalog resources, not individual books and do not inflate the book count.",
+  "resources": [
+    {"title":"NASA Planetary Data System (PDS)","provider":"NASA","type":"scientific_data_archive","subjects":["Aerospace","Physics","Environmental Science"],"official_url":"https://pds.nasa.gov/","status":"verified","access":"public","notes":"Long-term archive of peer-reviewed, documented planetary mission, ground-based, and laboratory data products."},
+    {"title":"NASA Earthdata Search","provider":"NASA EOSDIS","type":"scientific_data_discovery","subjects":["Environmental Science","Oceanography","Physics"],"official_url":"https://search.earthdata.nasa.gov/","status":"verified","access":"public_catalog","notes":"Discovery interface for NASA Earth observation collections and granules across atmosphere, biosphere, climate, cryosphere, land, oceans, solid Earth and hydrosphere."},
+    {"title":"NASA Planetary Data Sites and Repositories","provider":"NASA Planetary Science Division","type":"scientific_repository_registry","subjects":["Aerospace","Physics"],"official_url":"https://planetary.data.nasa.gov/find-data","status":"verified","access":"public","notes":"NASA-maintained registry of planetary science data sites and repositories; includes PDS and Astromat and requires listed resources to be publicly available."},
+    {"title":"USDA NASS Quick Stats","provider":"USDA National Agricultural Statistics Service","type":"statistical_database","subjects":["Environmental Science","Economics","Biology"],"official_url":"https://data.nass.usda.gov/","status":"verified","access":"public","notes":"USDA NASS searchable agricultural statistics database covering commodities, locations and time periods."},
+    {"title":"USDA NASS Large Datasets","provider":"USDA National Agricultural Statistics Service","type":"dataset_collection","subjects":["Environmental Science","Economics","Biology"],"official_url":"https://data.nass.usda.gov/datasets/","status":"verified","access":"public","notes":"Downloadable agricultural statistics datasets published by NASS."},
+    {"title":"USDA PLANTS Database","provider":"USDA Natural Resources Conservation Service","type":"reference_database","subjects":["Biology","Botany","Environmental Science"],"official_url":"https://plants.sc.egov.usda.gov/home","status":"verified","access":"public","notes":"Standardized U.S. plant names, taxonomy, symbols, distribution, characteristics, images, crop information and references."}
+  ]
+}
