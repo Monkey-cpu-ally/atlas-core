@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "purpose": "Curated creative craft references for Ajani, Minerva, and Hermes. References are used to extract transferable principles, never to clone a living or historical creator's distinctive expression.",
+  "rules": ["Study principles, techniques, structure, history, and craft decisions rather than copying finished expression.","Synthesize multiple references with the project's own identity and constraints.","Record provenance and extracted principles for every reference used.","Reject direct imitation, tracing, cloning, or near-duplicate compositions and designs.","Project-specific art and story bibles override reference influence."],
+  "creators": [
+    {"name":"Jordan Peele","category":"film","craft":["thematic horror","subtext","social allegory","suspense"]},
+    {"name":"Ari Aster","category":"film","craft":["psychological horror","dread","family conflict","visual staging"]},
+    {"name":"Ryan Coogler","category":"film","craft":["character-driven spectacle","emotional stakes","cultural worldbuilding"]},
+    {"name":"Guillermo del Toro","category":"film","craft":["creature design","gothic worldbuilding","visual symbolism","fairytale horror"]},
+    {"name":"Genndy Tartakovsky","category":"animation","craft":["visual storytelling","silhouette","timing","minimal dialogue","action clarity"]},
+    {"name":"Hayao Miyazaki","category":"animation","craft":["environmental storytelling","emotion","movement","worldbuilding"]},
+    {"name":"Hidetaka Miyazaki","category":"games","craft":["environmental storytelling","lore architecture","world design","mystery"]},
+    {"name":"Cory Barlog","category":"games","craft":["character-driven game narrative","cinematic continuity","mythic storytelling"]},
+    {"name":"Daisuke Ishiwatari","category":"games","craft":["character design","graphic shape language","music-driven identity","fighting-game aesthetics"]},
+    {"name":"Akira Toriyama","category":"games_manga","craft":["character readability","shape language","creature design","visual humor"]},
+    {"name":"Yoshitaka Amano","category":"games_art","craft":["fantasy illustration","line economy","costume language","ethereal composition"]},
+    {"name":"Scott Snyder","category":"comics","craft":["horror comics","long-form plotting","mythology","suspense"]},
+    {"name":"Jonathan Hickman","category":"comics","craft":["large-scale narrative architecture","systems thinking","long-form setup and payoff"]},
+    {"name":"Alan Moore","category":"comics","craft":["formal storytelling","theme","symbolism","narrative structure"]},
+    {"name":"Neil Gaiman","category":"comics_literature","craft":["mythic storytelling","fantasy","voice","interwoven mythology"]},
+    {"name":"Mike Mignola","category":"comics_art","craft":["shape economy","shadow design","gothic atmosphere","visual storytelling"]},
+    {"name":"Kentaro Miura","category":"manga","craft":["composition","detail","dark-fantasy worldbuilding","large-scale visual storytelling"]},
+    {"name":"Katsuhiro Otomo","category":"manga","craft":["architectural detail","motion","science-fiction worldbuilding","cinematic panels"]},
+    {"name":"Naoki Urasawa","category":"manga","craft":["suspense","character psychology","long-form mystery","pacing"]},
+    {"name":"Takehiko Inoue","category":"manga","craft":["gesture","human anatomy","character acting","visual pacing"]},
+    {"name":"Ursula K. Le Guin","category":"literature","craft":["anthropological worldbuilding","theme","culture","speculative fiction"]},
+    {"name":"Octavia E. Butler","category":"literature","craft":["character-centered speculative fiction","power dynamics","social systems","adaptation"]},
+    {"name":"Mary Shelley","category":"literature","craft":["gothic science fiction","creation ethics","character tragedy"]},
+    {"name":"Stephen King","category":"literature","craft":["character-centered horror","small-town worldbuilding","suspense","long-form narrative"]}
+  ]
+}
