@@ -17,7 +17,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from routes.files import router as files_router
 from routes.chat import router as chat_router
 from routes.knowledge import router as knowledge_router
-from routes.ai_services import router as ai_services_router
+try:
+    from routes.ai_services import router as ai_services_router
+except (ImportError, ModuleNotFoundError) as exc:
+    ai_services_router = None
+    logging.getLogger(__name__).warning("Optional AI services router unavailable: %s", exc)
 from routes.sandbox import router as sandbox_router
 from routes.council import router as council_router
 from routes.hud_surfaces import router as hud_surfaces_router
@@ -71,22 +75,18 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
-
 class StatusCheck(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-
 class StatusCheckCreate(BaseModel):
     client_name: str
-
 
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
-
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
@@ -96,7 +96,6 @@ async def create_status_check(input: StatusCheckCreate):
     _ = await db.status_checks.insert_one(doc)
     return status_obj
 
-
 @api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks():
     status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
@@ -105,12 +104,12 @@ async def get_status_checks():
             check['timestamp'] = datetime.fromisoformat(check['timestamp'])
     return status_checks
 
-
 app.include_router(api_router)
 app.include_router(files_router)
 app.include_router(chat_router)
 app.include_router(knowledge_router)
-app.include_router(ai_services_router)
+if ai_services_router is not None:
+    app.include_router(ai_services_router)
 app.include_router(sandbox_router)
 app.include_router(council_router)
 app.include_router(hud_surfaces_router)
@@ -165,7 +164,6 @@ app.include_router(atlas_core_router, prefix="/api")
 
 EXPORTS_DIR = Path("/app/exports")
 
-
 @app.get("/api/exports/atlas-ai-architecture.zip")
 async def download_architecture_zip():
     path = EXPORTS_DIR / "atlas-ai-architecture.zip"
@@ -173,7 +171,6 @@ async def download_architecture_zip():
         from fastapi import HTTPException
         raise HTTPException(404, "architecture zip not yet built")
     return FileResponse(path=str(path), filename="atlas-ai-architecture.zip", media_type="application/zip")
-
 
 @app.get("/api/exports/atlas-hud-architecture.zip")
 async def download_hud_zip():
@@ -183,7 +180,6 @@ async def download_hud_zip():
         raise HTTPException(404, "HUD architecture zip not yet built")
     return FileResponse(path=str(path), filename="atlas-hud-architecture.zip", media_type="application/zip")
 
-
 @app.get("/api/exports/README.md")
 async def download_readme():
     path = EXPORTS_DIR / "README.md"
@@ -191,7 +187,6 @@ async def download_readme():
         from fastapi import HTTPException
         raise HTTPException(404, "readme not found")
     return FileResponse(path=str(path), filename="atlas-architecture-README.md", media_type="text/markdown")
-
 
 @app.get("/api/exports/README-HUD.md")
 async def download_hud_readme():
@@ -201,14 +196,11 @@ async def download_hud_readme():
         raise HTTPException(404, "readme not found")
     return FileResponse(path=str(path), filename="atlas-hud-README.md", media_type="text/markdown")
 
-
 from atlas_core.memory.memory import attach_mongo_on_startup as _atlas_attach_mongo
-
 
 @app.on_event("startup")
 async def _wire_atlas_memory():
     await _atlas_attach_mongo()
-
 
 @app.on_event("startup")
 async def _wire_research_labs():
@@ -221,7 +213,6 @@ async def _wire_research_labs():
     except Exception as exc:
         logging.getLogger(__name__).warning("Research Lab persistence skipped: %s", exc)
 
-
 @app.on_event("startup")
 async def _wire_knowledge_graph():
     try:
@@ -232,7 +223,6 @@ async def _wire_knowledge_graph():
         logging.getLogger(__name__).info("Knowledge Graph hydrated: %s nodes · %s edges", counts["nodes"], counts["edges"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Knowledge Graph persistence skipped: %s", exc)
-
 
 @app.on_event("startup")
 async def _wire_autonomous_knowledge():
@@ -245,7 +235,6 @@ async def _wire_autonomous_knowledge():
     except Exception as exc:
         logging.getLogger(__name__).warning("Autonomous Knowledge persistence skipped: %s", exc)
 
-
 @app.on_event("startup")
 async def _wire_source_sync():
     try:
@@ -256,7 +245,6 @@ async def _wire_source_sync():
         logging.getLogger(__name__).info("Source Sync hydrated: %s runs", counts["sync_runs"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Source Sync persistence skipped: %s", exc)
-
 
 @app.on_event("startup")
 async def _wire_mission_scheduler():
