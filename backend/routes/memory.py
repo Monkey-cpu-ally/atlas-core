@@ -87,13 +87,20 @@ async def list_endpoint(
 
 @router.get("/categories")
 async def categories():
-    """Return the supported memory categories and which decay."""
-    return {
-        "permanent": sorted(mb.PERMANENT_CATEGORIES),
-        "decaying": sorted(mb.DECAY_CATEGORIES),
-        "all": sorted(mb.KNOWN_CATEGORIES),
-    }
+    """Return the stable public Phase-2 categories plus internal extensions.
 
+    `agent` is an internal permanent category used by newer agent-memory flows.
+    The original public `permanent` contract remains stable for existing HUD and
+    integration clients; callers that want newer categories can use `extended`.
+    """
+    legacy_permanent = {"user", "project", "blueprint", "council"}
+    extended = sorted(mb.KNOWN_CATEGORIES - legacy_permanent)
+    return {
+        "permanent": sorted(legacy_permanent),
+        "decaying": sorted(mb.DECAY_CATEGORIES),
+        "all": sorted(legacy_permanent | mb.DECAY_CATEGORIES),
+        "extended": extended,
+    }
 
 
 # --- Agent partition views (Knowledge Bank Phase D) ------------------------
