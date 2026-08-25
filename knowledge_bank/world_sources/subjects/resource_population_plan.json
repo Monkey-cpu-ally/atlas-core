@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "taxonomy": "learning_subjects.json",
+  "goal": "Populate all 22 learning subjects across seven levels with verified, rights-aware educational and research resources.",
+  "resource_types": ["open_textbook", "course", "lesson", "lecture_notes", "problem_set", "paper", "dataset", "technical_documentation", "reference_archive"],
+  "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+  "quality_rules": {
+    "citation_required": true,
+    "license_or_access_status_required": true,
+    "deduplicate_before_ingestion": true,
+    "prefer_primary_or_authoritative_sources": true,
+    "preprints_are_not_peer_reviewed_by_default": true,
+    "copyrighted_works_wholesale_storage": false
+  },
+  "priority_sources": {
+    "openstax": {"role": ["open_textbook", "exercises"], "best_levels": ["foundation", "beginner", "intermediate", "undergraduate"], "subjects": ["biology", "business", "chemistry", "economics", "history", "mathematics", "philosophy", "physics", "psychology", "software_engineering"]},
+    "mit_ocw": {"role": ["course", "lecture_notes", "assignments", "exams", "open_textbook"], "best_levels": ["undergraduate", "advanced", "graduate"], "subjects": ["aerospace", "architecture", "artificial_intelligence", "biology", "business", "chemistry", "economics", "electronics", "environmental_science", "film_studies", "mathematics", "nanotechnology", "philosophy", "physics", "psychology", "robotics", "software_engineering", "visual_arts"]},
+    "arxiv": {"role": ["paper", "research_discovery"], "best_levels": ["graduate", "research"], "subjects": ["aerospace", "artificial_intelligence", "biology", "economics", "electronics", "mathematics", "nanotechnology", "physics", "robotics", "software_engineering"]},
+    "project_gutenberg": {"role": ["public_domain_book", "primary_text"], "best_levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate"], "subjects": ["creative_writing", "history", "philosophy"]},
+    "nasa": {"role": ["lesson", "technical_documentation", "research", "dataset"], "best_levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"], "subjects": ["aerospace", "environmental_science", "physics", "robotics"]},
+    "pubmed_nih": {"role": ["paper", "reference", "research"], "best_levels": ["undergraduate", "graduate", "research"], "subjects": ["biology", "psychology"]},
+    "ieee_acm": {"role": ["paper", "standards", "technical_reference"], "best_levels": ["advanced", "undergraduate", "graduate", "research"], "subjects": ["artificial_intelligence", "electronics", "robotics", "software_engineering"]},
+    "library_archives_museums": {"role": ["primary_source", "archive", "art_reference"], "best_levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"], "subjects": ["architecture", "creative_writing", "film_studies", "history", "visual_arts"]}
+  },
+  "population_status": {
+    "taxonomy_complete": true,
+    "source_mapping_started": true,
+    "resource_manifests_complete": false,
+    "all_levels_populated": false,
+    "ai_retrieval_verified": false
+  },
+  "next_actions": [
+    "Generate per-subject resource manifests using the approved source registry.",
+    "Classify each resource by subsubject and learning level.",
+    "Record license/access/provenance and citation metadata.",
+    "Run duplicate detection before ingestion.",
+    "Ingest permitted text/metadata into Knowledge Bank retrieval storage.",
+    "Verify Ajani, Minerva, and Hermes can retrieve resources by subject, subsubject, and level."
+  ]
+}

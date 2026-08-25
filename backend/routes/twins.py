@@ -26,8 +26,15 @@ from models.twin_models import (
     TwinStatus,
 )
 from services import digital_twin as dt
+from services import reference_twins
 
 router = APIRouter(prefix="/api/twins", tags=["DigitalTwin"])
+
+
+@router.on_event("startup")
+async def seed_reference_twins_on_startup():
+    """Populate the idempotent D5/D6 reference twins on first boot."""
+    await reference_twins.seed_if_needed()
 
 
 # --- Request shapes --------------------------------------------------------

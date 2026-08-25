@@ -1,0 +1,12 @@
+{
+  "subject": "history",
+  "population_status": "seeded",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"MIT OpenCourseWare History Collection","provider":"MIT OpenCourseWare","type":"course_collection","levels":["beginner","intermediate","advanced","undergraduate","graduate"],"subsubjects":["american_history","modern_history","economic_history","history_of_science_and_technology","middle_eastern_history"],"url":"https://ocw.mit.edu/search/?d=History","access":"open_course_materials","ingestion":"metadata_and_permitted_course_materials"},
+    {"title":"Library of Congress Digital Collections","provider":"Library of Congress","type":"primary_source_archive","levels":["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],"subsubjects":["american_history","african_american_history","modern_history","history_of_science_and_technology"],"url":"https://www.loc.gov/collections/","access":"mixed_public_domain_and_rights_labeled","ingestion":"metadata_and_rights_permitted_assets"},
+    {"title":"National Archives Catalog","provider":"U.S. National Archives","type":"primary_source_archive","levels":["intermediate","advanced","undergraduate","graduate","research"],"subsubjects":["american_history","military_history","modern_history"],"url":"https://catalog.archives.gov/","access":"government_archive_rights_vary","ingestion":"metadata_and_rights_permitted_assets"},
+    {"title":"Project Gutenberg History Collection","provider":"Project Gutenberg","type":"ebook_archive","levels":["foundation","beginner","intermediate","advanced","undergraduate"],"subsubjects":["ancient_history","medieval_history","modern_history","american_history"],"url":"https://www.gutenberg.org/","access":"public_domain_and_license_labeled","ingestion":"full_text_when_license_permits"}
+  ],
+  "all_levels_populated": false
+}

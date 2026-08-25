@@ -1,0 +1,9 @@
+{
+  "subject":"chemistry","status":"seeded_verified_resources","resources":[
+    {"title":"Chemistry 2e","provider":"OpenStax","subsubjects":["general_chemistry","physical_chemistry","analytical_chemistry","chemical_thermodynamics"],"levels":["beginner","intermediate","undergraduate"],"resource_type":"open_textbook","url":"https://openstax.org/details/books/chemistry-2e","access":"open","local_ingestion":"allowed_under_openstax_license_with_attribution"},
+    {"title":"Organic Chemistry","provider":"OpenStax","subsubjects":["organic_chemistry"],"levels":["intermediate","undergraduate"],"resource_type":"open_textbook","url":"https://openstax.org/details/books/organic-chemistry","access":"open","local_ingestion":"allowed_under_openstax_license_with_attribution"},
+    {"title":"MIT OpenCourseWare Chemistry collection","provider":"MIT OpenCourseWare","subsubjects":["general_chemistry","organic_chemistry","inorganic_chemistry","physical_chemistry","biochemistry"],"levels":["undergraduate","graduate"],"resource_type":"course_collection","url":"https://ocw.mit.edu/search/?d=Chemistry","access":"open","local_ingestion":"license_check_per_asset"},
+    {"title":"PubChem","provider":"NCBI / NIH","subsubjects":["organic_chemistry","analytical_chemistry","biochemistry","materials_chemistry"],"levels":["intermediate","advanced","undergraduate","graduate","research"],"resource_type":"chemical_database","url":"https://pubchem.ncbi.nlm.nih.gov/","access":"public","local_ingestion":"follow_ncbi_data_usage_policies"},
+    {"title":"NIST Chemistry WebBook","provider":"NIST","subsubjects":["physical_chemistry","analytical_chemistry","chemical_thermodynamics"],"levels":["undergraduate","graduate","research"],"resource_type":"reference_database","url":"https://webbook.nist.gov/chemistry/","access":"public","local_ingestion":"follow_nist_usage_and_citation_guidance"}
+  ]
+}
