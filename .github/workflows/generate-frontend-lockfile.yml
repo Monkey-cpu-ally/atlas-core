@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/workflows/generate-frontend-lockfile.yml'
       - 'frontend/package.json'
+  pull_request:
+    paths:
+      - '.github/workflows/generate-frontend-lockfile.yml'
+      - 'frontend/package.json'
   workflow_dispatch:
 
 permissions:
