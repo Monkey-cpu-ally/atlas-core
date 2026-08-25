@@ -1,0 +1,48 @@
+name: Generate Frontend Yarn Lockfile
+
+on:
+  push:
+    branches:
+      - integration/knowledge-creative-studio
+    paths:
+      - '.github/workflows/generate-frontend-lockfile.yml'
+      - 'frontend/package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  generate-lockfile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ensure Yarn 1.22.22
+        run: npm install --global yarn@1.22.22
+
+      - name: Generate yarn.lock from package.json
+        run: yarn install --ignore-scripts
+
+      - name: Verify lockfile exists
+        run: test -s yarn.lock
+
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-yarn-lock
+          path: frontend/yarn.lock
+          if-no-files-found: error
+          retention-days: 1
