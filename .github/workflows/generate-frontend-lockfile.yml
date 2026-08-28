@@ -7,27 +7,24 @@ on:
     paths:
       - '.github/workflows/generate-frontend-lockfile.yml'
       - 'frontend/package.json'
-  pull_request:
-    paths:
-      - '.github/workflows/generate-frontend-lockfile.yml'
-      - 'frontend/package.json'
+      - 'frontend/yarn.lock'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   generate-lockfile:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
-      - name: Check out repository
+      - name: Check out integration branch
         uses: actions/checkout@v4
+        with:
+          ref: integration/knowledge-creative-studio
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,16 +34,21 @@ jobs:
       - name: Ensure Yarn 1.22.22
         run: npm install --global yarn@1.22.22
 
-      - name: Generate yarn.lock from package.json
-        run: yarn install --ignore-scripts
+      - name: Regenerate lockfile from package.json
+        working-directory: frontend
+        run: |
+          rm -f yarn.lock
+          yarn install --ignore-scripts --non-interactive
+          test -s yarn.lock
 
-      - name: Verify lockfile exists
-        run: test -s yarn.lock
-
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-yarn-lock
-          path: frontend/yarn.lock
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit generated lockfile
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/yarn.lock
+          if git diff --cached --quiet; then
+            echo 'Lockfile already current.'
+            exit 0
+          fi
+          git commit -m 'ci(frontend): regenerate yarn lockfile'
+          git push origin HEAD:integration/knowledge-creative-studio
