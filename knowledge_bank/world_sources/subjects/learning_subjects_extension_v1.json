@@ -10,6 +10,6 @@
     "control_systems": {"subsubjects": ["control_foundations", "dynamic_systems", "feedback_control", "state_space", "classical_control", "digital_control", "optimal_control", "robust_control", "adaptive_control", "nonlinear_control", "system_identification", "model_predictive_control"]},
     "acoustics": {"subsubjects": ["wave_acoustics", "architectural_acoustics", "electroacoustics", "psychoacoustics", "musical_acoustics", "underwater_acoustics", "ultrasonics", "noise_control", "vibration", "speech_acoustics", "audio_signal_processing", "acoustic_measurement"]},
     "quantum_mechanics": {"subsubjects": ["quantum_foundations", "wavefunctions", "operators_observables", "schrodinger_equation", "angular_momentum", "spin", "quantum_statistics", "perturbation_theory", "quantum_information", "quantum_computing", "quantum_optics", "many_body_quantum"]},
-    "botany": {"subsubjects": ["plant_anatomy", "plant_physiiology", "plant_genetics", "plant_evolution", "plant_taxonomy", "plant_ecology", "plant_pathology", "plant_biochemistry", "plant_development", "ethnobotany", "crop_science", "plant_biotechnology"]}
+    "botany": {"subsubjects": ["plant_anatomy", "plant_physiology", "plant_genetics", "plant_evolution", "plant_taxonomy", "plant_ecology", "plant_pathology", "plant_biochemistry", "plant_development", "ethnobotany", "crop_science", "plant_biotechnology"]}
   }
 }
