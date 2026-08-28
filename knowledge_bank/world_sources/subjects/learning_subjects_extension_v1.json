@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "purpose": "ATLAS extended learning taxonomy for eight additional research disciplines layered on top of the canonical 22-subject taxonomy.",
+  "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+  "subjects": {
+    "oceanography": {"subsubjects": ["physical_oceanography", "chemical_oceanography", "biological_oceanography", "marine_geology", "ocean_circulation", "waves_tides_currents", "air_sea_interaction", "coastal_processes", "marine_ecosystems", "ocean_observation", "ocean_modeling", "climate_ocean_coupling"]},
+    "terraforming": {"subsubjects": ["planetary_habitability", "atmospheric_engineering", "climate_control", "surface_environment", "water_resources", "soil_regolith", "closed_loop_ecology", "life_support", "biosphere_design", "planetary_geology", "radiation_environment", "settlement_systems"]},
+    "crispr": {"subsubjects": ["genome_editing_foundations", "crispr_cas_systems", "guide_rna_design", "dna_repair_pathways", "base_editing", "prime_editing", "gene_regulation", "delivery_systems", "off_target_analysis", "functional_genomics", "bioethics_governance", "computational_genomics"]},
+    "neuroscience": {"subsubjects": ["cellular_neuroscience", "systems_neuroscience", "cognitive_neuroscience", "neuroanatomy", "neurophysiology", "neural_circuits", "sensory_systems", "motor_systems", "learning_memory", "computational_neuroscience", "neurotechnology", "brain_imaging"]},
+    "control_systems": {"subsubjects": ["control_foundations", "dynamic_systems", "feedback_control", "state_space", "classical_control", "digital_control", "optimal_control", "robust_control", "adaptive_control", "nonlinear_control", "system_identification", "model_predictive_control"]},
+    "acoustics": {"subsubjects": ["wave_acoustics", "architectural_acoustics", "electroacoustics", "psychoacoustics", "musical_acoustics", "underwater_acoustics", "ultrasonics", "noise_control", "vibration", "speech_acoustics", "audio_signal_processing", "acoustic_measurement"]},
+    "quantum_mechanics": {"subsubjects": ["quantum_foundations", "wavefunctions", "operators_observables", "schrodinger_equation", "angular_momentum", "spin", "quantum_statistics", "perturbation_theory", "quantum_information", "quantum_computing", "quantum_optics", "many_body_quantum"]},
+    "botany": {"subsubjects": ["plant_anatomy", "plant_physiiology", "plant_genetics", "plant_evolution", "plant_taxonomy", "plant_ecology", "plant_pathology", "plant_biochemistry", "plant_development", "ethnobotany", "crop_science", "plant_biotechnology"]}
+  }
+}
