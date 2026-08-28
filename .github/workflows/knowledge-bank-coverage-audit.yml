@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feature/knowledge-connectors-v1
+      - integration/knowledge-bookshelf-v1
     paths:
       - "knowledge_bank/world_sources/subjects/**"
       - ".github/workflows/knowledge-bank-coverage-audit.yml"
@@ -66,7 +67,7 @@ jobs:
           c = coverage.get("summary", {})
           q = quality.get("summary", {})
 
-          if c.get("subject_count") != 22 or c.get("level_count") != 7 or c.get("total_cells") != 2044:
+          if c.get("subject_count") != 30 or c.get("level_count") != 7 or c.get("total_cells") != 2716:
               raise SystemExit("Coverage taxonomy dimensions changed unexpectedly")
           if c["covered_cells"] + c["gap_cells"] != c["total_cells"]:
               raise SystemExit("Coverage cell accounting is inconsistent")
