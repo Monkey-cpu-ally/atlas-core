@@ -27,7 +27,10 @@ jobs:
         shell: bash
         run: |
           shopt -s nullglob
-          tests=(tests/test_visual_hub.py tests/test_genesis_*.py)
+          tests=()
+          [[ -f tests/test_visual_hub.py ]] && tests+=(tests/test_visual_hub.py)
+          genesis=(tests/test_genesis_*.py)
+          tests+=("${genesis[@]}")
           if ((${#tests[@]} == 0)); then
             echo "No visual/GENESIS smoke tests exist on this branch; skipping legacy smoke-test job."
             exit 0
