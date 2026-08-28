@@ -1,0 +1,30 @@
+{
+  "audit_version": "1.0",
+  "status": "in_progress",
+  "scope": "ATLAS Knowledge Division resource catalogs",
+  "policy": {
+    "goal": "Reconcile authoritative sources before book ingestion",
+    "duplicate_rule": "Same authoritative source or endpoint family is not counted twice merely because it appears in multiple subject batches",
+    "book_gate": "Do not begin bulk book ingestion until subject coverage, duplicate review, rights policy, and ingestion-path checks pass"
+  },
+  "required_subjects": [
+    "Aerospace", "Architecture", "AI", "Biology", "Business", "Chemistry", "Creative Writing",
+    "Economics", "Electronics", "Environmental Science", "Film Studies", "Game Design", "History",
+    "Mathematics", "Music Theory", "Nanotechnology", "Philosophy", "Physics", "Psychology", "Robotics",
+    "Software Engineering", "Visual Arts", "Oceanography", "Terraforming", "CRISPR", "Neuroscience",
+    "Control Systems", "Acoustics", "Quantum Mechanics", "Botany"
+  ],
+  "confirmed_cross_catalog_overlap_examples": [
+    "NASA Technical Reports Server", "NASA GMAT", "NIST resources", "SciPy documentation",
+    "Gazebo documentation", "ros2_control", "NCBI Genome", "FRED", "Census/BLS statistics"
+  ],
+  "audit_checks": [
+    {"id": "inventory", "status": "in_progress", "description": "Inventory root resource catalogs plus legacy resource-batches directory"},
+    {"id": "dedupe", "status": "in_progress", "description": "Normalize source identity and flag repeated authoritative endpoints"},
+    {"id": "subject_coverage", "status": "pending", "description": "Require credible primary/reference coverage for every required subject"},
+    {"id": "rights", "status": "pending", "description": "Confirm metadata/link/full-text storage policy before books"},
+    {"id": "ingestion", "status": "pending", "description": "Verify resources can feed retrieval/ingestion rather than existing only as labels"},
+    {"id": "book_gate", "status": "blocked", "description": "Book ingestion opens only after prior checks pass"}
+  ],
+  "next_action": "Finish normalized inventory and fill only genuine subject gaps."
+}
