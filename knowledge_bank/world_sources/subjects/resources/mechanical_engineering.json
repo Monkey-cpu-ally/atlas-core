@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "subject": "mechanical_engineering",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "nasa_mechanical_systems_analysis",
+      "title": "NASA Engineering Systems Division - Mechanical Systems and Analysis",
+      "provider": "NASA Ames Research Center",
+      "resource_type": "engineering_capability_reference",
+      "subsubjects": ["engineering_mechanics", "machine_design", "mechanical_design", "solid_mechanics", "dynamics_vibrations", "mechatronics", "computational_mechanics", "mechanical_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nasa.gov/ames-engineering/engineering-systems-division/",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nasa_mechanical_technical_standards",
+      "title": "NASA Technical Standards - Structures, Mechanical Systems, Fluid Dynamics, Thermal, Propulsion and Aerodynamics",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "technical_standards_catalog",
+      "subsubjects": ["engineering_mechanics", "fluid_mechanics", "heat_transfer", "machine_design", "mechanical_design", "solid_mechanics", "dynamics_vibrations", "manufacturing_processes", "mechanical_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://standards.nasa.gov/structures-mechanical-systems",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance",
+      "rights_note": "Catalog metadata and links only; verify each standard's access and reuse terms before local ingestion."
+    },
+    {
+      "id": "nist_thermodynamics",
+      "title": "NIST Thermodynamics",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "measurement_data_and_reference_portal",
+      "subsubjects": ["thermodynamics", "heat_transfer", "fluid_mechanics"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/thermodynamics",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nist_thermophysical_fluids",
+      "title": "NIST Thermophysical Properties of Fluids Group",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "fluid_thermophysical_measurement_reference",
+      "subsubjects": ["thermodynamics", "fluid_mechanics", "heat_transfer"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/mml/acmd/thermophysical-properties-fluids-group",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nasa_ntrs_mechanical_engineering",
+      "title": "NASA Technical Reports Server - Mechanical Engineering Research",
+      "provider": "NASA Scientific and Technical Information Program",
+      "resource_type": "technical_research_repository",
+      "subsubjects": ["engineering_mechanics", "thermodynamics", "fluid_mechanics", "heat_transfer", "machine_design", "mechanical_design", "solid_mechanics", "dynamics_vibrations", "manufacturing_processes", "mechatronics", "computational_mechanics", "mechanical_systems"],
+      "levels": ["undergraduate", "graduate", "research"],
+      "url": "https://ntrs.nasa.gov/",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance",
+      "rights_note": "Verify distribution and copyright metadata for each NTRS item before local full-text ingestion."
+    }
+  ]
+}
