@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "subject": "civil_engineering",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "fhwa_structures_geotech_hydraulics",
+      "title": "FHWA Structures, Geotechnical, and Hydraulics Resource Center",
+      "provider": "Federal Highway Administration",
+      "resource_type": "government_engineering_portal",
+      "subsubjects": ["structural_engineering", "geotechnical_engineering", "transportation_engineering", "water_resources_engineering", "construction_engineering", "infrastructure_systems", "hydraulics", "concrete_materials", "steel_design"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.fhwa.dot.gov/resourcecenter/teams/structures-geotechnical-hydraulics/",
+      "storage_policy": "metadata_link_and_public_domain_material_with_item_level_provenance"
+    },
+    {
+      "id": "fhwa_structures_geotech_hydraulics_training",
+      "title": "FHWA Structures, Geotechnical, and Hydraulics Training",
+      "provider": "Federal Highway Administration",
+      "resource_type": "government_engineering_training",
+      "subsubjects": ["structural_engineering", "geotechnical_engineering", "transportation_engineering", "water_resources_engineering", "construction_engineering", "hydraulics", "concrete_materials"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate"],
+      "url": "https://www.fhwa.dot.gov/resourcecenter/teams/structures-geotechnical-hydraulics/courses.cfm",
+      "storage_policy": "metadata_link_and_public_domain_material_with_item_level_provenance"
+    },
+    {
+      "id": "usace_engineer_manuals",
+      "title": "USACE Engineer Manuals",
+      "provider": "U.S. Army Corps of Engineers",
+      "resource_type": "official_engineering_manual_repository",
+      "subsubjects": ["structural_engineering", "geotechnical_engineering", "water_resources_engineering", "environmental_engineering", "construction_engineering", "surveying", "infrastructure_systems", "hydraulics", "concrete_materials", "steel_design", "earthquake_engineering"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.publications.usace.army.mil/USACE-Publications/Engineer-Manuals/",
+      "storage_policy": "metadata_link_and_public_domain_material_with_item_level_provenance"
+    },
+    {
+      "id": "fhwa_structural_foundations",
+      "title": "FHWA Structural Foundations Guidance",
+      "provider": "Federal Highway Administration",
+      "resource_type": "government_geotechnical_guidance",
+      "subsubjects": ["geotechnical_engineering", "structural_engineering", "construction_engineering", "infrastructure_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.fhwa.dot.gov/engineering/geotech/foundations/",
+      "storage_policy": "metadata_link_and_public_domain_material_with_item_level_provenance"
+    }
+  ],
+  "known_gaps": [
+    "Foundation-level general civil engineering instruction remains thin.",
+    "Dedicated surveying coverage should be expanded beyond the USACE manual repository.",
+    "Dedicated earthquake-engineering learning resources should be added during the measured gap-fill pass."
+  ]
+}
