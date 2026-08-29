@@ -1,11 +1,82 @@
 {
   "subject": "systems_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
-    {"id":"nasa_se_handbook","title":"NASA Systems Engineering Handbook","provider":"NASA Office of the Chief Engineer","resource_type":"engineering_handbook","subsubjects":["systems_thinking","requirements_engineering","system_architecture","verification_validation","technical_management","risk_management","life_cycle_engineering","trade_studies","integration_engineering"],"levels":["intermediate","advanced","undergraduate","graduate","research"],"url":"https://www.nasa.gov/reference/systems-engineering-handbook/","access":"public_official_guidance","local_ingestion":"document_version_and_provenance_required","notes":"Official NASA systems engineering guidance covering design, product realization, life cycles and crosscutting technical management."},
-    {"id":"nasa_se_fundamentals","title":"NASA Systems Engineering Handbook - Fundamentals","provider":"NASA Office of the Chief Engineer","resource_type":"engineering_reference","subsubjects":["systems_thinking","verification_validation","technical_management","life_cycle_engineering"],"levels":["beginner","intermediate","advanced","undergraduate"],"url":"https://www.nasa.gov/reference/2-0-fundamentals-of-systems-engineering/","access":"public_official_guidance","local_ingestion":"preserve_section_and_source_provenance","notes":"NASA defines systems engineering as a methodical multidisciplinary approach and explains the SE engine, project phases, verification and validation."},
-    {"id":"nasa_se_design_processes","title":"NASA Systems Engineering Handbook - System Design Processes","provider":"NASA Office of the Chief Engineer","resource_type":"engineering_reference","subsubjects":["requirements_engineering","system_architecture","model_based_systems_engineering","trade_studies","interface_management"],"levels":["advanced","undergraduate","graduate","research"],"url":"https://www.nasa.gov/reference/4-0-system-design-processes/","access":"public_official_guidance","local_ingestion":"preserve_section_and_source_provenance","notes":"Primary NASA guidance for stakeholder expectations, technical requirements, logical decomposition and design solution definition."},
-    {"id":"nasa_hdbk_1009","title":"NASA Systems Modeling Handbook for Systems Engineering","provider":"NASA Technical Standards System","resource_type":"systems_modeling_handbook","subsubjects":["model_based_systems_engineering","requirements_engineering","system_architecture","verification_validation","interface_management"],"levels":["advanced","undergraduate","graduate","research"],"url":"https://standards.nasa.gov/standard/NASA/NASA-HDBK-1009","access":"internet_public_standard","local_ingestion":"preserve_document_number_version_and_access_status","notes":"Active public NASA handbook integrating SysML-based system modeling with stakeholder, requirements, verification and validation processes."},
-    {"id":"nasa_se_appendix","title":"NASA Systems Engineering Handbook - Appendix and Templates","provider":"NASA Office of the Chief Engineer","resource_type":"engineering_templates_reference","subsubjects":["requirements_engineering","verification_validation","interface_management","configuration_management","technical_management"],"levels":["intermediate","advanced","undergraduate","graduate"],"url":"https://www.nasa.gov/reference/system-engineering-handbook-appendix/","access":"public_official_guidance","local_ingestion":"preserve_template_context_and_provenance","notes":"Includes requirement-writing guidance, verification matrices, validation planning, functional analysis and concept-of-operations structure."}
+    {
+      "id": "nasa_se_handbook",
+      "title": "NASA Systems Engineering Handbook",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_handbook",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "decision_analysis", "integration_engineering", "lifecycle_engineering", "model_based_systems_engineering", "complex_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nasa.gov/reference/systems-engineering-handbook/",
+      "access": "public_official_guidance",
+      "local_ingestion": "document_version_and_provenance_required",
+      "notes": "Official NASA systems engineering guidance covering requirements, architecture, design decisions, product realization, integration, life cycles, technical management, and MBSE context."
+    },
+    {
+      "id": "nasa_se_fundamentals",
+      "title": "NASA Systems Engineering Handbook - Fundamentals",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_reference",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "decision_analysis", "integration_engineering", "lifecycle_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.nasa.gov/reference/2-0-fundamentals-of-systems-engineering/",
+      "access": "public_official_guidance",
+      "local_ingestion": "preserve_section_and_source_provenance",
+      "notes": "NASA fundamentals introduce the multidisciplinary SE engine, project phases, cost-effectiveness considerations, verification versus validation, and Human Systems Integration."
+    },
+    {
+      "id": "nasa_se_design_processes",
+      "title": "NASA Systems Engineering Handbook - System Design Processes",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_reference",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "decision_analysis", "integration_engineering", "model_based_systems_engineering", "complex_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nasa.gov/reference/4-0-system-design-processes/",
+      "access": "public_official_guidance",
+      "local_ingestion": "preserve_section_and_source_provenance",
+      "notes": "Primary NASA guidance for stakeholder expectations, technical requirements, logical decomposition, trade studies and design solution definition."
+    },
+    {
+      "id": "nasa_hdbk_1009",
+      "title": "NASA Systems Modeling Handbook for Systems Engineering",
+      "provider": "NASA Technical Standards System",
+      "resource_type": "systems_modeling_handbook",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "integration_engineering", "model_based_systems_engineering", "complex_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://standards.nasa.gov/standard/NASA/NASA-HDBK-1009",
+      "access": "internet_public_standard",
+      "local_ingestion": "preserve_document_number_version_and_access_status",
+      "notes": "Active public NASA handbook integrating SysML-based system modeling with stakeholder, requirements, architecture, verification and validation work products."
+    },
+    {
+      "id": "nasa_se_appendix",
+      "title": "NASA Systems Engineering Handbook - Appendix and Templates",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_templates_reference",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "verification_validation", "risk_management", "reliability_engineering", "decision_analysis", "integration_engineering", "lifecycle_engineering", "human_systems_integration"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nasa.gov/reference/system-engineering-handbook-appendix/",
+      "access": "public_official_guidance",
+      "local_ingestion": "preserve_template_context_and_provenance",
+      "notes": "NASA appendix material includes requirements, verification matrices, reliability and specialty engineering, integration planning, risk considerations, life-cycle planning, and an HSI plan outline."
+    },
+    {
+      "id": "nasa_hsi_handbook",
+      "title": "NASA Human Systems Integration Handbook",
+      "provider": "NASA",
+      "resource_type": "engineering_handbook",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "verification_validation", "risk_management", "integration_engineering", "lifecycle_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://ntrs.nasa.gov/citations/20210010952",
+      "access": "public_government_work",
+      "local_ingestion": "public_document_with_document_id_and_provenance",
+      "notes": "NASA/SP-20210010952 provides public guidance for integrating humans with hardware, software, data and processes across program and project life cycles."
+    }
+  ],
+  "known_gaps": [
+    "Foundation-level systems engineering instruction remains thin and should not be inferred from professional NASA handbooks.",
+    "Dedicated introductory reliability-engineering and decision-analysis resources should be added in a measured gap-fill pass."
   ]
 }
