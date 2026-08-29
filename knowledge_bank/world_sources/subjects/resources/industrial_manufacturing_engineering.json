@@ -1,37 +1,37 @@
 {
   "subject": "industrial_manufacturing_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "nist_manufacturing",
       "title": "NIST Manufacturing",
       "provider": "National Institute of Standards and Technology",
       "resource_type": "manufacturing_reference_portal",
-      "subsubjects": ["manufacturing_processes", "production_systems", "quality_engineering", "metrology", "automation_robotics", "supply_chain_engineering", "sustainable_manufacturing"],
+      "subsubjects": ["manufacturing_systems", "production_planning", "quality_engineering", "supply_chain_engineering", "automation", "robotic_manufacturing", "metrology", "digital_manufacturing"],
       "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.nist.gov/manufacturing",
       "access": "public_research_projects_publications_tools",
       "local_ingestion": "item_level_provenance_and_rights_required",
-      "notes": "Primary NIST manufacturing portal covering measurement science, quality, systems, robotics, supply chains and sustainable manufacturing. Broad portal mappings remain conservative and do not imply every item covers every mapped level."
+      "notes": "Primary NIST manufacturing portal. Mappings use only exact ATLAS taxonomy keys and do not imply every linked item covers every mapped level."
     },
     {
-      "id": "nist_smart_manufacturing",
-      "title": "NIST Smart Manufacturing",
+      "id": "nist_smart_manufacturing_design_analysis",
+      "title": "NIST Smart Manufacturing Systems Design and Analysis Program",
       "provider": "National Institute of Standards and Technology",
-      "resource_type": "smart_manufacturing_research_portal",
-      "subsubjects": ["smart_manufacturing", "automation_robotics", "digital_manufacturing", "production_systems", "manufacturing_systems_modeling", "quality_engineering"],
+      "resource_type": "smart_manufacturing_research_program",
+      "subsubjects": ["manufacturing_systems", "production_planning", "quality_engineering", "supply_chain_engineering", "automation", "robotic_manufacturing", "digital_manufacturing"],
       "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.nist.gov/smart-manufacturing",
-      "access": "public_programs_research_tools",
+      "url": "https://www.nist.gov/programs-projects/smart-manufacturing-systems-design-and-analysis-program",
+      "access": "public_program_research_tools",
       "local_ingestion": "item_level_provenance_and_rights_required",
-      "notes": "NIST research on additive manufacturing measurement, robotics, model-based enterprise, trustworthy systems and smart manufacturing."
+      "notes": "NIST program for standards, protocols, cyber-physical manufacturing infrastructure, real-time control, analytics and enterprise-level smart manufacturing."
     },
     {
       "id": "nist_manufacturing_systems_design",
       "title": "NIST Manufacturing Systems Design and Analysis",
       "provider": "National Institute of Standards and Technology",
       "resource_type": "manufacturing_systems_reference",
-      "subsubjects": ["production_systems", "operations_research", "manufacturing_systems_modeling", "digital_manufacturing", "smart_manufacturing"],
+      "subsubjects": ["manufacturing_systems", "operations_research", "production_planning", "quality_engineering", "supply_chain_engineering", "digital_manufacturing"],
       "levels": ["advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.nist.gov/manufacturing-systems-design-and-analysis",
       "access": "public_research_software_tools",
@@ -39,28 +39,58 @@
       "notes": "NIST manufacturing systems design, analysis, modeling, investment and test-bed resources."
     },
     {
-      "id": "nist_digital_thread",
-      "title": "NIST Digital Thread for Smart Manufacturing",
+      "id": "nist_systems_integration",
+      "title": "NIST Systems Integration for Manufacturing",
       "provider": "National Institute of Standards and Technology",
-      "resource_type": "digital_manufacturing_reference",
-      "subsubjects": ["digital_manufacturing", "smart_manufacturing", "manufacturing_processes", "quality_engineering", "manufacturing_systems_modeling"],
-      "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.nist.gov/ctl/smart-connected-systems-division/smart-connected-manufacturing-systems-group/enabling-digital",
-      "access": "public_research_reports_tools",
+      "resource_type": "manufacturing_integration_reference",
+      "subsubjects": ["manufacturing_systems", "production_planning", "automation", "digital_manufacturing", "supply_chain_engineering"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/systems-integration",
+      "access": "public_research_publications_projects",
       "local_ingestion": "item_level_provenance_and_rights_required",
-      "notes": "Reference material for model-based engineering, product/manufacturing information, CAD/CAM, inspection interoperability and digital-thread implementation."
+      "notes": "NIST manufacturing systems-integration work includes model-based manufacturing, industrial interoperability, digital twins and engineering information exchange."
+    },
+    {
+      "id": "nist_smart_manufacturing_performance",
+      "title": "Methods and Tools for Performance Assurance of Smart Manufacturing Systems",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "nist_technical_publication",
+      "subsubjects": ["manufacturing_systems", "operations_research", "production_planning", "quality_engineering", "automation", "digital_manufacturing"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/publications/methods-and-tools-performance-assurance-smart-manufacturing-systems-1",
+      "access": "public_nist_publication",
+      "local_ingestion": "preserve_report_number_version_and_provenance",
+      "notes": "NIST IR 8099 addresses design, operation, performance assessment, evaluation, analysis, decision making and control for smart manufacturing systems."
+    },
+    {
+      "id": "nist_smart_manufacturing_standards_landscape",
+      "title": "Standards Landscape and Directions for Smart Manufacturing Systems",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "nist_research_publication",
+      "subsubjects": ["manufacturing_systems", "quality_engineering", "supply_chain_engineering", "automation", "digital_manufacturing"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/publications/standards-landscape-and-directions-smart-manufacturing-systems",
+      "access": "public_nist_publication",
+      "local_ingestion": "preserve_publication_and_provenance",
+      "notes": "NIST review of standards across product, production-system and enterprise manufacturing lifecycles."
     },
     {
       "id": "doe_ammto_manufacturing",
       "title": "DOE Advanced Materials and Manufacturing Technologies Office",
       "provider": "U.S. Department of Energy",
       "resource_type": "advanced_manufacturing_program_portal",
-      "subsubjects": ["manufacturing_processes", "sustainable_manufacturing", "smart_manufacturing", "supply_chain_engineering"],
+      "subsubjects": ["manufacturing_systems", "supply_chain_engineering", "additive_manufacturing", "digital_manufacturing"],
       "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.energy.gov/cmei/ammto/advanced-materials-and-manufacturing-technologies-office",
       "access": "public_explainers_projects_resource_library",
       "local_ingestion": "item_level_provenance_and_rights_required",
-      "notes": "Current DOE advanced materials and manufacturing program portal, including explainers, project data and a resource library."
+      "notes": "DOE advanced materials and manufacturing program resources."
     }
+  ],
+  "known_gaps": [
+    "Dedicated authoritative ergonomics coverage remains thin.",
+    "Lean manufacturing needs a dedicated authoritative instructional source.",
+    "Foundation-level coverage is intentionally conservative.",
+    "Additive manufacturing needs a dedicated metrology/process resource in the next measured gap-fill pass."
   ]
 }
