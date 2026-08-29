@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "subject": "chemical_engineering",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "nist_chemistry_reference_data",
+      "title": "NIST Chemistry Standard Reference Data",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "scientific_reference_data",
+      "url": "https://www.nist.gov/srd/chemistry-0",
+      "subsubjects": ["chemical_thermodynamics", "transport_phenomena", "reaction_engineering", "separations", "process_simulation"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "mixed_public_and_subscription_reference_data",
+      "storage_policy": "metadata_link_provenance; preserve database-specific terms and access controls",
+      "notes": "NIST chemistry reference-data portal includes thermochemical, thermophysical, transport-property, kinetics, and Chemistry WebBook resources useful for rigorous chemical-engineering calculations."
+    },
+    {
+      "id": "nist_chemistry_webbook_srd69",
+      "title": "NIST Chemistry WebBook, SRD 69",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "thermochemical_thermophysical_database",
+      "url": "https://webbook.nist.gov/chemistry/",
+      "subsubjects": ["chemical_thermodynamics", "transport_phenomena", "reaction_engineering", "separations", "process_simulation"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "access": "public_web_reference_with_linked_subscription_products",
+      "storage_policy": "metadata_link_provenance; do not mirror subscription datasets",
+      "notes": "Provides evaluated physical and chemical property data for well-defined chemical species and reactions; some linked NIST/TRC products require subscription."
+    },
+    {
+      "id": "epa_green_engineering_chemical_processes",
+      "title": "Green Engineering Textbook and Training Modules",
+      "provider": "U.S. Environmental Protection Agency",
+      "resource_type": "engineering_education_reference",
+      "url": "https://www.epa.gov/green-engineering/green-engineering-textbook-and-training-modules",
+      "subsubjects": ["material_energy_balances", "process_design", "process_safety", "sustainable_processes"],
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "access": "public_web_reference",
+      "storage_policy": "metadata_link_provenance; verify rights at item level before local full-text ingestion",
+      "notes": "EPA describes this as senior-to-graduate-level chemical-engineering curriculum material focused on pollution prevention, risk, process/product environmental performance, raw-material use, energy use, wastes, and emissions."
+    },
+    {
+      "id": "epa_rmp_process_safety",
+      "title": "Risk Management Program (RMP) Rule Resources",
+      "provider": "U.S. Environmental Protection Agency",
+      "resource_type": "process_safety_regulatory_reference",
+      "url": "https://www.epa.gov/rmp",
+      "subsubjects": ["process_safety", "process_design"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Authoritative chemical-accident-prevention and risk-management reference for facilities using extremely hazardous substances."
+    },
+    {
+      "id": "epa_tsca_chemical_risk",
+      "title": "EPA Existing Chemical Safety Evaluation",
+      "provider": "U.S. Environmental Protection Agency",
+      "resource_type": "chemical_risk_reference",
+      "url": "https://www.epa.gov/assessing-and-managing-chemicals-under-tsca/how-epa-evaluates-safety-existing-chemicals",
+      "subsubjects": ["process_safety", "sustainable_processes"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Authoritative risk-evaluation and risk-management framework for chemicals under TSCA; useful for safety, exposure, and lifecycle constraints in process design."
+    }
+  ],
+  "known_gaps": [
+    "foundation and beginner chemical-engineering instruction",
+    "dedicated biochemical engineering source",
+    "dedicated electrochemical engineering source",
+    "full process-control curriculum beyond cross-listed control-systems resources",
+    "hands-on process simulation training with a verified open license"
+  ]
+}
