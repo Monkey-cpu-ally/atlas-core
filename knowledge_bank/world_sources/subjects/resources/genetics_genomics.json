@@ -1,55 +1,84 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "subject": "genetics_genomics",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "nhgri_genomics_education",
-      "title": "NHGRI Educational Resources",
+      "title": "NHGRI Educational Resources and Genomics Fact Sheets",
       "provider": "National Human Genome Research Institute (NIH)",
       "resource_type": "education_reference",
-      "subsubjects": ["genetics_foundations", "molecular_genetics", "genomics", "gene_expression_regulation", "population_genetics", "human_genetics", "genetic_variation", "epigenetics", "genomic_technologies", "functional_genomics", "comparative_genomics", "genomics_ethics_policy"],
+      "subsubjects": ["mendelian_genetics", "molecular_genetics", "population_genetics", "genome_structure", "genome_sequencing", "epigenetics", "transcriptomics", "genomic_medicine"],
       "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
-      "url": "https://www.genome.gov/About-Genomics/Educational-Resources",
+      "url": "https://www.genome.gov/about-genomics/fact-sheets",
       "access": "public_web",
       "storage_policy": "metadata_link_and_item_provenance",
-      "notes": "Official NHGRI educational collection for genomics literacy, teaching tools, fact sheets, glossary material, and professional genomics education. Individual linked assets retain their own rights and terms."
+      "notes": "Official NHGRI explanations for non-specialists, students and educators. Mapped only to finalized taxonomy keys directly represented by NHGRI educational material. Individual assets retain their own rights and terms."
     },
     {
-      "id": "ncbi_human_genome_resources",
-      "title": "Human Genome Resources at NCBI",
-      "provider": "National Center for Biotechnology Information (NIH/NLM)",
-      "resource_type": "genomics_data_portal",
-      "subsubjects": ["molecular_genetics", "genomics", "gene_expression_regulation", "population_genetics", "human_genetics", "genetic_variation", "genomic_technologies", "functional_genomics", "comparative_genomics"],
-      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.ncbi.nlm.nih.gov/projects/genome/guide/human/",
-      "access": "public_web_and_downloads",
-      "storage_policy": "metadata_link_dataset_provenance",
-      "notes": "Official NCBI hub for reference genome sequence, RefSeq annotation, ClinVar, dbSNP, dbVar, genome viewing, downloads, tutorials, and programmatic access. Dataset-specific access and usage conditions must be retained."
-    },
-    {
-      "id": "ncbi_genes_resources",
-      "title": "NCBI Gene Resources",
-      "provider": "National Center for Biotechnology Information (NIH/NLM)",
-      "resource_type": "gene_database_and_tools",
-      "subsubjects": ["molecular_genetics", "genomics", "gene_expression_regulation", "genetic_variation", "genomic_technologies", "functional_genomics", "comparative_genomics"],
+      "id": "nhgri_genome_sequencing_program",
+      "title": "NHGRI Genome Sequencing Program",
+      "provider": "National Human Genome Research Institute (NIH)",
+      "resource_type": "genome_sequencing_research_reference",
+      "subsubjects": ["genome_structure", "genome_sequencing", "genomic_medicine"],
       "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.ncbi.nlm.nih.gov/home/genes/",
+      "url": "https://www.genome.gov/Funded-Programs-Projects/NHGRI-Genome-Sequencing-Program",
+      "access": "public_web",
+      "storage_policy": "metadata_link_and_item_provenance",
+      "notes": "Official NHGRI program reference for genome sequencing technologies, data resources and use of sequencing to identify disease-associated genes and variants."
+    },
+    {
+      "id": "ncbi_genome_resources",
+      "title": "NCBI Genome and Functional Genomics Resources",
+      "provider": "National Center for Biotechnology Information (NIH/NLM)",
+      "resource_type": "genomics_data_and_tools_portal",
+      "subsubjects": ["genome_structure", "genome_sequencing", "comparative_genomics", "functional_genomics", "transcriptomics", "bioinformatics"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.ncbi.nlm.nih.gov/guide/all/",
+      "access": "public_web_and_dataset_specific_controls",
+      "storage_policy": "metadata_link_dataset_provenance",
+      "notes": "NCBI provides Assembly, BioProject, sequence repositories, functional-genomics resources and analysis tools. Dataset-specific access and usage conditions must be retained."
+    },
+    {
+      "id": "ncbi_comparative_genomics_resource",
+      "title": "NIH Comparative Genomics Resource and NCBI Bioinformatics Tools",
+      "provider": "National Library of Medicine / NCBI (NIH)",
+      "resource_type": "comparative_genomics_reference_and_tools",
+      "subsubjects": ["comparative_genomics", "genome_structure", "genome_sequencing", "bioinformatics", "functional_genomics"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nlm.nih.gov/ncbi/resource-lists/eukaryotic-genome-resources.html",
       "access": "public_web_and_tools",
       "storage_policy": "metadata_link_dataset_provenance",
-      "notes": "Official NCBI access point for Gene, RefSeq, GenBank, GEO, SRA, BLAST and related gene-analysis resources."
+      "notes": "Official NIH/NLM resource family including CGR, BLAST, Comparative Genome Viewer, RefSeq and sequence-analysis infrastructure."
     },
     {
-      "id": "ncbi_medical_genetics_variation",
-      "title": "Medical Genetics and Human Variation",
-      "provider": "National Center for Biotechnology Information (NIH/NLM)",
-      "resource_type": "human_variation_reference",
-      "subsubjects": ["human_genetics", "genetic_variation", "population_genetics", "genomics", "genomics_ethics_policy"],
+      "id": "ncbi_human_genome_variation",
+      "title": "NCBI Human Genome and Clinical Variation Resources",
+      "provider": "National Library of Medicine / NCBI (NIH)",
+      "resource_type": "human_genomics_reference",
+      "subsubjects": ["mendelian_genetics", "population_genetics", "quantitative_genetics", "genomic_medicine", "bioinformatics"],
       "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.ncbi.nlm.nih.gov/variation/",
+      "url": "https://www.nlm.nih.gov/ncbi/resource-lists/human-genome-resources.html",
       "access": "public_web_with_dataset_specific_controls",
       "storage_policy": "metadata_link_dataset_provenance",
-      "notes": "Official NCBI portal for ClinVar, dbSNP, dbVar, GTR, dbGaP and genotype/phenotype resources. Controlled-access human data must never be treated as unrestricted."
+      "notes": "Official NCBI/NLM human genome resources include ClinVar, dbGaP, dbVar, GTR, BLAST and related variation/clinical-genomics tools. Controlled-access human data must remain restricted."
+    },
+    {
+      "id": "nhgri_functional_genomics",
+      "title": "NHGRI Translational and Functional Genomics Branch",
+      "provider": "National Human Genome Research Institute (NIH)",
+      "resource_type": "functional_genomics_research_reference",
+      "subsubjects": ["molecular_genetics", "functional_genomics", "epigenetics", "transcriptomics", "bioinformatics", "genomic_medicine"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.genome.gov/about-nhgri/Division-of-Intramural-Research/Translational-Functional-Genomics-Branch",
+      "access": "public_web",
+      "storage_policy": "metadata_link_and_item_provenance",
+      "notes": "Official NHGRI research reference covering genome function, epigenetic mechanisms, computational genomics, functional assessment and translational genomics."
     }
+  ],
+  "known_gaps": [
+    "Quantitative genetics still needs stronger dedicated instructional coverage, especially below advanced level.",
+    "Population-genetics foundation and beginner instruction remains thinner than general genomics education.",
+    "Research databases and controlled human-genomics datasets are not equivalent to locally ingested unrestricted content."
   ]
 }
