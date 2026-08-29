@@ -1,54 +1,79 @@
 {
+  "schema_version": "1.0",
   "subject": "meteorology_atmospheric_science",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "noaa_nws_jetstream",
       "title": "JetStream - An Online School for Weather",
       "provider": "NOAA National Weather Service",
       "resource_type": "meteorology_education_curriculum",
-      "subsubjects": ["atmospheric_structure", "atmospheric_thermodynamics", "cloud_physics", "synoptic_meteorology", "mesoscale_meteorology", "severe_weather", "tropical_meteorology", "weather_observation", "weather_forecasting"],
+      "subsubjects": ["atmospheric_thermodynamics", "atmospheric_dynamics", "weather_observation", "weather_forecasting", "cloud_physics", "severe_weather", "tropical_meteorology", "climate_dynamics", "remote_sensing", "boundary_layer_meteorology"],
       "levels": ["foundation", "beginner", "intermediate"],
-      "url": "https://www.noaa.gov/jetstream",
+      "url": "https://prod-01-alb-www-noaa.woc.noaa.gov/jetstream",
       "access": "public_education_material",
       "local_ingestion": "metadata_link_and_public_material_provenance",
-      "notes": "Official National Weather Service weather school with lessons, background material, quizzes, posters, and activities."
+      "notes": "Official National Weather Service online weather school. Mappings are limited to concepts explicitly represented by its atmosphere, global circulation, upper-air, satellite, clouds, severe-weather, tropical-weather and related lessons."
     },
     {
       "id": "noaa_ncei_atmospheric_data",
       "title": "NCEI Atmospheric Data",
       "provider": "NOAA National Centers for Environmental Information",
       "resource_type": "atmospheric_observation_archive",
-      "subsubjects": ["atmospheric_structure", "atmospheric_radiation", "atmospheric_dynamics", "weather_observation", "remote_sensing", "weather_forecasting", "climate_science"],
+      "subsubjects": ["atmospheric_thermodynamics", "atmospheric_dynamics", "weather_observation", "weather_forecasting", "cloud_physics", "climate_dynamics", "atmospheric_chemistry", "remote_sensing", "numerical_weather_prediction", "boundary_layer_meteorology"],
       "levels": ["advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.ncei.noaa.gov/products/satellite/atmosphere",
       "access": "public_dataset_and_product_metadata",
       "local_ingestion": "preserve_dataset_product_ids_documentation_and_provenance",
-      "notes": "Official NOAA satellite atmospheric-data archive including radiance, temperature, humidity, clouds, hurricanes, and related products."
+      "notes": "Official NOAA satellite atmospheric-data archive. Advanced mappings indicate research/data support, not a claim that the archive is a complete curriculum for each topic."
     },
     {
       "id": "noaa_ncei_climate_data_records",
       "title": "NOAA Climate Data Records",
       "provider": "NOAA National Centers for Environmental Information",
       "resource_type": "climate_data_archive",
-      "subsubjects": ["atmospheric_radiation", "atmospheric_dynamics", "cloud_physics", "weather_observation", "remote_sensing", "climate_science"],
+      "subsubjects": ["atmospheric_thermodynamics", "atmospheric_dynamics", "weather_observation", "cloud_physics", "climate_dynamics", "atmospheric_chemistry", "remote_sensing", "boundary_layer_meteorology"],
       "levels": ["advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.ncei.noaa.gov/products/climate-data-records",
       "access": "public_scientific_data_records",
       "local_ingestion": "preserve_dataset_versions_source_code_documentation_and_provenance",
-      "notes": "Scientifically vetted climate records spanning atmosphere, land, ocean, and cryosphere; use dataset-specific documentation and terms."
+      "notes": "Scientifically vetted climate records spanning atmosphere, land, ocean and cryosphere; retain dataset-specific documentation and provenance."
     },
     {
       "id": "noaa_ncei_climate_data_online",
       "title": "Climate Data Online",
       "provider": "NOAA National Centers for Environmental Information",
       "resource_type": "historical_weather_climate_database",
-      "subsubjects": ["weather_observation", "weather_forecasting", "climate_science", "synoptic_meteorology", "mesoscale_meteorology"],
+      "subsubjects": ["weather_observation", "weather_forecasting", "severe_weather", "tropical_meteorology", "climate_dynamics"],
       "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.ncei.noaa.gov/cdo-web/",
       "access": "public_weather_climate_data_with_some_certified_products_paid",
       "local_ingestion": "preserve_station_dataset_time_range_and_provenance",
-      "notes": "Official NOAA historical weather and climate archive with quality-controlled temperature, precipitation, wind, radar, normals, and station metadata."
+      "notes": "Official NOAA historical weather and climate archive with station observations and quality-controlled records."
+    },
+    {
+      "id": "noaa_weather_systems_patterns",
+      "title": "NOAA Weather Systems and Patterns",
+      "provider": "National Oceanic and Atmospheric Administration",
+      "resource_type": "meteorology_education_collection",
+      "subsubjects": ["atmospheric_dynamics", "weather_observation", "weather_forecasting", "severe_weather", "climate_dynamics", "remote_sensing"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "url": "https://prod-01-alb-www-noaa.woc.noaa.gov/education/resource-collections/weather-atmosphere/weather-systems-patterns",
+      "access": "public_education_material",
+      "local_ingestion": "metadata_link_and_public_material_provenance",
+      "notes": "NOAA education collection tying global circulation, weather maps, satellite winds, forecasting and weather/climate interactions to observable atmospheric systems."
+    },
+    {
+      "id": "noaa_goesr_education",
+      "title": "GOES-R Series Education Resources",
+      "provider": "NOAA GOES-R Series",
+      "resource_type": "satellite_meteorology_education",
+      "subsubjects": ["weather_observation", "weather_forecasting", "severe_weather", "tropical_meteorology", "atmospheric_chemistry", "remote_sensing"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://goes-r.noaa.gov/resources/education.html",
+      "access": "public_education_material",
+      "local_ingestion": "metadata_link_and_public_material_provenance",
+      "notes": "Official NOAA GOES-R education resources on weather satellites, storms, air quality and atmospheric observation."
     }
   ]
 }
