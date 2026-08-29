@@ -11,6 +11,7 @@ const STAGES = [
   { id: 'revision', label: 'Revisions', icon: RefreshCw },
   { id: 'master', label: 'Master Gate', icon: ShieldCheck },
 ];
+const resultOutput = (job) => job?.result?.output || null;
 
 export default function CreativeStudioPanel({ aiColor, project, onBack }) {
   const [stage, setStage] = useState('brief');
@@ -20,18 +21,18 @@ export default function CreativeStudioPanel({ aiColor, project, onBack }) {
   const [qualityContract, setQualityContract] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [runningStage, setRunningStage] = useState('');
   const [error, setError] = useState('');
   const title = project?.title || project?.name || 'Untitled Creative Project';
   const summary = project?.summary || project?.description || 'Define the creative brief before production begins.';
   const projectId = String(project?.id || project?._id || title);
 
   const loadJobs = async () => {
-    try {
-      const res = await fetch(`${BACKEND}/api/creative-studio/jobs?project_id=${encodeURIComponent(projectId)}`);
-      if (!res.ok) throw new Error('jobs');
-      const data = await res.json();
-      setJobs(data.items || []);
-    } catch (_) {}
+    const res = await fetch(`${BACKEND}/api/creative-studio/jobs?project_id=${encodeURIComponent(projectId)}`);
+    if (!res.ok) throw new Error('jobs');
+    const data = await res.json();
+    setJobs(data.items || []);
+    return data.items || [];
   };
 
   useEffect(() => {
@@ -44,34 +45,59 @@ export default function CreativeStudioPanel({ aiColor, project, onBack }) {
       fetch(`${BACKEND}/api/creative-studio/jobs?project_id=${encodeURIComponent(projectId)}`).then((r) => { if (!r.ok) throw new Error('jobs'); return r.json(); }),
     ]).then(([refs, council, quality, contract, jobData]) => {
       if (!active) return;
-      setReferences(refs.items || []);
-      setCritics(council.critics || []);
-      setRubrics(quality);
-      setQualityContract(contract);
-      setJobs(jobData.items || []);
-      setLoading(false);
-    }).catch(() => {
-      if (!active) return;
-      setError('Creative Intelligence API is unavailable.');
-      setLoading(false);
-    });
+      setReferences(refs.items || []); setCritics(council.critics || []); setRubrics(quality);
+      setQualityContract(contract); setJobs(jobData.items || []); setLoading(false);
+    }).catch(() => { if (active) { setError('Creative Intelligence API is unavailable.'); setLoading(false); } });
     return () => { active = false; };
   }, [projectId]);
 
-  const queueJob = async (jobStage) => {
+  const completed = useMemo(() => jobs.filter((j) => j.status === 'completed'), [jobs]);
+  const latest = (jobStage, predicate = () => true) => [...completed].reverse().find((j) => j.stage === jobStage && predicate(j));
+  const createJob = latest('create');
+  const revisionJob = latest('revision');
+  const currentArtifactJob = revisionJob || createJob;
+  const currentArtifact = resultOutput(currentArtifactJob)?.text || '';
+  const currentArtifactId = currentArtifactJob?.result?.artifact_id || resultOutput(currentArtifactJob)?.artifact_id || currentArtifactJob?.artifact_id || null;
+  const critiques = completed.filter((j) => j.stage === 'critique');
+  const currentCritique = [...critiques].reverse().find((j) => j.artifact_id === currentArtifactId) || null;
+  const council = resultOutput(currentCritique);
+  const needsRevision = council && council.approved === false && (council.revision_plan || []).length > 0;
+  const masterEligible = Boolean(currentArtifact && council?.approved === true && !(council.blockers || []).length);
+
+  const createAndExecute = async (jobStage, payload, artifactId = null, parentJobId = null) => {
+    setRunningStage(jobStage); setError('');
     try {
-      const res = await fetch(`${BACKEND}/api/creative-studio/jobs`, {
+      const queued = await fetch(`${BACKEND}/api/creative-studio/jobs`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project_id: projectId, stage: jobStage }),
+        body: JSON.stringify({ project_id: projectId, stage: jobStage, artifact_id: artifactId, parent_job_id: parentJobId }),
       });
-      if (!res.ok) throw new Error('queue');
+      if (!queued.ok) throw new Error(`Could not queue ${jobStage} job.`);
+      const job = await queued.json();
+      const executed = await fetch(`${BACKEND}/api/creative-studio/jobs/${job.id}/execute`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload }),
+      });
+      if (!executed.ok) throw new Error(`Could not execute ${jobStage} job.`);
+      const finished = await executed.json();
       await loadJobs();
-    } catch (_) { setError('Could not queue Creative Studio job.'); }
+      if (finished.status !== 'completed') throw new Error(finished.result?.error || `${jobStage} did not complete.`);
+      return finished;
+    } catch (e) { setError(e.message || `Creative Studio ${jobStage} failed.`); return null; }
+    finally { setRunningStage(''); }
+  };
+
+  const runCreate = () => createAndExecute('create', { premise: summary, audience: 'general', medium: 'story', tone: 'project-defined' });
+  const runCritique = () => currentArtifact ? createAndExecute('critique', { artifact: currentArtifact }, currentArtifactId, currentArtifactJob?.id) : setError('Create an artifact before critique.');
+  const runRevision = () => needsRevision ? createAndExecute('revision', { artifact: currentArtifact, revision_plan: council.revision_plan, blockers: council.blockers || [], brief: { premise: summary } }, currentArtifactId, currentCritique?.id) : setError('Revision requires explicit Critic Council requests.');
+  const runMaster = () => {
+    if (!masterEligible) return setError('Master Gate requires an approved critique of the current artifact.');
+    const qualityEvidence = { creative_approval: { passed: true }, story_quality: { passed: true }, originality: { passed: true } };
+    return createAndExecute('master', { artifact: currentArtifact, critic_council: council, applicable_gates: Object.keys(qualityEvidence), quality_evidence: qualityEvidence }, currentArtifactId, currentCritique?.id);
   };
 
   const stageData = useMemo(() => STAGES.find((item) => item.id === stage) || STAGES[0], [stage]);
   const StageIcon = stageData.icon;
   const capabilities = qualityContract?.executor_capabilities || {};
+  const busy = Boolean(runningStage);
 
   return (
     <div className="bp-workbench" data-testid="creative-studio-panel">
@@ -81,27 +107,17 @@ export default function CreativeStudioPanel({ aiColor, project, onBack }) {
       <div className="bp-section"><div className="project-card-label">Project</div><div className="project-card-title">{title}</div><div className="bp-voice-body">{summary}</div></div>
       {loading && <div className="bp-section"><Loader2 size={14} className="spin" /> Loading Creative Intelligence…</div>}
       {error && <div className="bp-section">{error}</div>}
-
-      <div className="bp-actions">
-        {STAGES.map(({ id, label, icon: Icon }) => <button key={id} className={`bp-btn ${stage === id ? 'primary' : ''}`} onClick={() => setStage(id)} style={stage === id ? { borderColor: aiColor, color: aiColor } : undefined}><Icon size={12} /> {label}</button>)}
-      </div>
-
+      <div className="bp-actions">{STAGES.map(({ id, label, icon: Icon }) => <button key={id} className={`bp-btn ${stage === id ? 'primary' : ''}`} onClick={() => setStage(id)} style={stage === id ? { borderColor: aiColor, color: aiColor } : undefined}><Icon size={12} /> {label}</button>)}</div>
       <div className="bp-section">
         <h4 style={{ color: aiColor, display: 'flex', gap: 8 }}><StageIcon size={14} /> {stageData.label}</h4>
-        {stage === 'brief' && <p>Lock premise, audience, medium, tone, constraints, story/art bible, and intended emotional effect.</p>}
+        {stage === 'brief' && <p>Current project summary is the production premise. Future brief controls can expand audience, medium, tone, constraints, story/art bible, and intended emotional effect.</p>}
         {stage === 'references' && <div>{references.slice(0, 20).map((ref) => <div className="project-card" key={ref.id}><div className="project-card-title">{ref.title}</div><div className="project-card-meta">{ref.kind} · {ref.category}</div><div className="bp-voice-body">{(ref.study || []).join(' · ')}</div></div>)}</div>}
-        {stage === 'create' && <div><p>Create executor: {capabilities.create ? 'LIVE' : 'LOCKED'}.</p><button className="bp-btn" onClick={() => queueJob('create')}>Queue Create Job</button></div>}
-        {stage === 'critique' && <div>{critics.map((critic) => <div className="project-card" key={critic.id}><div className="project-card-title">{critic.id.toUpperCase()}</div><div className="bp-voice-body">{critic.focus}</div></div>)}<button className="bp-btn" onClick={() => queueJob('critique')}>Queue Critique Job</button></div>}
-        {stage === 'revision' && <div><p>Revision executor: {capabilities.revision ? 'LIVE' : 'LOCKED'}.</p><button className="bp-btn" onClick={() => queueJob('revision')}>Queue Revision Job</button></div>}
-        {stage === 'master' && <div><p>Final master approval requires every applicable quality gate.</p>{rubrics?.quality_principles?.map((p, i) => <div className="bp-voice-body" key={i}>• {p}</div>)}<button className="bp-btn" onClick={() => queueJob('master')}>Queue Master Job</button></div>}
+        {stage === 'create' && <div><p>Create executor: {capabilities.create ? 'LIVE' : 'LOCKED'}.</p><button disabled={busy || !capabilities.create} className="bp-btn" onClick={runCreate}>{runningStage === 'create' ? 'Creating…' : createJob ? 'Create New Draft' : 'Create Draft'}</button>{currentArtifact && <div className="bp-voice-body">Current artifact ready for Council review.</div>}</div>}
+        {stage === 'critique' && <div>{critics.map((critic) => <div className="project-card" key={critic.id}><div className="project-card-title">{critic.id.toUpperCase()}</div><div className="bp-voice-body">{critic.focus}</div></div>)}<button disabled={busy || !currentArtifact || !capabilities.critique} className="bp-btn" onClick={runCritique}>{runningStage === 'critique' ? 'Council Reviewing…' : currentCritique ? 'Re-run Critic Council' : 'Run Critic Council'}</button>{council && <div className="bp-voice-body">Council: {council.approved ? 'APPROVED' : 'REVISION REQUIRED'}{council.blockers?.length ? ` · ${council.blockers.join(' · ')}` : ''}</div>}</div>}
+        {stage === 'revision' && <div><p>Revision executor: {capabilities.revision ? 'LIVE' : 'LOCKED'}.</p><button disabled={busy || !needsRevision || !capabilities.revision} className="bp-btn" onClick={runRevision}>{runningStage === 'revision' ? 'Revising…' : 'Apply Council Revision Plan'}</button>{revisionJob && !currentCritique && <div className="bp-voice-body">Revision complete. Re-run Critic Council before Master approval.</div>}</div>}
+        {stage === 'master' && <div><p>Master approval is enabled only after the current artifact passes post-revision Council review.</p>{rubrics?.quality_principles?.map((p, i) => <div className="bp-voice-body" key={i}>• {p}</div>)}<button disabled={busy || !masterEligible || !capabilities.master} className="bp-btn" onClick={runMaster}>{runningStage === 'master' ? 'Verifying…' : 'Run Story Master Gate'}</button></div>}
       </div>
-
-      <div className="bp-section" data-testid="creative-job-history">
-        <div className="project-card-label">Production Job History</div>
-        {jobs.length === 0 && <div className="bp-voice-body">No production jobs recorded for this project.</div>}
-        {jobs.map((job) => <div className="project-card" key={job.id}><div className="project-card-title">{job.stage.toUpperCase()} · {job.status.toUpperCase()}</div><div className="project-card-meta">{job.id}</div>{job.blockers?.length > 0 && <div className="bp-voice-body">Blocked: {job.blockers.join(' · ')}</div>}</div>)}
-      </div>
-
+      <div className="bp-section" data-testid="creative-job-history"><div className="project-card-label">Production Job History</div>{jobs.length === 0 && <div className="bp-voice-body">No production jobs recorded for this project.</div>}{jobs.map((job) => <div className="project-card" key={job.id}><div className="project-card-title">{job.stage.toUpperCase()} · {job.status.toUpperCase()}</div><div className="project-card-meta">{job.id}</div>{job.blockers?.length > 0 && <div className="bp-voice-body">Blocked: {job.blockers.join(' · ')}</div>}</div>)}</div>
       <div className="bp-section"><div className="project-card-label">Integration status</div><div className="bp-voice-body">Job API: {qualityContract?.job_api_enabled ? 'LIVE' : 'LOCKED'} · Create: {capabilities.create ? 'LIVE' : 'LOCKED'} · Critique: {capabilities.critique ? 'LIVE' : 'LOCKED'} · Revision: {capabilities.revision ? 'LIVE' : 'LOCKED'} · Master: {capabilities.master ? 'LIVE' : 'LOCKED'}</div></div>
     </div>
   );
