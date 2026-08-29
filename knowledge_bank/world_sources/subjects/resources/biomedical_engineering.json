@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "subject": "biomedical_engineering",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "nibib_beta_center",
+      "title": "Center for Biomedical Engineering Technology Acceleration (BETA Center)",
+      "provider": "National Institute of Biomedical Imaging and Bioengineering (NIH)",
+      "resource_type": "research_engineering_reference",
+      "subsubjects": ["biomechanics", "biomedical_instrumentation", "medical_imaging", "biomaterials", "tissue_engineering", "biosensors", "physiological_modeling", "bioelectronics"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nibib.nih.gov/labs-at-nibib/center-for-biomedical-engineering-technology-acceleration-beta",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nibib_science_topics",
+      "title": "NIBIB Science Topics",
+      "provider": "National Institute of Biomedical Imaging and Bioengineering (NIH)",
+      "resource_type": "education_reference",
+      "subsubjects": ["biomedical_instrumentation", "medical_imaging", "biomaterials", "biosensors", "medical_devices", "physiological_modeling", "bioelectronics"],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.nibib.nih.gov/science-education/science-topics/biomaterials",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nibib_biomaterials_network",
+      "title": "NIBIB Biomaterials Network",
+      "provider": "National Institute of Biomedical Imaging and Bioengineering (NIH)",
+      "resource_type": "research_translation_reference",
+      "subsubjects": ["biomaterials", "tissue_engineering", "medical_devices"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nibib.nih.gov/programs/biomaterials-network",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "fda_device_regulatory_controls",
+      "title": "Medical Device Regulatory Controls",
+      "provider": "U.S. Food and Drug Administration",
+      "resource_type": "regulatory_reference",
+      "subsubjects": ["medical_devices", "regulatory_engineering"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.fda.gov/medical-devices/overview-device-regulation/regulatory-controls",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "fda_cdrh_regulatory_science_tools",
+      "title": "Catalog of Regulatory Science Tools to Help Assess New Medical Devices",
+      "provider": "U.S. Food and Drug Administration, Center for Devices and Radiological Health",
+      "resource_type": "regulatory_science_tool_catalog",
+      "subsubjects": ["biomechanics", "medical_imaging", "biomaterials", "biosensors", "neural_engineering", "medical_devices", "physiological_modeling", "bioelectronics", "regulatory_engineering"],
+      "levels": ["graduate", "research"],
+      "url": "https://www.fda.gov/medical-devices/science-and-research-medical-devices/catalog-regulatory-science-tools-help-assess-new-medical-devices",
+      "access": "public_web",
+      "storage_policy": "metadata_link_provenance"
+    }
+  ],
+  "known_gaps": [
+    "rehabilitation_engineering needs a dedicated authoritative source",
+    "neural_engineering needs deeper dedicated curriculum coverage",
+    "foundation and beginner coverage is intentionally conservative outside NIBIB educational material"
+  ],
+  "rights_note": "Catalog metadata and official public guidance may be indexed with provenance. Do not assume linked publications, standards, datasets, or third-party materials are licensed for local full-text ingestion; verify rights item by item."
+}
