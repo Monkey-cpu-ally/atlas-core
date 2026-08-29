@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "subject": "ecology",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "usgs_ecosystems_science",
+      "title": "USGS Ecosystems Science",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "government_science_portal",
+      "subsubjects": ["ecology_foundations", "population_ecology", "community_ecology", "ecosystem_ecology", "landscape_ecology", "aquatic_ecology", "terrestrial_ecology", "conservation_ecology", "restoration_ecology", "global_change_ecology", "biodiversity", "ecological_modeling"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.usgs.gov/mission-areas/ecosystems/science",
+      "access": "public",
+      "storage_policy": "metadata_link_and_public_domain_material_with_item_level_provenance",
+      "notes": "USGS research, data, tools, and decision-support material spanning species, communities, landscapes, ecosystem change, invasive species, disease, contaminants, conservation, and management."
+    },
+    {
+      "id": "usgs_ecosystems_education",
+      "title": "USGS Ecosystems Education",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "government_education_portal",
+      "subsubjects": ["ecology_foundations", "population_ecology", "community_ecology", "ecosystem_ecology", "aquatic_ecology", "terrestrial_ecology", "biodiversity", "conservation_ecology", "global_change_ecology"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://www.usgs.gov/mission-areas/ecosystems/science/education",
+      "access": "public",
+      "storage_policy": "metadata_link_and_item_level_provenance",
+      "notes": "Educational resources for learners of multiple ages, including use of USGS data in K-12 science and ecology-focused learning resources."
+    },
+    {
+      "id": "epa_ecosystems_research",
+      "title": "EPA Ecosystems Research",
+      "provider": "U.S. Environmental Protection Agency",
+      "resource_type": "government_research_portal",
+      "subsubjects": ["ecosystem_ecology", "aquatic_ecology", "conservation_ecology", "restoration_ecology", "global_change_ecology", "biodiversity", "ecological_modeling"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.epa.gov/eco-research",
+      "access": "public",
+      "storage_policy": "metadata_link_and_item_level_provenance",
+      "notes": "EPA ecosystem-services, water-quality, air-quality, ecological-risk, modeling, database, and research-publication resources."
+    },
+    {
+      "id": "epa_ecosystem_tools",
+      "title": "EPA Ecosystem Tools and Resources",
+      "provider": "U.S. Environmental Protection Agency",
+      "resource_type": "government_models_data_tools",
+      "subsubjects": ["ecosystem_ecology", "landscape_ecology", "aquatic_ecology", "conservation_ecology", "restoration_ecology", "global_change_ecology", "ecological_modeling"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.epa.gov/eco-research/ecosystem-tools-resources",
+      "access": "public",
+      "storage_policy": "metadata_link_and_item_level_provenance",
+      "notes": "Decision-support tools, models, databases, and educational resources for ecosystem assessment and management."
+    }
+  ]
+}
