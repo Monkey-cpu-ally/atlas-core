@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "subject": "chemical_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "nist_chemistry_reference_data",
@@ -62,12 +62,46 @@
       "access": "public",
       "storage_policy": "metadata_link_provenance",
       "notes": "Authoritative risk-evaluation and risk-management framework for chemicals under TSCA; useful for safety, exposure, and lifecycle constraints in process design."
+    },
+    {
+      "id": "doe_hydrogen_electrolysis",
+      "title": "Hydrogen Production: Electrolysis",
+      "provider": "U.S. Department of Energy",
+      "resource_type": "electrochemical_engineering_reference",
+      "url": "https://www.energy.gov/eere/fuelcells/hydrogen-production-electrolysis",
+      "subsubjects": ["electrochemical_engineering", "transport_phenomena", "sustainable_processes"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate"],
+      "access": "public_official_reference",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "DOE technical overview of electrolyzers and electrochemical water splitting. Mapping is limited to levels appropriate for the engineering concepts presented and does not substitute for a full electrochemical-engineering curriculum."
+    },
+    {
+      "id": "doe_hydrogen_fuel_cells",
+      "title": "Fuel Cells",
+      "provider": "U.S. Department of Energy",
+      "resource_type": "electrochemical_energy_systems_reference",
+      "url": "https://www.energy.gov/eere/fuelcells/fuel-cells",
+      "subsubjects": ["electrochemical_engineering", "chemical_thermodynamics", "transport_phenomena", "sustainable_processes"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate"],
+      "access": "public_official_reference",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "DOE reference on fuel-cell operation, electrochemical conversion, efficiency and technology classes; useful as an applied electrochemical-engineering source."
+    },
+    {
+      "id": "epa_biological_treatment_processes",
+      "title": "EPA Wastewater Technology and Treatment Resources",
+      "provider": "U.S. Environmental Protection Agency",
+      "resource_type": "bioprocess_engineering_reference",
+      "url": "https://www.epa.gov/npdes/municipal-wastewater",
+      "subsubjects": ["biochemical_engineering", "reaction_engineering", "separations", "process_design", "sustainable_processes"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "access": "public_official_guidance_and_technical_resources",
+      "storage_policy": "metadata_link_and_item_provenance",
+      "notes": "EPA technical and regulatory resources for municipal wastewater treatment include biological treatment and process-system material. This is an applied biochemical-engineering reference, not a complete biochemical-engineering textbook."
     }
   ],
   "known_gaps": [
     "foundation and beginner chemical-engineering instruction",
-    "dedicated biochemical engineering source",
-    "dedicated electrochemical engineering source",
     "full process-control curriculum beyond cross-listed control-systems resources",
     "hands-on process simulation training with a verified open license"
   ]
