@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "subject": "electrical_engineering",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "nist_electronics",
+      "title": "NIST Electronics",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_research_portal",
+      "subsubjects": ["circuit_analysis", "analog_systems", "digital_systems", "instrumentation", "microelectronics"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/electronics",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nist_electromagnetic_technologies",
+      "title": "Fundamental Electromagnetic Technologies and Standards",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_research_and_metrology_program",
+      "subsubjects": ["electromagnetics", "communications", "signal_processing", "instrumentation", "microelectronics"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/programs-projects/fundamental-electromagnetic-technologies-and-standards",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nist_power_electronics",
+      "title": "Emerging Power Electronic Devices",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_power_electronics_research_program",
+      "subsubjects": ["power_electronics", "instrumentation", "microelectronics", "power_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/programs-projects/emerging-power-electronic-devices",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nrel_power_systems",
+      "title": "NREL Power Systems Engineering Research",
+      "provider": "National Renewable Energy Laboratory",
+      "resource_type": "official_power_and_grid_research",
+      "subsubjects": ["power_systems", "power_electronics", "renewable_energy_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nrel.gov/grid/",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nist_high_frequency_electronics",
+      "title": "High-Frequency Electronics",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_electronics_metrology_program",
+      "subsubjects": ["electromagnetics", "communications", "signal_processing", "instrumentation", "microelectronics"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/programs-projects/high-frequency-electronics",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    }
+  ],
+  "notes": [
+    "Mappings use the exact electrical_engineering taxonomy keys.",
+    "Resources are official NIST/NREL research, standards, measurement, and grid infrastructure; no claim is made that every linked publication is licensed for local full-text storage.",
+    "Electric machines remains a measured coverage target for subsequent gap filling rather than being assigned without direct source support."
+  ]
+}
