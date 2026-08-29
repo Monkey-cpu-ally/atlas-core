@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "subject": "computer_engineering",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "riscv_ratified_specs",
+      "title": "RISC-V Ratified Specifications Library",
+      "provider": "RISC-V International",
+      "resource_type": "open_standard_specification_library",
+      "subsubjects": ["computer_architecture", "microprocessors", "firmware", "memory_systems", "hardware_software_codesign"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://docs.riscv.org/reference/home/index.html",
+      "status": "verified",
+      "storage_policy": "Store metadata, links, version identifiers, and permitted open-standard text with provenance."
+    },
+    {
+      "id": "riscv_unprivileged_isa",
+      "title": "RISC-V Instruction Set Manual - Unprivileged Architecture",
+      "provider": "RISC-V International",
+      "resource_type": "processor_isa_specification",
+      "subsubjects": ["digital_logic", "computer_architecture", "microprocessors", "firmware", "memory_systems", "hardware_software_codesign"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://docs.riscv.org/reference/isa/unpriv/unpriv-index.html",
+      "status": "verified",
+      "storage_policy": "Preserve specification version and provenance; store only content permitted by source terms."
+    },
+    {
+      "id": "riscv_privileged_isa",
+      "title": "RISC-V Instruction Set Manual - Privileged Architecture",
+      "provider": "RISC-V International",
+      "resource_type": "processor_system_architecture_specification",
+      "subsubjects": ["computer_architecture", "microprocessors", "firmware", "memory_systems", "real_time_systems", "hardware_software_codesign", "edge_computing"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://docs.riscv.org/reference/isa/priv/priv-index.html",
+      "status": "verified",
+      "storage_policy": "Preserve ratification/version state and provenance; do not substitute draft material for ratified specifications."
+    },
+    {
+      "id": "nist_device_integrity",
+      "title": "NIST SP 1800-34: Validating the Integrity of Computing Devices",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "computer_hardware_security_practice_guide",
+      "subsubjects": ["embedded_systems", "firmware", "computer_interfacing", "hardware_software_codesign", "edge_computing"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://csrc.nist.gov/pubs/sp/1800/34/final",
+      "status": "verified",
+      "storage_policy": "Store public NIST material, metadata, links, and provenance."
+    }
+  ],
+  "known_gaps": [
+    "hardware_description_languages",
+    "fpga_systems",
+    "beginner_and_foundation_level_computer_engineering"
+  ]
+}
