@@ -1,0 +1,66 @@
+{
+  "subject": "industrial_manufacturing_engineering",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "nist_manufacturing",
+      "title": "NIST Manufacturing",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "manufacturing_reference_portal",
+      "subsubjects": ["manufacturing_processes", "production_systems", "quality_engineering", "metrology", "automation_robotics", "supply_chain_engineering", "sustainable_manufacturing"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/manufacturing",
+      "access": "public_research_projects_publications_tools",
+      "local_ingestion": "item_level_provenance_and_rights_required",
+      "notes": "Primary NIST manufacturing portal covering measurement science, quality, systems, robotics, supply chains and sustainable manufacturing. Broad portal mappings remain conservative and do not imply every item covers every mapped level."
+    },
+    {
+      "id": "nist_smart_manufacturing",
+      "title": "NIST Smart Manufacturing",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "smart_manufacturing_research_portal",
+      "subsubjects": ["smart_manufacturing", "automation_robotics", "digital_manufacturing", "production_systems", "manufacturing_systems_modeling", "quality_engineering"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/smart-manufacturing",
+      "access": "public_programs_research_tools",
+      "local_ingestion": "item_level_provenance_and_rights_required",
+      "notes": "NIST research on additive manufacturing measurement, robotics, model-based enterprise, trustworthy systems and smart manufacturing."
+    },
+    {
+      "id": "nist_manufacturing_systems_design",
+      "title": "NIST Manufacturing Systems Design and Analysis",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "manufacturing_systems_reference",
+      "subsubjects": ["production_systems", "operations_research", "manufacturing_systems_modeling", "digital_manufacturing", "smart_manufacturing"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/manufacturing-systems-design-and-analysis",
+      "access": "public_research_software_tools",
+      "local_ingestion": "preserve_publication_tool_and_version_provenance",
+      "notes": "NIST manufacturing systems design, analysis, modeling, investment and test-bed resources."
+    },
+    {
+      "id": "nist_digital_thread",
+      "title": "NIST Digital Thread for Smart Manufacturing",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "digital_manufacturing_reference",
+      "subsubjects": ["digital_manufacturing", "smart_manufacturing", "manufacturing_processes", "quality_engineering", "manufacturing_systems_modeling"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/ctl/smart-connected-systems-division/smart-connected-manufacturing-systems-group/enabling-digital",
+      "access": "public_research_reports_tools",
+      "local_ingestion": "item_level_provenance_and_rights_required",
+      "notes": "Reference material for model-based engineering, product/manufacturing information, CAD/CAM, inspection interoperability and digital-thread implementation."
+    },
+    {
+      "id": "doe_ammto_manufacturing",
+      "title": "DOE Advanced Materials and Manufacturing Technologies Office",
+      "provider": "U.S. Department of Energy",
+      "resource_type": "advanced_manufacturing_program_portal",
+      "subsubjects": ["manufacturing_processes", "sustainable_manufacturing", "smart_manufacturing", "supply_chain_engineering"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.energy.gov/cmei/ammto/advanced-materials-and-manufacturing-technologies-office",
+      "access": "public_explainers_projects_resource_library",
+      "local_ingestion": "item_level_provenance_and_rights_required",
+      "notes": "Current DOE advanced materials and manufacturing program portal, including explainers, project data and a resource library."
+    }
+  ]
+}
