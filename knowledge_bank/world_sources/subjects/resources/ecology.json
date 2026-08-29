@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "subject": "ecology",
-  "status": "extension_gap_fill_v2",
+  "status": "extension_gap_fill_v3",
   "resources": [
     {
       "id": "usgs_ecosystems_science",
@@ -26,6 +26,18 @@
       "access": "public",
       "storage_policy": "metadata_link_and_item_level_provenance",
       "notes": "USGS states that this research spans freshwater, estuarine and marine environments and includes behavioral, population and community ecology, threatened species, food webs and climate effects."
+    },
+    {
+      "id": "usgs_evolutionary_ecology_publications",
+      "title": "USGS Publications Warehouse - Evolutionary Ecology Research",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "government_research_publication_collection",
+      "subsubjects": ["evolutionary_ecology", "behavioral_ecology", "population_ecology", "community_ecology"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://pubs.usgs.gov/browse/Article/Journal%20Article/Evolutionary%20Ecology%20Research/",
+      "access": "public_metadata_and_publication_links",
+      "storage_policy": "metadata_link_and_item_level_rights_and_provenance_required",
+      "notes": "USGS Publications Warehouse collection provides primary research examples explicitly published in Evolutionary Ecology Research, including rapid evolution, behavioral specialization, community organization and selection estimation. This supports advanced-to-research evolutionary ecology, not foundation instruction."
     },
     {
       "id": "epa_freshwater_ecosystems",
@@ -65,8 +77,8 @@
     }
   ],
   "known_gaps": [
-    "dedicated evolutionary ecology curriculum across the full learning ladder",
+    "foundation and beginner evolutionary ecology still require dedicated instructional material",
     "foundation-level marine ecology remains thinner than freshwater ecology",
-    "expert readiness still requires books, primary literature, assessment, runtime ingestion and retrieval verification"
+    "expert readiness still requires books, broader primary literature, assessment, runtime ingestion and retrieval verification"
   ]
 }
