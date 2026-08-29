@@ -1,0 +1,54 @@
+{
+  "subject": "meteorology_atmospheric_science",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "noaa_nws_jetstream",
+      "title": "JetStream - An Online School for Weather",
+      "provider": "NOAA National Weather Service",
+      "resource_type": "meteorology_education_curriculum",
+      "subsubjects": ["atmospheric_structure", "atmospheric_thermodynamics", "cloud_physics", "synoptic_meteorology", "mesoscale_meteorology", "severe_weather", "tropical_meteorology", "weather_observation", "weather_forecasting"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://www.noaa.gov/jetstream",
+      "access": "public_education_material",
+      "local_ingestion": "metadata_link_and_public_material_provenance",
+      "notes": "Official National Weather Service weather school with lessons, background material, quizzes, posters, and activities."
+    },
+    {
+      "id": "noaa_ncei_atmospheric_data",
+      "title": "NCEI Atmospheric Data",
+      "provider": "NOAA National Centers for Environmental Information",
+      "resource_type": "atmospheric_observation_archive",
+      "subsubjects": ["atmospheric_structure", "atmospheric_radiation", "atmospheric_dynamics", "weather_observation", "remote_sensing", "weather_forecasting", "climate_science"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.ncei.noaa.gov/products/satellite/atmosphere",
+      "access": "public_dataset_and_product_metadata",
+      "local_ingestion": "preserve_dataset_product_ids_documentation_and_provenance",
+      "notes": "Official NOAA satellite atmospheric-data archive including radiance, temperature, humidity, clouds, hurricanes, and related products."
+    },
+    {
+      "id": "noaa_ncei_climate_data_records",
+      "title": "NOAA Climate Data Records",
+      "provider": "NOAA National Centers for Environmental Information",
+      "resource_type": "climate_data_archive",
+      "subsubjects": ["atmospheric_radiation", "atmospheric_dynamics", "cloud_physics", "weather_observation", "remote_sensing", "climate_science"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.ncei.noaa.gov/products/climate-data-records",
+      "access": "public_scientific_data_records",
+      "local_ingestion": "preserve_dataset_versions_source_code_documentation_and_provenance",
+      "notes": "Scientifically vetted climate records spanning atmosphere, land, ocean, and cryosphere; use dataset-specific documentation and terms."
+    },
+    {
+      "id": "noaa_ncei_climate_data_online",
+      "title": "Climate Data Online",
+      "provider": "NOAA National Centers for Environmental Information",
+      "resource_type": "historical_weather_climate_database",
+      "subsubjects": ["weather_observation", "weather_forecasting", "climate_science", "synoptic_meteorology", "mesoscale_meteorology"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.ncei.noaa.gov/cdo-web/",
+      "access": "public_weather_climate_data_with_some_certified_products_paid",
+      "local_ingestion": "preserve_station_dataset_time_range_and_provenance",
+      "notes": "Official NOAA historical weather and climate archive with quality-controlled temperature, precipitation, wind, radar, normals, and station metadata."
+    }
+  ]
+}
