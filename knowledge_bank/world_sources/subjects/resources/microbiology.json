@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "subject": "microbiology",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "cdc_microbiology_series",
+      "title": "CDC Microbiology eLearning Series",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "education_training",
+      "url": "https://www.cdc.gov/lab-training/php/courses/microbiology-series.html",
+      "subsubjects": ["microbial_cell_biology", "bacteriology", "mycology", "clinical_microbiology"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "cdc_microbenet",
+      "title": "CDC MicrobeNet",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "reference_database_tool",
+      "url": "https://www.cdc.gov/microbenet/php/about/index.html",
+      "subsubjects": ["bacteriology", "mycology", "microbial_genetics", "clinical_microbiology"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "public_tool",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "cdc_dpdx",
+      "title": "CDC DPDx Diagnostic Procedures",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "education_reference",
+      "url": "https://www.cdc.gov/dpdx/diagnosticprocedures/index.html",
+      "subsubjects": ["parasitology", "clinical_microbiology"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "cdc_infectious_pathology_techniques",
+      "title": "CDC Infectious Disease Pathology Laboratory Techniques",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "laboratory_reference",
+      "url": "https://www.cdc.gov/infectious-disease-pathology/php/lab-techniques/index.html",
+      "subsubjects": ["bacteriology", "virology", "mycology", "parasitology", "immunomicrobiology", "clinical_microbiology"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "niaid_bioinformatics_portal",
+      "title": "NIAID Bioinformatics Portal Training Resources",
+      "provider": "National Institute of Allergy and Infectious Diseases",
+      "resource_type": "training_portal",
+      "url": "https://bioinformatics.niaid.nih.gov/search",
+      "subsubjects": ["microbial_genetics", "microbial_ecology", "microbiome_science"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    }
+  ]
+}
