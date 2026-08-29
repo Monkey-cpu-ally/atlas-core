@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "subject": "data_science",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "nist_rdaf",
+      "title": "NIST Research Data Framework (RDaF)",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "reference_framework",
+      "subsubjects": ["data_foundations", "data_collection", "data_cleaning", "statistical_modeling", "data_visualization", "machine_learning", "data_engineering", "experimental_design", "reproducible_data_science"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/1500-18/NIST.SP.1500-18r2.html",
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nist_eda_handbook",
+      "title": "NIST/SEMATECH Exploratory Data Analysis Handbook",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "technical_handbook",
+      "subsubjects": ["data_foundations", "exploratory_analysis", "statistical_modeling", "data_visualization", "experimental_design"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.itl.nist.gov/div898/handbook/eda/eda.htm",
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nist_dataplot",
+      "title": "NIST Dataplot",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "public_domain_statistical_software",
+      "subsubjects": ["exploratory_analysis", "statistical_modeling", "data_visualization", "experimental_design", "reproducible_data_science"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/itl/sed/dataplot",
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "census_data_api",
+      "title": "U.S. Census Bureau Data API and Developer Guidance",
+      "provider": "U.S. Census Bureau",
+      "resource_type": "official_data_api",
+      "subsubjects": ["data_collection", "data_cleaning", "data_engineering", "databases", "big_data_systems", "reproducible_data_science"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.census.gov/data/developers/guidance.html",
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    }
+  ],
+  "notes": [
+    "Mappings use exact data_science taxonomy keys.",
+    "Machine-learning depth is intentionally conservative because AI/ML has dedicated ATLAS subject coverage.",
+    "Foundation-level instruction and deeper database/big-data curriculum remain candidates for the measured gap-fill pass.",
+    "No resource is marked ingested or retrieval-tested by this manifest alone."
+  ]
+}
