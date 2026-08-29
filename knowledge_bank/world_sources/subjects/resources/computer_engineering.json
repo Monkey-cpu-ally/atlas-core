@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "subject": "computer_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "riscv_ratified_specs",
@@ -46,11 +46,46 @@
       "url": "https://csrc.nist.gov/pubs/sp/1800/34/final",
       "status": "verified",
       "storage_policy": "Store public NIST material, metadata, links, and provenance."
+    },
+    {
+      "id": "amd_vivado_logic_simulation_ug937",
+      "title": "Vivado Design Suite Tutorial: Logic Simulation (UG937)",
+      "provider": "AMD",
+      "resource_type": "fpga_hdl_simulation_tutorial",
+      "subsubjects": ["hardware_description_languages", "fpga_systems", "digital_logic", "hardware_software_codesign"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://docs.amd.com/r/en-US/ug937-vivado-design-suite-simulation-tutorial",
+      "status": "verified",
+      "storage_policy": "Store metadata and link; preserve document ID, release/version, and source terms before any local text ingestion.",
+      "notes": "Current AMD tutorial covers behavioral, functional, and timing simulation of VHDL, Verilog/SystemVerilog and mixed-language FPGA designs."
+    },
+    {
+      "id": "amd_vivado_getting_started_ug910",
+      "title": "Vivado Design Suite User Guide: Getting Started (UG910)",
+      "provider": "AMD",
+      "resource_type": "fpga_design_environment_guide",
+      "subsubjects": ["fpga_systems", "digital_logic", "hardware_description_languages"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "url": "https://docs.amd.com/r/en-US/ug910-vivado-getting-started",
+      "status": "verified",
+      "storage_policy": "Store metadata and link; preserve document version and rights/provenance.",
+      "notes": "Current AMD guide introduces the Vivado FPGA design environment and points to tutorials and design flows."
+    },
+    {
+      "id": "altera_quartus_design_entry_hdl",
+      "title": "Quartus Prime Design Software Support Resources - Design Entry",
+      "provider": "Altera / Intel",
+      "resource_type": "fpga_hdl_training_and_design_reference",
+      "subsubjects": ["hardware_description_languages", "fpga_systems", "digital_logic"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.intel.com/content/www/us/en/support/programmable/support-resources/design-guidance/quartus-support.html",
+      "status": "verified",
+      "storage_policy": "Store metadata and link; preserve vendor documentation provenance and course-specific terms.",
+      "notes": "Official support material documents HDL design entry using Verilog, SystemVerilog and VHDL and provides introductory HDL training resources."
     }
   ],
   "known_gaps": [
-    "hardware_description_languages",
-    "fpga_systems",
-    "beginner_and_foundation_level_computer_engineering"
+    "foundation-level computer-engineering curriculum remains incomplete",
+    "vendor FPGA resources improve HDL/FPGA coverage but do not replace a neutral graduate-level digital-design curriculum"
   ]
 }
