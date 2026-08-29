@@ -1,55 +1,72 @@
 {
   "schema_version": "1.0",
   "subject": "ecology",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "usgs_ecosystems_science",
       "title": "USGS Ecosystems Science",
       "provider": "U.S. Geological Survey",
       "resource_type": "government_science_portal",
-      "subsubjects": ["ecology_foundations", "population_ecology", "community_ecology", "ecosystem_ecology", "landscape_ecology", "aquatic_ecology", "terrestrial_ecology", "conservation_ecology", "restoration_ecology", "global_change_ecology", "biodiversity", "ecological_modeling"],
-      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "subsubjects": ["population_ecology", "community_ecology", "ecosystem_ecology", "landscape_ecology", "conservation_ecology", "restoration_ecology", "biogeochemistry", "ecological_modeling"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.usgs.gov/mission-areas/ecosystems/science",
       "access": "public",
       "storage_policy": "metadata_link_and_public_domain_material_with_item_level_provenance",
-      "notes": "USGS research, data, tools, and decision-support material spanning species, communities, landscapes, ecosystem change, invasive species, disease, contaminants, conservation, and management."
+      "notes": "USGS research, data, tools, and decision-support material spanning populations, communities, landscapes, ecosystem change, conservation, restoration and ecological modeling. Exact ATLAS taxonomy keys replace legacy guessed labels."
     },
     {
-      "id": "usgs_ecosystems_education",
-      "title": "USGS Ecosystems Education",
+      "id": "usgs_aquatic_ecology_group",
+      "title": "USGS Aquatic Ecology Group",
       "provider": "U.S. Geological Survey",
-      "resource_type": "government_education_portal",
-      "subsubjects": ["ecology_foundations", "population_ecology", "community_ecology", "ecosystem_ecology", "aquatic_ecology", "terrestrial_ecology", "biodiversity", "conservation_ecology", "global_change_ecology"],
-      "levels": ["foundation", "beginner", "intermediate"],
-      "url": "https://www.usgs.gov/mission-areas/ecosystems/science/education",
+      "resource_type": "government_aquatic_ecology_research",
+      "subsubjects": ["population_ecology", "community_ecology", "ecosystem_ecology", "behavioral_ecology", "marine_ecology", "freshwater_ecology", "conservation_ecology", "ecological_modeling"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.usgs.gov/centers/california-water-science-center/science/aquatic-ecology-group",
       "access": "public",
       "storage_policy": "metadata_link_and_item_level_provenance",
-      "notes": "Educational resources for learners of multiple ages, including use of USGS data in K-12 science and ecology-focused learning resources."
+      "notes": "USGS states that this research spans freshwater, estuarine and marine environments and includes behavioral, population and community ecology, threatened species, food webs and climate effects."
     },
     {
-      "id": "epa_ecosystems_research",
-      "title": "EPA Ecosystems Research",
+      "id": "epa_freshwater_ecosystems",
+      "title": "Sustaining Healthy Freshwater Ecosystems",
       "provider": "U.S. Environmental Protection Agency",
-      "resource_type": "government_research_portal",
-      "subsubjects": ["ecosystem_ecology", "aquatic_ecology", "conservation_ecology", "restoration_ecology", "global_change_ecology", "biodiversity", "ecological_modeling"],
-      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.epa.gov/eco-research",
+      "resource_type": "government_ecology_education_reference",
+      "subsubjects": ["population_ecology", "community_ecology", "ecosystem_ecology", "landscape_ecology", "freshwater_ecology", "conservation_ecology", "restoration_ecology", "biogeochemistry"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "url": "https://www.epa.gov/watershedacademy/sustaining-healthy-freshwater-ecosystems",
       "access": "public",
       "storage_policy": "metadata_link_and_item_level_provenance",
-      "notes": "EPA ecosystem-services, water-quality, air-quality, ecological-risk, modeling, database, and research-publication resources."
+      "notes": "EPA educational reference explains freshwater ecosystem integrity, watershed connections, population and community dynamics, nutrient and chemical inputs, conservation and restoration principles."
     },
     {
-      "id": "epa_ecosystem_tools",
-      "title": "EPA Ecosystem Tools and Resources",
+      "id": "epa_wetland_restoration_principles",
+      "title": "Principles of Wetland Restoration",
       "provider": "U.S. Environmental Protection Agency",
-      "resource_type": "government_models_data_tools",
-      "subsubjects": ["ecosystem_ecology", "landscape_ecology", "aquatic_ecology", "conservation_ecology", "restoration_ecology", "global_change_ecology", "ecological_modeling"],
-      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.epa.gov/eco-research/ecosystem-tools-resources",
+      "resource_type": "government_restoration_ecology_reference",
+      "subsubjects": ["ecosystem_ecology", "landscape_ecology", "freshwater_ecology", "conservation_ecology", "restoration_ecology", "biogeochemistry"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate"],
+      "url": "https://www.epa.gov/wetlands/principles-wetland-restoration",
       "access": "public",
       "storage_policy": "metadata_link_and_item_level_provenance",
-      "notes": "Decision-support tools, models, databases, and educational resources for ecosystem assessment and management."
+      "notes": "EPA restoration guidance covers ecological integrity, watershed context, natural structure/function, nutrient cycles, succession, monitoring and adaptive restoration."
+    },
+    {
+      "id": "epa_nutrient_management_research",
+      "title": "EPA Nutrient Management Research",
+      "provider": "U.S. Environmental Protection Agency",
+      "resource_type": "government_biogeochemistry_and_aquatic_research",
+      "subsubjects": ["ecosystem_ecology", "freshwater_ecology", "marine_ecology", "restoration_ecology", "biogeochemistry", "ecological_modeling"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.epa.gov/water-research/nutrient-management",
+      "access": "public",
+      "storage_policy": "metadata_link_and_item_level_provenance",
+      "notes": "EPA research addresses nitrogen and phosphorus cycling, freshwater and coastal ecosystem responses, recovery, data, models and tools."
     }
+  ],
+  "known_gaps": [
+    "dedicated evolutionary ecology curriculum across the full learning ladder",
+    "foundation-level marine ecology remains thinner than freshwater ecology",
+    "expert readiness still requires books, primary literature, assessment, runtime ingestion and retrieval verification"
   ]
 }
