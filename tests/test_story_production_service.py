@@ -19,16 +19,18 @@ def test_story_spec_contains_originality_and_quality_directives():
     assert "living creator" in directives
 
 
-def test_service_rejects_empty_generator_output():
+@pytest.mark.asyncio
+async def test_service_rejects_empty_generator_output():
     service = StoryProductionService(lambda spec: "")
     with pytest.raises(RuntimeError):
-        service.create(StoryBrief("Premise", "adult", "short story", "horror"))
+        await service.create(StoryBrief("Premise", "adult", "short story", "horror"))
 
 
-def test_story_executor_returns_typed_real_artifact():
+@pytest.mark.asyncio
+async def test_story_executor_returns_typed_real_artifact():
     service = StoryProductionService(lambda spec: "The finished original draft.")
     executor = story_create_executor(service)
-    result = executor(ExecutionRequest(
+    result = await executor(ExecutionRequest(
         job_id="j1", project_id="p1", stage="create",
         payload={"premise": "A witch bargains with two siblings.", "audience": "adult", "medium": "short film", "tone": "horror"},
     ))
