@@ -74,5 +74,6 @@
     "books_are_required_for_deep_study_where_appropriate": true,
     "book_ingestion_stays_locked_until_resource_phase_gate_passes": true,
     "expert_status_cannot_be_achieved_by_catalog_metadata_alone": true
-  }
+  },
+  "audit_trigger": "registered_default_branch_workflow_v1"
 }
