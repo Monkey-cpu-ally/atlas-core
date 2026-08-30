@@ -1,0 +1,147 @@
+name: ATLAS Knowledge Bank Coverage Audit
+
+on:
+  push:
+    branches:
+      - main
+      - feature/knowledge-connectors-v1
+      - integration/knowledge-bookshelf-v1
+  pull_request:
+    branches: [main]
+    paths:
+      - "knowledge_bank/world_sources/subjects/**"
+      - "knowledge-division/**"
+      - ".github/workflows/knowledge-bank-coverage-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knowledge-bank-coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage-audit:
+    name: Knowledge Bank coverage and quality audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile auditors
+        run: |
+          python -m py_compile knowledge_bank/world_sources/subjects/coverage_audit.py
+          python -m py_compile knowledge_bank/world_sources/subjects/quality_audit_v3.py
+
+      - name: Run coverage audit
+        run: python knowledge_bank/world_sources/subjects/coverage_audit.py
+
+      - name: Run V3 quality audit
+        run: python knowledge_bank/world_sources/subjects/quality_audit_v3.py
+
+      - name: Validate reports
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("knowledge_bank/world_sources/subjects")
+          coverage_path = root / "coverage_matrix_v2.json"
+          quality_path = root / "quality_matrix_v3.json"
+          canonical_path = root / "learning_subjects.json"
+          extension_path = root / "learning_subjects_extension_v1.json"
+          for path in (coverage_path, quality_path, canonical_path, extension_path):
+              if not path.is_file():
+                  raise SystemExit(f"required audit input/output missing: {path}")
+
+          coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+          quality = json.loads(quality_path.read_text(encoding="utf-8"))
+          canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
+          extension = json.loads(extension_path.read_text(encoding="utf-8"))
+          c = coverage.get("summary", {})
+          q = quality.get("summary", {})
+
+          canonical_subjects = canonical.get("subjects", {})
+          extension_subjects = extension.get("subjects", {})
+          duplicate_subjects = sorted(set(canonical_subjects) & set(extension_subjects))
+          if duplicate_subjects:
+              raise SystemExit(f"duplicate taxonomy subjects: {duplicate_subjects}")
+          levels = canonical.get("levels", [])
+          if levels != extension.get("levels", []):
+              raise SystemExit("canonical and extension learning levels differ")
+
+          expected_subjects = {**canonical_subjects, **extension_subjects}
+          expected_subject_count = len(expected_subjects)
+          expected_level_count = len(levels)
+          expected_total_cells = sum(
+              len(subject.get("subsubjects", [])) * expected_level_count
+              for subject in expected_subjects.values()
+          )
+          if expected_subject_count != 48:
+              raise SystemExit(f"Expected finalized 48-subject taxonomy, found {expected_subject_count}")
+          if c.get("subject_count") != expected_subject_count or c.get("level_count") != expected_level_count or c.get("total_cells") != expected_total_cells:
+              raise SystemExit(
+                  f"Coverage taxonomy dimensions disagree with source taxonomy: "
+                  f"report={c.get('subject_count')}/{c.get('level_count')}/{c.get('total_cells')} "
+                  f"expected={expected_subject_count}/{expected_level_count}/{expected_total_cells}"
+              )
+          if c["covered_cells"] + c["gap_cells"] != c["total_cells"]:
+              raise SystemExit("Coverage cell accounting is inconsistent")
+
+          required = {
+              "resource_count", "source_quality_percent", "ingestion_percent",
+              "retrieval_test_percent", "citation_ready_percent", "usable_knowledge_percent"
+          }
+          missing = sorted(required - q.keys())
+          if missing:
+              raise SystemExit(f"V3 quality summary missing fields: {missing}")
+          for key in required - {"resource_count"}:
+              if not 0 <= q[key] <= 100:
+                  raise SystemExit(f"{key} outside 0-100")
+
+          print(
+              f"Coverage and V3 quality reports validated for {expected_subject_count} subjects, "
+              f"{expected_level_count} levels, and {expected_total_cells} cells."
+          )
+          PY
+
+      - name: Publish audit summary
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+
+          coverage = json.loads(Path("knowledge_bank/world_sources/subjects/coverage_matrix_v2.json").read_text(encoding="utf-8"))
+          quality = json.loads(Path("knowledge_bank/world_sources/subjects/quality_matrix_v3.json").read_text(encoding="utf-8"))
+          c = coverage["summary"]
+          q = quality["summary"]
+
+          print("# ATLAS Knowledge Bank V3 Audit")
+          print()
+          print(f"- **Subjects:** {c['subject_count']}")
+          print(f"- **Coverage:** {c['coverage_percent']}% ({c['covered_cells']}/{c['total_cells']})")
+          print(f"- **Source quality:** {q['source_quality_percent']}%")
+          print(f"- **Ingested:** {q['ingestion_percent']}%")
+          print(f"- **Retrieval tested:** {q['retrieval_test_percent']}%")
+          print(f"- **Citation ready:** {q['citation_ready_percent']}%")
+          print(f"- **Usable knowledge:** {q['usable_knowledge_percent']}%")
+          PY
+
+      - name: Upload Knowledge Bank audit reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-bank-audit-v3
+          path: |
+            knowledge_bank/world_sources/subjects/coverage_matrix_v2.json
+            knowledge_bank/world_sources/subjects/quality_matrix_v3.json
+          if-no-files-found: error
+          retention-days: 30
