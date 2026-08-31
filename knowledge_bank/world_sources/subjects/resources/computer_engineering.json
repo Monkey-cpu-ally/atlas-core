@@ -1,8 +1,32 @@
 {
   "schema_version": "1.0",
   "subject": "computer_engineering",
-  "status": "extension_gap_fill_v2",
+  "status": "extension_gap_fill_v3",
   "resources": [
+    {
+      "id": "nand2tetris",
+      "title": "From Nand to Tetris: Building a Modern Computer From First Principles",
+      "provider": "Nand to Tetris",
+      "resource_type": "project_based_course",
+      "subsubjects": ["digital_logic", "computer_architecture", "microprocessors", "memory_systems", "hardware_description_languages", "hardware_software_codesign"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "url": "https://www.nand2tetris.org/",
+      "status": "verified",
+      "storage_policy": "Course materials are CC BY-NC-SA 3.0; preserve attribution and license, and do not publish project solutions.",
+      "notes": "Project-based path from Boolean logic and memory through CPU/computer architecture; hardware portion requires no prior knowledge."
+    },
+    {
+      "id": "mit_6_004_2009",
+      "title": "Computation Structures",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["digital_logic", "computer_architecture", "microprocessors", "memory_systems", "computer_interfacing", "hardware_software_codesign"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-004-computation-structures-spring-2009/",
+      "status": "verified",
+      "storage_policy": "Preserve MIT OCW attribution/license and verify individual asset terms before ingestion.",
+      "notes": "Hands-on digital systems course progressing from MOS/gates and FSMs to a gate-level RISC processor, caches, virtual memory, I/O, pipelining and parallel processing."
+    },
     {
       "id": "riscv_ratified_specs",
       "title": "RISC-V Ratified Specifications Library",
@@ -56,8 +80,7 @@
       "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
       "url": "https://docs.amd.com/r/en-US/ug937-vivado-design-suite-simulation-tutorial",
       "status": "verified",
-      "storage_policy": "Store metadata and link; preserve document ID, release/version, and source terms before any local text ingestion.",
-      "notes": "Current AMD tutorial covers behavioral, functional, and timing simulation of VHDL, Verilog/SystemVerilog and mixed-language FPGA designs."
+      "storage_policy": "Store metadata and link; preserve document ID, release/version, and source terms before any local text ingestion."
     },
     {
       "id": "amd_vivado_getting_started_ug910",
@@ -68,8 +91,7 @@
       "levels": ["beginner", "intermediate", "undergraduate"],
       "url": "https://docs.amd.com/r/en-US/ug910-vivado-getting-started",
       "status": "verified",
-      "storage_policy": "Store metadata and link; preserve document version and rights/provenance.",
-      "notes": "Current AMD guide introduces the Vivado FPGA design environment and points to tutorials and design flows."
+      "storage_policy": "Store metadata and link; preserve document version and rights/provenance."
     },
     {
       "id": "altera_quartus_design_entry_hdl",
@@ -80,12 +102,12 @@
       "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
       "url": "https://www.intel.com/content/www/us/en/support/programmable/support-resources/design-guidance/quartus-support.html",
       "status": "verified",
-      "storage_policy": "Store metadata and link; preserve vendor documentation provenance and course-specific terms.",
-      "notes": "Official support material documents HDL design entry using Verilog, SystemVerilog and VHDL and provides introductory HDL training resources."
+      "storage_policy": "Store metadata and link; preserve vendor documentation provenance and course-specific terms."
     }
   ],
   "known_gaps": [
-    "foundation-level computer-engineering curriculum remains incomplete",
-    "vendor FPGA resources improve HDL/FPGA coverage but do not replace a neutral graduate-level digital-design curriculum"
+    "foundation coverage is now stronger for digital logic and architecture, but embedded systems, firmware, interfacing, real-time systems and edge computing still need dedicated beginner curricula",
+    "graduate/research readiness needs neutral advanced architecture, embedded/real-time design, verification and research evidence rather than specification documents alone",
+    "vendor FPGA resources improve HDL/FPGA coverage but do not replace neutral advanced digital-design curricula"
   ]
 }
