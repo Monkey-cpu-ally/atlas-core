@@ -1,15 +1,51 @@
 {
   "schema_version": "1.0",
   "subject": "electrical_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
+    {
+      "id": "mit_6_002_circuits_electronics",
+      "title": "Circuits and Electronics",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["circuit_analysis", "analog_systems", "digital_systems", "instrumentation", "microelectronics"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/",
+      "access": "lectures_notes_problem_sets_exams_labs",
+      "local_ingestion": "verify_item_license",
+      "notes": "Core EE curriculum covering lumped circuits, MOS devices, amplifiers, energy storage, frequency response, analog/digital circuits, design and laboratory measurement."
+    },
+    {
+      "id": "mit_6_003_signals_systems",
+      "title": "Signals and Systems",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["signal_processing", "communications", "circuit_analysis", "digital_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/",
+      "access": "lectures_notes_problem_sets_exams",
+      "local_ingestion": "verify_item_license",
+      "notes": "Continuous/discrete-time signals, Fourier/Laplace/Z representations, sampling, LTI systems and applications to feedback, communications and signal processing."
+    },
+    {
+      "id": "mit_6_071j_electronics_measurement",
+      "title": "Introduction to Electronics, Signals, and Measurement",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "hands_on_undergraduate_course",
+      "subsubjects": ["circuit_analysis", "analog_systems", "instrumentation", "signal_processing"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/",
+      "access": "lecture_notes_problem_sets_exams_laboratory_examples",
+      "local_ingestion": "verify_item_license",
+      "notes": "Practical hands-on electronics, measurement and signals curriculum; explicitly requires no prior electronics experience."
+    },
     {
       "id": "nist_electronics",
       "title": "NIST Electronics",
       "provider": "National Institute of Standards and Technology",
       "resource_type": "official_research_portal",
       "subsubjects": ["circuit_analysis", "analog_systems", "digital_systems", "instrumentation", "microelectronics"],
-      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.nist.gov/electronics",
       "access": "public",
       "local_ingestion": "metadata_link_and_public_material_provenance"
@@ -59,9 +95,14 @@
       "local_ingestion": "metadata_link_and_public_material_provenance"
     }
   ],
+  "known_gaps": [
+    "foundation-level electric machines, power systems, electromagnetics and communications curriculum remains thin",
+    "electric machines still needs a dedicated authoritative curriculum source",
+    "research portals and metrology programs are evidence/reference layers and do not by themselves establish graduate or research learner readiness"
+  ],
   "notes": [
-    "Mappings use the exact electrical_engineering taxonomy keys.",
-    "Resources are official NIST/NREL research, standards, measurement, and grid infrastructure; no claim is made that every linked publication is licensed for local full-text storage.",
-    "Electric machines remains a measured coverage target for subsequent gap filling rather than being assigned without direct source support."
+    "Mappings use the exact electrical_engineering taxonomy keys already present in the manifest.",
+    "MIT courses provide assessed curriculum material; NIST/NREL resources remain research, standards, measurement and grid reference infrastructure.",
+    "No source is promoted to levels or subsubjects it does not directly support."
   ]
 }
