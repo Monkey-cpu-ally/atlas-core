@@ -5,7 +5,6 @@ import pytest
 
 from creative_intelligence.reference_library.loader import CreativeReferenceLibrary
 
-
 LIBRARY_DIR = Path(__file__).parents[1] / "creative_intelligence" / "reference_library"
 
 
@@ -30,6 +29,31 @@ def test_search_matches_title_category_and_craft_principles():
     assert any(ref.title == "Genndy Tartakovsky" for ref in library.search("minimal dialogue"))
     assert any(ref.title == "Bloodborne" for ref in library.search("cosmic-horror"))
     assert any(ref.kind == "creator" for ref in library.search("literature"))
+
+
+def test_ranked_retrieval_exposes_score_and_matching_terms():
+    library = CreativeReferenceLibrary.load_default()
+    matches = library.retrieve("minimal dialogue visual storytelling", limit=5)
+    assert matches
+    assert all(match.score > 0 for match in matches)
+    assert all(match.matched_terms for match in matches)
+    assert list(matches) == sorted(matches, key=lambda m: (-m.score, m.reference.title.casefold(), m.reference.reference_id))
+
+
+def test_ranked_retrieval_can_filter_creator_and_work():
+    library = CreativeReferenceLibrary.load_default()
+    creators = library.retrieve("horror", kind="creator")
+    works = library.retrieve("horror", kind="work")
+    assert creators and all(match.reference.kind == "creator" for match in creators)
+    assert works and all(match.reference.kind == "work" for match in works)
+
+
+def test_ranked_retrieval_fails_closed_on_invalid_contract():
+    library = CreativeReferenceLibrary.load_default()
+    with pytest.raises(ValueError, match="positive"):
+        library.retrieve("horror", limit=0)
+    with pytest.raises(ValueError, match="creator or work"):
+        library.retrieve("horror", kind="unknown")
 
 
 def test_catalogs_declare_originality_and_provenance_rules():
