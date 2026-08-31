@@ -1,6 +1,6 @@
 {
   "subject": "industrial_manufacturing_engineering",
-  "status": "extension_gap_fill_v2",
+  "status": "extension_gap_fill_v3",
   "resources": [
     {
       "id": "nist_manufacturing",
@@ -85,12 +85,61 @@
       "access": "public_explainers_projects_resource_library",
       "local_ingestion": "item_level_provenance_and_rights_required",
       "notes": "DOE advanced materials and manufacturing program resources."
+    },
+    {
+      "id": "mit_2_008_design_manufacturing_ii_2025",
+      "title": "MIT 2.008 Design and Manufacturing II",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_manufacturing_course",
+      "subsubjects": ["manufacturing_systems", "production_planning", "quality_engineering", "automation", "additive_manufacturing", "digital_manufacturing"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/2-008-design-and-manufacturing-ii-spring-2025/",
+      "access": "open_courseware_lecture_notes_homework_exams_projects_labs",
+      "local_ingestion": "preserve_mit_ocw_license_and_course_provenance",
+      "notes": "Modern manufacturing curriculum covering process physics, equipment/control, systems, design for manufacturing, quality, planning, cost, lean-system exercises, machining, joining, casting, forming and additive manufacturing. Labs are integral to the course."
+    },
+    {
+      "id": "mit_2_830j_manufacturing_process_control",
+      "title": "MIT 2.830J Control of Manufacturing Processes",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_manufacturing_process_control_course",
+      "subsubjects": ["manufacturing_systems", "operations_research", "production_planning", "quality_engineering", "automation", "digital_manufacturing"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/2-830j-control-of-manufacturing-processes-sma-6303-spring-2008/",
+      "access": "open_courseware_lecture_slides_videos_assignments_exams",
+      "local_ingestion": "preserve_mit_ocw_license_and_course_provenance",
+      "notes": "Graduate course in statistical modeling and control of manufacturing processes, including SPC, designed experiments, yield modeling, optimization, adaptive/run-by-run control and real-time feedback control."
+    },
+    {
+      "id": "mit_2_852_manufacturing_systems_analysis",
+      "title": "MIT 2.852 Manufacturing Systems Analysis",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_manufacturing_systems_course",
+      "subsubjects": ["manufacturing_systems", "operations_research", "production_planning", "quality_engineering", "automation"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/2-852-manufacturing-systems-analysis-spring-2010/",
+      "access": "open_courseware_lecture_notes_assignments_projects",
+      "local_ingestion": "preserve_mit_ocw_license_and_course_provenance",
+      "notes": "Graduate manufacturing-systems analysis covering transfer lines, flexible manufacturing systems, throughput, work-in-process, scheduling, machine failures, setups and disruptions."
+    },
+    {
+      "id": "mit_2_854_intro_manufacturing_systems",
+      "title": "MIT 2.854 Introduction to Manufacturing Systems",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_manufacturing_systems_course",
+      "subsubjects": ["manufacturing_systems", "operations_research", "production_planning", "quality_engineering", "supply_chain_engineering"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/2-854-introduction-to-manufacturing-systems-fall-2016/",
+      "access": "open_courseware_readings_lecture_notes",
+      "local_ingestion": "preserve_mit_ocw_license_and_course_provenance",
+      "notes": "Graduate analysis of material and information flow, capacity, probability, inventory, queues, optimization, factory planning, scheduling, bottlenecks, buffers and batch sizes."
     }
   ],
   "known_gaps": [
     "Dedicated authoritative ergonomics coverage remains thin.",
-    "Lean manufacturing needs a dedicated authoritative instructional source.",
-    "Foundation-level coverage is intentionally conservative.",
-    "Additive manufacturing needs a dedicated metrology/process resource in the next measured gap-fill pass."
+    "Foundation and beginner manufacturing instruction remains conservative; undergraduate material is not automatically down-mapped.",
+    "Lean manufacturing is introduced in MIT 2.008 and the Toyota Production System appears in MIT 2.854, but a dedicated lean curriculum is still desirable.",
+    "Dedicated additive-manufacturing metrology and process-validation evidence remains a target beyond the broad 2.008 additive-manufacturing lectures.",
+    "Research portals and graduate courses do not by themselves establish ATLAS expert readiness; runtime retrieval, practical verification, provenance and assessment are still required."
   ]
 }
