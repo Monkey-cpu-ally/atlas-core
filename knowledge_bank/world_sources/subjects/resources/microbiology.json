@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "subject": "microbiology",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "cdc_microbiology_series",
@@ -15,6 +15,54 @@
       "storage_policy": "metadata_link_provenance"
     },
     {
+      "id": "mit_7_21_7_62_microbial_physiology",
+      "title": "MIT 7.21 / 7.62 Microbial Physiology",
+      "provider": "Massachusetts Institute of Technology",
+      "resource_type": "university_course_reference",
+      "url": "https://catalog.mit.edu/subjects/7/",
+      "subsubjects": ["microbial_cell_biology", "bacteriology", "microbial_genetics", "microbial_ecology"],
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "access": "public_course_catalog",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "MIT catalog documents bacterial physiology, bacteriophages, genetic and metabolic regulation, cell envelopes, secretion, pathogenesis, bioenergetics, symbiosis, quorum sensing, DNA-damage responses and biofilms. The graduate version requires greater depth."
+    },
+    {
+      "id": "mit_7_13_experimental_microbial_genetics",
+      "title": "MIT 7.13 Experimental Microbial Genetics",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "laboratory_course",
+      "url": "https://ocw.mit.edu/courses/7-13-experimental-microbial-genetics-fall-2008/",
+      "subsubjects": ["bacteriology", "microbial_genetics", "clinical_microbiology"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "access": "open_course_materials",
+      "storage_policy": "license_check_per_asset",
+      "notes": "Research-project laboratory course using molecular genetics with Pseudomonas aeruginosa, including antibiotic resistance and other microbial phenotypes."
+    },
+    {
+      "id": "mit_7_493_microbial_genetics_evolution",
+      "title": "MIT 7.493 Microbial Genetics and Evolution",
+      "provider": "Massachusetts Institute of Technology",
+      "resource_type": "graduate_course_reference",
+      "url": "https://catalog.mit.edu/schools/science/biology/",
+      "subsubjects": ["microbial_genetics", "microbial_ecology"],
+      "levels": ["graduate", "research"],
+      "access": "public_course_catalog",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Graduate course covering microbial genetic/genomic analyses, central dogma, horizontal gene transfer and evolution. Research level denotes research-oriented literature/method context, not independent expert-readiness certification."
+    },
+    {
+      "id": "mit_7_492_methods_problems_microbiology",
+      "title": "MIT 7.492 Methods and Problems in Microbiology",
+      "provider": "Massachusetts Institute of Technology",
+      "resource_type": "graduate_primary_literature_course_reference",
+      "url": "https://catalog.mit.edu/schools/science/biology/",
+      "subsubjects": ["microbial_cell_biology", "bacteriology", "microbial_genetics", "microbial_ecology"],
+      "levels": ["graduate", "research"],
+      "access": "public_course_catalog",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Graduate microbiology course centered on primary literature, methods and approaches used to understand and manipulate microbes."
+    },
+    {
       "id": "cdc_microbenet",
       "title": "CDC MicrobeNet",
       "provider": "Centers for Disease Control and Prevention",
@@ -23,7 +71,8 @@
       "subsubjects": ["bacteriology", "mycology", "microbial_genetics", "clinical_microbiology"],
       "levels": ["advanced", "undergraduate", "graduate", "research"],
       "access": "public_tool",
-      "storage_policy": "metadata_link_provenance"
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Reference/identification tool; not treated as a standalone curriculum."
     },
     {
       "id": "cdc_dpdx",
@@ -56,7 +105,14 @@
       "subsubjects": ["microbial_genetics", "microbial_ecology", "microbiome_science"],
       "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
       "access": "public",
-      "storage_policy": "metadata_link_provenance"
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Discovery/training portal. Individual resources require item-level verification before being counted as complete instructional evidence."
     }
+  ],
+  "known_gaps": [
+    "Foundation and beginner instruction remains thin outside the CDC laboratory-training material.",
+    "Dedicated virology, mycology, parasitology and immunomicrobiology curricula need stronger level-specific instructional evidence.",
+    "Microbiome science needs dedicated course/project evidence rather than relying mainly on a training portal.",
+    "Research-oriented courses and reference tools do not by themselves establish ATLAS expert readiness; practical verification, retrieval and assessment remain required."
   ]
 }
