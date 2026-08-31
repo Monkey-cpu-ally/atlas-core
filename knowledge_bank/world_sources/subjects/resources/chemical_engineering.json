@@ -1,108 +1,17 @@
 {
-  "schema_version": "1.0",
-  "subject": "chemical_engineering",
-  "status": "extension_gap_fill_v2",
-  "resources": [
-    {
-      "id": "nist_chemistry_reference_data",
-      "title": "NIST Chemistry Standard Reference Data",
-      "provider": "National Institute of Standards and Technology",
-      "resource_type": "scientific_reference_data",
-      "url": "https://www.nist.gov/srd/chemistry-0",
-      "subsubjects": ["chemical_thermodynamics", "transport_phenomena", "reaction_engineering", "separations", "process_simulation"],
-      "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "access": "mixed_public_and_subscription_reference_data",
-      "storage_policy": "metadata_link_provenance; preserve database-specific terms and access controls",
-      "notes": "NIST chemistry reference-data portal includes thermochemical, thermophysical, transport-property, kinetics, and Chemistry WebBook resources useful for rigorous chemical-engineering calculations."
-    },
-    {
-      "id": "nist_chemistry_webbook_srd69",
-      "title": "NIST Chemistry WebBook, SRD 69",
-      "provider": "National Institute of Standards and Technology",
-      "resource_type": "thermochemical_thermophysical_database",
-      "url": "https://webbook.nist.gov/chemistry/",
-      "subsubjects": ["chemical_thermodynamics", "transport_phenomena", "reaction_engineering", "separations", "process_simulation"],
-      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
-      "access": "public_web_reference_with_linked_subscription_products",
-      "storage_policy": "metadata_link_provenance; do not mirror subscription datasets",
-      "notes": "Provides evaluated physical and chemical property data for well-defined chemical species and reactions; some linked NIST/TRC products require subscription."
-    },
-    {
-      "id": "epa_green_engineering_chemical_processes",
-      "title": "Green Engineering Textbook and Training Modules",
-      "provider": "U.S. Environmental Protection Agency",
-      "resource_type": "engineering_education_reference",
-      "url": "https://www.epa.gov/green-engineering/green-engineering-textbook-and-training-modules",
-      "subsubjects": ["material_energy_balances", "process_design", "process_safety", "sustainable_processes"],
-      "levels": ["advanced", "undergraduate", "graduate"],
-      "access": "public_web_reference",
-      "storage_policy": "metadata_link_provenance; verify rights at item level before local full-text ingestion",
-      "notes": "EPA describes this as senior-to-graduate-level chemical-engineering curriculum material focused on pollution prevention, risk, process/product environmental performance, raw-material use, energy use, wastes, and emissions."
-    },
-    {
-      "id": "epa_rmp_process_safety",
-      "title": "Risk Management Program (RMP) Rule Resources",
-      "provider": "U.S. Environmental Protection Agency",
-      "resource_type": "process_safety_regulatory_reference",
-      "url": "https://www.epa.gov/rmp",
-      "subsubjects": ["process_safety", "process_design"],
-      "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "access": "public",
-      "storage_policy": "metadata_link_provenance",
-      "notes": "Authoritative chemical-accident-prevention and risk-management reference for facilities using extremely hazardous substances."
-    },
-    {
-      "id": "epa_tsca_chemical_risk",
-      "title": "EPA Existing Chemical Safety Evaluation",
-      "provider": "U.S. Environmental Protection Agency",
-      "resource_type": "chemical_risk_reference",
-      "url": "https://www.epa.gov/assessing-and-managing-chemicals-under-tsca/how-epa-evaluates-safety-existing-chemicals",
-      "subsubjects": ["process_safety", "sustainable_processes"],
-      "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "access": "public",
-      "storage_policy": "metadata_link_provenance",
-      "notes": "Authoritative risk-evaluation and risk-management framework for chemicals under TSCA; useful for safety, exposure, and lifecycle constraints in process design."
-    },
-    {
-      "id": "doe_hydrogen_electrolysis",
-      "title": "Hydrogen Production: Electrolysis",
-      "provider": "U.S. Department of Energy",
-      "resource_type": "electrochemical_engineering_reference",
-      "url": "https://www.energy.gov/eere/fuelcells/hydrogen-production-electrolysis",
-      "subsubjects": ["electrochemical_engineering", "transport_phenomena", "sustainable_processes"],
-      "levels": ["intermediate", "advanced", "undergraduate", "graduate"],
-      "access": "public_official_reference",
-      "storage_policy": "metadata_link_provenance",
-      "notes": "DOE technical overview of electrolyzers and electrochemical water splitting. Mapping is limited to levels appropriate for the engineering concepts presented and does not substitute for a full electrochemical-engineering curriculum."
-    },
-    {
-      "id": "doe_hydrogen_fuel_cells",
-      "title": "Fuel Cells",
-      "provider": "U.S. Department of Energy",
-      "resource_type": "electrochemical_energy_systems_reference",
-      "url": "https://www.energy.gov/eere/fuelcells/fuel-cells",
-      "subsubjects": ["electrochemical_engineering", "chemical_thermodynamics", "transport_phenomena", "sustainable_processes"],
-      "levels": ["intermediate", "advanced", "undergraduate", "graduate"],
-      "access": "public_official_reference",
-      "storage_policy": "metadata_link_provenance",
-      "notes": "DOE reference on fuel-cell operation, electrochemical conversion, efficiency and technology classes; useful as an applied electrochemical-engineering source."
-    },
-    {
-      "id": "epa_biological_treatment_processes",
-      "title": "EPA Wastewater Technology and Treatment Resources",
-      "provider": "U.S. Environmental Protection Agency",
-      "resource_type": "bioprocess_engineering_reference",
-      "url": "https://www.epa.gov/npdes/municipal-wastewater",
-      "subsubjects": ["biochemical_engineering", "reaction_engineering", "separations", "process_design", "sustainable_processes"],
-      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
-      "access": "public_official_guidance_and_technical_resources",
-      "storage_policy": "metadata_link_and_item_provenance",
-      "notes": "EPA technical and regulatory resources for municipal wastewater treatment include biological treatment and process-system material. This is an applied biochemical-engineering reference, not a complete biochemical-engineering textbook."
-    }
+  "schema_version":"1.0","subject":"chemical_engineering","status":"extension_gap_fill_v3",
+  "resources":[
+    {"id":"mit_process_dynamics_control","title":"Process Dynamics, Operations, and Control","provider":"MIT OpenCourseWare","resource_type":"undergraduate_course","url":"https://ocw.mit.edu/courses/10-450-process-dynamics-operations-and-control-spring-2006/","subsubjects":["process_control","process_simulation","process_design"],"levels":["intermediate","advanced","undergraduate"],"access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Chemical-engineering course with lecture notes, problem sets and written assignments covering dynamic process models, feedback/feedforward control, stability, tuning, sensors and valves."},
+    {"id":"mit_process_control_by_design","title":"Integrated Chemical Engineering Topics I: Process Control by Design","provider":"MIT OpenCourseWare","resource_type":"undergraduate_course","url":"https://ocw.mit.edu/courses/10-492-1-integrated-chemical-engineering-topics-i-process-control-by-design-fall-2004/","subsubjects":["process_control","process_design","process_simulation","material_energy_balances"],"levels":["advanced","undergraduate"],"access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Integrates material/energy balance modeling, dynamic simulation, controllability, heat-exchanger networks and off-normal process behavior; includes problem sets and computational tools."},
+    {"id":"mit_reaction_engineering","title":"Chemical and Biological Reaction Engineering","provider":"MIT OpenCourseWare","resource_type":"undergraduate_course","url":"https://ocw.mit.edu/courses/10-37-chemical-and-biological-reaction-engineering-spring-2007/","subsubjects":["reaction_engineering","biochemical_engineering","material_energy_balances","transport_phenomena","process_design"],"levels":["intermediate","advanced","undergraduate"],"access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Covers reaction rates, stoichiometry, equilibrium, kinetics, chemical and biochemical reactors, catalysis, heat/mass transport and material/energy balances."},
+    {"id":"nist_chemistry_reference_data","title":"NIST Chemistry Standard Reference Data","provider":"National Institute of Standards and Technology","resource_type":"scientific_reference_data","url":"https://www.nist.gov/srd/chemistry-0","subsubjects":["chemical_thermodynamics","transport_phenomena","reaction_engineering","separations","process_simulation"],"levels":["advanced","undergraduate","graduate","research"],"access":"mixed_public_and_subscription_reference_data","storage_policy":"metadata_link_provenance"},
+    {"id":"nist_chemistry_webbook_srd69","title":"NIST Chemistry WebBook, SRD 69","provider":"National Institute of Standards and Technology","resource_type":"thermochemical_thermophysical_database","url":"https://webbook.nist.gov/chemistry/","subsubjects":["chemical_thermodynamics","transport_phenomena","reaction_engineering","separations","process_simulation"],"levels":["intermediate","advanced","undergraduate","graduate","research"],"access":"public_web_reference_with_linked_subscription_products","storage_policy":"metadata_link_provenance"},
+    {"id":"epa_green_engineering_chemical_processes","title":"Green Engineering Textbook and Training Modules","provider":"U.S. Environmental Protection Agency","resource_type":"engineering_education_reference","url":"https://www.epa.gov/green-engineering/green-engineering-textbook-and-training-modules","subsubjects":["material_energy_balances","process_design","process_safety","sustainable_processes"],"levels":["advanced","undergraduate","graduate"],"access":"public_web_reference","storage_policy":"metadata_link_provenance"},
+    {"id":"epa_rmp_process_safety","title":"Risk Management Program (RMP) Rule Resources","provider":"U.S. Environmental Protection Agency","resource_type":"process_safety_regulatory_reference","url":"https://www.epa.gov/rmp","subsubjects":["process_safety","process_design"],"levels":["advanced","undergraduate","graduate","research"],"access":"public","storage_policy":"metadata_link_provenance"},
+    {"id":"epa_tsca_chemical_risk","title":"EPA Existing Chemical Safety Evaluation","provider":"U.S. Environmental Protection Agency","resource_type":"chemical_risk_reference","url":"https://www.epa.gov/assessing-and-managing-chemicals-under-tsca/how-epa-evaluates-safety-existing-chemicals","subsubjects":["process_safety","sustainable_processes"],"levels":["advanced","undergraduate","graduate","research"],"access":"public","storage_policy":"metadata_link_provenance"},
+    {"id":"doe_hydrogen_electrolysis","title":"Hydrogen Production: Electrolysis","provider":"U.S. Department of Energy","resource_type":"electrochemical_engineering_reference","url":"https://www.energy.gov/eere/fuelcells/hydrogen-production-electrolysis","subsubjects":["electrochemical_engineering","transport_phenomena","sustainable_processes"],"levels":["intermediate","advanced","undergraduate","graduate"],"access":"public_official_reference","storage_policy":"metadata_link_provenance"},
+    {"id":"doe_hydrogen_fuel_cells","title":"Fuel Cells","provider":"U.S. Department of Energy","resource_type":"electrochemical_energy_systems_reference","url":"https://www.energy.gov/eere/fuelcells/fuel-cells","subsubjects":["electrochemical_engineering","chemical_thermodynamics","transport_phenomena","sustainable_processes"],"levels":["intermediate","advanced","undergraduate","graduate"],"access":"public_official_reference","storage_policy":"metadata_link_provenance"},
+    {"id":"epa_biological_treatment_processes","title":"EPA Wastewater Technology and Treatment Resources","provider":"U.S. Environmental Protection Agency","resource_type":"bioprocess_engineering_reference","url":"https://www.epa.gov/npdes/municipal-wastewater","subsubjects":["biochemical_engineering","reaction_engineering","separations","process_design","sustainable_processes"],"levels":["intermediate","advanced","undergraduate","graduate","research"],"access":"public_official_guidance_and_technical_resources","storage_policy":"metadata_link_and_item_provenance"}
   ],
-  "known_gaps": [
-    "foundation and beginner chemical-engineering instruction",
-    "full process-control curriculum beyond cross-listed control-systems resources",
-    "hands-on process simulation training with a verified open license"
-  ]
+  "known_gaps":["foundation and beginner chemical-engineering instruction remains incomplete","graduate/research process-control depth requires additional primary literature and current methods","hands-on process simulation training with a verified open license remains needed","expert readiness requires runtime retrieval, projects, verification/validation and assessment"]
 }
