@@ -35,18 +35,48 @@ class CreativeJobExecute(BaseModel):
 
 
 def _rubric_payload(rubric):
-    return {
-        "name": rubric.name,
-        "passing_score": rubric.passing_score,
-        "dimensions": [{"name": d.name, "question": d.question, "failure_signals": list(d.failure_signals)} for d in rubric.dimensions],
-    }
+    return {"name": rubric.name, "passing_score": rubric.passing_score, "dimensions": [{"name": d.name, "question": d.question, "failure_signals": list(d.failure_signals)} for d in rubric.dimensions]}
+
+
+def _reference_payload(reference):
+    return {"id": reference.reference_id, "title": reference.title, "kind": reference.kind, "category": reference.category, "study": list(reference.study)}
 
 
 @router.get("/references")
 async def list_references(q: str = Query(default="", max_length=120)):
     library = CreativeReferenceLibrary.load_default()
     references = library.search(q)
-    return {"query": q, "stats": library.stats(), "items": [{"id": r.reference_id, "title": r.title, "kind": r.kind, "category": r.category, "study": list(r.study)} for r in references]}
+    return {"query": q, "stats": library.stats(), "items": [_reference_payload(r) for r in references]}
+
+
+@router.get("/references/retrieve")
+async def retrieve_references(
+    q: str = Query(min_length=1, max_length=240),
+    limit: int = Query(default=12, ge=1, le=50),
+    kind: str | None = Query(default=None),
+):
+    """Rank creative references with explainable matching evidence."""
+    library = CreativeReferenceLibrary.load_default()
+    try:
+        matches = library.retrieve(q, limit=limit, kind=kind)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {
+        "query": q,
+        "kind": kind,
+        "limit": limit,
+        "stats": library.stats(),
+        "items": [
+            {**_reference_payload(match.reference), "score": match.score, "matched_terms": list(match.matched_terms)}
+            for match in matches
+        ],
+        "retrieval_contract": {
+            "ranked": True,
+            "explainable": True,
+            "vector_ready": True,
+            "principle_only": True,
+        },
+    }
 
 
 @router.get("/rubrics")
@@ -62,15 +92,7 @@ async def get_critic_council_contract():
 @router.get("/quality-contract")
 async def get_quality_contract():
     capabilities = registry.capabilities()
-    return {
-        "stages": ["brief", "references", "create", "critique", "revision", "master"],
-        "creative_gate": ["reference_context", "originality", "critic_council", "revision_re_evaluation"],
-        "master_gate": ["creative_approval", "story_quality", "art_style", "visual_quality", "continuity", "originality"],
-        "job_api_enabled": True,
-        "executor_capabilities": capabilities,
-        "generation_enabled": capabilities["create"],
-        "reason": "Only explicitly registered real executors can advance queued jobs.",
-    }
+    return {"stages": ["brief", "references", "create", "critique", "revision", "master"], "creative_gate": ["reference_context", "originality", "critic_council", "revision_re_evaluation"], "master_gate": ["creative_approval", "story_quality", "art_style", "visual_quality", "continuity", "originality"], "job_api_enabled": True, "executor_capabilities": capabilities, "generation_enabled": capabilities["create"], "reason": "Only explicitly registered real executors can advance queued jobs."}
 
 
 @router.post("/jobs", status_code=201)
@@ -103,30 +125,17 @@ async def execute_job(job_id: str, body: CreativeJobExecute):
         raise HTTPException(status_code=404, detail="creative job not found")
     if job.status != "queued":
         raise HTTPException(status_code=409, detail=f"creative job is {job.status}, not queued")
-
     if not registry.available(job.stage):
         blocked = job_store.transition(job.id, status="blocked", blockers=[f"executor_unavailable:{job.stage}"])
         return asdict(blocked)
-
     running = job_store.transition(job.id, status="running")
     try:
-        result = await registry.execute(ExecutionRequest(
-            job_id=running.id,
-            project_id=running.project_id,
-            stage=running.stage,
-            artifact_id=running.artifact_id,
-            payload=body.payload,
-        ))
+        result = await registry.execute(ExecutionRequest(job_id=running.id, project_id=running.project_id, stage=running.stage, artifact_id=running.artifact_id, payload=body.payload))
     except ExecutorUnavailable as exc:
         blocked = job_store.transition(job.id, status="blocked", blockers=[str(exc)])
         return asdict(blocked)
     except Exception as exc:
         failed = job_store.transition(job.id, status="failed", blockers=[f"executor_error:{type(exc).__name__}"], result={"error": str(exc)})
         return asdict(failed)
-
-    completed = job_store.transition(job.id, status="completed", result={
-        "artifact_id": result.artifact_id,
-        "executor": result.executor,
-        "output": dict(result.output),
-    })
+    completed = job_store.transition(job.id, status="completed", result={"artifact_id": result.artifact_id, "executor": result.executor, "output": dict(result.output)})
     return asdict(completed)
