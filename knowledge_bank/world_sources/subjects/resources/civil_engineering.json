@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "subject": "civil_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
     {
       "id": "fhwa_structures_geotech_hydraulics",
@@ -42,11 +42,108 @@
       "levels": ["advanced", "undergraduate", "graduate", "research"],
       "url": "https://www.fhwa.dot.gov/engineering/geotech/foundations/",
       "storage_policy": "metadata_link_and_public_domain_material_with_item_level_provenance"
+    },
+    {
+      "id": "mit_civil_engineering_intro_educate",
+      "title": "LL EduCATE: Introduction to Engineering Concepts - Civil Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "introductory_instructional_module",
+      "subsubjects": ["structural_engineering", "geotechnical_engineering", "transportation_engineering", "water_resources_engineering", "environmental_engineering", "construction_engineering", "infrastructure_systems", "hydraulics"],
+      "levels": ["foundation", "beginner"],
+      "url": "https://ocw.mit.edu/courses/res.ll-004-ll-educate-introduction-to-engineering-concepts-spring-2022/pages/civil-engineering/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "High-school/non-credit introduction to civil engineering specializations and core skills; useful for orientation, not evidence of professional competence."
+    },
+    {
+      "id": "mit_1_101_civil_environmental_design",
+      "title": "1.101 Introduction to Civil and Environmental Engineering Design I",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_design_course",
+      "subsubjects": ["structural_engineering", "water_resources_engineering", "environmental_engineering", "construction_engineering", "infrastructure_systems", "hydraulics"],
+      "levels": ["intermediate", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/1-101-introduction-to-civil-and-environmental-engineering-design-i-fall-2006/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "Sophomore design course with water-resources and structural tasks requiring design, fabrication and testing, plus laboratory experiments and a large-system redesign exercise."
+    },
+    {
+      "id": "mit_1_051_structural_engineering_design",
+      "title": "1.051 Structural Engineering Design",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "assessed_undergraduate_course",
+      "subsubjects": ["structural_engineering", "concrete_materials", "steel_design", "construction_engineering"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/1-051-structural-engineering-design-fall-2003/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "Structural engineering design course with lecture notes, problem sets, projects and exams."
+    },
+    {
+      "id": "mit_1_364_advanced_geotechnical_engineering",
+      "title": "1.364 Advanced Geotechnical Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "assessed_graduate_course",
+      "subsubjects": ["geotechnical_engineering", "structural_engineering", "construction_engineering", "infrastructure_systems"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/1-364-advanced-geotechnical-engineering-fall-2003/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "Graduate geotechnical course covering site characterization, shallow/deep foundations, excavation support, groundwater control, slope stability, soil improvement and construction monitoring; includes design/written assignments and exams."
+    },
+    {
+      "id": "mit_1_221j_transportation_systems",
+      "title": "1.221J Transportation Systems",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_instructional_course",
+      "subsubjects": ["transportation_engineering", "infrastructure_systems"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/1-221j-transportation-systems-fall-2004/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "Graduate systems treatment of transportation planning, investment, operations, maintenance, modeling, institutions and technology deployment with written assignments."
+    },
+    {
+      "id": "mit_1_731_water_resource_systems",
+      "title": "1.731 Water Resource Systems",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_quantitative_course",
+      "subsubjects": ["water_resources_engineering", "environmental_engineering", "infrastructure_systems", "hydraulics"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/1-731-water-resource-systems-fall-2006/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "Quantitative water-resource systems course covering river-basin development, flood control, water supply, groundwater remediation, simulation and optimization; includes problem sets."
+    },
+    {
+      "id": "mit_1_061_transport_processes_environment",
+      "title": "1.061 Transport Processes in the Environment",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "assessed_undergraduate_course",
+      "subsubjects": ["water_resources_engineering", "environmental_engineering", "hydraulics"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/1-061-transport-processes-in-the-environment-fall-2008/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "Undergraduate environmental transport course covering mass conservation, diffusion, boundary layers, air-water exchange and particle transport with labs, problem sets and simulation material."
+    },
+    {
+      "id": "mit_1_011_project_evaluation",
+      "title": "1.011 Project Evaluation",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "assessed_undergraduate_course",
+      "subsubjects": ["construction_engineering", "infrastructure_systems", "transportation_engineering", "water_resources_engineering"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/1-011-project-evaluation-spring-2011/",
+      "access": "public_open_courseware",
+      "storage_policy": "preserve_mit_ocw_license_and_item_provenance",
+      "notes": "Civil-project evaluation course addressing uncertainty, life-cycle costing, benefit-cost analysis and infrastructure decisions with problem sets, exams and projects."
     }
   ],
   "known_gaps": [
-    "Foundation-level general civil engineering instruction remains thin.",
-    "Dedicated surveying coverage should be expanded beyond the USACE manual repository.",
-    "Dedicated earthquake-engineering learning resources should be added during the measured gap-fill pass."
+    "Dedicated surveying instruction remains thin and should not be inferred from the USACE manual repository.",
+    "Dedicated earthquake-engineering curriculum with exercises or assessments should be added in a targeted pass.",
+    "Concrete-materials and steel-design coverage should be strengthened with exact dedicated course evidence rather than broad structural-design mapping.",
+    "Graduate and research references do not by themselves establish expert readiness; practical design work, code/standards application, verification and validation, runtime retrieval, and passed assessment remain required."
   ]
 }
