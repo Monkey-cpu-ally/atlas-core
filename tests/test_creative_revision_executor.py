@@ -8,7 +8,7 @@ def request(payload, artifact_id="artifact-v1"):
     return ExecutionRequest(job_id="job-1", project_id="project-1", stage="revision", payload=payload, artifact_id=artifact_id)
 
 def reference_context():
-    return {"project_identity":"Original machine-world family drama","project_constraints":["functional machinery","no copied designs"],"reference_ids":["creator:test"],"principles":["visual storytelling"],"study_targets":["pacing"],"limitations":["do not imitate signature forms"],"provenance":["curated profile"],"contract":{"principle_only":True,"project_identity_overrides_reference_influence":True}}
+    return {"project_identity":"Original machine-world family drama","project_constraints":["functional machinery","no copied designs"],"reference_ids":["creator:test"],"principles":["visual storytelling"],"study_targets":["pacing"],"limitations":["do not imitate signature forms"],"provenance":["curated profile"],"contract":{"principle_only":True,"project_identity_overrides_reference_influence":True,"project_constraints_preserved":True,"constraints_are_not_inspiration":True}}
 
 def test_revision_requires_existing_artifact():
     with pytest.raises(ValueError, match="current artifact"): asyncio.run(revision.execute_revision(request({"revision_plan":["Fix pacing."]})))
