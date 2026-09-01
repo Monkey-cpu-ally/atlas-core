@@ -211,6 +211,40 @@ async def _wire_atlas_memory():
 
 
 @app.on_event("startup")
+async def _seed_runtime_catalogs():
+    """Provision canonical built-in runtime data after Mongo is reachable.
+
+    These seeders are idempotent and check each canonical record rather than
+    treating a non-empty collection as initialized.  Keeping the calls in the
+    application lifecycle means a clean deployment, CI database, or recovered
+    database exposes the same baseline without requiring a hidden manual POST.
+    Failures are surfaced in logs and do not fabricate readiness for the
+    affected subsystem.
+    """
+    seeders = []
+    from services import environments as _environments
+    from services import nir as _nir
+    from services import reference_twins as _reference_twins
+    from services import robot as _robot
+    from services import subjects as _subjects
+
+    seeders.extend([
+        ("subjects", _subjects.seed_if_needed),
+        ("environments", _environments.seed_if_needed),
+        ("NIR library", _nir.seed_library_if_needed),
+        ("reference twins", _reference_twins.seed_if_needed),
+        ("robot devices", _robot.seed_if_needed),
+    ])
+
+    for name, seed in seeders:
+        try:
+            result = await seed()
+            logging.getLogger(__name__).info("Runtime seed %s: %s", name, result)
+        except Exception as exc:
+            logging.getLogger(__name__).error("Runtime seed %s failed: %s", name, exc)
+
+
+@app.on_event("startup")
 async def _wire_research_labs():
     try:
         from services import research_lab_engine as _research_labs
