@@ -9,22 +9,42 @@ def setup_function():
 def test_investigation_starts_as_concept_and_frontier():
     record=engine.create_investigation(title="Low-temperature structural composite",question="Can a layered composite improve impact resistance without increasing mass?",subjects=["Materials Science","Physics"])
     assert record["status"]=="CONCEPT"; assert record["knowledge_layer"]=="FRONTIER"; assert record["evidence_score"]["score"]==0
+    assert record["analogies"]==[]; assert record["candidate_hypotheses"]==[]
 
 
 def test_frontier_map_is_scoped_and_truthful():
     engine.create_investigation(title="Thermal question",question="Can geometry improve cooling?",knowledge_layer="FRONTIER",subjects=["Physics"])
     engine.create_investigation(title="Unknown biology",question="What mechanism explains the observation?",knowledge_layer="UNKNOWN",subjects=["Biology"])
     mapped=engine.map_frontier(subjects=["Physics"])
-    assert mapped["counts"]["FRONTIER"]==1; assert mapped["counts"]["UNKNOWN"]==0
-    assert "tracking labels" in mapped["rule"]
+    assert mapped["counts"]["FRONTIER"]==1; assert mapped["counts"]["UNKNOWN"]==0; assert "tracking labels" in mapped["rule"]
 
 
 def test_gap_detector_exposes_missing_verification_work():
     record=engine.create_investigation(title="Gap test",question="Can this effect be measured?")
-    gaps=engine.detect_gaps(record["investigation_id"])
-    kinds={g["kind"] for g in gaps["gaps"]}
-    assert {"foundation","question_decomposition","hypothesis","prior_art","evidence","experiment"}.issubset(kinds)
-    assert gaps["ready_for_verified_claim"] is False
+    gaps=engine.detect_gaps(record["investigation_id"]); kinds={g["kind"] for g in gaps["gaps"]}
+    assert {"foundation","question_decomposition","hypothesis","prior_art","evidence","experiment"}.issubset(kinds); assert gaps["ready_for_verified_claim"] is False
+
+
+def test_cross_disciplinary_analogy_does_not_claim_feasibility():
+    record=engine.create_investigation(title="Bio-inspired cooling",question="Can branching geometry improve passive cooling?",subjects=["Biology","Engineering"]); iid=record["investigation_id"]
+    analogy=engine.add_analogy(iid,source_subject="Biology",target_subject="Engineering",source_concept="vascular branching",mechanism="branching distributes transport paths",transferable_principle="hierarchical branching may distribute flow across an area",constraints=["fluid properties differ","manufacturing imposes minimum channel size"],source_refs=[{"citation":"reviewed source"}])
+    assert analogy["status"]=="candidate"; assert analogy["proves_feasibility"] is False; assert engine.get_investigation(iid)["status"]=="CONCEPT"
+
+
+def test_candidate_hypothesis_requires_review_before_activation():
+    record=engine.create_investigation(title="Analogy review",question="Can branching reduce thermal gradients?"); iid=record["investigation_id"]
+    analogy=engine.add_analogy(iid,source_subject="Biology",target_subject="Thermal Engineering",source_concept="vascular networks",mechanism="distributed transport",transferable_principle="branching can shorten transport paths",constraints=[])
+    candidate=engine.generate_candidate_hypothesis(iid,analogy_id=analogy["analogy_id"],statement="A branching channel layout reduces peak temperature by at least 5 percent under matched load.",rationale="The analogy suggests shorter distributed transport paths.",assumptions=["equal material mass","equal heat input"],falsification_criteria=["Peak temperature reduction is below 5 percent."],expected_observations=["lower peak temperature"],target_measurements=["peak_temperature_c"])
+    assert candidate["status"]=="pending_review"; assert engine.get_investigation(iid)["hypotheses"]==[]; assert engine.get_investigation(iid)["status"]=="CONCEPT"
+    accepted=engine.accept_candidate_hypothesis(iid,candidate["candidate_id"])
+    assert accepted["origin_candidate_id"]==candidate["candidate_id"]; assert engine.get_investigation(iid)["status"]=="HYPOTHESIS"; assert candidate["status"]=="accepted"
+
+
+def test_same_subject_analogy_is_rejected():
+    record=engine.create_investigation(title="Bad analogy",question="Does this transfer disciplines?")
+    try: engine.add_analogy(record["investigation_id"],source_subject="Physics",target_subject="Physics",source_concept="waves",mechanism="oscillation",transferable_principle="frequency response",constraints=[])
+    except engine.DiscoveryEngineError as exc: assert "different source and target" in str(exc)
+    else: raise AssertionError("same-subject analogy must fail")
 
 
 def test_hypothesis_requires_falsification_criteria():
