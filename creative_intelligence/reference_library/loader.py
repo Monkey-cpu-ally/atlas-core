@@ -1,4 +1,4 @@
-"""Validated loader and deterministic retrieval for ATLAS Creative Reference Library."""
+"""Validated loader, retrieval, and synthesis for ATLAS Creative Reference Library."""
 from __future__ import annotations
 
 import json
@@ -35,6 +35,16 @@ class ReferenceMatch:
     reference: CreativeReference
     score: int
     matched_terms: Tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ReferenceSynthesis:
+    query: str
+    references: Tuple[ReferenceMatch, ...]
+    principles: Tuple[str, ...]
+    study_targets: Tuple[str, ...]
+    limitations: Tuple[str, ...]
+    provenance: Tuple[str, ...]
 
 
 class CreativeReferenceLibrary:
@@ -115,6 +125,17 @@ class CreativeReferenceLibrary:
     def _tokens(values: Iterable[str]) -> set[str]:
         return {token for value in values for token in _TOKEN_RE.findall(value.casefold())}
 
+    @staticmethod
+    def _unique(values: Iterable[str]) -> Tuple[str, ...]:
+        seen = set()
+        result = []
+        for value in values:
+            key = value.casefold()
+            if key not in seen:
+                seen.add(key)
+                result.append(value)
+        return tuple(result)
+
     def all(self) -> Tuple[CreativeReference, ...]:
         return self._references
 
@@ -155,6 +176,22 @@ class CreativeReferenceLibrary:
             matches.append(ReferenceMatch(ref, score, tuple(sorted(matched))))
         matches.sort(key=lambda match: (-match.score, match.reference.title.casefold(), match.reference.reference_id))
         return tuple(matches[:limit])
+
+    def synthesize(self, query: str, *, limit: int = 4, minimum_references: int = 2) -> ReferenceSynthesis:
+        """Combine transferable principles from several ranked references without generating imitation instructions."""
+        if minimum_references < 2:
+            raise ValueError("synthesis requires at least two references")
+        if limit < minimum_references:
+            raise ValueError("synthesis limit must meet minimum references")
+        matches = self.retrieve(query, limit=limit)
+        if len(matches) < minimum_references:
+            raise ValueError("insufficient references for synthesis")
+        refs = tuple(match.reference for match in matches)
+        principles = self._unique(value for ref in refs for value in (*ref.techniques, *ref.strengths, *ref.study))
+        targets = self._unique(value for ref in refs for value in ref.study_targets)
+        limitations = self._unique(value for ref in refs for value in ref.limitations)
+        provenance = self._unique(value for ref in refs for value in ref.provenance)
+        return ReferenceSynthesis(query.strip(), matches, principles, targets, limitations, provenance)
 
     def stats(self) -> Dict[str, int]:
         creators = sum(ref.kind == "creator" for ref in self._references)
