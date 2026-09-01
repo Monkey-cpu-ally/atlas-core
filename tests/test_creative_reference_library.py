@@ -14,7 +14,7 @@ def test_default_library_loads_seed_catalogs():
     assert stats["creators"] >= 53
     assert stats["works"] >= 35
     assert stats["total"] == stats["creators"] + stats["works"]
-    assert "profiled" in stats
+    assert stats["profiled"] >= 21
 
 
 def test_reference_ids_are_unique_and_retrievable():
@@ -80,6 +80,36 @@ def test_ranked_retrieval_uses_deep_profile_fields():
     assert match.reference == reference
     assert {"vehicle", "architecture"}.issubset(set(match.matched_terms))
     assert library.search("functional silhouette") == (reference,)
+
+
+def test_synthesis_combines_multiple_references_and_preserves_boundaries():
+    library = CreativeReferenceLibrary.load_default()
+    synthesis = library.synthesize("minimal dialogue visual storytelling", limit=4)
+    assert len(synthesis.references) >= 2
+    assert synthesis.principles
+    assert synthesis.study_targets
+    assert synthesis.limitations
+    assert synthesis.provenance
+    assert len(synthesis.principles) == len({value.casefold() for value in synthesis.principles})
+    assert any("do not" in value.casefold() for value in synthesis.limitations)
+
+
+def test_synthesis_is_deterministic_for_same_query():
+    library = CreativeReferenceLibrary.load_default()
+    first = library.synthesize("industrial science fiction design", limit=4)
+    second = library.synthesize("industrial science fiction design", limit=4)
+    assert first == second
+
+
+def test_synthesis_fails_closed_without_reference_diversity():
+    reference = CreativeReference("creator:one", "One", "creator", "design", ("shape",))
+    library = CreativeReferenceLibrary([reference])
+    with pytest.raises(ValueError, match="insufficient references"):
+        library.synthesize("shape")
+    with pytest.raises(ValueError, match="at least two references"):
+        library.synthesize("shape", minimum_references=1)
+    with pytest.raises(ValueError, match="limit must meet minimum"):
+        library.synthesize("shape", limit=2, minimum_references=3)
 
 
 def test_ranked_retrieval_fails_closed_on_invalid_contract():
