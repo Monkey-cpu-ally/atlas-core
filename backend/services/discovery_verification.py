@@ -20,14 +20,24 @@ def evaluate_evidence(*, evidence: List[Dict[str, Any]], conflicts: Optional[Lis
     else: disposition="INSUFFICIENT_EVIDENCE"
     return {"evaluation_id":f"EV-{str(uuid4())[:8]}","evidence_score":scored,"conflicts":conflicts,"disposition":disposition,"claim_rule":"Evidence strength supports review; it does not independently establish truth."}
 
-def evaluate_replication(*, original_result: Dict[str, Any], replication_runs: List[Dict[str, Any]], required_successes: int=2, independent_required: bool=True) -> Dict[str, Any]:
+def evaluate_replication(*, original_result: Dict[str, Any], replication_runs: List[Dict[str, Any]], required_successes: int=2, independent_required: bool=True, verification_context: str="generic") -> Dict[str, Any]:
     if required_successes < 1: raise DiscoveryVerificationError("required_successes must be at least 1")
+    context=verification_context.strip().lower()
+    if context not in {"generic","simulation","empirical","physical","software","mathematical"}:
+        raise DiscoveryVerificationError("invalid verification_context")
     successes=[r for r in replication_runs if r.get("outcome")=="supports"]
     independent=[r for r in successes if r.get("independent") is True]
+    non_sim_independent=[r for r in independent if str(r.get("run_type","")).lower() not in {"simulation","model","simulated"}]
     replicated=len(successes)>=required_successes
-    independently_verified=replicated and (not independent_required or len(independent)>=1)
+    if context in {"empirical","physical"}:
+        independent_support=len(non_sim_independent)
+    elif context == "simulation":
+        independent_support=0
+    else:
+        independent_support=len(independent)
+    independently_verified=replicated and (not independent_required or independent_support>=1)
     if independently_verified: status="INDEPENDENTLY_VERIFIED"
     elif replicated: status="REPLICATED"
     elif replication_runs: status="INCONCLUSIVE"
     else: status="AWAITING_REPLICATION"
-    return {"replication_id":f"REP-{str(uuid4())[:8]}","original_result":original_result,"run_count":len(replication_runs),"support_count":len(successes),"independent_support_count":len(independent),"required_successes":required_successes,"status":status,"claim_rule":"Replication status is based only on recorded runs; simulation-only runs must not be labeled physical verification."}
+    return {"replication_id":f"REP-{str(uuid4())[:8]}","original_result":original_result,"run_count":len(replication_runs),"support_count":len(successes),"independent_support_count":independent_support,"required_successes":required_successes,"verification_context":context,"status":status,"claim_rule":"Replication status is based only on recorded runs. Simulation-only replication cannot establish empirical or physical independent verification."}
