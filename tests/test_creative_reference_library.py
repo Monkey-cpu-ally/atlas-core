@@ -62,18 +62,10 @@ def test_ranked_retrieval_can_filter_creator_and_work():
 
 def test_ranked_retrieval_uses_deep_profile_fields():
     reference = CreativeReference(
-        "creator:test",
-        "Test Creator",
-        "creator",
-        "design",
-        ("composition",),
-        disciplines=("industrial design",),
-        techniques=("functional silhouette",),
-        strengths=("readability",),
-        study_targets=("vehicle architecture",),
-        limitations=("do not imitate signature forms",),
-        provenance=("curated editorial profile",),
-        relationships=("environment design",),
+        "creator:test", "Test Creator", "creator", "design", ("composition",),
+        disciplines=("industrial design",), techniques=("functional silhouette",), strengths=("readability",),
+        study_targets=("vehicle architecture",), limitations=("do not imitate signature forms",),
+        provenance=("curated editorial profile",), relationships=("environment design",),
     )
     library = CreativeReferenceLibrary([reference])
     match = library.retrieve("vehicle architecture")[0]
@@ -99,6 +91,43 @@ def test_synthesis_is_deterministic_for_same_query():
     first = library.synthesize("industrial science fiction design", limit=4)
     second = library.synthesize("industrial science fiction design", limit=4)
     assert first == second
+
+
+def test_synthesis_uses_project_identity_and_constraints_as_retrieval_context():
+    refs = [
+        CreativeReference("creator:visual", "Visual", "creator", "animation", ("minimal dialogue",), techniques=("visual storytelling",)),
+        CreativeReference("work:industrial", "Industrial", "work", "film", ("industrial architecture",), techniques=("functional machinery",)),
+        CreativeReference("creator:unrelated", "Unrelated", "creator", "music", ("harmony",)),
+    ]
+    library = CreativeReferenceLibrary(refs)
+    synthesis = library.synthesize(
+        "minimal dialogue",
+        limit=2,
+        project_identity="industrial science fiction",
+        project_constraints=("functional machinery", "no copied designs", "functional machinery"),
+    )
+    ids = {match.reference.reference_id for match in synthesis.references}
+    assert "creator:visual" in ids
+    assert "work:industrial" in ids
+    assert synthesis.project_identity == "industrial science fiction"
+    assert synthesis.project_constraints == ("functional machinery", "no copied designs")
+
+
+def test_synthesis_prefers_distinct_reference_dimensions_before_rank_fill():
+    refs = [
+        CreativeReference("creator:a", "A", "creator", "animation", ("visual", "storytelling")),
+        CreativeReference("creator:b", "B", "creator", "animation", ("visual",)),
+        CreativeReference("work:c", "C", "work", "film", ("visual",)),
+        CreativeReference("creator:d", "D", "creator", "design", ("visual",)),
+    ]
+    library = CreativeReferenceLibrary(refs)
+    synthesis = library.synthesize("visual storytelling", limit=3)
+    dimensions = synthesis.diversity_dimensions
+    assert len(synthesis.references) == 3
+    assert len(dimensions) == 3
+    assert "creator:animation" in dimensions
+    assert "work:film" in dimensions
+    assert "creator:design" in dimensions
 
 
 def test_synthesis_fails_closed_without_reference_diversity():
