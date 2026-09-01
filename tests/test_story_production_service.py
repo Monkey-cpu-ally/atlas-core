@@ -51,7 +51,7 @@ async def test_story_executor_delivers_reference_intelligence_to_generator():
         "reference_ids": ["creator:test", "work:test"], "principles": ["visual storytelling", "functional silhouette"],
         "study_targets": ["pacing", "machine architecture"], "limitations": ["do not imitate signature forms"],
         "provenance": ["curated profile A", "curated profile B"],
-        "contract": {"principle_only": True, "project_identity_overrides_reference_influence": True},
+        "contract": {"principle_only": True, "project_identity_overrides_reference_influence": True, "project_constraints_preserved": True, "constraints_are_not_inspiration": True},
     }
     result = await executor(ExecutionRequest(job_id="j2", project_id="p2", stage="create", payload={"premise": "A family repairs a dying machine city.", "audience": "general", "medium": "story", "tone": "project-defined", "reference_context": context}))
     delivered = captured["reference_context"]
