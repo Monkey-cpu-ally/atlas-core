@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "subject": "mathematics",
+  "status": "gap_fill_v3_foundation_and_beginner",
+  "resources": [
+    {
+      "id": "openstax_contemporary_mathematics",
+      "title": "Contemporary Mathematics",
+      "provider": "OpenStax",
+      "resource_type": "open_textbook",
+      "url": "https://openstax.org/details/books/contemporary-mathematics",
+      "subsubjects": ["discrete_mathematics", "probability", "statistics", "mathematical_logic"],
+      "levels": ["foundation", "beginner", "undergraduate"],
+      "access": "open_textbook_provider_page",
+      "storage_policy": "ingest_only_under_the_provider_license_with_attribution_and_version_provenance",
+      "notes": "OpenStax presents this as an introductory college mathematics text and its published scope includes logic, sets, probability, statistics, counting, voting and graph theory. Foundation and beginner labels are relative to these subsubjects, not a claim that all material is pre-college."
+    },
+    {
+      "id": "khan_academy_precalculus",
+      "title": "Precalculus",
+      "provider": "Khan Academy",
+      "resource_type": "course_collection",
+      "url": "https://www.khanacademy.org/math/precalculus",
+      "subsubjects": ["precalculus"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Sequential instructional collection covering the prerequisite functions, trigonometry and analytic skills used to begin calculus."
+    },
+    {
+      "id": "khan_academy_differential_calculus",
+      "title": "Differential Calculus",
+      "provider": "Khan Academy",
+      "resource_type": "course_collection",
+      "url": "https://www.khanacademy.org/math/differential-calculus",
+      "subsubjects": ["calculus"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Introductory differential-calculus learning path beginning with limits and derivatives; foundation means entry into calculus, not elementary arithmetic."
+    },
+    {
+      "id": "khan_academy_linear_algebra",
+      "title": "Linear Algebra",
+      "provider": "Khan Academy",
+      "resource_type": "course_collection",
+      "url": "https://www.khanacademy.org/math/linear-algebra",
+      "subsubjects": ["linear_algebra"],
+      "levels": ["beginner", "intermediate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Entry-level linear-algebra sequence covering vectors, matrices, transformations and related foundations."
+    },
+    {
+      "id": "khan_academy_statistics_probability",
+      "title": "Statistics and Probability",
+      "provider": "Khan Academy",
+      "resource_type": "course_collection",
+      "url": "https://www.khanacademy.org/math/statistics-probability",
+      "subsubjects": ["probability", "statistics"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Starts with study design, data description and elementary probability before progressing to inference."
+    },
+    {
+      "id": "khan_academy_differential_equations",
+      "title": "Differential Equations",
+      "provider": "Khan Academy",
+      "resource_type": "course_collection",
+      "url": "https://www.khanacademy.org/math/differential-equations",
+      "subsubjects": ["differential_equations"],
+      "levels": ["beginner", "intermediate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Introductory differential-equations sequence; beginner is relative to the subsubject and assumes prior calculus."
+    }
+  ],
+  "evidence_notes": [
+    "All six provider URLs returned HTTP 200 during the 2026-09-01 catalog check.",
+    "Foundation and beginner are applied only to introductory or sequential entry resources and are relative to the named subsubject; prerequisite knowledge is not erased.",
+    "Public access does not authorize wholesale storage. Runtime ingestion must enforce the recorded provider license and storage policy.",
+    "These records improve catalog coverage only. They do not count as usable ATLAS knowledge until ingestion, retrieval and citation tests pass."
+  ]
+}
