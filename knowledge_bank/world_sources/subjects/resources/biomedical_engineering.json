@@ -1,68 +1,28 @@
 {
   "schema_version": "1.0",
   "subject": "biomedical_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
-    {
-      "id": "nibib_beta_center",
-      "title": "Center for Biomedical Engineering Technology Acceleration (BETA Center)",
-      "provider": "National Institute of Biomedical Imaging and Bioengineering (NIH)",
-      "resource_type": "research_engineering_reference",
-      "subsubjects": ["biomechanics", "biomedical_instrumentation", "medical_imaging", "biomaterials", "tissue_engineering", "biosensors", "physiological_modeling", "bioelectronics"],
-      "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.nibib.nih.gov/labs-at-nibib/center-for-biomedical-engineering-technology-acceleration-beta",
-      "access": "public_web",
-      "storage_policy": "metadata_link_provenance"
-    },
-    {
-      "id": "nibib_science_topics",
-      "title": "NIBIB Science Topics",
-      "provider": "National Institute of Biomedical Imaging and Bioengineering (NIH)",
-      "resource_type": "education_reference",
-      "subsubjects": ["biomedical_instrumentation", "medical_imaging", "biomaterials", "biosensors", "medical_devices", "physiological_modeling", "bioelectronics"],
-      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
-      "url": "https://www.nibib.nih.gov/science-education/science-topics/biomaterials",
-      "access": "public_web",
-      "storage_policy": "metadata_link_provenance"
-    },
-    {
-      "id": "nibib_biomaterials_network",
-      "title": "NIBIB Biomaterials Network",
-      "provider": "National Institute of Biomedical Imaging and Bioengineering (NIH)",
-      "resource_type": "research_translation_reference",
-      "subsubjects": ["biomaterials", "tissue_engineering", "medical_devices"],
-      "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.nibib.nih.gov/programs/biomaterials-network",
-      "access": "public_web",
-      "storage_policy": "metadata_link_provenance"
-    },
-    {
-      "id": "fda_device_regulatory_controls",
-      "title": "Medical Device Regulatory Controls",
-      "provider": "U.S. Food and Drug Administration",
-      "resource_type": "regulatory_reference",
-      "subsubjects": ["medical_devices", "regulatory_engineering"],
-      "levels": ["advanced", "undergraduate", "graduate", "research"],
-      "url": "https://www.fda.gov/medical-devices/overview-device-regulation/regulatory-controls",
-      "access": "public_web",
-      "storage_policy": "metadata_link_provenance"
-    },
-    {
-      "id": "fda_cdrh_regulatory_science_tools",
-      "title": "Catalog of Regulatory Science Tools to Help Assess New Medical Devices",
-      "provider": "U.S. Food and Drug Administration, Center for Devices and Radiological Health",
-      "resource_type": "regulatory_science_tool_catalog",
-      "subsubjects": ["biomechanics", "medical_imaging", "biomaterials", "biosensors", "neural_engineering", "medical_devices", "physiological_modeling", "bioelectronics", "regulatory_engineering"],
-      "levels": ["graduate", "research"],
-      "url": "https://www.fda.gov/medical-devices/science-and-research-medical-devices/catalog-regulatory-science-tools-help-assess-new-medical-devices",
-      "access": "public_web",
-      "storage_policy": "metadata_link_provenance"
-    }
+    {"id":"nibib_beta_center","title":"Center for Biomedical Engineering Technology Acceleration (BETA Center)","provider":"National Institute of Biomedical Imaging and Bioengineering (NIH)","resource_type":"research_engineering_reference","subsubjects":["biomechanics","biomedical_instrumentation","medical_imaging","biomaterials","tissue_engineering","biosensors","physiological_modeling","bioelectronics"],"levels":["advanced","undergraduate","graduate","research"],"url":"https://www.nibib.nih.gov/labs-at-nibib/center-for-biomedical-engineering-technology-acceleration-beta","access":"public_web","storage_policy":"metadata_link_provenance"},
+    {"id":"nibib_science_topics","title":"NIBIB Science Topics","provider":"National Institute of Biomedical Imaging and Bioengineering (NIH)","resource_type":"education_reference","subsubjects":["biomedical_instrumentation","medical_imaging","biomaterials","biosensors","medical_devices","physiological_modeling","bioelectronics"],"levels":["foundation","beginner","intermediate","advanced","undergraduate"],"url":"https://www.nibib.nih.gov/science-education/science-topics/biomaterials","access":"public_web","storage_policy":"metadata_link_provenance"},
+    {"id":"nibib_biomaterials_network","title":"NIBIB Biomaterials Network","provider":"National Institute of Biomedical Imaging and Bioengineering (NIH)","resource_type":"research_translation_reference","subsubjects":["biomaterials","tissue_engineering","medical_devices"],"levels":["advanced","undergraduate","graduate","research"],"url":"https://www.nibib.nih.gov/programs/biomaterials-network","access":"public_web","storage_policy":"metadata_link_provenance"},
+    {"id":"fda_device_regulatory_controls","title":"Medical Device Regulatory Controls","provider":"U.S. Food and Drug Administration","resource_type":"regulatory_reference","subsubjects":["medical_devices","regulatory_engineering"],"levels":["advanced","undergraduate","graduate","research"],"url":"https://www.fda.gov/medical-devices/overview-device-regulation/regulatory-controls","access":"public_web","storage_policy":"metadata_link_provenance"},
+    {"id":"fda_cdrh_regulatory_science_tools","title":"Catalog of Regulatory Science Tools to Help Assess New Medical Devices","provider":"U.S. Food and Drug Administration, Center for Devices and Radiological Health","resource_type":"regulatory_science_tool_catalog","subsubjects":["biomechanics","medical_imaging","biomaterials","biosensors","neural_engineering","medical_devices","physiological_modeling","bioelectronics","regulatory_engineering"],"levels":["graduate","research"],"url":"https://www.fda.gov/medical-devices/science-and-research-medical-devices/catalog-regulatory-science-tools-help-assess-new-medical-devices","access":"public_web","storage_policy":"metadata_link_provenance"},
+    {"id":"mit_20_310j_biomechanics","title":"Molecular, Cellular, and Tissue Biomechanics","provider":"MIT OpenCourseWare","resource_type":"undergraduate_course","subsubjects":["biomechanics","tissue_engineering","physiological_modeling"],"levels":["intermediate","advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/20-310j-molecular-cellular-and-tissue-biomechanics-spring-2015/","access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Undergraduate biomechanics course applying continuum and statistical mechanics from molecular through tissue scales; includes lecture notes, problem sets, and projects."},
+    {"id":"mit_20_410j_biomechanics","title":"Molecular, Cellular and Tissue Biomechanics (BE.410J)","provider":"MIT OpenCourseWare","resource_type":"graduate_course","subsubjects":["biomechanics","physiological_modeling"],"levels":["advanced","undergraduate","graduate"],"url":"https://ocw.mit.edu/courses/20-410j-molecular-cellular-and-tissue-biomechanics-be-410j-spring-2003/","access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Graduate biomechanics curriculum covering tissue, cellular and molecular mechanics and experimental methods; includes lecture notes, problem sets, written assignments and exams."},
+    {"id":"mit_22_56j_noninvasive_imaging","title":"Noninvasive Imaging in Biology and Medicine","provider":"MIT OpenCourseWare","resource_type":"graduate_course","subsubjects":["biomedical_instrumentation","medical_imaging","neural_engineering"],"levels":["advanced","undergraduate","graduate"],"url":"https://ocw.mit.edu/courses/22-56j-noninvasive-imaging-in-biology-and-medicine-fall-2005/","access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Theory and application of X-ray CT, PET/SPECT, MRI and optical imaging with emphasis on neuroimaging; includes problem sets and hands-on imaging-system demonstrations."},
+    {"id":"mit_2_79j_biomaterials_tissue_interactions","title":"Biomaterials-Tissue Interactions","provider":"MIT OpenCourseWare","resource_type":"graduate_course","subsubjects":["biomaterials","biomechanics","tissue_engineering","medical_devices"],"levels":["advanced","undergraduate","graduate"],"url":"https://ocw.mit.edu/courses/2-79j-biomaterials-tissue-interactions-fall-2022/","access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Graduate instruction in materials science, mechanics and cell biology for implantable and injectable biomedical devices, with lecture videos, notes and readings."},
+    {"id":"mit_2_787j_tissue_engineering_organ_regeneration","title":"Tissue Engineering and Organ Regeneration","provider":"MIT OpenCourseWare","resource_type":"graduate_course","subsubjects":["biomaterials","biomechanics","tissue_engineering","medical_devices"],"levels":["advanced","graduate"],"url":"https://ocw.mit.edu/courses/2-787j-tissue-engineering-and-organ-regeneration-fall-2024/","access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Modern graduate curriculum on tissue engineering, organ regeneration, biomaterial scaffolds, cells and regulators, clinical translation, and analysis of regenerative-device successes and failures."},
+    {"id":"mit_hst_535_tissue_engineering","title":"Principles and Practice of Tissue Engineering","provider":"MIT OpenCourseWare","resource_type":"graduate_course","subsubjects":["biomaterials","tissue_engineering","medical_devices"],"levels":["advanced","graduate"],"url":"https://ocw.mit.edu/courses/hst-535-principles-and-practice-of-tissue-engineering-fall-2004/","access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Graduate tissue-engineering curriculum covering cells, scaffolds, regulators, mechanical loading, culture conditions, fabrication of implantable products and clinical case studies."},
+    {"id":"mit_ll_educate_bioengineering","title":"LL EduCATE: Bioengineering","provider":"MIT OpenCourseWare","resource_type":"high_school_introductory_module","subsubjects":["biomechanics","biomedical_instrumentation","medical_imaging","biomaterials","tissue_engineering","medical_devices"],"levels":["foundation","beginner"],"url":"https://ocw.mit.edu/courses/res.ll-004-ll-educate-introduction-to-engineering-concepts-spring-2022/pages/bioengineering/","access":"open_course_materials","storage_policy":"metadata_and_permitted_course_materials","notes":"Introductory high-school/non-credit orientation to bioengineering specializations including prosthetics, medical devices, imaging, artificial organs and biomaterials; useful for foundation exposure, not proof of professional competence."}
   ],
   "known_gaps": [
-    "rehabilitation_engineering needs a dedicated authoritative source",
-    "neural_engineering needs deeper dedicated curriculum coverage",
-    "foundation and beginner coverage is intentionally conservative outside NIBIB educational material"
+    "rehabilitation_engineering still needs a dedicated authoritative instructional source",
+    "neural_engineering remains thinner than biomechanics, imaging, biomaterials and tissue engineering and needs a dedicated assessed curriculum",
+    "biosensors and bioelectronics need deeper assessed design-and-laboratory coursework",
+    "regulatory references support compliance knowledge but do not establish medical-device design competence",
+    "research references and graduate courses do not by themselves establish expert readiness",
+    "expert readiness requires runtime retrieval, practical design projects, verification and validation, provenance, and passed assessment"
   ],
-  "rights_note": "Catalog metadata and official public guidance may be indexed with provenance. Do not assume linked publications, standards, datasets, or third-party materials are licensed for local full-text ingestion; verify rights item by item."
+  "rights_note": "Catalog metadata and official public guidance may be indexed with provenance. MIT OpenCourseWare materials must retain source and license metadata and only permitted course materials may be stored. Do not assume linked publications, standards, datasets, or third-party materials are licensed for local full-text ingestion; verify rights item by item."
 }
