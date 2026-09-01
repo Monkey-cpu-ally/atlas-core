@@ -9,7 +9,7 @@ def setup_function():
 def test_investigation_starts_as_concept_and_frontier():
     record=engine.create_investigation(title="Low-temperature structural composite",question="Can a layered composite improve impact resistance without increasing mass?",subjects=["Materials Science","Physics"])
     assert record["status"]=="CONCEPT"; assert record["knowledge_layer"]=="FRONTIER"; assert record["evidence_score"]["score"]==0
-    assert record["analogies"]==[]; assert record["candidate_hypotheses"]==[]
+    assert record["analogies"]==[]; assert record["candidate_hypotheses"]==[]; assert record["challenges"]==[]; assert record["prior_art_assessments"]==[]
 
 
 def test_frontier_map_is_scoped_and_truthful():
@@ -31,13 +31,41 @@ def test_cross_disciplinary_analogy_does_not_claim_feasibility():
     assert analogy["status"]=="candidate"; assert analogy["proves_feasibility"] is False; assert engine.get_investigation(iid)["status"]=="CONCEPT"
 
 
+def _candidate(iid):
+    analogy=engine.add_analogy(iid,source_subject="Biology",target_subject="Thermal Engineering",source_concept="vascular networks",mechanism="distributed transport",transferable_principle="branching can shorten transport paths",constraints=[])
+    return engine.generate_candidate_hypothesis(iid,analogy_id=analogy["analogy_id"],statement="A branching channel layout reduces peak temperature by at least 5 percent under matched load.",rationale="The analogy suggests shorter distributed transport paths.",assumptions=["equal material mass","equal heat input"],falsification_criteria=["Peak temperature reduction is below 5 percent."],expected_observations=["lower peak temperature"],target_measurements=["peak_temperature_c"])
+
+
 def test_candidate_hypothesis_requires_review_before_activation():
     record=engine.create_investigation(title="Analogy review",question="Can branching reduce thermal gradients?"); iid=record["investigation_id"]
-    analogy=engine.add_analogy(iid,source_subject="Biology",target_subject="Thermal Engineering",source_concept="vascular networks",mechanism="distributed transport",transferable_principle="branching can shorten transport paths",constraints=[])
-    candidate=engine.generate_candidate_hypothesis(iid,analogy_id=analogy["analogy_id"],statement="A branching channel layout reduces peak temperature by at least 5 percent under matched load.",rationale="The analogy suggests shorter distributed transport paths.",assumptions=["equal material mass","equal heat input"],falsification_criteria=["Peak temperature reduction is below 5 percent."],expected_observations=["lower peak temperature"],target_measurements=["peak_temperature_c"])
+    candidate=_candidate(iid)
     assert candidate["status"]=="pending_review"; assert engine.get_investigation(iid)["hypotheses"]==[]; assert engine.get_investigation(iid)["status"]=="CONCEPT"
     accepted=engine.accept_candidate_hypothesis(iid,candidate["candidate_id"])
     assert accepted["origin_candidate_id"]==candidate["candidate_id"]; assert engine.get_investigation(iid)["status"]=="HYPOTHESIS"; assert candidate["status"]=="accepted"
+
+
+def test_challenge_gate_records_assumptions_and_conflicts_without_changing_truth_status():
+    record=engine.create_investigation(title="Challenge review",question="Can the hypothesis survive contradictory evidence?"); iid=record["investigation_id"]
+    hypothesis=engine.add_hypothesis(iid,statement="Geometry A lowers temperature.",rationale="It increases effective transport area.",falsification_criteria=["No measurable reduction."],assumptions=["airflow is equal"])
+    challenge=engine.challenge_active_hypothesis(iid,hypothesis_id=hypothesis["hypothesis_id"],supporting_claims=[{"claim":"one supporting study"}],conflicting_claims=[{"claim":"a matched study found no effect","source_ref":"study-2"}])
+    assert challenge["status"]=="CONTRADICTION_REVIEW_REQUIRED"; assert challenge["conflict_count"]==1
+    assert engine.get_investigation(iid)["status"]=="HYPOTHESIS"; assert engine.get_investigation(iid)["challenges"][0]["hypothesis_id"]==hypothesis["hypothesis_id"]
+
+
+def test_prior_art_no_match_never_claims_novelty():
+    record=engine.create_investigation(title="Novelty review",question="Is the candidate actually novel?"); iid=record["investigation_id"]
+    candidate=_candidate(iid)
+    assessment=engine.assess_candidate_prior_art(iid,candidate_id=candidate["candidate_id"],search_queries=["branching thermal channel geometry"],matches=[])
+    assert assessment["disposition"]=="NO_MATCH_RECORDED"; assert "not proof of novelty" in assessment["claim_rule"]
+    assert candidate["novelty_status"]=="unproven"; assert engine.get_investigation(iid)["status"]=="CONCEPT"
+
+
+def test_direct_prior_art_blocks_candidate_novelty_without_mutating_investigation_to_verified():
+    record=engine.create_investigation(title="Direct prior art",question="Does direct prior art exist?"); iid=record["investigation_id"]
+    candidate=_candidate(iid)
+    assessment=engine.assess_candidate_prior_art(iid,candidate_id=candidate["candidate_id"],search_queries=["branching thermal channel"],matches=[{"title":"Existing branching cooler","source_ref":"patent-1","similarity":"DIRECT"}])
+    assert assessment["disposition"]=="NOT_NOVEL_CANDIDATE"; assert candidate["novelty_status"]=="blocked_by_direct_prior_art"
+    assert engine.get_investigation(iid)["status"]=="CONCEPT"
 
 
 def test_same_subject_analogy_is_rejected():
