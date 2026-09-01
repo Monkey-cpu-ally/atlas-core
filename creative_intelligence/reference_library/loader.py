@@ -45,6 +45,9 @@ class ReferenceSynthesis:
     study_targets: Tuple[str, ...]
     limitations: Tuple[str, ...]
     provenance: Tuple[str, ...]
+    project_identity: str = ""
+    project_constraints: Tuple[str, ...] = ()
+    diversity_dimensions: Tuple[str, ...] = ()
 
 
 class CreativeReferenceLibrary:
@@ -177,13 +180,38 @@ class CreativeReferenceLibrary:
         matches.sort(key=lambda match: (-match.score, match.reference.title.casefold(), match.reference.reference_id))
         return tuple(matches[:limit])
 
-    def synthesize(self, query: str, *, limit: int = 4, minimum_references: int = 2) -> ReferenceSynthesis:
-        """Combine transferable principles from several ranked references without generating imitation instructions."""
+    @staticmethod
+    def _diversity_key(match: ReferenceMatch) -> Tuple[str, str]:
+        return match.reference.kind, match.reference.category.casefold()
+
+    def _select_diverse(self, matches: Tuple[ReferenceMatch, ...], limit: int) -> Tuple[ReferenceMatch, ...]:
+        selected: List[ReferenceMatch] = []
+        used = set()
+        for match in matches:
+            key = self._diversity_key(match)
+            if key not in used:
+                selected.append(match); used.add(key)
+                if len(selected) == limit:
+                    return tuple(selected)
+        for match in matches:
+            if match not in selected:
+                selected.append(match)
+                if len(selected) == limit:
+                    break
+        return tuple(selected)
+
+    def synthesize(self, query: str, *, limit: int = 4, minimum_references: int = 2, project_identity: str = "", project_constraints: Iterable[str] = ()) -> ReferenceSynthesis:
+        """Combine diverse transferable principles while keeping project identity authoritative."""
         if minimum_references < 2:
             raise ValueError("synthesis requires at least two references")
         if limit < minimum_references:
             raise ValueError("synthesis limit must meet minimum references")
-        matches = self.retrieve(query, limit=limit)
+        identity = project_identity.strip()
+        constraints = self._unique(value.strip() for value in project_constraints if isinstance(value, str) and value.strip())
+        retrieval_query = " ".join(part for part in (query.strip(), identity, *constraints) if part)
+        candidate_limit = max(limit * 4, 12)
+        candidates = self.retrieve(retrieval_query, limit=candidate_limit)
+        matches = self._select_diverse(candidates, limit)
         if len(matches) < minimum_references:
             raise ValueError("insufficient references for synthesis")
         refs = tuple(match.reference for match in matches)
@@ -191,7 +219,8 @@ class CreativeReferenceLibrary:
         targets = self._unique(value for ref in refs for value in ref.study_targets)
         limitations = self._unique(value for ref in refs for value in ref.limitations)
         provenance = self._unique(value for ref in refs for value in ref.provenance)
-        return ReferenceSynthesis(query.strip(), matches, principles, targets, limitations, provenance)
+        dimensions = self._unique(f"{ref.kind}:{ref.category}" for ref in refs)
+        return ReferenceSynthesis(query.strip(), matches, principles, targets, limitations, provenance, identity, constraints, dimensions)
 
     def stats(self) -> Dict[str, int]:
         creators = sum(ref.kind == "creator" for ref in self._references)
