@@ -39,7 +39,20 @@ def _rubric_payload(rubric):
 
 
 def _reference_payload(reference):
-    return {"id": reference.reference_id, "title": reference.title, "kind": reference.kind, "category": reference.category, "study": list(reference.study)}
+    return {
+        "id": reference.reference_id,
+        "title": reference.title,
+        "kind": reference.kind,
+        "category": reference.category,
+        "study": list(reference.study),
+        "disciplines": list(reference.disciplines),
+        "techniques": list(reference.techniques),
+        "strengths": list(reference.strengths),
+        "study_targets": list(reference.study_targets),
+        "limitations": list(reference.limitations),
+        "provenance": list(reference.provenance),
+        "relationships": list(reference.relationships),
+    }
 
 
 @router.get("/references")
@@ -75,6 +88,43 @@ async def retrieve_references(
             "explainable": True,
             "vector_ready": True,
             "principle_only": True,
+        },
+    }
+
+
+@router.get("/references/synthesize")
+async def synthesize_references(
+    q: str = Query(min_length=1, max_length=240),
+    limit: int = Query(default=4, ge=2, le=12),
+    minimum_references: int = Query(default=2, ge=2, le=6),
+):
+    """Combine transferable principles from several references while preserving provenance and anti-imitation boundaries."""
+    library = CreativeReferenceLibrary.load_default()
+    try:
+        synthesis = library.synthesize(q, limit=limit, minimum_references=minimum_references)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {
+        "query": synthesis.query,
+        "references": [
+            {
+                **_reference_payload(match.reference),
+                "score": match.score,
+                "matched_terms": list(match.matched_terms),
+            }
+            for match in synthesis.references
+        ],
+        "principles": list(synthesis.principles),
+        "study_targets": list(synthesis.study_targets),
+        "limitations": list(synthesis.limitations),
+        "provenance": list(synthesis.provenance),
+        "synthesis_contract": {
+            "multi_reference": True,
+            "deterministic": True,
+            "principle_only": True,
+            "provenance_preserved": True,
+            "anti_imitation_boundaries_preserved": True,
+            "project_identity_overrides_reference_influence": True,
         },
     }
 
