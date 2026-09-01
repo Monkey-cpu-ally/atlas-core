@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from services import discovery_approval_pipeline as approval
+from services import discovery_challenge
 from services import evidence_scoring
 
 LAYERS = {"FOUNDATION", "FRONTIER", "UNKNOWN"}
@@ -59,7 +60,8 @@ def create_investigation(*, title: str, question: str, knowledge_layer: str = "F
         "investigation_id": investigation_id, "title": title.strip(), "question": question.strip(),
         "knowledge_layer": layer, "owner_ai": owner_ai, "status": "CONCEPT", "subjects": subjects or [],
         "related_projects": related_projects or [], "mission_id": mission_id, "known_facts": [], "unknowns": [],
-        "assumptions": [], "analogies": [], "candidate_hypotheses": [], "hypotheses": [], "prior_art": [], "evidence": [],
+        "assumptions": [], "analogies": [], "candidate_hypotheses": [], "hypotheses": [], "challenges": [],
+        "prior_art": [], "prior_art_assessments": [], "evidence": [],
         "evidence_score": evidence_scoring.score_evidence([]), "experiment_plan": None, "results": [],
         "approval_discovery_id": None, "created_at": _now(), "updated_at": _now(),
     }
@@ -113,7 +115,6 @@ def detect_gaps(investigation_id: str) -> Dict[str, Any]:
 
 
 def add_analogy(investigation_id: str, *, source_subject: str, target_subject: str, source_concept: str, mechanism: str, transferable_principle: str, constraints: List[str], source_refs: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-    """Record a cross-disciplinary analogy without claiming feasibility."""
     record = _require(investigation_id)
     required = [source_subject, target_subject, source_concept, mechanism, transferable_principle]
     if any(not value.strip() for value in required):
@@ -127,7 +128,6 @@ def add_analogy(investigation_id: str, *, source_subject: str, target_subject: s
 
 
 def generate_candidate_hypothesis(investigation_id: str, *, analogy_id: str, statement: str, rationale: str, assumptions: List[str], falsification_criteria: List[str], expected_observations: List[str], target_measurements: List[str]) -> Dict[str, Any]:
-    """Create a reviewable candidate. It is not an active hypothesis until accepted."""
     record = _require(investigation_id)
     analogy = next((item for item in record.get("analogies", []) if item["analogy_id"] == analogy_id), None)
     if not analogy: raise DiscoveryEngineError(f"unknown analogy_id: {analogy_id}")
@@ -153,9 +153,38 @@ def accept_candidate_hypothesis(investigation_id: str, candidate_id: str) -> Dic
 
 def add_hypothesis(investigation_id: str, *, statement: str, rationale: str, falsification_criteria: List[str], assumptions: Optional[List[str]] = None) -> Dict[str, Any]:
     record = _require(investigation_id)
+    if not statement.strip() or not rationale.strip(): raise DiscoveryEngineError("hypothesis statement and rationale are required")
     if not falsification_criteria: raise DiscoveryEngineError("a hypothesis requires falsification criteria")
     hypothesis = {"hypothesis_id":f"HYP-{str(uuid4())[:8]}","statement":statement.strip(),"rationale":rationale.strip(),"falsification_criteria":falsification_criteria,"assumptions":assumptions or [],"status":"active","created_at":_now()}
     record["hypotheses"].append(hypothesis); record["status"]="HYPOTHESIS"; record["updated_at"]=_now(); return hypothesis
+
+
+def challenge_active_hypothesis(investigation_id: str, *, hypothesis_id: str, supporting_claims: List[Dict[str, Any]], conflicting_claims: List[Dict[str, Any]]) -> Dict[str, Any]:
+    record = _require(investigation_id)
+    hypothesis = next((item for item in record.get("hypotheses", []) if item["hypothesis_id"] == hypothesis_id), None)
+    if not hypothesis: raise DiscoveryEngineError(f"unknown hypothesis_id: {hypothesis_id}")
+    try:
+        challenge = discovery_challenge.challenge_hypothesis(statement=hypothesis["statement"], assumptions=hypothesis.get("assumptions", []), supporting_claims=supporting_claims, conflicting_claims=conflicting_claims)
+    except discovery_challenge.DiscoveryChallengeError as exc:
+        raise DiscoveryEngineError(str(exc)) from exc
+    challenge["hypothesis_id"] = hypothesis_id; challenge["created_at"] = _now()
+    record.setdefault("challenges", []).append(challenge); record["updated_at"] = _now(); return challenge
+
+
+def assess_candidate_prior_art(investigation_id: str, *, candidate_id: str, search_queries: List[str], matches: List[Dict[str, Any]]) -> Dict[str, Any]:
+    record = _require(investigation_id)
+    candidate = next((item for item in record.get("candidate_hypotheses", []) if item["candidate_id"] == candidate_id), None)
+    if not candidate: raise DiscoveryEngineError(f"unknown candidate_id: {candidate_id}")
+    try:
+        assessment = discovery_challenge.assess_prior_art(candidate_statement=candidate["statement"], search_queries=search_queries, matches=matches)
+    except discovery_challenge.DiscoveryChallengeError as exc:
+        raise DiscoveryEngineError(str(exc)) from exc
+    assessment["candidate_id"] = candidate_id; assessment["created_at"] = _now()
+    record.setdefault("prior_art_assessments", []).append(assessment)
+    if assessment["disposition"] == "NOT_NOVEL_CANDIDATE": candidate["novelty_status"] = "blocked_by_direct_prior_art"
+    elif assessment["disposition"] == "NOVELTY_UNRESOLVED": candidate["novelty_status"] = "unresolved"
+    else: candidate["novelty_status"] = "unproven"
+    record["updated_at"] = _now(); return assessment
 
 
 def add_prior_art(investigation_id: str, *, items: List[Dict[str, Any]], conclusion: str) -> Dict[str, Any]:
@@ -207,7 +236,7 @@ async def hydrate_from_mongo() -> Dict[str, int]:
     if _DB is None: return {"investigations":0}
     items=await _DB.discovery_investigations.find({}, {"_id":0}).to_list(10000); _RECORDS.clear()
     for item in items:
-        item.setdefault("analogies", []); item.setdefault("candidate_hypotheses", []); _RECORDS[item["investigation_id"]]=item
+        item.setdefault("analogies", []); item.setdefault("candidate_hypotheses", []); item.setdefault("challenges", []); item.setdefault("prior_art_assessments", []); _RECORDS[item["investigation_id"]]=item
     return {"investigations":len(_RECORDS)}
 
 
