@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from creative_intelligence.craft_rubrics import STORY
 from creative_intelligence.critic_council import CreativeCriticCouncil
 from creative_intelligence.executor_registry import ExecutionRequest, ExecutionResult, registry
-from creative_intelligence.story_production import ReferenceContext
+from creative_intelligence.reference_context import ReferenceContext
 from services.llm_provider import send
 SYSTEM="""You are an ATLAS specialist creative critic. Evaluate the supplied artifact rigorously, not politely. Return JSON only with keys scores, findings, revision_requests and, whenever reference intelligence is supplied, reference_boundary_check. scores must contain every supplied rubric dimension with an integer 0-100. Findings and revision_requests must be arrays of concise strings. reference_boundary_check must contain booleans passed, project_alignment, constraints_respected, anti_imitation and an array findings. Do not reward generic, rushed, derivative, incoherent, juvenile, or technically weak work. When reference intelligence is supplied, judge the artifact itself: verify that it preserves project identity, obeys project constraints, uses only transferable principles, and does not imitate distinctive reference expression. Reference limitations are hard anti-imitation boundaries."""
 def _parse_json(text:str)->dict:
@@ -28,8 +28,7 @@ def _boundary_check(review:dict,critic:str)->dict:
     return {"critic":critic,**{k:check[k] for k in required},"findings":findings}
 async def _review(critic:str,focus:str,artifact:str,reference_context:ReferenceContext|None=None)->dict:
     dimensions=[{"name":d.name,"question":d.question,"failure_signals":list(d.failure_signals)} for d in STORY.dimensions]; context=None
-    if reference_context:
-        context={"project_identity":reference_context.project_identity,"project_constraints":list(reference_context.project_constraints),"reference_ids":list(reference_context.reference_ids),"principles":list(reference_context.principles),"study_targets":list(reference_context.study_targets),"limitations":list(reference_context.limitations),"provenance":list(reference_context.provenance),"instruction":"Use principles as evaluation lenses only. Project identity and constraints override reference influence. Inspect the artifact and return explicit boundary evidence."}
+    if reference_context: context={"project_identity":reference_context.project_identity,"project_constraints":list(reference_context.project_constraints),"reference_ids":list(reference_context.reference_ids),"principles":list(reference_context.principles),"study_targets":list(reference_context.study_targets),"limitations":list(reference_context.limitations),"provenance":list(reference_context.provenance),"instruction":"Use principles as evaluation lenses only. Project identity and constraints override reference influence. Inspect the artifact and return explicit boundary evidence."}
     result=await send(critic,SYSTEM,json.dumps({"critic":critic,"focus":focus,"passing_score":STORY.passing_score,"rubric":dimensions,"reference_context":context,"artifact":artifact},ensure_ascii=False)); text=result.get("text","") if isinstance(result,Mapping) else ""
     if not text.strip(): raise RuntimeError(f"{critic} returned an empty critique")
     return _parse_json(text)
