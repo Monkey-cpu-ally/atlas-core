@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useEffect, useMemo, useState } from 'react';
-import { Clapperboard, BookOpen, Palette, Scale, RefreshCw, ShieldCheck, Loader2 } from 'lucide-react';
+import { Clapperboard, BookOpen, Palette, Scale, RefreshCw, ShieldCheck, Loader2, Search } from 'lucide-react';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL;
 const STAGES = [
@@ -16,6 +16,9 @@ const resultOutput = (job) => job?.result?.output || null;
 export default function CreativeStudioPanel({ aiColor, project, onBack }) {
   const [stage, setStage] = useState('brief');
   const [references, setReferences] = useState([]);
+  const [referenceQuery, setReferenceQuery] = useState('');
+  const [referenceSynthesis, setReferenceSynthesis] = useState(null);
+  const [referenceLoading, setReferenceLoading] = useState(false);
   const [critics, setCritics] = useState([]);
   const [rubrics, setRubrics] = useState(null);
   const [qualityContract, setQualityContract] = useState(null);
@@ -64,6 +67,22 @@ export default function CreativeStudioPanel({ aiColor, project, onBack }) {
   const needsRevision = council && council.approved === false && (council.revision_plan || []).length > 0;
   const masterEligible = Boolean(currentArtifact && council?.approved === true && !(council.blockers || []).length);
 
+  const synthesizeReferences = async () => {
+    const query = referenceQuery.trim() || `${title} ${summary}`;
+    setReferenceLoading(true); setError(''); setReferenceSynthesis(null);
+    try {
+      const res = await fetch(`${BACKEND}/api/creative-studio/references/synthesize?q=${encodeURIComponent(query)}&limit=4&minimum_references=2`);
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        throw new Error(detail.detail || 'Reference synthesis could not meet its safety contract.');
+      }
+      const data = await res.json();
+      setReferenceSynthesis(data);
+      setReferences(data.references || []);
+    } catch (e) { setError(e.message || 'Reference synthesis failed.'); }
+    finally { setReferenceLoading(false); }
+  };
+
   const createAndExecute = async (jobStage, payload, artifactId = null, parentJobId = null) => {
     setRunningStage(jobStage); setError('');
     try {
@@ -85,13 +104,22 @@ export default function CreativeStudioPanel({ aiColor, project, onBack }) {
     finally { setRunningStage(''); }
   };
 
-  const runCreate = () => createAndExecute('create', { premise: summary, audience: 'general', medium: 'story', tone: 'project-defined' });
-  const runCritique = () => currentArtifact ? createAndExecute('critique', { artifact: currentArtifact }, currentArtifactId, currentArtifactJob?.id) : setError('Create an artifact before critique.');
-  const runRevision = () => needsRevision ? createAndExecute('revision', { artifact: currentArtifact, revision_plan: council.revision_plan, blockers: council.blockers || [], brief: { premise: summary } }, currentArtifactId, currentCritique?.id) : setError('Revision requires explicit Critic Council requests.');
+  const referenceContext = referenceSynthesis ? {
+    query: referenceSynthesis.query,
+    reference_ids: (referenceSynthesis.references || []).map((ref) => ref.id),
+    principles: referenceSynthesis.principles || [],
+    study_targets: referenceSynthesis.study_targets || [],
+    limitations: referenceSynthesis.limitations || [],
+    provenance: referenceSynthesis.provenance || [],
+    contract: referenceSynthesis.synthesis_contract || {},
+  } : null;
+  const runCreate = () => createAndExecute('create', { premise: summary, audience: 'general', medium: 'story', tone: 'project-defined', reference_context: referenceContext });
+  const runCritique = () => currentArtifact ? createAndExecute('critique', { artifact: currentArtifact, reference_context: referenceContext }, currentArtifactId, currentArtifactJob?.id) : setError('Create an artifact before critique.');
+  const runRevision = () => needsRevision ? createAndExecute('revision', { artifact: currentArtifact, revision_plan: council.revision_plan, blockers: council.blockers || [], brief: { premise: summary }, reference_context: referenceContext }, currentArtifactId, currentCritique?.id) : setError('Revision requires explicit Critic Council requests.');
   const runMaster = () => {
     if (!masterEligible) return setError('Master Gate requires an approved critique of the current artifact.');
     const qualityEvidence = { creative_approval: { passed: true }, story_quality: { passed: true }, originality: { passed: true } };
-    return createAndExecute('master', { artifact: currentArtifact, critic_council: council, applicable_gates: Object.keys(qualityEvidence), quality_evidence: qualityEvidence }, currentArtifactId, currentCritique?.id);
+    return createAndExecute('master', { artifact: currentArtifact, critic_council: council, applicable_gates: Object.keys(qualityEvidence), quality_evidence: qualityEvidence, reference_context: referenceContext }, currentArtifactId, currentCritique?.id);
   };
 
   const stageData = useMemo(() => STAGES.find((item) => item.id === stage) || STAGES[0], [stage]);
@@ -111,14 +139,18 @@ export default function CreativeStudioPanel({ aiColor, project, onBack }) {
       <div className="bp-section">
         <h4 style={{ color: aiColor, display: 'flex', gap: 8 }}><StageIcon size={14} /> {stageData.label}</h4>
         {stage === 'brief' && <p>Current project summary is the production premise. Future brief controls can expand audience, medium, tone, constraints, story/art bible, and intended emotional effect.</p>}
-        {stage === 'references' && <div>{references.slice(0, 20).map((ref) => <div className="project-card" key={ref.id}><div className="project-card-title">{ref.title}</div><div className="project-card-meta">{ref.kind} · {ref.category}</div><div className="bp-voice-body">{(ref.study || []).join(' · ')}</div></div>)}</div>}
-        {stage === 'create' && <div><p>Create executor: {capabilities.create ? 'LIVE' : 'LOCKED'}.</p><button disabled={busy || !capabilities.create} className="bp-btn" onClick={runCreate}>{runningStage === 'create' ? 'Creating…' : createJob ? 'Create New Draft' : 'Create Draft'}</button>{currentArtifact && <div className="bp-voice-body">Current artifact ready for Council review.</div>}</div>}
+        {stage === 'references' && <div>
+          <div className="bp-actions"><input value={referenceQuery} onChange={(e) => setReferenceQuery(e.target.value)} placeholder="Search craft goals, e.g. minimal dialogue + industrial horror" style={{ flex: 1 }} /><button disabled={referenceLoading} className="bp-btn" onClick={synthesizeReferences}><Search size={12} /> {referenceLoading ? 'Synthesizing…' : 'Synthesize References'}</button></div>
+          {referenceSynthesis && <div className="project-card"><div className="project-card-label">Reference Intelligence</div><div className="project-card-title">{referenceSynthesis.references?.length || 0} sources synthesized</div><div className="bp-voice-body">Principles: {(referenceSynthesis.principles || []).join(' · ')}</div><div className="bp-voice-body">Study: {(referenceSynthesis.study_targets || []).join(' · ')}</div><div className="bp-voice-body">Boundaries: {(referenceSynthesis.limitations || []).join(' · ')}</div><div className="bp-voice-body">Provenance records: {(referenceSynthesis.provenance || []).length} · Principle-only: {referenceSynthesis.synthesis_contract?.principle_only ? 'ENFORCED' : 'LOCKED'}</div></div>}
+          {references.slice(0, 20).map((ref) => <div className="project-card" key={ref.id}><div className="project-card-title">{ref.title}</div><div className="project-card-meta">{ref.kind} · {ref.category}{ref.score ? ` · score ${ref.score}` : ''}</div><div className="bp-voice-body">{(ref.study || []).join(' · ')}</div>{ref.techniques?.length > 0 && <div className="bp-voice-body">Techniques: {ref.techniques.join(' · ')}</div>}{ref.matched_terms?.length > 0 && <div className="bp-voice-body">Matched: {ref.matched_terms.join(' · ')}</div>}</div>)}
+        </div>}
+        {stage === 'create' && <div><p>Create executor: {capabilities.create ? 'LIVE' : 'LOCKED'} · Reference synthesis: {referenceSynthesis ? 'ATTACHED' : 'OPTIONAL'}.</p><button disabled={busy || !capabilities.create} className="bp-btn" onClick={runCreate}>{runningStage === 'create' ? 'Creating…' : createJob ? 'Create New Draft' : 'Create Draft'}</button>{currentArtifact && <div className="bp-voice-body">Current artifact ready for Council review.</div>}</div>}
         {stage === 'critique' && <div>{critics.map((critic) => <div className="project-card" key={critic.id}><div className="project-card-title">{critic.id.toUpperCase()}</div><div className="bp-voice-body">{critic.focus}</div></div>)}<button disabled={busy || !currentArtifact || !capabilities.critique} className="bp-btn" onClick={runCritique}>{runningStage === 'critique' ? 'Council Reviewing…' : currentCritique ? 'Re-run Critic Council' : 'Run Critic Council'}</button>{council && <div className="bp-voice-body">Council: {council.approved ? 'APPROVED' : 'REVISION REQUIRED'}{council.blockers?.length ? ` · ${council.blockers.join(' · ')}` : ''}</div>}</div>}
         {stage === 'revision' && <div><p>Revision executor: {capabilities.revision ? 'LIVE' : 'LOCKED'}.</p><button disabled={busy || !needsRevision || !capabilities.revision} className="bp-btn" onClick={runRevision}>{runningStage === 'revision' ? 'Revising…' : 'Apply Council Revision Plan'}</button>{revisionJob && !currentCritique && <div className="bp-voice-body">Revision complete. Re-run Critic Council before Master approval.</div>}</div>}
         {stage === 'master' && <div><p>Master approval is enabled only after the current artifact passes post-revision Council review.</p>{rubrics?.quality_principles?.map((p, i) => <div className="bp-voice-body" key={i}>• {p}</div>)}<button disabled={busy || !masterEligible || !capabilities.master} className="bp-btn" onClick={runMaster}>{runningStage === 'master' ? 'Verifying…' : 'Run Story Master Gate'}</button></div>}
       </div>
       <div className="bp-section" data-testid="creative-job-history"><div className="project-card-label">Production Job History</div>{jobs.length === 0 && <div className="bp-voice-body">No production jobs recorded for this project.</div>}{jobs.map((job) => <div className="project-card" key={job.id}><div className="project-card-title">{job.stage.toUpperCase()} · {job.status.toUpperCase()}</div><div className="project-card-meta">{job.id}</div>{job.blockers?.length > 0 && <div className="bp-voice-body">Blocked: {job.blockers.join(' · ')}</div>}</div>)}</div>
-      <div className="bp-section"><div className="project-card-label">Integration status</div><div className="bp-voice-body">Job API: {qualityContract?.job_api_enabled ? 'LIVE' : 'LOCKED'} · Create: {capabilities.create ? 'LIVE' : 'LOCKED'} · Critique: {capabilities.critique ? 'LIVE' : 'LOCKED'} · Revision: {capabilities.revision ? 'LIVE' : 'LOCKED'} · Master: {capabilities.master ? 'LIVE' : 'LOCKED'}</div></div>
+      <div className="bp-section"><div className="project-card-label">Integration status</div><div className="bp-voice-body">Job API: {qualityContract?.job_api_enabled ? 'LIVE' : 'LOCKED'} · Reference Intelligence: {referenceSynthesis ? 'ATTACHED' : 'READY'} · Create: {capabilities.create ? 'LIVE' : 'LOCKED'} · Critique: {capabilities.critique ? 'LIVE' : 'LOCKED'} · Revision: {capabilities.revision ? 'LIVE' : 'LOCKED'} · Master: {capabilities.master ? 'LIVE' : 'LOCKED'}</div></div>
     </div>
   );
 }
