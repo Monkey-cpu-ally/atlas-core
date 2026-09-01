@@ -18,6 +18,16 @@ class CreativeReference:
     kind: str
     category: str
     study: Tuple[str, ...]
+    disciplines: Tuple[str, ...] = ()
+    techniques: Tuple[str, ...] = ()
+    strengths: Tuple[str, ...] = ()
+    study_targets: Tuple[str, ...] = ()
+    limitations: Tuple[str, ...] = ()
+    provenance: Tuple[str, ...] = ()
+    relationships: Tuple[str, ...] = ()
+
+    def retrieval_text(self) -> Tuple[str, ...]:
+        return (self.title, self.category, *self.study, *self.disciplines, *self.techniques, *self.strengths, *self.study_targets, *self.limitations, *self.relationships)
 
 
 @dataclass(frozen=True)
@@ -29,6 +39,8 @@ class ReferenceMatch:
 
 class CreativeReferenceLibrary:
     """Loads catalogs into one fail-fast index with ranked local retrieval."""
+
+    PROFILE_FIELDS = ("disciplines", "techniques", "strengths", "study_targets", "limitations", "provenance", "relationships")
 
     def __init__(self, references: List[CreativeReference]):
         ids = [ref.reference_id for ref in references]
@@ -46,15 +58,20 @@ class CreativeReferenceLibrary:
             name = cls._required_text(item, "name")
             category = cls._required_text(item, "category")
             craft = cls._required_list(item, "craft")
-            refs.append(CreativeReference(cls._id("creator", name), name, "creator", category, tuple(craft)))
+            refs.append(cls._reference("creator", name, category, craft, item))
         for item in works:
             title = cls._required_text(item, "title")
             medium = cls._required_text(item, "medium")
             study = cls._required_list(item, "study")
-            refs.append(CreativeReference(cls._id("work", title), title, "work", medium, tuple(study)))
+            refs.append(cls._reference("work", title, medium, study, item))
         if not refs:
             raise ValueError("creative reference library is empty")
         return cls(refs)
+
+    @classmethod
+    def _reference(cls, kind: str, title: str, category: str, study: List[str], item: dict) -> CreativeReference:
+        profile = {field: tuple(cls._optional_list(item, field)) for field in cls.PROFILE_FIELDS}
+        return CreativeReference(cls._id(kind, title), title, kind, category, tuple(study), **profile)
 
     @staticmethod
     def _read_json(path: Path) -> dict:
@@ -69,14 +86,24 @@ class CreativeReferenceLibrary:
         return value
 
     @staticmethod
-    def _required_list(item: dict, key: str) -> List[str]:
-        value = item.get(key)
-        if not isinstance(value, list) or not value or not all(str(v).strip() for v in value):
-            raise ValueError(f"invalid required reference list: {key}")
-        cleaned = [str(v).strip() for v in value]
+    def _clean_list(value, key: str, *, required: bool) -> List[str]:
+        if value is None and not required:
+            return []
+        if not isinstance(value, list) or (required and not value) or not all(isinstance(v, str) and v.strip() for v in value):
+            label = "required" if required else "optional"
+            raise ValueError(f"invalid {label} reference list: {key}")
+        cleaned = [v.strip() for v in value]
         if len({v.casefold() for v in cleaned}) != len(cleaned):
             raise ValueError(f"duplicate values in reference list: {key}")
         return cleaned
+
+    @classmethod
+    def _required_list(cls, item: dict, key: str) -> List[str]:
+        return cls._clean_list(item.get(key), key, required=True)
+
+    @classmethod
+    def _optional_list(cls, item: dict, key: str) -> List[str]:
+        return cls._clean_list(item.get(key), key, required=False)
 
     @staticmethod
     def _id(kind: str, title: str) -> str:
@@ -98,14 +125,9 @@ class CreativeReferenceLibrary:
         needle = query.strip().casefold()
         if not needle:
             return self.all()
-        return tuple(ref for ref in self._references if needle in ref.title.casefold() or needle in ref.category.casefold() or any(needle in principle.casefold() for principle in ref.study))
+        return tuple(ref for ref in self._references if any(needle in value.casefold() for value in ref.retrieval_text()))
 
     def retrieve(self, query: str, *, limit: int = 12, kind: str | None = None) -> Tuple[ReferenceMatch, ...]:
-        """Rank references using deterministic title/category/craft token signals.
-
-        This is deliberately local and explainable. Vector retrieval can be layered on later
-        without changing the caller contract.
-        """
         if limit < 1:
             raise ValueError("retrieval limit must be positive")
         if kind not in {None, "creator", "work"}:
@@ -117,20 +139,18 @@ class CreativeReferenceLibrary:
         for ref in self._references:
             if kind and ref.kind != kind:
                 continue
-            title_tokens = self._tokens([ref.title])
-            category_tokens = self._tokens([ref.category])
-            study_tokens = self._tokens(ref.study)
-            title_hits = terms & title_tokens
-            category_hits = terms & category_tokens
-            study_hits = terms & study_tokens
-            matched = title_hits | category_hits | study_hits
+            title_hits = terms & self._tokens([ref.title])
+            category_hits = terms & self._tokens([ref.category])
+            study_hits = terms & self._tokens(ref.study)
+            profile_hits = terms & self._tokens((*ref.disciplines, *ref.techniques, *ref.strengths, *ref.study_targets, *ref.limitations, *ref.relationships))
+            matched = title_hits | category_hits | study_hits | profile_hits
             if not matched:
                 continue
-            score = (len(title_hits) * 8) + (len(category_hits) * 4) + (len(study_hits) * 3)
+            score = len(title_hits) * 8 + len(category_hits) * 4 + len(study_hits) * 3 + len(profile_hits) * 2
             phrase = query.strip().casefold()
             if phrase and phrase in ref.title.casefold():
                 score += 12
-            if any(phrase and phrase in principle.casefold() for principle in ref.study):
+            if any(phrase and phrase in principle.casefold() for principle in (*ref.study, *ref.study_targets)):
                 score += 6
             matches.append(ReferenceMatch(ref, score, tuple(sorted(matched))))
         matches.sort(key=lambda match: (-match.score, match.reference.title.casefold(), match.reference.reference_id))
@@ -139,4 +159,5 @@ class CreativeReferenceLibrary:
     def stats(self) -> Dict[str, int]:
         creators = sum(ref.kind == "creator" for ref in self._references)
         works = sum(ref.kind == "work" for ref in self._references)
-        return {"total": len(self._references), "creators": creators, "works": works}
+        profiled = sum(bool(ref.provenance or ref.techniques or ref.study_targets) for ref in self._references)
+        return {"total": len(self._references), "creators": creators, "works": works, "profiled": profiled}
