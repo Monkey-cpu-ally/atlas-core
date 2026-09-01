@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from services import discovery_approval_pipeline as approval
 from services import discovery_challenge
+from services import discovery_verification
 from services import evidence_scoring
 
 LAYERS = {"FOUNDATION", "FRONTIER", "UNKNOWN"}
@@ -61,9 +62,9 @@ def create_investigation(*, title: str, question: str, knowledge_layer: str = "F
         "knowledge_layer": layer, "owner_ai": owner_ai, "status": "CONCEPT", "subjects": subjects or [],
         "related_projects": related_projects or [], "mission_id": mission_id, "known_facts": [], "unknowns": [],
         "assumptions": [], "analogies": [], "candidate_hypotheses": [], "hypotheses": [], "challenges": [],
-        "prior_art": [], "prior_art_assessments": [], "evidence": [],
-        "evidence_score": evidence_scoring.score_evidence([]), "experiment_plan": None, "results": [],
-        "approval_discovery_id": None, "created_at": _now(), "updated_at": _now(),
+        "prior_art": [], "prior_art_assessments": [], "evidence": [], "evidence_evaluations": [],
+        "evidence_score": evidence_scoring.score_evidence([]), "experiment_plan": None, "experiment_designs": [],
+        "results": [], "replications": [], "approval_discovery_id": None, "created_at": _now(), "updated_at": _now(),
     }
     _RECORDS[investigation_id] = record
     return record
@@ -106,7 +107,7 @@ def detect_gaps(investigation_id: str) -> Dict[str, Any]:
     if not record.get("hypotheses"): gaps.append({"kind":"hypothesis","severity":"high","message":"No accepted falsifiable hypothesis exists."})
     if not record.get("prior_art"): gaps.append({"kind":"prior_art","severity":"high","message":"No prior-art or literature items are recorded."})
     if record.get("evidence_score", {}).get("score", 0) < 60: gaps.append({"kind":"evidence","severity":"high","message":"Evidence score is below the moderate threshold of 60."})
-    if not record.get("experiment_plan"): gaps.append({"kind":"experiment","severity":"high","message":"No measurable experiment or simulation plan exists."})
+    if not record.get("experiment_plan") and not record.get("experiment_designs"): gaps.append({"kind":"experiment","severity":"high","message":"No measurable experiment or simulation plan exists."})
     if record.get("status") == "SIMULATED": gaps.append({"kind":"physical_validation","severity":"high","message":"Simulation has not established physical or independent verification."})
     if record.get("status") in {"EXPERIMENTALLY_SUPPORTED", "REPLICATED"}: gaps.append({"kind":"independent_verification","severity":"medium","message":"Independent verification has not been recorded."})
     return {"investigation_id":investigation_id,"status":record["status"],"gap_count":len(gaps),"gaps":gaps,
@@ -117,13 +118,9 @@ def detect_gaps(investigation_id: str) -> Dict[str, Any]:
 def add_analogy(investigation_id: str, *, source_subject: str, target_subject: str, source_concept: str, mechanism: str, transferable_principle: str, constraints: List[str], source_refs: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     record = _require(investigation_id)
     required = [source_subject, target_subject, source_concept, mechanism, transferable_principle]
-    if any(not value.strip() for value in required):
-        raise DiscoveryEngineError("analogy requires source/target subjects, source concept, mechanism, and transferable principle")
-    if source_subject.casefold() == target_subject.casefold():
-        raise DiscoveryEngineError("cross-disciplinary analogy requires different source and target subjects")
-    analogy = {"analogy_id":f"ANA-{str(uuid4())[:8]}","source_subject":source_subject.strip(),"target_subject":target_subject.strip(),
-               "source_concept":source_concept.strip(),"mechanism":mechanism.strip(),"transferable_principle":transferable_principle.strip(),
-               "constraints":constraints,"source_refs":source_refs or [],"status":"candidate","proves_feasibility":False,"created_at":_now()}
+    if any(not value.strip() for value in required): raise DiscoveryEngineError("analogy requires source/target subjects, source concept, mechanism, and transferable principle")
+    if source_subject.casefold() == target_subject.casefold(): raise DiscoveryEngineError("cross-disciplinary analogy requires different source and target subjects")
+    analogy = {"analogy_id":f"ANA-{str(uuid4())[:8]}","source_subject":source_subject.strip(),"target_subject":target_subject.strip(),"source_concept":source_concept.strip(),"mechanism":mechanism.strip(),"transferable_principle":transferable_principle.strip(),"constraints":constraints,"source_refs":source_refs or [],"status":"candidate","proves_feasibility":False,"created_at":_now()}
     record.setdefault("analogies", []).append(analogy); record["updated_at"] = _now(); return analogy
 
 
@@ -131,11 +128,8 @@ def generate_candidate_hypothesis(investigation_id: str, *, analogy_id: str, sta
     record = _require(investigation_id)
     analogy = next((item for item in record.get("analogies", []) if item["analogy_id"] == analogy_id), None)
     if not analogy: raise DiscoveryEngineError(f"unknown analogy_id: {analogy_id}")
-    if not statement.strip() or not rationale.strip() or not falsification_criteria or not target_measurements:
-        raise DiscoveryEngineError("candidate hypothesis requires statement, rationale, falsification criteria, and target measurements")
-    candidate = {"candidate_id":f"CHY-{str(uuid4())[:8]}","analogy_id":analogy_id,"statement":statement.strip(),"rationale":rationale.strip(),
-                 "assumptions":assumptions,"falsification_criteria":falsification_criteria,"expected_observations":expected_observations,
-                 "target_measurements":target_measurements,"status":"pending_review","origin":"structured_candidate","created_at":_now()}
+    if not statement.strip() or not rationale.strip() or not falsification_criteria or not target_measurements: raise DiscoveryEngineError("candidate hypothesis requires statement, rationale, falsification criteria, and target measurements")
+    candidate = {"candidate_id":f"CHY-{str(uuid4())[:8]}","analogy_id":analogy_id,"statement":statement.strip(),"rationale":rationale.strip(),"assumptions":assumptions,"falsification_criteria":falsification_criteria,"expected_observations":expected_observations,"target_measurements":target_measurements,"status":"pending_review","origin":"structured_candidate","created_at":_now()}
     record.setdefault("candidate_hypotheses", []).append(candidate); record["updated_at"] = _now(); return candidate
 
 
@@ -144,11 +138,10 @@ def accept_candidate_hypothesis(investigation_id: str, candidate_id: str) -> Dic
     candidate = next((item for item in record.get("candidate_hypotheses", []) if item["candidate_id"] == candidate_id), None)
     if not candidate: raise DiscoveryEngineError(f"unknown candidate_id: {candidate_id}")
     if candidate["status"] != "pending_review": raise DiscoveryEngineError(f"candidate is already {candidate['status']}")
-    hypothesis = add_hypothesis(investigation_id, statement=candidate["statement"], rationale=candidate["rationale"],
-                                falsification_criteria=candidate["falsification_criteria"], assumptions=candidate["assumptions"])
+    if candidate.get("novelty_status") == "blocked_by_direct_prior_art": raise DiscoveryEngineError("candidate is blocked by direct prior art")
+    hypothesis = add_hypothesis(investigation_id, statement=candidate["statement"], rationale=candidate["rationale"], falsification_criteria=candidate["falsification_criteria"], assumptions=candidate["assumptions"])
     hypothesis["origin_candidate_id"] = candidate_id; hypothesis["analogy_id"] = candidate["analogy_id"]
-    candidate["status"] = "accepted"; candidate["accepted_hypothesis_id"] = hypothesis["hypothesis_id"]; candidate["reviewed_at"] = _now()
-    return hypothesis
+    candidate["status"] = "accepted"; candidate["accepted_hypothesis_id"] = hypothesis["hypothesis_id"]; candidate["reviewed_at"] = _now(); return hypothesis
 
 
 def add_hypothesis(investigation_id: str, *, statement: str, rationale: str, falsification_criteria: List[str], assumptions: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -163,24 +156,18 @@ def challenge_active_hypothesis(investigation_id: str, *, hypothesis_id: str, su
     record = _require(investigation_id)
     hypothesis = next((item for item in record.get("hypotheses", []) if item["hypothesis_id"] == hypothesis_id), None)
     if not hypothesis: raise DiscoveryEngineError(f"unknown hypothesis_id: {hypothesis_id}")
-    try:
-        challenge = discovery_challenge.challenge_hypothesis(statement=hypothesis["statement"], assumptions=hypothesis.get("assumptions", []), supporting_claims=supporting_claims, conflicting_claims=conflicting_claims)
-    except discovery_challenge.DiscoveryChallengeError as exc:
-        raise DiscoveryEngineError(str(exc)) from exc
-    challenge["hypothesis_id"] = hypothesis_id; challenge["created_at"] = _now()
-    record.setdefault("challenges", []).append(challenge); record["updated_at"] = _now(); return challenge
+    try: challenge = discovery_challenge.challenge_hypothesis(statement=hypothesis["statement"], assumptions=hypothesis.get("assumptions", []), supporting_claims=supporting_claims, conflicting_claims=conflicting_claims)
+    except discovery_challenge.DiscoveryChallengeError as exc: raise DiscoveryEngineError(str(exc)) from exc
+    challenge["hypothesis_id"] = hypothesis_id; challenge["created_at"] = _now(); record.setdefault("challenges", []).append(challenge); record["updated_at"] = _now(); return challenge
 
 
 def assess_candidate_prior_art(investigation_id: str, *, candidate_id: str, search_queries: List[str], matches: List[Dict[str, Any]]) -> Dict[str, Any]:
     record = _require(investigation_id)
     candidate = next((item for item in record.get("candidate_hypotheses", []) if item["candidate_id"] == candidate_id), None)
     if not candidate: raise DiscoveryEngineError(f"unknown candidate_id: {candidate_id}")
-    try:
-        assessment = discovery_challenge.assess_prior_art(candidate_statement=candidate["statement"], search_queries=search_queries, matches=matches)
-    except discovery_challenge.DiscoveryChallengeError as exc:
-        raise DiscoveryEngineError(str(exc)) from exc
-    assessment["candidate_id"] = candidate_id; assessment["created_at"] = _now()
-    record.setdefault("prior_art_assessments", []).append(assessment)
+    try: assessment = discovery_challenge.assess_prior_art(candidate_statement=candidate["statement"], search_queries=search_queries, matches=matches)
+    except discovery_challenge.DiscoveryChallengeError as exc: raise DiscoveryEngineError(str(exc)) from exc
+    assessment["candidate_id"] = candidate_id; assessment["created_at"] = _now(); record.setdefault("prior_art_assessments", []).append(assessment)
     if assessment["disposition"] == "NOT_NOVEL_CANDIDATE": candidate["novelty_status"] = "blocked_by_direct_prior_art"
     elif assessment["disposition"] == "NOVELTY_UNRESOLVED": candidate["novelty_status"] = "unresolved"
     else: candidate["novelty_status"] = "unproven"
@@ -195,19 +182,52 @@ def add_evidence(investigation_id: str, *, evidence: List[Dict[str, Any]]) -> Di
     record=_require(investigation_id); record["evidence"].extend(evidence); record["evidence_score"]=evidence_scoring.score_evidence(record["evidence"]); record["updated_at"]=_now(); return record
 
 
+def evaluate_investigation_evidence(investigation_id: str, *, conflicts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    record = _require(investigation_id)
+    evaluation = discovery_verification.evaluate_evidence(evidence=record.get("evidence", []), conflicts=conflicts)
+    evaluation["created_at"] = _now(); record.setdefault("evidence_evaluations", []).append(evaluation); record["evidence_score"] = evaluation["evidence_score"]
+    if evaluation["disposition"] == "INSUFFICIENT_EVIDENCE": record["status"] = "BLOCKED_BY_EVIDENCE"
+    record["updated_at"] = _now(); return evaluation
+
+
+def design_investigation_experiment(investigation_id: str, *, hypothesis_id: str, independent_variables: List[str], dependent_variables: List[str], controls: List[str], procedure: List[str], pass_fail_criteria: List[str], safety_constraints: Optional[List[str]] = None, replication_target: int = 2) -> Dict[str, Any]:
+    record = _require(investigation_id)
+    hypothesis = next((item for item in record.get("hypotheses", []) if item["hypothesis_id"] == hypothesis_id), None)
+    if not hypothesis: raise DiscoveryEngineError(f"unknown hypothesis_id: {hypothesis_id}")
+    unresolved_conflicts = [c for c in record.get("challenges", []) if c.get("hypothesis_id") == hypothesis_id and c.get("conflict_count", 0) > 0]
+    if unresolved_conflicts: raise DiscoveryEngineError("hypothesis has unresolved contradiction review")
+    try:
+        design = discovery_verification.design_experiment(hypothesis=hypothesis["statement"], independent_variables=independent_variables, dependent_variables=dependent_variables, controls=controls, procedure=procedure, pass_fail_criteria=pass_fail_criteria, safety_constraints=safety_constraints, replication_target=replication_target)
+    except discovery_verification.DiscoveryVerificationError as exc: raise DiscoveryEngineError(str(exc)) from exc
+    design["hypothesis_id"] = hypothesis_id; design["created_at"] = _now(); record.setdefault("experiment_designs", []).append(design)
+    record["experiment_plan"] = design; record["status"] = "TEST_DESIGNED"; record["updated_at"] = _now(); return design
+
+
 def set_experiment_plan(investigation_id: str, *, objective: str, method: List[str], measurements: List[str], pass_fail_criteria: List[str], safety_constraints: Optional[List[str]] = None) -> Dict[str, Any]:
     record=_require(investigation_id)
     if not method or not measurements or not pass_fail_criteria: raise DiscoveryEngineError("experiment plan requires method, measurements, and pass/fail criteria")
-    record["experiment_plan"]={"objective":objective.strip(),"method":method,"measurements":measurements,"pass_fail_criteria":pass_fail_criteria,"safety_constraints":safety_constraints or [],"created_at":_now()}
-    record["status"]="TEST_DESIGNED"; record["updated_at"]=_now(); return record
+    record["experiment_plan"]={"objective":objective.strip(),"method":method,"measurements":measurements,"pass_fail_criteria":pass_fail_criteria,"safety_constraints":safety_constraints or [],"created_at":_now()}; record["status"]="TEST_DESIGNED"; record["updated_at"]=_now(); return record
 
 
 def record_result(investigation_id: str, *, result_type: str, summary: str, measurements: Optional[Dict[str, Any]] = None, resulting_status: str) -> Dict[str, Any]:
     record=_require(investigation_id); status=resulting_status.upper()
     if status not in STATUSES: raise DiscoveryEngineError(f"invalid resulting_status: {resulting_status}")
-    if status in {"SIMULATED","EXPERIMENTALLY_SUPPORTED","REPLICATED","INDEPENDENTLY_VERIFIED"} and not record.get("experiment_plan"): raise DiscoveryEngineError("validated result states require an experiment plan")
-    result={"result_id":f"RES-{str(uuid4())[:8]}","result_type":result_type,"summary":summary,"measurements":measurements or {},"status":status,"created_at":_now()}
-    record["results"].append(result); record["status"]=status; record["updated_at"]=_now(); return result
+    if status in {"REPLICATED","INDEPENDENTLY_VERIFIED"}: raise DiscoveryEngineError("replication states must be produced by the replication manager")
+    if status in {"SIMULATED","EXPERIMENTALLY_SUPPORTED"} and not record.get("experiment_plan"): raise DiscoveryEngineError("validated result states require an experiment plan")
+    if str(result_type).lower() in {"simulation","simulated","model"} and status == "EXPERIMENTALLY_SUPPORTED": raise DiscoveryEngineError("simulation cannot be recorded as experimental support")
+    result={"result_id":f"RES-{str(uuid4())[:8]}","result_type":result_type,"summary":summary,"measurements":measurements or {},"status":status,"created_at":_now()}; record["results"].append(result); record["status"]=status; record["updated_at"]=_now(); return result
+
+
+def record_replication(investigation_id: str, *, original_result_id: str, replication_runs: List[Dict[str, Any]], required_successes: int = 2, independent_required: bool = True, verification_context: str = "generic") -> Dict[str, Any]:
+    record = _require(investigation_id)
+    original = next((item for item in record.get("results", []) if item["result_id"] == original_result_id), None)
+    if not original: raise DiscoveryEngineError(f"unknown original_result_id: {original_result_id}")
+    try:
+        replication = discovery_verification.evaluate_replication(original_result=original, replication_runs=replication_runs, required_successes=required_successes, independent_required=independent_required, verification_context=verification_context)
+    except discovery_verification.DiscoveryVerificationError as exc: raise DiscoveryEngineError(str(exc)) from exc
+    replication["original_result_id"] = original_result_id; replication["created_at"] = _now(); record.setdefault("replications", []).append(replication)
+    if replication["status"] in {"REPLICATED","INDEPENDENTLY_VERIFIED","INCONCLUSIVE"}: record["status"] = replication["status"]
+    record["updated_at"] = _now(); return replication
 
 
 def promote_to_approval(investigation_id: str) -> Dict[str, Any]:
@@ -218,8 +238,7 @@ def promote_to_approval(investigation_id: str) -> Dict[str, Any]:
         existing=approval.get_draft(record["approval_discovery_id"])
         if existing: return existing
     draft=approval.create_draft(title=record["title"],summary=record["question"],owner_ai=record["owner_ai"],evidence=record["evidence"],source_refs=[item for item in record["prior_art"] if isinstance(item,dict)],related_subjects=record["subjects"],related_projects=record["related_projects"],mission_id=record["mission_id"])
-    draft["discovery_engine_investigation_id"]=investigation_id; draft["discovery_engine_status"]=record["status"]
-    record["approval_discovery_id"]=draft["discovery_id"]; record["updated_at"]=_now(); return draft
+    draft["discovery_engine_investigation_id"]=investigation_id; draft["discovery_engine_status"]=record["status"]; record["approval_discovery_id"]=draft["discovery_id"]; record["updated_at"]=_now(); return draft
 
 
 def _require(investigation_id: str) -> Dict[str, Any]:
@@ -236,7 +255,7 @@ async def hydrate_from_mongo() -> Dict[str, int]:
     if _DB is None: return {"investigations":0}
     items=await _DB.discovery_investigations.find({}, {"_id":0}).to_list(10000); _RECORDS.clear()
     for item in items:
-        item.setdefault("analogies", []); item.setdefault("candidate_hypotheses", []); item.setdefault("challenges", []); item.setdefault("prior_art_assessments", []); _RECORDS[item["investigation_id"]]=item
+        item.setdefault("analogies", []); item.setdefault("candidate_hypotheses", []); item.setdefault("challenges", []); item.setdefault("prior_art_assessments", []); item.setdefault("experiment_designs", []); item.setdefault("evidence_evaluations", []); item.setdefault("replications", []); _RECORDS[item["investigation_id"]]=item
     return {"investigations":len(_RECORDS)}
 
 
