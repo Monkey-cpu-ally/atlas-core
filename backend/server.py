@@ -46,6 +46,7 @@ from routes.mission_scheduler import router as mission_scheduler_router
 from routes.project_intelligence import router as project_intelligence_router
 from routes.external_access import router as external_access_router
 from routes.discovery_approval import router as discovery_approval_router
+from routes.discovery_engine import router as discovery_engine_router
 from routes.headquarters import router as headquarters_router
 from routes.system_inspector import router as system_inspector_router
 from routes.global_knowledge import router as global_knowledge_router
@@ -140,6 +141,7 @@ app.include_router(mission_scheduler_router)
 app.include_router(project_intelligence_router)
 app.include_router(external_access_router)
 app.include_router(discovery_approval_router)
+app.include_router(discovery_engine_router)
 app.include_router(headquarters_router)
 app.include_router(system_inspector_router)
 app.include_router(global_knowledge_router)
@@ -215,7 +217,7 @@ async def _seed_runtime_catalogs():
     """Provision canonical built-in runtime data after Mongo is reachable.
 
     These seeders are idempotent and check each canonical record rather than
-    treating a non-empty collection as initialized.  Keeping the calls in the
+    treating a non-empty collection as initialized. Keeping the calls in the
     application lifecycle means a clean deployment, CI database, or recovered
     database exposes the same baseline without requiring a hidden manual POST.
     Failures are surfaced in logs and do not fabricate readiness for the
@@ -254,6 +256,26 @@ async def _wire_research_labs():
         logging.getLogger(__name__).info("Research Labs hydrated: %s missions · %s discoveries", counts["missions"], counts["discoveries"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Research Lab persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_discovery_engine():
+    try:
+        from services import discovery_approval_pipeline as _discovery_approval
+        from services import discovery_engine as _discovery_engine
+
+        _discovery_engine.attach_mongo(db)
+        _discovery_approval.attach_mongo(db)
+        await _discovery_engine.create_indexes()
+        await _discovery_approval.create_indexes()
+        engine_counts = await _discovery_engine.hydrate_from_mongo()
+        approval_counts = await _discovery_approval.hydrate_from_mongo()
+        logging.getLogger(__name__).info(
+            "Discovery Engine hydrated: %s investigations · %s approval drafts",
+            engine_counts["investigations"], approval_counts["discovery_drafts"],
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Discovery Engine persistence skipped: %s", exc)
 
 
 @app.on_event("startup")
