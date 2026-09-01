@@ -10,7 +10,7 @@ def passing_payload():
     return {"artifact":"Final artifact text.","critic_council":{"approved":True,"blockers":[]},"quality_evidence":{gate:{"passed":True} for gate in REQUIRED_GATES}}
 
 def reference_context():
-    return {"project_identity":"Original machine-world family drama","project_constraints":["functional machinery"],"reference_ids":["creator:test"],"principles":["visual storytelling"],"limitations":["do not imitate signature forms"],"provenance":["curated profile"],"contract":{"principle_only":True,"project_identity_overrides_reference_influence":True}}
+    return {"project_identity":"Original machine-world family drama","project_constraints":["functional machinery"],"reference_ids":["creator:test"],"principles":["visual storytelling"],"limitations":["do not imitate signature forms"],"provenance":["curated profile"],"contract":{"principle_only":True,"project_identity_overrides_reference_influence":True,"project_constraints_preserved":True,"constraints_are_not_inspiration":True}}
 
 def test_master_gate_approves_only_complete_evidence():
     result=asyncio.run(execute_master(request(passing_payload())))
@@ -35,14 +35,14 @@ def test_master_gate_rejects_unknown_gate_names():
 
 def test_master_gate_requires_council_reference_boundary_verification():
     payload=passing_payload(); payload["reference_context"]=reference_context()
-    with pytest.raises(ValueError,match="verification of reference boundaries"): asyncio.run(execute_master(request(payload)))
+    with pytest.raises(ValueError,match="semantic Critic Council proof"): asyncio.run(execute_master(request(payload)))
 
 def test_master_gate_requires_originality_when_references_participated():
-    payload=passing_payload(); payload["reference_context"]=reference_context(); payload["critic_council"]["reference_context_verified"]=True
+    payload=passing_payload(); payload["reference_context"]=reference_context(); payload["critic_council"]["reference_boundaries_verified"]=True
     payload["applicable_gates"]=["creative_approval","story_quality"]
     with pytest.raises(ValueError,match="originality"): asyncio.run(execute_master(request(payload)))
 
 def test_master_gate_records_verified_reference_boundaries():
-    payload=passing_payload(); payload["reference_context"]=reference_context(); payload["critic_council"]["reference_context_verified"]=True
+    payload=passing_payload(); payload["reference_context"]=reference_context(); payload["critic_council"]["reference_boundaries_verified"]=True
     result=asyncio.run(execute_master(request(payload)))
     assert result.output["approved"] is True; assert result.output["reference_boundaries_verified"] is True; assert "originality" in result.output["passed_gates"]
