@@ -1,8 +1,74 @@
 {
   "schema_version": "1.0",
   "subject": "materials_science_engineering",
-  "status": "extension_seed_v1",
+  "status": "extension_gap_fill_v2",
   "resources": [
+    {
+      "id": "mit_fundamentals_materials_science",
+      "title": "Fundamentals of Materials Science",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["materials_structure", "thermodynamics_of_materials", "phase_transformations", "metals_alloys", "ceramics", "polymers", "electronic_materials", "biomaterials", "materials_characterization"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-012-fundamentals-of-materials-science-fall-2005/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT OpenCourseWare undergraduate materials-science curriculum with lecture notes, problem sets, written assignments and exams."
+    },
+    {
+      "id": "mit_structure_of_materials",
+      "title": "Structure of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["materials_structure", "polymers", "ceramics", "materials_characterization", "phase_transformations"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-012sx-structure-of-materials-spring-2019/",
+      "access_policy": "Free Open Learning Library / OCW course materials; preserve source licensing and provenance.",
+      "provenance": "Official MIT materials-structure sequence covering amorphous and crystalline materials, polymers, defects, diffusion and X-ray diffraction, with lecture videos and exams."
+    },
+    {
+      "id": "mit_materials_processing",
+      "title": "Materials Processing",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["metals_alloys", "ceramics", "polymers", "electronic_materials", "materials_structure", "phase_transformations"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-044-materials-processing-spring-2013/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT course on heat transfer, diffusion, fluid flow and industrial-scale processing of metals, polymers, ceramics and electronic materials; includes assignments and exams."
+    },
+    {
+      "id": "mit_mechanical_behavior_materials",
+      "title": "Mechanical Behavior of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["metals_alloys", "ceramics", "polymers", "biomaterials", "materials_characterization", "failure_analysis", "materials_structure"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-032-mechanical-behavior-of-materials-fall-2007/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT course covering elastic/plastic deformation, creep and fracture with integrated laboratory experiments, assignments and exams."
+    },
+    {
+      "id": "mit_electronic_mechanical_properties_materials",
+      "title": "Electronic and Mechanical Properties of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["electronic_materials", "metals_alloys", "ceramics", "polymers", "composites", "biomaterials", "materials_structure", "failure_analysis"],
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "url": "https://ocw.mit.edu/courses/3-225-electronic-and-mechanical-properties-of-materials-fall-2007/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT graduate course covering electrical, optical, magnetic and mechanical properties across metals, semiconductors, ceramics and polymers, with problem sets and exams."
+    },
+    {
+      "id": "mit_grad_mechanical_behavior_materials",
+      "title": "Mechanical Behavior of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["metals_alloys", "ceramics", "polymers", "electronic_materials", "biomaterials", "materials_characterization", "failure_analysis", "materials_structure"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/3-22-mechanical-behavior-of-materials-spring-2008/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT graduate course extending deformation, creep, fracture and fatigue into research-linked special topics, with projects, problem sets and exams."
+    },
     {
       "id": "nist_materials_topics",
       "title": "NIST Materials",
@@ -49,7 +115,7 @@
     }
   ],
   "coverage_notes": {
-    "intentional_gaps": ["foundation-level instruction", "deeper electronic materials", "deeper biomaterials"],
-    "policy": "Coverage is conservative. A portal or standards catalog is not treated as blanket permission to ingest every linked item."
+    "intentional_gaps": ["foundation-level instruction remains incomplete", "dedicated composites curriculum remains thinner than core structure/processing coverage", "specialized biomaterials instruction remains thinner than general materials coverage", "advanced hands-on characterization and computational-materials training require additional exact instructional sources", "research portals and graduate courses do not by themselves establish expert readiness", "expert readiness requires runtime retrieval, practical projects, verification/validation and passed assessment"],
+    "policy": "Coverage is conservative. Assessed courses support instructional cells; portals, repositories and standards catalogs are retained as research/reference evidence and are not treated as blanket learner-competence or ingestion evidence."
   }
 }
