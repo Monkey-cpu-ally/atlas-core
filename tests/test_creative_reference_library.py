@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from creative_intelligence.reference_library.loader import CreativeReferenceLibrary
+from creative_intelligence.reference_library.loader import CreativeReference, CreativeReferenceLibrary
 
 LIBRARY_DIR = Path(__file__).parents[1] / "creative_intelligence" / "reference_library"
 
@@ -11,9 +11,10 @@ LIBRARY_DIR = Path(__file__).parents[1] / "creative_intelligence" / "reference_l
 def test_default_library_loads_seed_catalogs():
     library = CreativeReferenceLibrary.load_default()
     stats = library.stats()
-    assert stats["creators"] >= 24
+    assert stats["creators"] >= 53
     assert stats["works"] >= 35
     assert stats["total"] == stats["creators"] + stats["works"]
+    assert "profiled" in stats
 
 
 def test_reference_ids_are_unique_and_retrievable():
@@ -22,6 +23,17 @@ def test_reference_ids_are_unique_and_retrievable():
     assert len(ids) == len(set(ids))
     for reference in library.all():
         assert library.get(reference.reference_id) == reference
+
+
+def test_profile_schema_is_backward_compatible():
+    reference = CreativeReference("creator:test", "Test", "creator", "art", ("composition",))
+    assert reference.disciplines == ()
+    assert reference.techniques == ()
+    assert reference.strengths == ()
+    assert reference.study_targets == ()
+    assert reference.limitations == ()
+    assert reference.provenance == ()
+    assert reference.relationships == ()
 
 
 def test_search_matches_title_category_and_craft_principles():
@@ -48,12 +60,41 @@ def test_ranked_retrieval_can_filter_creator_and_work():
     assert works and all(match.reference.kind == "work" for match in works)
 
 
+def test_ranked_retrieval_uses_deep_profile_fields():
+    reference = CreativeReference(
+        "creator:test",
+        "Test Creator",
+        "creator",
+        "design",
+        ("composition",),
+        disciplines=("industrial design",),
+        techniques=("functional silhouette",),
+        strengths=("readability",),
+        study_targets=("vehicle architecture",),
+        limitations=("do not imitate signature forms",),
+        provenance=("curated editorial profile",),
+        relationships=("environment design",),
+    )
+    library = CreativeReferenceLibrary([reference])
+    match = library.retrieve("vehicle architecture")[0]
+    assert match.reference == reference
+    assert {"vehicle", "architecture"}.issubset(set(match.matched_terms))
+    assert library.search("functional silhouette") == (reference,)
+
+
 def test_ranked_retrieval_fails_closed_on_invalid_contract():
     library = CreativeReferenceLibrary.load_default()
     with pytest.raises(ValueError, match="positive"):
         library.retrieve("horror", limit=0)
     with pytest.raises(ValueError, match="creator or work"):
         library.retrieve("horror", kind="unknown")
+
+
+def test_optional_profile_lists_fail_closed_when_malformed():
+    with pytest.raises(ValueError, match="optional reference list"):
+        CreativeReferenceLibrary._optional_list({"techniques": "not-a-list"}, "techniques")
+    with pytest.raises(ValueError, match="duplicate values"):
+        CreativeReferenceLibrary._optional_list({"techniques": ["Shape", "shape"]}, "techniques")
 
 
 def test_catalogs_declare_originality_and_provenance_rules():
