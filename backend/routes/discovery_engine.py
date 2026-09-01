@@ -22,6 +22,10 @@ class AnalogyRequest(BaseModel):
 class CandidateHypothesisRequest(BaseModel):
     analogy_id: str; statement: str=Field(min_length=5); rationale: str=Field(min_length=5); assumptions: List[str]=Field(default_factory=list)
     falsification_criteria: List[str]=Field(min_length=1); expected_observations: List[str]=Field(default_factory=list); target_measurements: List[str]=Field(min_length=1)
+class ChallengeRequest(BaseModel):
+    hypothesis_id: str; supporting_claims: List[Dict[str,Any]]=Field(default_factory=list); conflicting_claims: List[Dict[str,Any]]=Field(default_factory=list)
+class PriorArtAssessmentRequest(BaseModel):
+    candidate_id: str; search_queries: List[str]=Field(min_length=1); matches: List[Dict[str,Any]]=Field(default_factory=list)
 class PriorArtRequest(BaseModel):
     items: List[Dict[str,Any]]=Field(default_factory=list); conclusion: str=Field(min_length=3,max_length=5000)
 class EvidenceRequest(BaseModel): evidence: List[Dict[str,Any]]=Field(min_length=1)
@@ -81,6 +85,18 @@ async def accept_candidate(investigation_id: str,candidate_id: str):
 async def add_hypothesis(investigation_id: str,req: HypothesisRequest):
     try:
         item=engine.add_hypothesis(investigation_id,**req.model_dump()); await engine.persist(engine.get_investigation(investigation_id)); return item
+    except engine.DiscoveryEngineError as exc: raise HTTPException(422,str(exc)) from exc
+
+@router.post("/investigations/{investigation_id}/challenges")
+async def challenge_hypothesis(investigation_id: str,req: ChallengeRequest):
+    try:
+        item=engine.challenge_active_hypothesis(investigation_id,**req.model_dump()); await engine.persist(engine.get_investigation(investigation_id)); return item
+    except engine.DiscoveryEngineError as exc: raise HTTPException(422,str(exc)) from exc
+
+@router.post("/investigations/{investigation_id}/prior-art-assessments")
+async def assess_prior_art(investigation_id: str,req: PriorArtAssessmentRequest):
+    try:
+        item=engine.assess_candidate_prior_art(investigation_id,**req.model_dump()); await engine.persist(engine.get_investigation(investigation_id)); return item
     except engine.DiscoveryEngineError as exc: raise HTTPException(422,str(exc)) from exc
 
 @router.post("/investigations/{investigation_id}/prior-art")
