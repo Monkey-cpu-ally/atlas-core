@@ -1,6 +1,6 @@
 {
   "subject": "systems_engineering",
-  "status": "extension_gap_fill_v2",
+  "status": "extension_gap_fill_v3",
   "resources": [
     {
       "id": "nasa_se_handbook",
@@ -73,10 +73,47 @@
       "access": "public_government_work",
       "local_ingestion": "public_document_with_document_id_and_provenance",
       "notes": "NASA/SP-20210010952 provides public guidance for integrating humans with hardware, software, data and processes across program and project life cycles."
+    },
+    {
+      "id": "mit_16_842_fundamentals_systems_engineering",
+      "title": "Fundamentals of Systems Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "decision_analysis", "integration_engineering", "lifecycle_engineering", "model_based_systems_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "url": "https://ocw.mit.edu/courses/16-842-fundamentals-of-systems-engineering-fall-2015/",
+      "access": "open_course_materials",
+      "local_ingestion": "metadata_and_permitted_course_materials_with_provenance",
+      "notes": "Assessed systems-engineering course using the V-model and a cyber-electro-mechanical design project. Covers stakeholder analysis, requirements, architecture, tradespace exploration, optimization, MBSE, integration/interface management, safety, verification and validation, commissioning and lifecycle management. Includes design and written assignments, lecture videos/notes, a PDR package, written quiz and oral examination."
+    },
+    {
+      "id": "mit_esd_33_systems_engineering_2004",
+      "title": "Systems Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "reliability_engineering", "decision_analysis", "integration_engineering", "lifecycle_engineering", "complex_systems"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/esd-33-systems-engineering-summer-2004/",
+      "access": "open_course_materials",
+      "local_ingestion": "metadata_and_permitted_course_materials_with_provenance",
+      "notes": "Graduate instructional course emphasizing customer needs, requirements, design synthesis, reliability improvement, operations, performance, test, manufacturing, cost and schedule, with links to decision theory, statistics and optimization. Includes assignments, problem sets and exams."
+    },
+    {
+      "id": "mit_16_885j_aircraft_systems_engineering",
+      "title": "Aircraft Systems Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "verification_validation", "risk_management", "reliability_engineering", "decision_analysis", "integration_engineering", "lifecycle_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/16-885j-aircraft-systems-engineering-fall-2004/",
+      "access": "open_course_materials",
+      "local_ingestion": "metadata_and_permitted_course_materials_with_provenance",
+      "notes": "Applied complex-systems course covering requirements, interface management, V&V, safety, reliability, lifecycle value and risk. Student teams analyze a real aircraft system through graded written and oral case-study deliverables, providing practical systems-engineering evidence without implying professional certification."
     }
   ],
   "known_gaps": [
-    "Foundation-level systems engineering instruction remains thin and should not be inferred from professional NASA handbooks.",
-    "Dedicated introductory reliability-engineering and decision-analysis resources should be added in a measured gap-fill pass."
+    "Foundation-level systems engineering instruction remains thin and should not be inferred from professional NASA handbooks or graduate MIT courses.",
+    "Dedicated introductory reliability-engineering and decision-analysis pathways remain thinner than the core requirements, architecture, integration and V&V curriculum.",
+    "Graduate coursework and authoritative handbooks do not by themselves establish expert readiness; runtime retrieval, practical project evidence, verification/validation artifacts and passed assessment are still required."
   ]
 }
