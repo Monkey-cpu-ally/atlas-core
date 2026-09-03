@@ -45,8 +45,6 @@ jobs:
       REACT_APP_BACKEND_URL: http://127.0.0.1:8000
       SENTINEL_AUTONOMIC_INTERVAL_S: "3600"
       ATLAS_TEST_MODE: "1"
-      OPENAI_API_KEY: test-key-not-used
-      ELEVENLABS_API_KEY: test-key-not-used
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
