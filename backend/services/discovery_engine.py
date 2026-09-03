@@ -9,6 +9,7 @@ from services import discovery_challenge, discovery_verification, evidence_scori
 LAYERS={"FOUNDATION","FRONTIER","UNKNOWN"}
 STATUSES={"CONCEPT","HYPOTHESIS","PRIOR_ART_CHECKED","TEST_DESIGNED","SIMULATED","EXPERIMENTALLY_SUPPORTED","REPLICATED","INDEPENDENTLY_VERIFIED","INVALIDATED","INCONCLUSIVE","BLOCKED_BY_EVIDENCE","BLOCKED_BY_SAFETY","BLOCKED_BY_CAPABILITY","NOT_NOVEL"}
 PROMOTABLE_STATUSES={"PRIOR_ART_CHECKED","TEST_DESIGNED","SIMULATED","EXPERIMENTALLY_SUPPORTED","REPLICATED","INDEPENDENTLY_VERIFIED"}
+CHALLENGE_RESOLUTIONS={"RESOLVED","INVALIDATED","ACCEPTED_RISK"}
 _RECORDS: Dict[str,Dict[str,Any]]={}; _DB: Any=None
 class DiscoveryEngineError(RuntimeError): pass
 def _now(): return datetime.now(timezone.utc).isoformat()
@@ -52,6 +53,7 @@ def detect_gaps(iid):
  if not r.get("known_facts"): gaps.append({"kind":"foundation","severity":"medium","message":"No known facts have been recorded."})
  if not r.get("unknowns"): gaps.append({"kind":"question_decomposition","severity":"medium","message":"The main question has not been decomposed into explicit unknowns."})
  if not r.get("hypotheses"): gaps.append({"kind":"hypothesis","severity":"high","message":"No accepted falsifiable hypothesis exists."})
+ if any(c.get("conflict_count",0)>0 and c.get("resolution_status","UNRESOLVED")=="UNRESOLVED" for c in r.get("challenges",[])): gaps.append({"kind":"contradiction","severity":"high","message":"An unresolved contradiction blocks experiment design."})
  if not r.get("prior_art"): gaps.append({"kind":"prior_art","severity":"high","message":"No reviewed prior-art assessment has been accepted."})
  if r.get("evidence_score",{}).get("score",0)<60: gaps.append({"kind":"evidence","severity":"high","message":"Evidence score is below the moderate threshold of 60."})
  if not r.get("experiment_plan") and not r.get("experiment_designs"): gaps.append({"kind":"experiment","severity":"high","message":"No measurable experiment or simulation plan exists."})
@@ -84,7 +86,23 @@ def challenge_active_hypothesis(iid,*,hypothesis_id,supporting_claims,conflictin
  if not h: raise DiscoveryEngineError(f"unknown hypothesis_id: {hypothesis_id}")
  try: c=discovery_challenge.challenge_hypothesis(statement=h["statement"],assumptions=h.get("assumptions",[]),supporting_claims=supporting_claims,conflicting_claims=conflicting_claims)
  except discovery_challenge.DiscoveryChallengeError as exc: raise DiscoveryEngineError(str(exc)) from exc
- c["hypothesis_id"]=hypothesis_id; c["created_at"]=_now(); r["challenges"].append(c); _event(r,"CONTRADICTION" if c.get("conflict_count",0) else "ASSUMPTION_CHALLENGE",c); r["updated_at"]=_now(); return c
+ c["challenge_id"]=f"CHL-{str(uuid4())[:8]}"; c["hypothesis_id"]=hypothesis_id; c["resolution_status"]="UNRESOLVED" if c.get("conflict_count",0)>0 else "NOT_REQUIRED"; c["created_at"]=_now(); r["challenges"].append(c); _event(r,"CONTRADICTION" if c.get("conflict_count",0) else "ASSUMPTION_CHALLENGE",c); r["updated_at"]=_now(); return c
+def resolve_challenge(iid,challenge_id,*,resolution,resolution_note,evidence_refs=None,resolved_by="Council"):
+ r=_require(iid); c=next((x for x in r["challenges"] if x.get("challenge_id")==challenge_id),None)
+ if not c: raise DiscoveryEngineError(f"unknown challenge_id: {challenge_id}")
+ if c.get("conflict_count",0)<=0: raise DiscoveryEngineError("challenge has no contradiction requiring resolution")
+ if c.get("resolution_status","UNRESOLVED")!="UNRESOLVED": raise DiscoveryEngineError(f"challenge is already {c.get('resolution_status')}")
+ outcome=resolution.upper()
+ if outcome not in CHALLENGE_RESOLUTIONS: raise DiscoveryEngineError(f"invalid challenge resolution: {resolution}")
+ if not resolution_note.strip(): raise DiscoveryEngineError("challenge resolution requires a non-empty resolution note")
+ refs=evidence_refs or []
+ if outcome=="RESOLVED" and not refs: raise DiscoveryEngineError("resolved contradiction requires supporting evidence references")
+ c["resolution_status"]=outcome; c["resolution_note"]=resolution_note.strip(); c["resolution_evidence_refs"]=refs; c["resolved_by"]=resolved_by; c["resolved_at"]=_now()
+ if outcome=="INVALIDATED":
+  h=next((x for x in r["hypotheses"] if x["hypothesis_id"]==c["hypothesis_id"]),None)
+  if h: h["status"]="invalidated_by_challenge"
+  r["status"]="INVALIDATED"
+ _event(r,"REVISION",{"action":"challenge_resolution","challenge_id":challenge_id,"hypothesis_id":c["hypothesis_id"],"resolution_status":outcome,"resolution_note":c["resolution_note"],"resolved_by":resolved_by},source_refs=refs); r["updated_at"]=_now(); return c
 def assess_candidate_prior_art(iid,*,candidate_id,search_queries,matches):
  r=_require(iid); c=next((x for x in r["candidate_hypotheses"] if x["candidate_id"]==candidate_id),None)
  if not c: raise DiscoveryEngineError(f"unknown candidate_id: {candidate_id}")
@@ -110,7 +128,8 @@ def evaluate_investigation_evidence(iid,*,conflicts=None):
 def design_investigation_experiment(iid,*,hypothesis_id,independent_variables,dependent_variables,controls,procedure,pass_fail_criteria,safety_constraints=None,replication_target=2):
  r=_require(iid); h=next((x for x in r["hypotheses"] if x["hypothesis_id"]==hypothesis_id),None)
  if not h: raise DiscoveryEngineError(f"unknown hypothesis_id: {hypothesis_id}")
- if any(c.get("hypothesis_id")==hypothesis_id and c.get("conflict_count",0)>0 for c in r["challenges"]): raise DiscoveryEngineError("hypothesis has unresolved contradiction review")
+ if h.get("status")!="active": raise DiscoveryEngineError("only an active hypothesis can advance to experiment design")
+ if any(c.get("hypothesis_id")==hypothesis_id and c.get("conflict_count",0)>0 and c.get("resolution_status","UNRESOLVED")=="UNRESOLVED" for c in r["challenges"]): raise DiscoveryEngineError("hypothesis has unresolved contradiction review")
  try: d=discovery_verification.design_experiment(hypothesis=h["statement"],independent_variables=independent_variables,dependent_variables=dependent_variables,controls=controls,procedure=procedure,pass_fail_criteria=pass_fail_criteria,safety_constraints=safety_constraints,replication_target=replication_target)
  except discovery_verification.DiscoveryVerificationError as exc: raise DiscoveryEngineError(str(exc)) from exc
  d["hypothesis_id"]=hypothesis_id; d["created_at"]=_now(); r["experiment_designs"].append(d); r["experiment_plan"]=d; r["status"]="TEST_DESIGNED"; _event(r,"EXPERIMENT_PLAN",d); r["updated_at"]=_now(); return d
@@ -164,6 +183,8 @@ async def hydrate_from_mongo():
  items=await _DB.discovery_investigations.find({}, {"_id":0}).to_list(10000); _RECORDS.clear()
  for x in items:
   for key in ("analogies","candidate_hypotheses","hypotheses","challenges","prior_art","prior_art_assessments","evidence","evidence_evaluations","experiment_designs","results","replications"): x.setdefault(key,[])
+  for challenge in x["challenges"]:
+   challenge.setdefault("resolution_status","UNRESOLVED" if challenge.get("conflict_count",0)>0 else "NOT_REQUIRED")
   ledger=invention_ledger.get_for_investigation(x["investigation_id"])
   if ledger: x.setdefault("ledger_id",ledger["ledger_id"])
   _RECORDS[x["investigation_id"]]=x
