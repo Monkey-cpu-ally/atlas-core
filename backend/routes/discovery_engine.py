@@ -12,7 +12,9 @@ class HypothesisRequest(BaseModel): statement:str=Field(min_length=5); rationale
 class AnalogyRequest(BaseModel): source_subject:str=Field(min_length=2); target_subject:str=Field(min_length=2); source_concept:str=Field(min_length=3); mechanism:str=Field(min_length=3); transferable_principle:str=Field(min_length=3); constraints:List[str]=Field(default_factory=list); source_refs:List[Dict[str,Any]]=Field(default_factory=list)
 class CandidateHypothesisRequest(BaseModel): analogy_id:str; statement:str=Field(min_length=5); rationale:str=Field(min_length=5); assumptions:List[str]=Field(default_factory=list); falsification_criteria:List[str]=Field(min_length=1); expected_observations:List[str]=Field(default_factory=list); target_measurements:List[str]=Field(min_length=1)
 class ChallengeRequest(BaseModel): hypothesis_id:str; supporting_claims:List[Dict[str,Any]]=Field(default_factory=list); conflicting_claims:List[Dict[str,Any]]=Field(default_factory=list)
+class ChallengeResolutionRequest(BaseModel): resolution:str; resolution_note:str=Field(min_length=3); evidence_refs:List[str]=Field(default_factory=list); resolved_by:str="Council"
 class PriorArtAssessmentRequest(BaseModel): candidate_id:str; search_queries:List[str]=Field(min_length=1); matches:List[Dict[str,Any]]=Field(default_factory=list)
+class PriorArtReviewRequest(BaseModel): reviewer:str="Council"; review_note:str=""
 class EvidenceRequest(BaseModel): evidence:List[Dict[str,Any]]=Field(min_length=1)
 class EvidenceEvaluationRequest(BaseModel): conflicts:List[Dict[str,Any]]=Field(default_factory=list)
 class ExperimentPlanRequest(BaseModel): objective:str=Field(min_length=3); method:List[str]=Field(min_length=1); measurements:List[str]=Field(min_length=1); pass_fail_criteria:List[str]=Field(min_length=1); safety_constraints:List[str]=Field(default_factory=list)
@@ -67,9 +69,17 @@ async def hypothesis(iid:str,req:HypothesisRequest):
 async def challenge(iid:str,req:ChallengeRequest):
  try:x=engine.challenge_active_hypothesis(iid,**req.model_dump());await engine.persist(engine.get_investigation(iid));return x
  except engine.DiscoveryEngineError as exc:raise HTTPException(422,str(exc)) from exc
+@router.post("/investigations/{iid}/challenges/{challenge_id}/resolve")
+async def resolve_challenge(iid:str,challenge_id:str,req:ChallengeResolutionRequest):
+ try:x=engine.resolve_challenge(iid,challenge_id,**req.model_dump());await engine.persist(engine.get_investigation(iid));return x
+ except engine.DiscoveryEngineError as exc:raise HTTPException(422,str(exc)) from exc
 @router.post("/investigations/{iid}/prior-art-assessments")
 async def prior_assess(iid:str,req:PriorArtAssessmentRequest):
  try:x=engine.assess_candidate_prior_art(iid,**req.model_dump());await engine.persist(engine.get_investigation(iid));return x
+ except engine.DiscoveryEngineError as exc:raise HTTPException(422,str(exc)) from exc
+@router.post("/investigations/{iid}/prior-art-assessments/{assessment_id}/accept")
+async def accept_prior_assessment(iid:str,assessment_id:str,req:PriorArtReviewRequest):
+ try:x=engine.accept_prior_art_assessment(iid,assessment_id,**req.model_dump());await engine.persist(engine.get_investigation(iid));return x
  except engine.DiscoveryEngineError as exc:raise HTTPException(422,str(exc)) from exc
 @router.post("/investigations/{iid}/evidence")
 async def evidence(iid:str,req:EvidenceRequest):
