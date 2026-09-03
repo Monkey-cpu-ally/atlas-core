@@ -62,4 +62,5 @@ jobs:
             tests/test_creative_master_executor.py \
             tests/test_creative_reference_context.py \
             tests/test_creative_reference_library.py \
-            tests/test_creative_reference_api.py
+            tests/test_creative_reference_api.py \
+            tests/test_creative_production_chain.py
