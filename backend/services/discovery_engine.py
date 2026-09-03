@@ -52,7 +52,7 @@ def detect_gaps(iid):
  if not r.get("known_facts"): gaps.append({"kind":"foundation","severity":"medium","message":"No known facts have been recorded."})
  if not r.get("unknowns"): gaps.append({"kind":"question_decomposition","severity":"medium","message":"The main question has not been decomposed into explicit unknowns."})
  if not r.get("hypotheses"): gaps.append({"kind":"hypothesis","severity":"high","message":"No accepted falsifiable hypothesis exists."})
- if not r.get("prior_art"): gaps.append({"kind":"prior_art","severity":"high","message":"No prior-art or literature items are recorded."})
+ if not r.get("prior_art"): gaps.append({"kind":"prior_art","severity":"high","message":"No reviewed prior-art assessment has been accepted."})
  if r.get("evidence_score",{}).get("score",0)<60: gaps.append({"kind":"evidence","severity":"high","message":"Evidence score is below the moderate threshold of 60."})
  if not r.get("experiment_plan") and not r.get("experiment_designs"): gaps.append({"kind":"experiment","severity":"high","message":"No measurable experiment or simulation plan exists."})
  if r["status"]=="SIMULATED": gaps.append({"kind":"physical_validation","severity":"high","message":"Simulation has not established physical or independent verification."})
@@ -90,9 +90,17 @@ def assess_candidate_prior_art(iid,*,candidate_id,search_queries,matches):
  if not c: raise DiscoveryEngineError(f"unknown candidate_id: {candidate_id}")
  try: a=discovery_challenge.assess_prior_art(candidate_statement=c["statement"],search_queries=search_queries,matches=matches)
  except discovery_challenge.DiscoveryChallengeError as exc: raise DiscoveryEngineError(str(exc)) from exc
- a["candidate_id"]=candidate_id; a["created_at"]=_now(); r["prior_art_assessments"].append(a); c["novelty_status"]="blocked_by_direct_prior_art" if a["disposition"]=="NOT_NOVEL_CANDIDATE" else ("unresolved" if a["disposition"]=="NOVELTY_UNRESOLVED" else "unproven"); _event(r,"PRIOR_ART",a); r["updated_at"]=_now(); return a
-def add_prior_art(iid,*,items,conclusion):
- r=_require(iid); r["prior_art"].extend(items); r["prior_art_conclusion"]=conclusion.strip(); r["status"]="PRIOR_ART_CHECKED"; _event(r,"PRIOR_ART",{"items":items,"conclusion":conclusion}); r["updated_at"]=_now(); return r
+ a["assessment_id"]=f"PA-{str(uuid4())[:8]}"; a["candidate_id"]=candidate_id; a["review_status"]="pending"; a["created_at"]=_now(); r["prior_art_assessments"].append(a); c["novelty_status"]="blocked_by_direct_prior_art" if a["disposition"]=="NOT_NOVEL_CANDIDATE" else ("unresolved" if a["disposition"]=="NOVELTY_UNRESOLVED" else "unproven"); _event(r,"PRIOR_ART",a); r["updated_at"]=_now(); return a
+def accept_prior_art_assessment(iid,assessment_id,*,reviewer="Council",review_note=""):
+ r=_require(iid); a=next((x for x in r["prior_art_assessments"] if x.get("assessment_id")==assessment_id),None)
+ if not a: raise DiscoveryEngineError(f"unknown prior_art assessment_id: {assessment_id}")
+ if a.get("review_status")!="pending": raise DiscoveryEngineError(f"prior-art assessment is already {a.get('review_status')}")
+ if a["disposition"]=="NOT_NOVEL_CANDIDATE": raise DiscoveryEngineError("direct prior art cannot pass prior-art review")
+ if a["disposition"]=="NOVELTY_UNRESOLVED": raise DiscoveryEngineError("close or related prior art must be resolved before prior-art review can pass")
+ a["review_status"]="accepted_no_direct_blocker"; a["reviewed_by"]=reviewer; a["review_note"]=review_note; a["reviewed_at"]=_now()
+ r["prior_art"]=[{"assessment_id":assessment_id,"candidate_id":a["candidate_id"],"disposition":a["disposition"],"review_status":a["review_status"]}]
+ r["prior_art_conclusion"]="Prior-art search reviewed; no direct blocker was recorded. Novelty is not proven."
+ r["status"]="PRIOR_ART_CHECKED"; _event(r,"COUNCIL_DECISION",{"action":"prior_art_review_accepted","assessment_id":assessment_id,"reviewer":reviewer,"rule":"No direct match recorded does not prove novelty."}); r["updated_at"]=_now(); return a
 def add_evidence(iid,*,evidence):
  r=_require(iid); r["evidence"].extend(evidence); r["evidence_score"]=evidence_scoring.score_evidence(r["evidence"]); _event(r,"SOURCE",{"evidence":evidence,"score":r["evidence_score"]}); r["updated_at"]=_now(); return r
 def evaluate_investigation_evidence(iid,*,conflicts=None):
@@ -130,6 +138,7 @@ def promote_to_approval(iid):
  r=_require(iid)
  if r["status"] not in PROMOTABLE_STATUSES: raise DiscoveryEngineError(f"status {r['status']} is not ready for approval review")
  if not r["hypotheses"]: raise DiscoveryEngineError("at least one hypothesis is required before approval review")
+ if not any(a.get("review_status")=="accepted_no_direct_blocker" for a in r.get("prior_art_assessments",[])): raise DiscoveryEngineError("an explicitly reviewed prior-art assessment is required before approval review")
  if r.get("approval_discovery_id"):
   existing=approval.get_draft(r["approval_discovery_id"])
   if existing: return existing
