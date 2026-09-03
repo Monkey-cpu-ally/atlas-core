@@ -149,6 +149,10 @@ class VideoIntake(BaseModel):
     url: str = Field(min_length=8)
     topic: str = Field(min_length=1, max_length=200)
     persist: bool = True
+    learning_level: str = Field(
+        default="advanced",
+        pattern="^(foundation|beginner|intermediate|advanced|undergraduate|graduate|research)$",
+    )
 
 
 class TranscriptIntake(BaseModel):
@@ -156,9 +160,16 @@ class TranscriptIntake(BaseModel):
     topic: str = Field(min_length=1, max_length=200)
     source_url: Optional[str] = None     # for traceability
     persist: bool = True
+    learning_level: str = Field(
+        default="advanced",
+        pattern="^(foundation|beginner|intermediate|advanced|undergraduate|graduate|research)$",
+    )
 
 
-def _intake_from_transcript(transcript: str, topic: str, source_url: Optional[str], persist: bool) -> dict:
+def _intake_from_transcript(
+    transcript: str, topic: str, source_url: Optional[str], persist: bool,
+    learning_level: str = "advanced",
+) -> dict:
     ai_id, kw = route_topic(topic)
     if ai_id == "council":
         ai_id, kw = route_topic(transcript[:600])
@@ -169,6 +180,7 @@ def _intake_from_transcript(transcript: str, topic: str, source_url: Optional[st
         "kind": "youtube" if source_url else "transcript",
         "url": source_url,
         "topic": topic,
+        "learning_level": learning_level,
         "routed_to": ai_id,
         "matched_keyword": kw,
         "display": AI_DISPLAY[ai_id],
@@ -192,6 +204,7 @@ async def _persist_full_pipeline(record: dict) -> dict:
         persona=record["routed_to"],
         quiz=record["quiz"],
         title=record["topic"],
+        learning_level=record.get("learning_level", "advanced"),
     )
 
 
@@ -200,7 +213,9 @@ async def intake_youtube(req: VideoIntake):
     transcript = _get_transcript(req.url)
     if not transcript:
         raise HTTPException(404, "transcript was empty")
-    record = _intake_from_transcript(transcript, req.topic, req.url, req.persist)
+    record = _intake_from_transcript(
+        transcript, req.topic, req.url, req.persist, req.learning_level,
+    )
     pipeline = await _persist_full_pipeline(record) if req.persist else None
     if req.persist:
         # legacy `atlas_archive` row kept for the existing archive panel
@@ -208,6 +223,7 @@ async def intake_youtube(req: VideoIntake):
         await archive_col.insert_one(record_for_archive.copy())
     return {
         "topic": req.topic,
+        "learning_level": record["learning_level"],
         "assigned_to": record["routed_to"],
         "matched_keyword": record["matched_keyword"],
         "display": record["display"],
@@ -223,13 +239,16 @@ async def intake_transcript(req: TranscriptIntake):
     """Manual-paste fallback for environments where YouTube blocks the
     server IP (most cloud providers). Same downstream routing + lesson +
     quiz as /youtube; the architect just supplies the transcript."""
-    record = _intake_from_transcript(req.transcript, req.topic, req.source_url, req.persist)
+    record = _intake_from_transcript(
+        req.transcript, req.topic, req.source_url, req.persist, req.learning_level,
+    )
     pipeline = await _persist_full_pipeline(record) if req.persist else None
     if req.persist:
         record_for_archive = {k: v for k, v in record.items() if k != "transcript_full"}
         await archive_col.insert_one(record_for_archive.copy())
     return {
         "topic": req.topic,
+        "learning_level": record["learning_level"],
         "assigned_to": record["routed_to"],
         "matched_keyword": record["matched_keyword"],
         "display": record["display"],

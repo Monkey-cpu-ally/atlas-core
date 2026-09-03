@@ -1,7 +1,11 @@
 {
-  "schema_version": "1.0",
-  "taxonomy": "learning_subjects.json",
-  "goal": "Populate all 22 learning subjects across seven levels with verified, rights-aware educational and research resources.",
+  "schema_version": "1.1",
+  "taxonomy": {
+    "canonical": "learning_subjects.json",
+    "extension": "learning_subjects_extension_v1.json",
+    "finalized_subject_count": 48
+  },
+  "goal": "Populate all 48 finalized learning subjects across seven levels with verified, rights-aware educational and research resources.",
   "resource_types": ["open_textbook", "course", "lesson", "lecture_notes", "problem_set", "paper", "dataset", "technical_documentation", "reference_archive"],
   "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
   "quality_rules": {
@@ -10,7 +14,9 @@
     "deduplicate_before_ingestion": true,
     "prefer_primary_or_authoritative_sources": true,
     "preprints_are_not_peer_reviewed_by_default": true,
-    "copyrighted_works_wholesale_storage": false
+    "copyrighted_works_wholesale_storage": false,
+    "do_not_infer_learning_levels_without_evidence": true,
+    "resource_presence_is_not_runtime_knowledge": true
   },
   "priority_sources": {
     "openstax": {"role": ["open_textbook", "exercises"], "best_levels": ["foundation", "beginner", "intermediate", "undergraduate"], "subjects": ["biology", "business", "chemistry", "economics", "history", "mathematics", "philosophy", "physics", "psychology", "software_engineering"]},
@@ -24,17 +30,19 @@
   },
   "population_status": {
     "taxonomy_complete": true,
+    "finalized_subject_count": 48,
     "source_mapping_started": true,
     "resource_manifests_complete": false,
     "all_levels_populated": false,
     "ai_retrieval_verified": false
   },
   "next_actions": [
-    "Generate per-subject resource manifests using the approved source registry.",
-    "Classify each resource by subsubject and learning level.",
+    "Continue filling exact subject/subsubject/level gaps reported by coverage_matrix_v2.json rather than adding broad duplicate sources.",
+    "Classify each resource by subsubject and learning level using explicit evidence.",
     "Record license/access/provenance and citation metadata.",
     "Run duplicate detection before ingestion.",
-    "Ingest permitted text/metadata into Knowledge Bank retrieval storage.",
-    "Verify Ajani, Minerva, and Hermes can retrieve resources by subject, subsubject, and level."
+    "Ingest only permitted text/metadata into Knowledge Bank retrieval storage.",
+    "Populate runtime_status_v1.json from real ingestion and retrieval tests rather than catalog assumptions.",
+    "Verify Ajani, Minerva, and Hermes can retrieve resources by subject, subsubject, and level with source identity preserved."
   ]
 }

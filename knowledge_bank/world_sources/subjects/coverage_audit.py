@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 TAXONOMY = ROOT / "learning_subjects.json"
+TAXONOMY_EXTENSION = ROOT / "learning_subjects_extension_v1.json"
 RESOURCES = ROOT / "resources"
 OUTPUT = ROOT / "coverage_matrix_v2.json"
 
@@ -13,6 +14,25 @@ OUTPUT = ROOT / "coverage_matrix_v2.json"
 def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_taxonomy() -> dict:
+    taxonomy = load_json(TAXONOMY)
+    subjects = dict(taxonomy.get("subjects", {}))
+
+    if TAXONOMY_EXTENSION.is_file():
+        extension = load_json(TAXONOMY_EXTENSION)
+        ext_levels = extension.get("levels", taxonomy.get("levels", []))
+        if ext_levels != taxonomy.get("levels", []):
+            raise ValueError("Taxonomy extension levels must match canonical taxonomy levels")
+
+        overlap = sorted(set(subjects) & set(extension.get("subjects", {})))
+        if overlap:
+            raise ValueError(f"Taxonomy extension duplicates canonical subjects: {overlap}")
+        subjects.update(extension.get("subjects", {}))
+
+    taxonomy["subjects"] = subjects
+    return taxonomy
 
 
 def iter_subject_manifests(subject: str):
@@ -24,12 +44,12 @@ def iter_subject_manifests(subject: str):
 
 
 def build_coverage() -> dict:
-    taxonomy = load_json(TAXONOMY)
+    taxonomy = load_taxonomy()
     levels = taxonomy["levels"]
     subjects = taxonomy["subjects"]
 
     report = {
-        "schema_version": "2.0",
+        "schema_version": "2.1",
         "levels": levels,
         "subjects": {},
         "summary": {},

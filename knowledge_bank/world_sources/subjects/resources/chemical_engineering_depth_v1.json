@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "subject": "chemical_engineering",
+  "status": "extension_gap_fill_v6_beginner_depth",
+  "resources": [
+    {
+      "id": "learncheme_material_energy_balances_resources",
+      "title": "Material and Energy Balances Resources",
+      "provider": "LearnChemE",
+      "resource_type": "interactive_course_resource_collection",
+      "url": "https://learncheme.com/course-overview/material-and-energy-balances-resources/",
+      "subsubjects": ["material_energy_balances"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Verified collection with 225+ screencasts, self-study modules, simulations, spreadsheets, conceptual questions and digital experiments for material and energy balances. Beginner mapping reflects introductory engineering calculations and balance instruction; no foundation mapping is inferred."
+    },
+    {
+      "id": "learncheme_thermodynamics_1_resources",
+      "title": "Thermodynamics 1 Resources",
+      "provider": "LearnChemE",
+      "resource_type": "interactive_course_resource_collection",
+      "url": "https://learncheme.com/course-overview/thermodynamics-1-resources/",
+      "subsubjects": ["chemical_thermodynamics"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Verified introductory thermodynamics collection with screencasts, quizzes, self-study modules, simulations, spreadsheets and digital experiments covering energy, entropy, phase equilibrium and equations of state."
+    },
+    {
+      "id": "learncheme_kinetics_reactor_design_resources",
+      "title": "Kinetics and Reactor Design Resources",
+      "provider": "LearnChemE",
+      "resource_type": "interactive_course_resource_collection",
+      "url": "https://learncheme.com/course-overview/kinetics-resources/",
+      "subsubjects": ["reaction_engineering"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Verified kinetics/reactor-design collection with introductory reactor-design material, 325+ screencasts, self-study modules, simulations, virtual laboratory work and assessment resources."
+    },
+    {
+      "id": "learncheme_separations_resources",
+      "title": "Separations Resources",
+      "provider": "LearnChemE",
+      "resource_type": "interactive_course_resource_collection",
+      "url": "https://learncheme.com/course-overview/separations-resources/",
+      "subsubjects": ["separations"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Verified separations/mass-transfer learning collection with 140+ screencasts, self-study modules, simulations, virtual laboratory material and digital experiments spanning distillation, absorption, extraction, membranes and diffusion."
+    },
+    {
+      "id": "learncheme_process_control_resources",
+      "title": "Process Control Resources",
+      "provider": "LearnChemE",
+      "resource_type": "interactive_course_resource_collection",
+      "url": "https://learncheme.com/course-overview/process-control-resources/",
+      "subsubjects": ["process_control"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Verified process-control collection with introductory PID/feedforward/cascade control content, screencasts, quizzes, simulations and a distillation-control virtual laboratory."
+    },
+    {
+      "id": "learncheme_process_design_screencasts",
+      "title": "Process Design Screencasts",
+      "provider": "LearnChemE",
+      "resource_type": "engineering_learning_collection",
+      "url": "https://learncheme.com/screencasts/process-design/",
+      "subsubjects": ["process_design", "process_simulation"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "access": "public_web_learning_resources",
+      "storage_policy": "metadata_link_only_until_item_rights_verified",
+      "notes": "Verified process-design collection includes basics of block/process-flow/P&ID diagrams plus introductory Aspen Plus flowsheet, property-method and simulation tutorials."
+    },
+    {
+      "id": "aiche_sache_level_one_basic_process_safety",
+      "title": "SAChE Certificate Program - Level One (Basic) Courses",
+      "provider": "AIChE Center for Chemical Process Safety",
+      "resource_type": "process_safety_curriculum",
+      "url": "https://ccps.aiche.org/community/technological-communities/safety-and-chemical-engineering-education-sache/certificate-program/Level-One-Basic-Curriculum",
+      "subsubjects": ["process_safety"],
+      "levels": ["foundation", "beginner", "undergraduate"],
+      "access": "public_curriculum_page_courses_free_for_students_professors_and_schools_per_provider",
+      "storage_policy": "metadata_link_only_course_content_rights_separate",
+      "notes": "Provider describes this as the Level One Basic curriculum for students with little prior process-safety exposure, covering hazard recognition, risk, mitigation, lab safety and process-safety management fundamentals."
+    }
+  ],
+  "evidence_notes": [
+    "Mappings are limited to levels explicitly supported by introductory/basic course positioning; resources are not promoted to foundation unless the provider explicitly presents foundational/basic instruction.",
+    "Public accessibility does not imply permission for wholesale local storage. Item-level rights verification remains required before ingestion.",
+    "These additions improve catalog coverage only. Expert readiness still requires ingestion, runtime retrieval verification, citations, practical application and assessment."
+  ]
+}

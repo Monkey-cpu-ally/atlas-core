@@ -1,1 +1,69 @@
-{"schema_version":"1.0","subject":"creative_writing","status":"seeded_not_complete","levels":["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],"resources":[{"title":"Introduction to Fiction","provider":"MIT OpenCourseWare","type":["course","readings","literary_study"],"subsubjects":["fiction","story_structure","character","prose"],"levels":["beginner","undergraduate"],"url":"https://ocw.mit.edu/courses/21l-003-introduction-to-fiction-spring-2002/","ingestion":"metadata_and_open_course_materials_per_license"},{"title":"Reading Poetry","provider":"MIT OpenCourseWare","type":["course","readings"],"subsubjects":["poetry","prose","analysis"],"levels":["beginner","undergraduate"],"url":"https://ocw.mit.edu/search/?q=Reading%20Poetry","ingestion":"catalog_metadata_then_course_level_ingestion_per_license"},{"title":"Project Gutenberg literature corpus","provider":"Project Gutenberg","type":["public_domain_books","reference_corpus"],"subsubjects":["fiction","poetry","genre_writing","prose","story_structure"],"levels":["foundation","beginner","intermediate","advanced"],"url":"https://www.gutenberg.org/","ingestion":"public_domain_full_text_via_existing_gutenberg_connector"},{"title":"Computational creativity and writing research","provider":"arXiv","type":["research_papers"],"subsubjects":["writing_tools","poetry","story_generation"],"levels":["graduate","research"],"url":"https://arxiv.org/search/?query=creative+writing&searchtype=all","ingestion":"metadata_abstract_and_open_full_text_when_permitted"}],"gaps":["dedicated writing workshops","screenwriting","playwriting","editing and revision exercises","graduate craft courses"]}
+{
+  "schema_version": "1.0",
+  "subject": "creative_writing",
+  "status": "gap_fill_v2",
+  "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+  "resources": [
+    {"id":"mit_intro_fiction","title":"Introduction to Fiction","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["fiction","story_structure","character","prose","editing_and_revision"],"levels":["beginner","intermediate","undergraduate"],"url":"https://ocw.mit.edu/courses/21l-003-introduction-to-fiction-fall-2003/","access":"syllabus_readings_writing_revision","local_ingestion":"verify_item_license","notes":"Communications-intensive fiction course requiring polished writing and revision; useful for narrative craft and revision evidence."},
+    {"id":"mit_reading_poetry","title":"Reading Poetry","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["poetry","prose","editing_and_revision"],"levels":["beginner","intermediate","undergraduate"],"url":"https://ocw.mit.edu/courses/21l-004-reading-poetry-spring-2018/","access":"readings_assignments_analysis_revision","local_ingestion":"verify_item_license","notes":"Formal tools include meter, sound, syntax, word choice, metaphor, rhythm, analytic writing and revision."},
+    {"id":"mit_playwriting_1","title":"Playwriting I","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["playwriting","story_structure","character","dialogue","genre_writing","editing_and_revision"],"levels":["beginner","intermediate","undergraduate"],"url":"https://ocw.mit.edu/courses/21m-604-playwriting-i-spring-2005/","access":"readings_assignments_projects_examples","local_ingestion":"verify_item_license","notes":"Craft-focused theater writing with scene structure, action, events, voice, dialogue, weekly exercises and a sustained project."},
+    {"id":"mit_writing_reading_essay","title":"Writing and Reading the Essay","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["nonfiction","prose","voice_style","editing_and_revision","publishing"],"levels":["intermediate","advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/21w-735-writing-and-reading-the-essay-fall-2005/","access":"readings_assignments_examples","local_ingestion":"verify_item_license","notes":"Writing-centered study of the literary essay and nonfiction prose with assignment examples."},
+    {"id":"mit_forms_western_narrative","title":"Forms of Western Narrative","provider":"MIT OpenCourseWare","resource_type":"course","subsubjects":["fiction","story_structure","genre_writing","voice_style"],"levels":["advanced","undergraduate"],"url":"https://ocw.mit.edu/courses/21l-012-forms-of-western-narrative-fall-2007/","access":"lecture_notes_written_assignments","local_ingestion":"verify_item_license","notes":"Studies changing narrative forms and how historical, cultural and technological contexts shape storytelling."},
+    {"id":"gutenberg_literature","title":"Project Gutenberg Literature Corpus","provider":"Project Gutenberg","resource_type":"public_domain_corpus","subsubjects":["fiction","poetry","playwriting","genre_writing","prose","story_structure","character","voice_style"],"levels":["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],"url":"https://www.gutenberg.org/","access":"public_domain_books","local_ingestion":"public_domain_full_text_via_existing_gutenberg_connector","notes":"Primary-text corpus including dramatic works for reading, comparison and craft research; this is source material rather than a playwriting curriculum, and individual editions remain provenance-tracked."},
+    {"id":"arxiv_computational_creativity_writing","title":"Computational Creativity and Writing Research","provider":"arXiv","resource_type":"research_repository","subsubjects":["writing_tools","poetry","story_generation","fiction"],"levels":["graduate","research"],"url":"https://arxiv.org/search/?query=creative+writing&searchtype=all","access":"papers_metadata_and_open_fulltext_when_permitted","local_ingestion":"paper_license_dependent","notes":"Research layer only; individual papers require relevance, quality and license review before ingestion."}
+    ,{
+      "id": "openlearn_start_writing_fiction",
+      "title": "Start Writing Fiction",
+      "provider": "The Open University OpenLearn",
+      "resource_type": "introductory_open_course",
+      "subsubjects": ["character", "worldbuilding", "genre_writing"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://www.open.edu/openlearn/history-the-arts/creative-writing/start-writing-fiction",
+      "access": "public_course_with_provider_terms",
+      "local_ingestion": "metadata_link_only_until_component_rights_verified",
+      "notes": "Provider identifies this as Level 1 introductory study covering character, setting and genre. Worldbuilding mapping is limited to its explicit instruction on creating settings and interactions between character and place."
+    },
+    {
+      "id": "openlearn_writing_what_you_know",
+      "title": "Writing What You Know",
+      "provider": "The Open University OpenLearn",
+      "resource_type": "introductory_open_course",
+      "subsubjects": ["nonfiction", "worldbuilding", "prose"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://www.open.edu/openlearn/history-the-arts/creative-writing/writing-what-you-know",
+      "access": "public_course_creative_commons_marked",
+      "local_ingestion": "verify_download_and_component_license_before_storage",
+      "notes": "Level 1 introductory course using memory, observation, sensory detail and personal history, with an explicit section on building a believable world."
+    },
+    {
+      "id": "bbc_writersroom_screenplay_format_tv",
+      "title": "Screenplay Format for TV Shows",
+      "provider": "BBC Writersroom",
+      "resource_type": "screenplay_format_guide",
+      "subsubjects": ["screenwriting"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://downloads.bbc.co.uk/writersroom/scripts/screenplaytv.pdf",
+      "access": "public_reference_pdf",
+      "local_ingestion": "metadata_link_only_unless_reuse_terms_are_verified",
+      "notes": "Practical introductory reference for television screenplay layout and formatting. It does not by itself provide a complete screenwriting curriculum."
+    },
+    {
+      "id": "writers_guild_foundation_library_archive",
+      "title": "Shavelson-Webb Library and Writers Guild Foundation Archive",
+      "provider": "Writers Guild Foundation",
+      "resource_type": "screenwriting_research_library_and_archive",
+      "subsubjects": ["screenwriting", "story_structure", "character", "dialogue", "prose", "editing_and_revision"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.wgfoundation.org/library/",
+      "access": "public_by_appointment_in_person_noncirculating",
+      "local_ingestion": "catalog_metadata_only_no_script_copying_or_distribution",
+      "notes": "Research library with more than 50,000 produced film and television scripts plus drafts, treatments, outlines, pitches and show bibles. Materials are primarily on-site and cannot be copied, emailed, borrowed or redistributed; catalog coverage must not be interpreted as digitally ingestible content."
+    }
+  ],
+  "known_gaps": [
+    "Screenwriting foundation and research references are present, but a balanced open digital curriculum remains thinner than fiction and playwriting coverage.",
+    "Graduate-level workshop and publishing-practice coverage needs stronger open, directly auditable curricula rather than being inferred from undergraduate courses.",
+    "Research repositories do not establish expert creative-writing readiness without portfolio work, iterative critique, revision evidence and assessment.",
+    "The Writers Guild Foundation archive is primarily an in-person research resource and must not be counted as runtime-ingestible script content."
+  ]
+}

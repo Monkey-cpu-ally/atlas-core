@@ -1,0 +1,119 @@
+{
+  "subject": "systems_engineering",
+  "status": "extension_gap_fill_v3",
+  "resources": [
+    {
+      "id": "nasa_se_handbook",
+      "title": "NASA Systems Engineering Handbook",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_handbook",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "decision_analysis", "integration_engineering", "lifecycle_engineering", "model_based_systems_engineering", "complex_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nasa.gov/reference/systems-engineering-handbook/",
+      "access": "public_official_guidance",
+      "local_ingestion": "document_version_and_provenance_required",
+      "notes": "Official NASA systems engineering guidance covering requirements, architecture, design decisions, product realization, integration, life cycles, technical management, and MBSE context."
+    },
+    {
+      "id": "nasa_se_fundamentals",
+      "title": "NASA Systems Engineering Handbook - Fundamentals",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_reference",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "decision_analysis", "integration_engineering", "lifecycle_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.nasa.gov/reference/2-0-fundamentals-of-systems-engineering/",
+      "access": "public_official_guidance",
+      "local_ingestion": "preserve_section_and_source_provenance",
+      "notes": "NASA fundamentals introduce the multidisciplinary SE engine, project phases, cost-effectiveness considerations, verification versus validation, and Human Systems Integration."
+    },
+    {
+      "id": "nasa_se_design_processes",
+      "title": "NASA Systems Engineering Handbook - System Design Processes",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_reference",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "decision_analysis", "integration_engineering", "model_based_systems_engineering", "complex_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nasa.gov/reference/4-0-system-design-processes/",
+      "access": "public_official_guidance",
+      "local_ingestion": "preserve_section_and_source_provenance",
+      "notes": "Primary NASA guidance for stakeholder expectations, technical requirements, logical decomposition, trade studies and design solution definition."
+    },
+    {
+      "id": "nasa_hdbk_1009",
+      "title": "NASA Systems Modeling Handbook for Systems Engineering",
+      "provider": "NASA Technical Standards System",
+      "resource_type": "systems_modeling_handbook",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "integration_engineering", "model_based_systems_engineering", "complex_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://standards.nasa.gov/standard/NASA/NASA-HDBK-1009",
+      "access": "internet_public_standard",
+      "local_ingestion": "preserve_document_number_version_and_access_status",
+      "notes": "Active public NASA handbook integrating SysML-based system modeling with stakeholder, requirements, architecture, verification and validation work products."
+    },
+    {
+      "id": "nasa_se_appendix",
+      "title": "NASA Systems Engineering Handbook - Appendix and Templates",
+      "provider": "NASA Office of the Chief Engineer",
+      "resource_type": "engineering_templates_reference",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "verification_validation", "risk_management", "reliability_engineering", "decision_analysis", "integration_engineering", "lifecycle_engineering", "human_systems_integration"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nasa.gov/reference/system-engineering-handbook-appendix/",
+      "access": "public_official_guidance",
+      "local_ingestion": "preserve_template_context_and_provenance",
+      "notes": "NASA appendix material includes requirements, verification matrices, reliability and specialty engineering, integration planning, risk considerations, life-cycle planning, and an HSI plan outline."
+    },
+    {
+      "id": "nasa_hsi_handbook",
+      "title": "NASA Human Systems Integration Handbook",
+      "provider": "NASA",
+      "resource_type": "engineering_handbook",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "verification_validation", "risk_management", "integration_engineering", "lifecycle_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://ntrs.nasa.gov/citations/20210010952",
+      "access": "public_government_work",
+      "local_ingestion": "public_document_with_document_id_and_provenance",
+      "notes": "NASA/SP-20210010952 provides public guidance for integrating humans with hardware, software, data and processes across program and project life cycles."
+    },
+    {
+      "id": "mit_16_842_fundamentals_systems_engineering",
+      "title": "Fundamentals of Systems Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "decision_analysis", "integration_engineering", "lifecycle_engineering", "model_based_systems_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "url": "https://ocw.mit.edu/courses/16-842-fundamentals-of-systems-engineering-fall-2015/",
+      "access": "open_course_materials",
+      "local_ingestion": "metadata_and_permitted_course_materials_with_provenance",
+      "notes": "Assessed systems-engineering course using the V-model and a cyber-electro-mechanical design project. Covers stakeholder analysis, requirements, architecture, tradespace exploration, optimization, MBSE, integration/interface management, safety, verification and validation, commissioning and lifecycle management. Includes design and written assignments, lecture videos/notes, a PDR package, written quiz and oral examination."
+    },
+    {
+      "id": "mit_esd_33_systems_engineering_2004",
+      "title": "Systems Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "systems_modeling", "verification_validation", "risk_management", "reliability_engineering", "decision_analysis", "integration_engineering", "lifecycle_engineering", "complex_systems"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/esd-33-systems-engineering-summer-2004/",
+      "access": "open_course_materials",
+      "local_ingestion": "metadata_and_permitted_course_materials_with_provenance",
+      "notes": "Graduate instructional course emphasizing customer needs, requirements, design synthesis, reliability improvement, operations, performance, test, manufacturing, cost and schedule, with links to decision theory, statistics and optimization. Includes assignments, problem sets and exams."
+    },
+    {
+      "id": "mit_16_885j_aircraft_systems_engineering",
+      "title": "Aircraft Systems Engineering",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["requirements_engineering", "systems_architecture", "verification_validation", "risk_management", "reliability_engineering", "decision_analysis", "integration_engineering", "lifecycle_engineering", "human_systems_integration", "complex_systems"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/16-885j-aircraft-systems-engineering-fall-2004/",
+      "access": "open_course_materials",
+      "local_ingestion": "metadata_and_permitted_course_materials_with_provenance",
+      "notes": "Applied complex-systems course covering requirements, interface management, V&V, safety, reliability, lifecycle value and risk. Student teams analyze a real aircraft system through graded written and oral case-study deliverables, providing practical systems-engineering evidence without implying professional certification."
+    }
+  ],
+  "known_gaps": [
+    "Foundation-level systems engineering instruction remains thin and should not be inferred from professional NASA handbooks or graduate MIT courses.",
+    "Dedicated introductory reliability-engineering and decision-analysis pathways remain thinner than the core requirements, architecture, integration and V&V curriculum.",
+    "Graduate coursework and authoritative handbooks do not by themselves establish expert readiness; runtime retrieval, practical project evidence, verification/validation artifacts and passed assessment are still required."
+  ]
+}

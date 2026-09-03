@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "subject": "geology_earth_science",
+  "status": "extension_gap_fill_v2",
+  "resources": [
+    {
+      "id": "usgs_geology_education",
+      "title": "USGS Geology Education",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "earth_science_education_portal",
+      "subsubjects": ["mineralogy", "petrology", "structural_geology", "sedimentology", "stratigraphy", "geomorphology", "paleontology", "tectonics", "earth_system_science"],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.usgs.gov/educational-resources/geology-education",
+      "access": "public_educational_material",
+      "local_ingestion": "item_level_provenance_and_usage_terms_required",
+      "notes": "USGS geology education provides lessons and background resources on minerals, rocks, fossils, geologic history, landforms and plate tectonics. Level mappings stop at undergraduate rather than treating introductory education as graduate research."
+    },
+    {
+      "id": "usgs_science_data_catalog_earth",
+      "title": "USGS Science Data Catalog - Earth Sciences",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "earth_science_data_catalog",
+      "subsubjects": ["geochemistry", "geophysics", "hydrogeology", "sedimentology", "stratigraphy", "structural_geology", "geomorphology", "tectonics", "earth_system_science"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://data.usgs.gov/datacatalog/",
+      "access": "public_metadata_and_dataset_links",
+      "local_ingestion": "dataset_specific_metadata_license_and_provenance_required",
+      "notes": "Primary USGS discovery layer for research datasets. Advanced mappings indicate data/research utility, not a complete graduate curriculum."
+    },
+    {
+      "id": "usgs_earthquake_topics",
+      "title": "USGS Earthquake Education and Science",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "seismology_tectonics_reference",
+      "subsubjects": ["geophysics", "structural_geology", "tectonics", "earth_system_science"],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.usgs.gov/programs/earthquake-hazards/education",
+      "access": "public_educational_and_reference_material",
+      "local_ingestion": "preserve_source_and_item_provenance",
+      "notes": "USGS earthquake material supports seismic, faulting, deformation and plate-tectonic concepts without inventing a non-taxonomy natural_hazards subsubject."
+    },
+    {
+      "id": "usgs_geology_minerals_energy_geophysics_center",
+      "title": "USGS Geology, Minerals, Energy, and Geophysics Science Center",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "professional_geoscience_research_portal",
+      "subsubjects": ["mineralogy", "petrology", "structural_geology", "sedimentology", "stratigraphy", "geomorphology", "geophysics", "geochemistry", "tectonics", "earth_system_science"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.usgs.gov/centers/gmeg",
+      "access": "public_research_publications_data_and_project_links",
+      "local_ingestion": "item_level_provenance_required",
+      "notes": "USGS GMEG explicitly works across geologic mapping and tectonics, geophysics, geochronology, sedimentary-basin studies, geomorphology, paleoclimate, mineral and energy geology."
+    },
+    {
+      "id": "usgs_water_science_hydrogeology",
+      "title": "USGS Water Science School and Groundwater Resources",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "hydrogeology_education_reference",
+      "subsubjects": ["hydrogeology", "earth_system_science"],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.usgs.gov/special-topics/water-science-school",
+      "access": "public_educational_reference",
+      "local_ingestion": "item_level_provenance_required",
+      "notes": "USGS water education provides groundwater, aquifer, water-cycle and Earth-system material appropriate for foundational through undergraduate hydrogeology support."
+    },
+    {
+      "id": "usgs_paleontology_fossils",
+      "title": "USGS Geology and Fossil Educational Resources",
+      "provider": "U.S. Geological Survey",
+      "resource_type": "paleontology_geologic_history_education",
+      "subsubjects": ["paleontology", "stratigraphy", "sedimentology", "earth_system_science"],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.usgs.gov/educational-resources/geology-education",
+      "access": "public_educational_material",
+      "local_ingestion": "item_level_provenance_required",
+      "notes": "The USGS geology education collection includes fossils and geologic-time teaching material. This entry separates paleontology/geologic-history coverage from the broader portal for audit traceability."
+    }
+  ],
+  "known_gaps": [
+    "dedicated graduate-level mineralogy and petrology instructional sequences",
+    "dedicated graduate-level paleontology instructional sequence",
+    "expert readiness still requires retrieval verification, assessment, and applied geologic analysis rather than source presence alone"
+  ]
+}

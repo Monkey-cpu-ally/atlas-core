@@ -1,0 +1,169 @@
+{
+  "schema_version": "1.0",
+  "subject": "microbiology",
+  "status": "extension_gap_fill_v2",
+  "resources": [
+    {
+      "id": "cdc_microbiology_series",
+      "title": "CDC Microbiology eLearning Series",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "education_training",
+      "url": "https://www.cdc.gov/lab-training/php/courses/microbiology-series.html",
+      "subsubjects": ["microbial_cell_biology", "bacteriology", "mycology", "clinical_microbiology"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "mit_7_21_7_62_microbial_physiology",
+      "title": "MIT 7.21 / 7.62 Microbial Physiology",
+      "provider": "Massachusetts Institute of Technology",
+      "resource_type": "university_course_reference",
+      "url": "https://catalog.mit.edu/subjects/7/",
+      "subsubjects": ["microbial_cell_biology", "bacteriology", "microbial_genetics", "microbial_ecology"],
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "access": "public_course_catalog",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "MIT catalog documents bacterial physiology, bacteriophages, genetic and metabolic regulation, cell envelopes, secretion, pathogenesis, bioenergetics, symbiosis, quorum sensing, DNA-damage responses and biofilms. The graduate version requires greater depth."
+    },
+    {
+      "id": "mit_7_13_experimental_microbial_genetics",
+      "title": "MIT 7.13 Experimental Microbial Genetics",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "laboratory_course",
+      "url": "https://ocw.mit.edu/courses/7-13-experimental-microbial-genetics-fall-2008/",
+      "subsubjects": ["bacteriology", "microbial_genetics", "clinical_microbiology"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "access": "open_course_materials",
+      "storage_policy": "license_check_per_asset",
+      "notes": "Research-project laboratory course using molecular genetics with Pseudomonas aeruginosa, including antibiotic resistance and other microbial phenotypes."
+    },
+    {
+      "id": "mit_7_493_microbial_genetics_evolution",
+      "title": "MIT 7.493 Microbial Genetics and Evolution",
+      "provider": "Massachusetts Institute of Technology",
+      "resource_type": "graduate_course_reference",
+      "url": "https://catalog.mit.edu/schools/science/biology/",
+      "subsubjects": ["microbial_genetics", "microbial_ecology"],
+      "levels": ["graduate", "research"],
+      "access": "public_course_catalog",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Graduate course covering microbial genetic/genomic analyses, central dogma, horizontal gene transfer and evolution. Research level denotes research-oriented literature/method context, not independent expert-readiness certification."
+    },
+    {
+      "id": "mit_7_492_methods_problems_microbiology",
+      "title": "MIT 7.492 Methods and Problems in Microbiology",
+      "provider": "Massachusetts Institute of Technology",
+      "resource_type": "graduate_primary_literature_course_reference",
+      "url": "https://catalog.mit.edu/schools/science/biology/",
+      "subsubjects": ["microbial_cell_biology", "bacteriology", "microbial_genetics", "microbial_ecology"],
+      "levels": ["graduate", "research"],
+      "access": "public_course_catalog",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Graduate microbiology course centered on primary literature, methods and approaches used to understand and manipulate microbes."
+    },
+    {
+      "id": "cdc_microbenet",
+      "title": "CDC MicrobeNet",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "reference_database_tool",
+      "url": "https://www.cdc.gov/microbenet/php/about/index.html",
+      "subsubjects": ["bacteriology", "mycology", "microbial_genetics", "clinical_microbiology"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "public_tool",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Reference/identification tool; not treated as a standalone curriculum."
+    },
+    {
+      "id": "cdc_dpdx",
+      "title": "CDC DPDx Diagnostic Procedures",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "education_reference",
+      "url": "https://www.cdc.gov/dpdx/diagnosticprocedures/index.html",
+      "subsubjects": ["parasitology", "clinical_microbiology"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "cdc_infectious_pathology_techniques",
+      "title": "CDC Infectious Disease Pathology Laboratory Techniques",
+      "provider": "Centers for Disease Control and Prevention",
+      "resource_type": "laboratory_reference",
+      "url": "https://www.cdc.gov/infectious-disease-pathology/php/lab-techniques/index.html",
+      "subsubjects": ["bacteriology", "virology", "mycology", "parasitology", "immunomicrobiology", "clinical_microbiology"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "niaid_bioinformatics_portal",
+      "title": "NIAID Bioinformatics Portal Training Resources",
+      "provider": "National Institute of Allergy and Infectious Diseases",
+      "resource_type": "training_portal",
+      "url": "https://bioinformatics.niaid.nih.gov/search",
+      "subsubjects": ["microbial_genetics", "microbial_ecology", "microbiome_science"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance",
+      "notes": "Discovery/training portal. Individual resources require item-level verification before being counted as complete instructional evidence."
+    },
+    {
+      "id": "openstax_microbiology_2e",
+      "title": "Microbiology 2e",
+      "provider": "OpenStax",
+      "resource_type": "open_textbook",
+      "url": "https://openstax.org/details/books/microbiology-2e",
+      "subsubjects": [
+        "virology",
+        "parasitology",
+        "microbial_genetics",
+        "microbial_metabolism",
+        "microbial_ecology",
+        "immunomicrobiology",
+        "industrial_microbiology",
+        "microbiome_science"
+      ],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "access": "open_textbook_provider_page",
+      "storage_policy": "ingest_only_under_the_provider_license_with_attribution_and_version_provenance",
+      "notes": "Comprehensive introductory microbiology text covering viruses, eukaryotic parasites, microbial genetics, metabolism and ecology, host defenses, applied and industrial microbiology, and the human microbiome. Foundation and beginner labels refer to introductory use within these subsubjects; they do not imply that every chapter is elementary."
+    },
+    {
+      "id": "pubmed_microbial_metabolism_literature",
+      "title": "PubMed: Microbial Metabolism Literature",
+      "provider": "National Library of Medicine",
+      "resource_type": "targeted_research_index",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=microbial+metabolism",
+      "subsubjects": ["microbial_metabolism"],
+      "levels": ["graduate", "research"],
+      "access": "public_metadata_mixed_fulltext",
+      "storage_policy": "metadata_allowed_fulltext_requires_article_level_rights_review",
+      "notes": "Targeted primary-literature discovery layer for microbial metabolic pathways, regulation, physiology and systems-level metabolism. Preserve PMID, publication metadata and article-level provenance."
+    },
+    {
+      "id": "pubmed_industrial_microbiology_literature",
+      "title": "PubMed: Industrial Microbiology Literature",
+      "provider": "National Library of Medicine",
+      "resource_type": "targeted_research_index",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=industrial+microbiology",
+      "subsubjects": ["industrial_microbiology"],
+      "levels": ["graduate", "research"],
+      "access": "public_metadata_mixed_fulltext",
+      "storage_policy": "metadata_allowed_fulltext_requires_article_level_rights_review",
+      "notes": "Targeted primary-literature discovery layer for fermentation, bioprocessing, microbial biotechnology and industrial applications. Preserve PMID, publication metadata and article-level provenance."
+    }
+  ],
+  "known_gaps": [
+    "Catalog-cell coverage does not measure instructional depth, laboratory competence or balanced source diversity within each cell.",
+    "Dedicated virology, mycology, parasitology, immunomicrobiology and microbiome courses should still supplement the broad textbook layer.",
+    "Targeted PubMed searches provide research discovery, not curated graduate curricula or independent evidence appraisal.",
+    "Research-oriented courses and reference tools do not by themselves establish ATLAS expert readiness; practical verification, retrieval and assessment remain required."
+  ],
+  "evidence_notes": [
+    "All three added provider URLs returned HTTP 200 during the 2026-09-03 catalog check.",
+    "The OpenStax subsubject mapping is limited to topics explicitly covered by the textbook; level labels describe intended catalog use rather than mastery.",
+    "Public access does not authorize unrestricted local storage. Provider and article-level rights must be enforced during ingestion.",
+    "These additions close catalog cells only. Runtime ingestion, retrieval, citation and assessment gates remain unverified."
+  ]
+}
