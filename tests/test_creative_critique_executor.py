@@ -5,7 +5,7 @@ from backend.services import creative_critique_executor as executor
 
 
 def reference_context():
-    return {"query":"visual storytelling","project_identity":"original industrial story","project_constraints":["no gore"],"diversity_dimensions":["creator:animation","work:film"],"reference_ids":["creator:a","work:b"],"principles":["strong silhouettes"],"study_targets":["visual clarity"],"limitations":["do not imitate distinctive expression"],"provenance":["curated source"],"contract":{"principle_only":True,"project_identity_overrides_reference_influence":True}}
+    return {"query":"visual storytelling","project_identity":"original industrial story","project_constraints":["no gore"],"diversity_dimensions":["creator:animation","work:film"],"reference_ids":["creator:a","work:b"],"principles":["strong silhouettes"],"study_targets":["visual clarity"],"limitations":["do not imitate distinctive expression"],"provenance":["curated source"],"contract":{"principle_only":True,"project_identity_overrides_reference_influence":True,"project_constraints_preserved":True,"constraints_are_not_inspiration":True}}
 
 
 def review(boundary=True):
@@ -38,3 +38,14 @@ async def test_failed_reference_boundary_blocks_verification(monkeypatch):
     result=await executor.execute_critique(ExecutionRequest("job","project","critique","artifact",{"artifact":"Scene.","reference_context":reference_context()}))
     assert result.output["reference_boundaries_verified"] is False
     assert any("reference_boundary" in blocker for blocker in result.output["blockers"])
+
+
+def test_reference_boundary_passed_flag_cannot_hide_or_invent_evidence():
+    contradictory=review(True)
+    contradictory["reference_boundary_check"]["passed"]=False
+    with pytest.raises(ValueError,match="contradicts its evidence"):
+        executor._boundary_check(contradictory,"minerva")
+    contradictory=review(False)
+    contradictory["reference_boundary_check"]["passed"]=True
+    with pytest.raises(ValueError,match="contradicts its evidence"):
+        executor._boundary_check(contradictory,"hermes")
