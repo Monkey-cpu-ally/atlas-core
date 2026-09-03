@@ -60,5 +60,6 @@ jobs:
             tests/test_creative_critique_executor.py \
             tests/test_creative_revision_executor.py \
             tests/test_creative_master_executor.py \
+            tests/test_creative_reference_context.py \
             tests/test_creative_reference_library.py \
             tests/test_creative_reference_api.py
