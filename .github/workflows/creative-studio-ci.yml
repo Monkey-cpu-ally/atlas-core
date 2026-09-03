@@ -57,6 +57,7 @@ jobs:
             tests/test_creative_executor_registry.py \
             tests/test_story_production_service.py \
             tests/test_creative_critic_council.py \
+            tests/test_creative_critique_executor.py \
             tests/test_creative_revision_executor.py \
             tests/test_creative_master_executor.py \
             tests/test_creative_reference_library.py \
