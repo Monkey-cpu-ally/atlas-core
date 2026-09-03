@@ -1,21 +1,8 @@
 """
 Memory Bank — Phase 2.
 
-Vector + graph memory for ATLAS, layered on top of MongoDB. Keeps
-everything in one place (no separate vector DB infrastructure):
-
-  * memory_bank          — content rows with an embedding,
-                            persona, category, source, freshness/decay
-  * graph_triples         — {from, to, relation, source_id, weight}
-                            light entity-relation memory
-  * atlas_settings        — persona embedding-provider preferences
-
-Embedding providers per persona (Phase 2):
-  * 'hash'      — DEFAULT: dependency-free deterministic feature-hash
-                  (lexical+ngram). Works offline, never fails, no API key.
-  * 'ollama'    — Ollama `nomic-embed-text` (semantic; requires Ollama running)
-  * 'emergent'  — OpenAI embeddings via a real OpenAI key in OPENAI_API_KEY
-                  (the Emergent universal LLM key does NOT cover embeddings)
+Persistent vector + graph memory for ATLAS. The public API preserves the
+original Phase 2 memory contracts while keeping OpenAI SDK compatibility.
 """
 import hashlib
 import logging
@@ -32,7 +19,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 try:
     from openai import AsyncOpenAI
-except ImportError:  # openai<1 compatibility for older/local environments
+except ImportError:
     AsyncOpenAI = None
 
 load_dotenv()
@@ -49,7 +36,7 @@ DEFAULT_EMBED_PROVIDER = "hash"
 DEFAULT_EMBED_MODEL = "atlas-hash-v1"
 DEFAULT_OLLAMA_EMBED = "nomic-embed-text"
 DEFAULT_OPENAI_EMBED = "text-embedding-3-small"
-
+DEFAULT_ST_EMBED = "sentence-transformers/all-MiniLM-L6-v2"
 DECAY_PER_DAY = 0.05
 REINFORCEMENT_BUMP = 0.20
 MIN_FRESHNESS = 0.05
@@ -60,6 +47,7 @@ KNOWN_CATEGORIES = PERMANENT_CATEGORIES | DECAY_CATEGORIES
 
 _client: Optional[AsyncIOMotorClient] = None
 _oa_client = None
+_ST_MODEL = None
 
 
 def _db():
@@ -85,15 +73,23 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+class EmbedUnreachable(Exception):
+    pass
+
+
+class EmbedError(Exception):
+    pass
+
+
 def _emergent_client():
-    """Create the modern OpenAI embeddings client when available."""
     global _oa_client
     if AsyncOpenAI is None:
         raise EmbedError("Installed openai package does not provide AsyncOpenAI")
     if _oa_client is None:
-        key = OPENAI_API_KEY or EMERGENT_LLM_KEY
+        if not OPENAI_API_KEY:
+            raise EmbedError("OPENAI_API_KEY not set")
         base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        _oa_client = AsyncOpenAI(api_key=key, base_url=base_url)
+        _oa_client = AsyncOpenAI(api_key=OPENAI_API_KEY, base_url=base_url)
     return _oa_client
 
 
@@ -119,19 +115,13 @@ async def set_embed_settings(updates: Dict[str, Dict[str, str]]) -> Dict[str, An
     for persona, cfg in updates.items():
         if not isinstance(cfg, dict):
             continue
-        p = persona.lower()
         provider = str(cfg.get("provider", DEFAULT_EMBED_PROVIDER)).lower()
         if provider not in valid:
             continue
-        model = str(cfg.get("model", DEFAULT_EMBED_MODEL))
-        clean[p] = {"provider": provider, "model": model}
+        clean[persona.lower()] = {"provider": provider, "model": str(cfg.get("model", DEFAULT_EMBED_MODEL))}
     if not clean:
         return {"updated": 0}
-    await _settings().update_one(
-        {"_id": "embedding_models"},
-        {"$set": {k: v for k, v in clean.items()}},
-        upsert=True,
-    )
+    await _settings().update_one({"_id": "embedding_models"}, {"$set": clean}, upsert=True)
     return {"updated": len(clean), "personas": clean}
 
 
@@ -143,17 +133,13 @@ def _embed_hash(text: str) -> List[float]:
     if not text:
         return vec
     lower = text.lower()
-    words = _WORD_RE.findall(lower)
-    for w in words:
-        h = int(hashlib.blake2b(w.encode(), digest_size=4).hexdigest(), 16)
-        sign = 1.0 if (h & 1) else -1.0
-        vec[h % EMBED_DIM] += sign
+    for word in _WORD_RE.findall(lower):
+        h = int(hashlib.blake2b(word.encode(), digest_size=4).hexdigest(), 16)
+        vec[h % EMBED_DIM] += 1.0 if h & 1 else -1.0
     padded = f"  {lower}  "
     for i in range(len(padded) - 2):
-        g = padded[i:i + 3]
-        h = int(hashlib.blake2b(g.encode(), digest_size=4).hexdigest(), 16)
-        sign = 1.0 if (h & 2) else -1.0
-        vec[h % EMBED_DIM] += sign * 0.3
+        h = int(hashlib.blake2b(padded[i:i + 3].encode(), digest_size=4).hexdigest(), 16)
+        vec[h % EMBED_DIM] += (1.0 if h & 2 else -1.0) * 0.3
     norm = math.sqrt(sum(v * v for v in vec)) or 1.0
     return [v / norm for v in vec]
 
@@ -162,70 +148,47 @@ async def _embed_emergent(text: str, model: str) -> List[float]:
     if not OPENAI_API_KEY:
         raise EmbedError("OPENAI_API_KEY not set — Emergent universal key does not cover embeddings")
     if AsyncOpenAI is not None:
-        client = _emergent_client()
-        resp = await client.embeddings.create(model=model or DEFAULT_OPENAI_EMBED, input=text[:8000])
-        return resp.data[0].embedding
-
-    # Compatibility path for openai<1. This keeps module import/startup working
-    # in older environments while still performing a real provider call.
+        response = await _emergent_client().embeddings.create(model=model or DEFAULT_OPENAI_EMBED, input=text[:8000])
+        return response.data[0].embedding
     import openai
-
     openai.api_key = OPENAI_API_KEY
     response = await openai.Embedding.acreate(model=model or DEFAULT_OPENAI_EMBED, input=text[:8000])
     return response["data"][0]["embedding"]
 
 
 async def _embed_ollama(text: str, model: str) -> List[float]:
-    url = f"{OLLAMA_HOST.rstrip('/')}/api/embeddings"
-    payload = {"model": model or DEFAULT_OLLAMA_EMBED, "prompt": text[:8000]}
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
-            r = await client.post(url, json=payload)
-            r.raise_for_status()
-            data = r.json()
+            response = await client.post(
+                f"{OLLAMA_HOST.rstrip('/')}/api/embeddings",
+                json={"model": model or DEFAULT_OLLAMA_EMBED, "prompt": text[:8000]},
+            )
+            response.raise_for_status()
         except httpx.RequestError as exc:
             raise EmbedUnreachable(f"Ollama embeddings unreachable: {exc}") from exc
-    vec = data.get("embedding") or []
+    vec = response.json().get("embedding") or []
     if not vec:
         raise EmbedError("Ollama returned empty embedding")
     return vec
 
 
-_ST_MODEL = None
-_ST_LOAD_LOCK = None
-DEFAULT_ST_EMBED = "sentence-transformers/all-MiniLM-L6-v2"
-
-
 def _ensure_st_model(model_name: str):
     global _ST_MODEL
-    if _ST_MODEL is not None:
-        return _ST_MODEL
-    try:
-        from sentence_transformers import SentenceTransformer
-    except ImportError as exc:
-        raise EmbedError(f"sentence-transformers not installed: {exc}") from exc
-    logger.info("Loading sentence-transformer model: %s", model_name)
-    _ST_MODEL = SentenceTransformer(model_name or DEFAULT_ST_EMBED, device="cpu")
-    logger.info("ST model ready: dim=%s", _ST_MODEL.get_sentence_embedding_dimension())
+    if _ST_MODEL is None:
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError as exc:
+            raise EmbedError(f"sentence-transformers not installed: {exc}") from exc
+        _ST_MODEL = SentenceTransformer(model_name or DEFAULT_ST_EMBED, device="cpu")
     return _ST_MODEL
 
 
 async def _embed_st(text: str, model: str) -> List[float]:
-    import asyncio as _asyncio
-
+    import asyncio
     def _run():
-        m = _ensure_st_model(model or DEFAULT_ST_EMBED)
-        vec = m.encode(text[:8000], normalize_embeddings=True)
+        vec = _ensure_st_model(model or DEFAULT_ST_EMBED).encode(text[:8000], normalize_embeddings=True)
         return [float(x) for x in vec.tolist()]
-    return await _asyncio.to_thread(_run)
-
-
-class EmbedUnreachable(Exception):
-    pass
-
-
-class EmbedError(Exception):
-    pass
+    return await asyncio.to_thread(_run)
 
 
 async def embed(text: str, persona: str = "default") -> Tuple[List[float], Dict[str, Any]]:
@@ -234,124 +197,188 @@ async def embed(text: str, persona: str = "default") -> Tuple[List[float], Dict[
     try:
         if provider == "ollama":
             vec = await _embed_ollama(text, model)
-            meta["provider_used"] = "ollama"
         elif provider == "emergent":
             vec = await _embed_emergent(text, model)
-            meta["provider_used"] = "emergent"
         elif provider == "st":
             vec = await _embed_st(text, model)
-            meta["provider_used"] = "st"
-            meta["model"] = model or DEFAULT_ST_EMBED
         else:
             vec = _embed_hash(text)
-            meta["provider_used"] = "hash"
-    except (EmbedUnreachable, EmbedError, Exception) as exc:
-        logger.warning("Embedding provider %s failed (%s); falling back to hash", provider, exc)
+            provider = "hash"
+        meta["provider_used"] = provider
+    except Exception as exc:  # provider failure must not kill memory recall
+        if provider == "hash":
+            raise
+        logger.warning("Embed fallback to hash: %s", exc)
         vec = _embed_hash(text)
-        meta["provider_used"] = "hash"
-        meta["fallback_reason"] = str(exc)
+        meta.update({"provider_used": "hash", "model": DEFAULT_EMBED_MODEL, "fallback_reason": str(exc)[:200]})
     return vec, meta
 
 
-async def add_memory(
-    content: str,
-    persona: str = "default",
-    category: str = "research",
-    source: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
-    category = category if category in KNOWN_CATEGORIES else "research"
-    vec, embed_meta = await embed(content, persona)
-    now = _utc_now()
-    doc = {
-        "_id": str(uuid4()),
-        "content": content,
-        "persona": persona.lower(),
-        "category": category,
-        "source": source,
-        "metadata": metadata or {},
-        "embedding": vec,
-        "embedding_meta": embed_meta,
-        "freshness": 1.0,
-        "pinned": category in PERMANENT_CATEGORIES,
-        "created_at": now,
-        "updated_at": now,
-        "last_reinforced_at": now,
-    }
-    await _memory().insert_one(doc)
+def _cosine(a: List[float], b: List[float]) -> float:
+    if not a or not b or len(a) != len(b):
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b))
+    na = sum(x * x for x in a)
+    nb = sum(y * y for y in b)
+    return dot / (math.sqrt(na) * math.sqrt(nb)) if na and nb else 0.0
+
+
+async def store_memory(content: str, *, persona: str = "council", category: str = "manual", source_type: str = "manual", source_id: Optional[str] = None, tags: Optional[List[str]] = None, pinned: Optional[bool] = None) -> Dict[str, Any]:
+    if not content or len(content.strip()) < 3:
+        raise ValueError("content too short")
+    cat = (category or "manual").lower()
+    if cat not in KNOWN_CATEGORIES:
+        cat = "manual"
+    if pinned is None:
+        pinned = cat in PERMANENT_CATEGORIES
+    vec, embed_meta = await embed(content, persona=persona)
+    doc = {"id": str(uuid4()), "content": content, "persona": persona.lower(), "category": cat, "permanent": cat in PERMANENT_CATEGORIES, "source_type": source_type, "source_id": source_id, "tags": tags or [], "pinned": bool(pinned), "freshness": 1.0, "reinforce_count": 0, "created_at": _utc_now(), "last_referenced": _utc_now(), "embedding": vec, "embed_meta": embed_meta}
+    await _memory().insert_one(doc.copy())
     return {k: v for k, v in doc.items() if k != "embedding"}
 
 
-async def search_memory(query: str, persona: str = "default", limit: int = 8) -> List[Dict[str, Any]]:
-    qvec, _ = await embed(query, persona)
-    cursor = _memory().find({"persona": {"$in": [persona.lower(), "default", "shared"]}})
-    rows = await cursor.to_list(length=2000)
+async def add_memory(content: str, persona: str = "default", category: str = "research", source: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Compatibility alias for callers introduced during runtime stabilization."""
+    metadata = metadata or {}
+    return await store_memory(content, persona=persona, category=category, source_type=str(metadata.get("source_type", "manual")), source_id=source, tags=metadata.get("tags"))
+
+
+async def auto_store(content: str, *, persona: str = "council", category: str = "temporary", source_type: str = "manual", source_id: Optional[str] = None, tags: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
+    if not content or len(content.strip()) < 3:
+        return None
+    try:
+        return await store_memory(content, persona=persona, category=category, source_type=source_type, source_id=source_id, tags=tags)
+    except Exception as exc:
+        logger.warning("memory_bank.auto_store failed (category=%s): %s", category, exc)
+        return None
+
+
+async def _decay_score(memory_doc: Dict[str, Any]) -> float:
+    if memory_doc.get("pinned"):
+        return 1.0
+    base = float(memory_doc.get("freshness", 1.0))
+    stamp = memory_doc.get("last_referenced") or memory_doc.get("last_reinforced_at") or memory_doc.get("created_at")
+    try:
+        ref = datetime.fromisoformat(stamp or _utc_now())
+        if ref.tzinfo is None:
+            ref = ref.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return base
+    age_days = max(0.0, (datetime.now(timezone.utc) - ref).total_seconds() / 86400.0)
+    return max(MIN_FRESHNESS, base - DECAY_PER_DAY * age_days)
+
+
+async def search_memory(query: str, *, persona: Optional[str] = None, category: Optional[str] = None, top_k: int = 10, min_score: float = 0.30, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    if limit is not None:
+        top_k = limit
+    qvec, _ = await embed(query, persona=persona or "default")
+    filt: Dict[str, Any] = {}
+    if persona:
+        filt["persona"] = persona.lower()
+    if category:
+        filt["category"] = category.lower()
+    rows = await _memory().find(filt, {"_id": 0}).to_list(length=2000)
     scored = []
     for row in rows:
-        vec = row.get("embedding") or []
-        if len(vec) != len(qvec):
-            continue
-        similarity = sum(a * b for a, b in zip(qvec, vec))
-        score = similarity * float(row.get("freshness", 1.0))
-        item = {k: v for k, v in row.items() if k != "embedding"}
-        item["similarity"] = similarity
-        item["score"] = score
-        scored.append(item)
-    scored.sort(key=lambda x: x["score"], reverse=True)
-    return scored[: max(1, min(limit, 100))]
+        sim = _cosine(qvec, row.get("embedding") or [])
+        fresh = await _decay_score(row)
+        score = 0.85 * sim + 0.15 * fresh
+        if score >= min_score:
+            row.pop("embedding", None)
+            row.update({"sim": round(sim, 4), "freshness_now": round(fresh, 4), "score": round(score, 4)})
+            scored.append((score, row))
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [row for _, row in scored[:max(1, min(top_k, 100))]]
 
 
-async def reinforce_memory(memory_id: str) -> bool:
-    row = await _memory().find_one({"_id": memory_id})
-    if not row:
-        return False
-    freshness = min(1.0, float(row.get("freshness", 1.0)) + REINFORCEMENT_BUMP)
-    await _memory().update_one(
-        {"_id": memory_id},
-        {"$set": {"freshness": freshness, "last_reinforced_at": _utc_now(), "updated_at": _utc_now()}},
-    )
-    return True
-
-
-async def add_graph_triple(
-    from_entity: str,
-    to_entity: str,
-    relation: str,
-    source_id: Optional[str] = None,
-    weight: float = 1.0,
-) -> Dict[str, Any]:
-    doc = {
-        "_id": str(uuid4()),
-        "from": from_entity,
-        "to": to_entity,
-        "relation": relation,
-        "source_id": source_id,
-        "weight": float(weight),
-        "created_at": _utc_now(),
-    }
-    await _graph().insert_one(doc)
+async def reinforce(memory_id: str) -> Optional[Dict[str, Any]]:
+    doc = await _memory().find_one({"id": memory_id}, {"_id": 0, "embedding": 0})
+    if not doc:
+        return None
+    update = {"freshness": min(1.0, float(doc.get("freshness", 1.0)) + REINFORCEMENT_BUMP), "reinforce_count": int(doc.get("reinforce_count", 0)) + 1, "last_referenced": _utc_now()}
+    await _memory().update_one({"id": memory_id}, {"$set": update})
+    doc.update(update)
     return doc
 
 
+async def reinforce_memory(memory_id: str) -> bool:
+    return await reinforce(memory_id) is not None
+
+
+async def list_memories(persona: Optional[str] = None, category: Optional[str] = None, limit: int = 40, include_decayed: bool = False) -> List[Dict[str, Any]]:
+    filt: Dict[str, Any] = {}
+    if persona:
+        filt["persona"] = persona.lower()
+    if category:
+        filt["category"] = category.lower()
+    rows = await _memory().find(filt, {"_id": 0, "embedding": 0}).sort("last_referenced", -1).limit(limit).to_list(length=limit)
+    out = []
+    for row in rows:
+        fresh = await _decay_score(row)
+        if include_decayed or fresh > MIN_FRESHNESS:
+            row["freshness_now"] = round(fresh, 4)
+            out.append(row)
+    return out
+
+
+async def delete_memory(memory_id: str) -> bool:
+    return (await _memory().delete_one({"id": memory_id})).deleted_count > 0
+
+
+async def add_triple(*, from_node: str, to_node: str, relation: str, source_id: Optional[str] = None, weight: float = 1.0) -> Dict[str, Any]:
+    key = {"from_node": from_node.strip(), "to_node": to_node.strip(), "relation": relation.strip().lower()}
+    set_ops = {**key, "source_id": source_id, "updated_at": _utc_now()}
+    await _graph().update_one(key, {"$set": set_ops, "$inc": {"weight": weight, "hits": 1}}, upsert=True)
+    return await _graph().find_one(key, {"_id": 0}) or {**set_ops, "weight": weight, "hits": 1}
+
+
+async def add_graph_triple(from_entity: str, to_entity: str, relation: str, source_id: Optional[str] = None, weight: float = 1.0) -> Dict[str, Any]:
+    return await add_triple(from_node=from_entity, to_node=to_entity, relation=relation, source_id=source_id, weight=weight)
+
+
+async def list_triples(node: Optional[str] = None, relation: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    filt: Dict[str, Any] = {}
+    if node:
+        filt["$or"] = [{"from_node": node}, {"to_node": node}]
+    if relation:
+        filt["relation"] = relation.lower()
+    return await _graph().find(filt, {"_id": 0}).sort("weight", -1).limit(limit).to_list(length=limit)
+
+
 async def graph_neighbors(entity: str, limit: int = 50) -> List[Dict[str, Any]]:
-    cursor = _graph().find({"$or": [{"from": entity}, {"to": entity}]}).limit(max(1, min(limit, 500)))
-    return await cursor.to_list(length=max(1, min(limit, 500)))
+    return await list_triples(node=entity, limit=limit)
+
+
+async def neighborhood(node: str, depth: int = 1, limit_per_layer: int = 12, min_weight: float = 0.0) -> Dict[str, Any]:
+    seen_nodes = {node}
+    edges_out: List[Dict[str, Any]] = []
+    frontier = {node}
+    for _ in range(max(1, depth)):
+        if not frontier:
+            break
+        filt: Dict[str, Any] = {"$or": [{"from_node": {"$in": list(frontier)}}, {"to_node": {"$in": list(frontier)}}]}
+        if min_weight > 0:
+            filt["weight"] = {"$gte": float(min_weight)}
+        layer = await _graph().find(filt, {"_id": 0}).sort("weight", -1).limit(limit_per_layer * len(frontier)).to_list(length=limit_per_layer * len(frontier))
+        next_frontier = set()
+        for edge in layer:
+            edges_out.append(edge)
+            for endpoint in (edge["from_node"], edge["to_node"]):
+                if endpoint not in seen_nodes:
+                    seen_nodes.add(endpoint)
+                    next_frontier.add(endpoint)
+        frontier = next_frontier
+    return {"root": node, "depth": depth, "min_weight": float(min_weight), "nodes": sorted(seen_nodes), "edges": edges_out}
 
 
 async def decay_memories() -> Dict[str, int]:
-    rows = await _memory().find({"pinned": {"$ne": True}}).to_list(length=10000)
+    rows = await _memory().find({"pinned": {"$ne": True}}, {"_id": 0}).to_list(length=10000)
     updated = 0
-    now = datetime.now(timezone.utc)
     for row in rows:
-        stamp = row.get("last_reinforced_at") or row.get("updated_at") or row.get("created_at")
-        try:
-            then = datetime.fromisoformat(stamp)
-            if then.tzinfo is None:
-                then = then.replace(tzinfo=timezone.utc)
-        except (TypeError, ValueError):
+        memory_id = row.get("id")
+        if not memory_id:
             continue
-        days = max(0.0, (now - then).total_seconds() / 86400.0)
-        freshness = max(MIN_FRESHNESS, 1.0 - days * DECAY_PER_DAY)
-        await _memory().update_one({"_id": row["_id"]}, {"$set": {"freshness": freshness}})
+        freshness = await _decay_score(row)
+        await _memory().update_one({"id": memory_id}, {"$set": {"freshness": freshness}})
         updated += 1
     return {"updated": updated}
