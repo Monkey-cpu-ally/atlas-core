@@ -107,12 +107,63 @@
       "access": "public",
       "storage_policy": "metadata_link_provenance",
       "notes": "Discovery/training portal. Individual resources require item-level verification before being counted as complete instructional evidence."
+    },
+    {
+      "id": "openstax_microbiology_2e",
+      "title": "Microbiology 2e",
+      "provider": "OpenStax",
+      "resource_type": "open_textbook",
+      "url": "https://openstax.org/details/books/microbiology-2e",
+      "subsubjects": [
+        "virology",
+        "parasitology",
+        "microbial_genetics",
+        "microbial_metabolism",
+        "microbial_ecology",
+        "immunomicrobiology",
+        "industrial_microbiology",
+        "microbiome_science"
+      ],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "access": "open_textbook_provider_page",
+      "storage_policy": "ingest_only_under_the_provider_license_with_attribution_and_version_provenance",
+      "notes": "Comprehensive introductory microbiology text covering viruses, eukaryotic parasites, microbial genetics, metabolism and ecology, host defenses, applied and industrial microbiology, and the human microbiome. Foundation and beginner labels refer to introductory use within these subsubjects; they do not imply that every chapter is elementary."
+    },
+    {
+      "id": "pubmed_microbial_metabolism_literature",
+      "title": "PubMed: Microbial Metabolism Literature",
+      "provider": "National Library of Medicine",
+      "resource_type": "targeted_research_index",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=microbial+metabolism",
+      "subsubjects": ["microbial_metabolism"],
+      "levels": ["graduate", "research"],
+      "access": "public_metadata_mixed_fulltext",
+      "storage_policy": "metadata_allowed_fulltext_requires_article_level_rights_review",
+      "notes": "Targeted primary-literature discovery layer for microbial metabolic pathways, regulation, physiology and systems-level metabolism. Preserve PMID, publication metadata and article-level provenance."
+    },
+    {
+      "id": "pubmed_industrial_microbiology_literature",
+      "title": "PubMed: Industrial Microbiology Literature",
+      "provider": "National Library of Medicine",
+      "resource_type": "targeted_research_index",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=industrial+microbiology",
+      "subsubjects": ["industrial_microbiology"],
+      "levels": ["graduate", "research"],
+      "access": "public_metadata_mixed_fulltext",
+      "storage_policy": "metadata_allowed_fulltext_requires_article_level_rights_review",
+      "notes": "Targeted primary-literature discovery layer for fermentation, bioprocessing, microbial biotechnology and industrial applications. Preserve PMID, publication metadata and article-level provenance."
     }
   ],
   "known_gaps": [
-    "Foundation and beginner instruction remains thin outside the CDC laboratory-training material.",
-    "Dedicated virology, mycology, parasitology and immunomicrobiology curricula need stronger level-specific instructional evidence.",
-    "Microbiome science needs dedicated course/project evidence rather than relying mainly on a training portal.",
+    "Catalog-cell coverage does not measure instructional depth, laboratory competence or balanced source diversity within each cell.",
+    "Dedicated virology, mycology, parasitology, immunomicrobiology and microbiome courses should still supplement the broad textbook layer.",
+    "Targeted PubMed searches provide research discovery, not curated graduate curricula or independent evidence appraisal.",
     "Research-oriented courses and reference tools do not by themselves establish ATLAS expert readiness; practical verification, retrieval and assessment remain required."
+  ],
+  "evidence_notes": [
+    "All three added provider URLs returned HTTP 200 during the 2026-09-03 catalog check.",
+    "The OpenStax subsubject mapping is limited to topics explicitly covered by the textbook; level labels describe intended catalog use rather than mastery.",
+    "Public access does not authorize unrestricted local storage. Provider and article-level rights must be enforced during ingestion.",
+    "These additions close catalog cells only. Runtime ingestion, retrieval, citation and assessment gates remain unverified."
   ]
 }
