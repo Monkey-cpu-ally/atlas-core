@@ -22,6 +22,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 
 from routing.topic_router import AI_DISPLAY
+from atlas_core.teaching_engine.contract import normalize_learning_level, teaching_contract
 
 load_dotenv()
 logger = logging.getLogger("atlas.learning")
@@ -100,7 +101,7 @@ def _extract_json(text: str) -> dict:
 # Pipeline generators (called from /api/intake/* after transcript is fetched)
 # ---------------------------------------------------------------------------
 async def generate_lesson(topic: str, transcript: str, persona: str,
-                          difficulty: str = "introductory") -> dict:
+                          difficulty: str = "advanced") -> dict:
     """Build a structured persona-voiced lesson_text from a transcript.
 
     The lesson body has five learning surfaces (matching the architect's
@@ -109,10 +110,13 @@ async def generate_lesson(topic: str, transcript: str, persona: str,
     the `lessons` collection.
     """
     snippet = transcript[:3500]
+    level_aliases = {"introductory": "beginner", "professional": "graduate"}
+    learning_level = normalize_learning_level(level_aliases.get(difficulty, difficulty))
     prompt = (
         f"Topic: {topic}\n\n"
         f"Source material (excerpt):\n{snippet}\n\n"
-        f"Write a {difficulty} lesson on this topic in YOUR voice. "
+        f"{teaching_contract(learning_level, persona)}\n\n"
+        f"Write a {learning_level} lesson on this topic in YOUR voice. "
         "Return PURE JSON only, no markdown fences:\n"
         "{\n"
         '  "lesson": "≤350 word lesson body. Markdown allowed. Three subsections: '
@@ -138,7 +142,8 @@ async def generate_lesson(topic: str, transcript: str, persona: str,
         "nature_connection": parsed.get("nature_connection", ""),
         "flashcards": parsed.get("flashcards", [])[:8],
         "next_topic": parsed.get("next_topic", ""),
-        "difficulty": difficulty,
+        "difficulty": learning_level,
+        "learning_level": learning_level,
         "ai_owner": persona,
         "date_added": _utc_now(),
     }
@@ -191,7 +196,8 @@ async def generate_project(topic: str, lesson_text: str, persona: str) -> dict:
 
 async def persist_pipeline(*, topic: str, source: str, transcript: str,
                             summary: str, persona: str,
-                            quiz: list, title: Optional[str] = None) -> dict:
+                            quiz: list, title: Optional[str] = None,
+                            learning_level: str = "advanced") -> dict:
     """Persist a full intake → lesson → project pipeline run.
 
     Called from /api/intake/youtube and /api/intake/transcript.
@@ -207,7 +213,9 @@ async def persist_pipeline(*, topic: str, source: str, transcript: str,
         "ai_owner": persona,
         "date_added": _utc_now(),
     }
-    lesson_doc = await generate_lesson(topic, transcript, persona)
+    lesson_doc = await generate_lesson(
+        topic, transcript, persona, difficulty=learning_level,
+    )
     project_doc = await generate_project(topic, lesson_doc["lesson_text"], persona)
 
     # Cross-link

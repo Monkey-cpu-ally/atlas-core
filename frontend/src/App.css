@@ -2223,6 +2223,42 @@ body {
   font-size: 10.5px; color: rgba(220, 230, 245, 0.72);
 }
 
+/* ATLAS teaching depth selector — clarity stays constant across levels. */
+.bp-field-label {
+  display: block;
+  margin: 10px 0 5px;
+  color: rgba(220, 230, 245, 0.7);
+  font: 600 9px/1 'Orbitron', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bp-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(140, 180, 230, 0.28);
+  border-radius: 4px;
+  background: rgba(6, 12, 20, 0.92);
+  color: rgba(235, 240, 248, 0.94);
+  font: 600 10px/1 'Orbitron', sans-serif;
+}
+.kb-level-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  font: 600 8px/1 sans-serif;
+  color: #3c342c;
+}
+.kb-level-picker select {
+  flex: 1;
+  padding: 5px 7px;
+  border: 1px solid #776b5d;
+  border-radius: 3px;
+  background: #eee5d1;
+  color: #29231d;
+  font: 600 8px/1 'Orbitron', sans-serif;
+}
+
 /* ============================================================
    Interactive Sandbox — hands-on lab embedded inside the
    TeachingWorkbench. Matches HUD vocabulary: dark glass panels,
