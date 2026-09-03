@@ -30,27 +30,27 @@ AUDITOR_PATH = SUBJECT_ROOT / "quality_audit_v3.py"
 
 PROOF_RESOURCES = [
     {
-        "id": "software_engineering_depth_v2.json#0",
+        "id": "subjects:software_engineering_depth_v2.json#0",
         "title": "CS50x",
         "url": "https://cs50.harvard.edu/x/",
     },
     {
-        "id": "software_engineering_depth_v2.json#1",
+        "id": "subjects:software_engineering_depth_v2.json#1",
         "title": "MIT Introduction to Algorithms",
         "url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/",
     },
     {
-        "id": "software_engineering_depth_v2.json#3",
+        "id": "subjects:software_engineering_depth_v2.json#3",
         "title": "MDN Web Docs",
         "url": "https://developer.mozilla.org/",
     },
     {
-        "id": "software_engineering_depth_v2.json#4",
+        "id": "subjects:software_engineering_depth_v2.json#4",
         "title": "PostgreSQL Documentation",
         "url": "https://www.postgresql.org/docs/",
     },
     {
-        "id": "software_engineering_depth_v2.json#5",
+        "id": "subjects:software_engineering_depth_v2.json#5",
         "title": "IETF RFC Index",
         "url": "https://www.rfc-editor.org/",
     },
