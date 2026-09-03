@@ -14,6 +14,7 @@ const PERSONAS = [
   { id: 'hermes', label: 'Ask Hermes', color: '#F4EFE4' },
 ];
 const TYPES = ['all','book','paper','video','patent','lesson','project','blueprint','inventor','reference'];
+const LEARNING_LEVELS = ['foundation','beginner','intermediate','advanced','undergraduate','graduate','research'];
 
 const list = (data, keys = []) => {
   if (Array.isArray(data)) return data;
@@ -64,6 +65,7 @@ export default function KnowledgeBookshelf({ aiColor, initialSubject = null }) {
   const [answer, setAnswer] = useState(null);
   const [researching, setResearching] = useState(false);
   const [researchResult, setResearchResult] = useState(null);
+  const [learningLevel, setLearningLevel] = useState('advanced');
 
   useEffect(() => { if (initialSubject) setSubject(sid(initialSubject)); }, [initialSubject]);
   useEffect(() => {
@@ -110,7 +112,9 @@ export default function KnowledgeBookshelf({ aiColor, initialSubject = null }) {
       && (!query.trim() || haystack.includes(query.trim().toLowerCase()));
   }), [subjectResources, type, query]);
 
-  const teach = () => window.dispatchEvent(new CustomEvent('atlas-teach-resource', { detail: { resource: selected } }));
+  const teach = () => window.dispatchEvent(new CustomEvent('atlas-teach-resource', {
+    detail: { resource: selected, learningLevel },
+  }));
 
   const ask = async persona => {
     if (!selected || asking) return;
@@ -120,6 +124,7 @@ export default function KnowledgeBookshelf({ aiColor, initialSubject = null }) {
       `I am reading a Knowledge Bookshelf resource classified under: ${subjectLabel(selected)}.`,
       `Resource type: ${resourceType(selected)}.`,
       `Title: ${selected.title || 'Untitled resource'}.`,
+      `Selected knowledge depth: ${learningLevel}. Keep the intellectual content at this level while using clear, ADHD-friendly language.`,
       selected.author ? `Author: ${selected.author}.` : '',
       selected.summary || selected.description ? `Knowledge Bank summary: ${selected.summary || selected.description}` : '',
       'Explain this resource from your perspective. Focus on what I should understand, important connections, and what I should study or build next. Ground your answer in this selected resource and clearly say when you are making an inference.',
@@ -183,6 +188,11 @@ export default function KnowledgeBookshelf({ aiColor, initialSubject = null }) {
           <p>{selected.summary || selected.description || 'No summary is available yet.'}</p>
           <div className="kb-meta">Source: {selected.source || selected.provider || sourceUrl(selected) || 'ATLAS Knowledge Bank'}</div>
           <div className="kb-reader-actions">
+            <label className="kb-level-picker">Knowledge depth
+              <select value={learningLevel} onChange={event => setLearningLevel(event.target.value)}>
+                {LEARNING_LEVELS.map(level => <option key={level} value={level}>{level.toUpperCase()}</option>)}
+              </select>
+            </label>
             <button className="kb-action primary" onClick={teach} style={{ borderColor: aiColor }}><GraduationCap size={13}/> Teach Me</button>
             <button className="kb-action" disabled={researching} onClick={researchMore} style={{ borderColor: aiColor, color: aiColor }}>{researching ? <Loader2 size={12} className="spin"/> : <Microscope size={12}/>} Research More</button>
             {PERSONAS.map(persona => <button key={persona.id} className="kb-action" disabled={!!asking} onClick={() => ask(persona.id)} style={{ borderColor: persona.color, color: persona.color }}>{asking === persona.id ? <Loader2 size={12} className="spin"/> : <MessageCircle size={12}/>} {persona.label}</button>)}

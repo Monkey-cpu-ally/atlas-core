@@ -43,7 +43,7 @@ from ..shield_core import (
     set_permission,
     status as shield_status,
 )
-from ..teaching_engine import teach
+from ..teaching_engine import LEARNING_LEVELS, teach
 
 load_dotenv()
 logger = logging.getLogger("atlas")
@@ -74,6 +74,7 @@ class TeachRequest(BaseModel):
     core: Optional[str] = None
     bands: Optional[List[str]] = None
     context: Optional[str] = None
+    learning_level: str = "advanced"
 
 
 class BlueprintRequest(BaseModel):
@@ -211,10 +212,15 @@ async def teaching(req: TeachRequest):
     topic = _harden_user_input(req.topic)
     if not topic.strip():
         raise HTTPException(400, "topic is empty")
+    if req.learning_level.lower() not in LEARNING_LEVELS:
+        raise HTTPException(422, f"learning_level must be one of: {', '.join(LEARNING_LEVELS)}")
 
     async def _work():
         try:
-            return await teach(topic, core=req.core, bands=req.bands, context=req.context)
+            return await teach(
+                topic, core=req.core, bands=req.bands, context=req.context,
+                learning_level=req.learning_level,
+            )
         except IdentityDriftError as exc:
             return {"error": f"Teaching engine refused: {exc}"}
 
@@ -233,8 +239,13 @@ async def teaching_sync(req: TeachRequest):
     topic = _harden_user_input(req.topic)
     if not topic.strip():
         raise HTTPException(400, "topic is empty")
+    if req.learning_level.lower() not in LEARNING_LEVELS:
+        raise HTTPException(422, f"learning_level must be one of: {', '.join(LEARNING_LEVELS)}")
     try:
-        return await teach(topic, core=req.core, bands=req.bands, context=req.context)
+        return await teach(
+            topic, core=req.core, bands=req.bands, context=req.context,
+            learning_level=req.learning_level,
+        )
     except IdentityDriftError as exc:
         raise HTTPException(503, f"Teaching engine refused: {exc}")
 

@@ -25,6 +25,7 @@ from typing import Dict, List, Optional
 
 from ..cores import get_core
 from ..council.router import route_internal as council_route
+from .contract import normalize_learning_level, teaching_contract
 
 
 # Canonical band order matches what the user requested.
@@ -91,6 +92,7 @@ async def teach(
     core: Optional[str] = None,
     bands: Optional[List[str]] = None,
     context: Optional[str] = None,
+    learning_level: str = "advanced",
 ) -> Dict:
     """Teach `topic` at the requested depth bands.
 
@@ -106,6 +108,7 @@ async def teach(
     auto_pick = core is None
     core_key = (core or _pick_core(topic)).lower()
     teacher = get_core(core_key)
+    selected_level = normalize_learning_level(learning_level)
 
     requested = [_normalize_band(b) for b in (bands or DEFAULT_BANDS)]
     use_bands = [b for b in requested if b in BAND_PROMPTS]
@@ -123,6 +126,7 @@ async def teach(
         " - Concrete examples first, terminology second.\n"
         " - Surface failure modes and edge cases early, not at the end.\n"
         " - Admit uncertainty plainly; never fake confidence.\n"
+        f"\n{teaching_contract(selected_level, core_key)}\n"
     )
 
     answer = await teacher.think(full_prompt, context=context)
@@ -131,5 +135,6 @@ async def teach(
         "teacher": core_key,
         "lead_via_council": auto_pick,
         "bands_requested": use_bands,
+        "learning_level": selected_level,
         "lesson": answer,
     }

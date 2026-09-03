@@ -35,6 +35,11 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from services import llm_provider, memory_bank as mb
 from services import adaptation as ad
+from atlas_core.teaching_engine.contract import (
+    LEARNING_LEVELS,
+    normalize_learning_level,
+    teaching_contract,
+)
 
 logger = logging.getLogger("atlas.lesson_generator")
 
@@ -67,7 +72,7 @@ Return STRICT JSON matching this schema. No prose outside the JSON.
 {
   "title": str,
   "subject": str,
-  "skill_level": "beginner" | "intermediate" | "advanced",
+  "skill_level": "foundation" | "beginner" | "intermediate" | "advanced" | "undergraduate" | "graduate" | "research",
   "learning_objectives": [str, str, str],
   "simple_explanation": str,
   "deeper_explanation": str,
@@ -93,11 +98,15 @@ async def generate_lesson(
     *, knowledge_id: str, source_url: str, title: str,
     concepts: List[str], agent: str,
     mode: str = "default",
+    learning_level: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Generate + persist a lesson plan for the given knowledge entry.
     Bias the prompt with the user's learning profile (Step 2 integration).
     `mode` ∈ {default, adhd, lego, beginner, professional, certification}."""
     profile = await ad.get_learning_profile()
+    selected_level = normalize_learning_level(
+        learning_level or (mode if mode in LEARNING_LEVELS else "advanced")
+    )
     bias_lines = []
     level = profile.get("preferred_explanation_level", "6-9grade")
     if level == "6-9grade":
@@ -136,8 +145,9 @@ async def generate_lesson(
         f"Source URL: {source_url}\n"
         f"Key concepts: {', '.join(concepts[:8]) or 'general'}\n"
         f"Agent persona: {agent}\n\n"
+        f"{teaching_contract(selected_level, agent)}\n\n"
         f"{bias_block}\n\n"
-        f"Pick a skill level (beginner/intermediate/advanced) based on the concepts.\n"
+        f"Set `skill_level` to exactly `{selected_level}`. Do not choose a different level.\n"
         f"Make the hands-on project something a curious teen could actually try.\n"
         f"Quiz: 3-5 questions, each with why-it-matters.\n"
         f"Cite the source URL in `related_sources`.\n"
@@ -148,7 +158,7 @@ async def generate_lesson(
     raw = (result.get("text") or "").strip()
     data = _safe_json(raw)
     if not data:
-        data = _fallback(title, concepts, source_url)
+        data = _fallback(title, concepts, source_url, selected_level)
 
     lesson_id = uuid4().hex
     doc = {
@@ -156,7 +166,7 @@ async def generate_lesson(
         "lesson_id": lesson_id,
         "title": data.get("title") or title,
         "subject": data.get("subject") or (concepts[0] if concepts else "general"),
-        "skill_level": data.get("skill_level") or "intermediate",
+        "skill_level": selected_level,
         "learning_objectives": data.get("learning_objectives") or [],
         "simple_explanation": data.get("simple_explanation") or "",
         "deeper_explanation": data.get("deeper_explanation") or "",
@@ -228,12 +238,15 @@ def _safe_json(raw: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _fallback(title: str, concepts: List[str], source_url: str) -> Dict[str, Any]:
+def _fallback(
+    title: str, concepts: List[str], source_url: str,
+    learning_level: str = "advanced",
+) -> Dict[str, Any]:
     concept_preview = concepts[:6] or ["general"]
     return {
         "title": title,
         "subject": concept_preview[0],
-        "skill_level": "intermediate",
+        "skill_level": normalize_learning_level(learning_level),
         "learning_objectives": [f"Understand {c}" for c in concept_preview[:3]],
         "simple_explanation": (
             f"Quick take: this source covers {', '.join(concept_preview)}. "
