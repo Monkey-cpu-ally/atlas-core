@@ -23,8 +23,9 @@ def _boundary_check(review:dict,critic:str)->dict:
     if any(type(check.get(k)) is not bool for k in required): raise ValueError(f"{critic} reference_boundary_check requires boolean {', '.join(required)}")
     findings=check.get("findings")
     if not isinstance(findings,list) or any(not isinstance(v,str) or not v.strip() for v in findings): raise ValueError(f"{critic} reference_boundary_check findings must be an array of non-empty strings")
-    verified=all(check[k] for k in required)
-    if check["passed"] is not verified: raise ValueError(f"{critic} reference boundary passed flag contradicts its evidence")
+    evidence_fields=("project_alignment","constraints_respected","anti_imitation")
+    evidence_verified=all(check[k] for k in evidence_fields)
+    if check["passed"] is not evidence_verified: raise ValueError(f"{critic} reference boundary passed flag contradicts its evidence")
     return {"critic":critic,**{k:check[k] for k in required},"findings":findings}
 async def _review(critic:str,focus:str,artifact:str,reference_context:ReferenceContext|None=None)->dict:
     dimensions=[{"name":d.name,"question":d.question,"failure_signals":list(d.failure_signals)} for d in STORY.dimensions]; context=None
