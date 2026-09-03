@@ -58,6 +58,7 @@ from routes.world_knowledge_graph import router as world_knowledge_graph_router
 from routes.engineering_playbooks import router as engineering_playbooks_router
 from routes.campus import router as campus_router
 from routes.executive_dashboard import router as executive_dashboard_router
+from routes.creative_studio import router as creative_studio_router
 from atlas_core import atlas_router as atlas_core_router
 
 ROOT_DIR = Path(__file__).parent
@@ -151,6 +152,7 @@ app.include_router(world_knowledge_graph_router)
 app.include_router(engineering_playbooks_router)
 app.include_router(campus_router)
 app.include_router(executive_dashboard_router)
+app.include_router(creative_studio_router)
 from routes.environments import router as environments_router
 app.include_router(environments_router)
 from routes.nir import router as nir_router

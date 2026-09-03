@@ -1,0 +1,66 @@
+name: Creative Studio CI
+
+on:
+  push:
+    paths:
+      - 'creative_intelligence/**'
+      - 'backend/services/creative_*'
+      - 'backend/services/llm_provider.py'
+      - 'backend/routes/creative_studio.py'
+      - 'tests/test_creative_*.py'
+      - 'tests/test_story_production_service.py'
+      - '.github/workflows/creative-studio-ci.yml'
+  pull_request:
+    paths:
+      - 'creative_intelligence/**'
+      - 'backend/services/creative_*'
+      - 'backend/services/llm_provider.py'
+      - 'backend/routes/creative_studio.py'
+      - 'tests/test_creative_*.py'
+      - 'tests/test_story_production_service.py'
+      - '.github/workflows/creative-studio-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  creative-studio-tests:
+    name: Creative Studio Regression Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install focused test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio httpx fastapi pydantic python-dotenv 'motor==3.3.1' 'pymongo==4.5.0'
+      - name: Compile Creative Studio production boundary
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/backend
+        run: |
+          python -m compileall -q creative_intelligence
+          python -m py_compile \
+            backend/routes/creative_studio.py \
+            backend/services/llm_provider.py \
+            backend/services/creative_story_executor.py \
+            backend/services/creative_critique_executor.py \
+            backend/services/creative_revision_executor.py \
+            backend/services/creative_master_executor.py
+      - name: Run Creative Studio regression suite
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/backend
+        run: |
+          pytest -q \
+            tests/test_creative_job_store.py \
+            tests/test_creative_executor_registry.py \
+            tests/test_story_production_service.py \
+            tests/test_creative_critic_council.py \
+            tests/test_creative_critique_executor.py \
+            tests/test_creative_revision_executor.py \
+            tests/test_creative_master_executor.py \
+            tests/test_creative_reference_context.py \
+            tests/test_creative_reference_library.py \
+            tests/test_creative_reference_api.py \
+            tests/test_creative_production_chain.py

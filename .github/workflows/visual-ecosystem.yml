@@ -18,17 +18,25 @@ on:
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
-    env:
-      MONGO_URL: mongodb://localhost:27017
-      DB_NAME: atlas_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r backend/requirements.txt pytest
-      - name: Run visual and GENESIS smoke tests
-        run: pytest -q tests/test_visual_hub.py tests/test_genesis_*.py
+      - name: Run available visual and GENESIS smoke tests
+        shell: bash
+        run: |
+          shopt -s nullglob
+          tests=()
+          [[ -f tests/test_visual_hub.py ]] && tests+=(tests/test_visual_hub.py)
+          genesis=(tests/test_genesis_*.py)
+          tests+=("${genesis[@]}")
+          if ((${#tests[@]} == 0)); then
+            echo "No visual/GENESIS smoke tests exist on this branch; skipping legacy smoke-test job."
+            exit 0
+          fi
+          pip install -r backend/requirements.txt pytest
+          pytest -q "${tests[@]}"
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -46,21 +54,33 @@ jobs:
 
   tauri-check:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: clients/atlas-desktop/src-tauri
     steps:
       - uses: actions/checkout@v4
+      - name: Detect Tauri desktop crate
+        id: tauri
+        shell: bash
+        run: |
+          if [[ -f clients/atlas-desktop/src-tauri/Cargo.toml ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "No Tauri Cargo.toml exists on this branch; skipping desktop validation."
+          fi
       - name: Install Linux Tauri dependencies
+        if: steps.tauri.outputs.available == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: Prepare frontend distribution placeholder
+        if: steps.tauri.outputs.available == 'true'
         run: |
-          mkdir -p ../../../frontend/build
-          printf '<!doctype html><html><body><div id="root"></div></body></html>' > ../../../frontend/build/index.html
+          mkdir -p frontend/build
+          printf '<!doctype html><html><body><div id="root"></div></body></html>' > frontend/build/index.html
       - uses: dtolnay/rust-toolchain@stable
+        if: steps.tauri.outputs.available == 'true'
       - name: Run cargo check
+        if: steps.tauri.outputs.available == 'true'
+        working-directory: clients/atlas-desktop/src-tauri
         env:
           RUST_BACKTRACE: full
         run: cargo check --verbose
