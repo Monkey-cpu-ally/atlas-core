@@ -1,5 +1,6 @@
 import json
 import pytest
+from creative_intelligence.craft_rubrics import STORY
 from creative_intelligence.executor_registry import ExecutionRequest
 from backend.services import creative_critique_executor as executor
 
@@ -9,7 +10,7 @@ def reference_context():
 
 
 def review(boundary=True):
-    scores={"concept_and_intent":90,"structure_and_pacing":90,"character_and_emotion":90,"dialogue_and_voice":90,"world_and_continuity":90,"originality_and_specificity":90,"craft_and_clarity":90}
+    scores={dimension.name:90 for dimension in STORY.dimensions}
     return {"scores":scores,"findings":[],"revision_requests":[],"reference_boundary_check":{"passed":boundary,"project_alignment":boundary,"constraints_respected":boundary,"anti_imitation":boundary,"findings":[] if boundary else ["boundary violation"]}}
 
 
