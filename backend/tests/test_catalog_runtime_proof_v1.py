@@ -1,11 +1,11 @@
-"""Controlled V1 proof that five catalog resources become retrievable ATLAS knowledge.
+"""Controlled proof that selected catalog resources become retrievable ATLAS knowledge.
 
-This test uses five fixed, public Knowledge Bank catalog URLs. For each source it:
+This test uses fixed, public Knowledge Bank catalog URLs. For each source it:
 1. calls the existing /api/kbase/ingest route,
 2. verifies a KnowledgeRecord + Memory Bank row were created,
 3. retrieves the distilled memory through /api/membank/search,
 4. writes machine-readable runtime evidence keyed by the stable catalog resource ID,
-5. runs the V3 quality auditor and verifies those five resources become usable knowledge.
+5. runs the V3 quality auditor and verifies every proof resource becomes usable knowledge.
 """
 from __future__ import annotations
 
@@ -54,6 +54,31 @@ PROOF_RESOURCES = [
         "title": "IETF RFC Index",
         "url": "https://www.rfc-editor.org/",
     },
+    {
+        "id": "subjects:depth/mathematics_depth_v1.json#4",
+        "title": "Precalculus 2e",
+        "url": "https://openstax.org/details/books/precalculus-2e",
+    },
+    {
+        "id": "subjects:depth/mathematics_depth_v1.json#6",
+        "title": "Linear Algebra",
+        "url": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/",
+    },
+    {
+        "id": "subjects:depth/mathematics_depth_v1.json#9",
+        "title": "arXiv Mathematics",
+        "url": "https://arxiv.org/archive/math",
+    },
+    {
+        "id": "subjects:biology.json#0",
+        "title": "Biology 2e",
+        "url": "https://openstax.org/details/books/biology-2e",
+    },
+    {
+        "id": "subjects:biology.json#7",
+        "title": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/",
+    },
 ]
 
 
@@ -76,7 +101,7 @@ def _verification_metadata() -> dict:
     }
 
 
-def test_five_catalog_resources_ingest_and_retrieve():
+def test_catalog_resources_ingest_and_retrieve():
     evidence = {}
     failures = []
 
@@ -151,14 +176,15 @@ def test_five_catalog_resources_ingest_and_retrieve():
         encoding="utf-8",
     )
 
-    assert not failures, "Five-resource runtime proof failed:\n" + "\n".join(failures)
+    assert not failures, "Catalog runtime proof failed:\n" + "\n".join(failures)
 
     subprocess.run([sys.executable, str(AUDITOR_PATH)], cwd=ROOT, check=True)
     quality = json.loads(QUALITY_PATH.read_text(encoding="utf-8"))
     summary = quality["summary"]
 
-    assert summary["runtime_status_resources"] == 5, summary
-    assert summary["ingested_resources"] == 5, summary
-    assert summary["retrieval_tested_resources"] == 5, summary
-    assert summary["usable_resources"] == 5, summary
-    assert summary["usable_knowledge_percent"] == round(5 / summary["resource_count"] * 100, 2), summary
+    expected = len(PROOF_RESOURCES)
+    assert summary["runtime_status_resources"] == expected, summary
+    assert summary["ingested_resources"] == expected, summary
+    assert summary["retrieval_tested_resources"] == expected, summary
+    assert summary["usable_resources"] == expected, summary
+    assert summary["usable_knowledge_percent"] == round(expected / summary["resource_count"] * 100, 2), summary
