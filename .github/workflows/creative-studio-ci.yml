@@ -5,32 +5,30 @@ on:
     paths:
       - 'creative_intelligence/**'
       - 'backend/services/creative_*'
-      - 'backend/services/art_study_knowledge.py'
+      - 'backend/services/art_study_*.py'
       - 'backend/services/llm_provider.py'
       - 'backend/routes/creative_studio.py'
       - 'tests/test_creative_*.py'
       - 'tests/test_story_production_service.py'
-      - 'tests/test_art_study.py'
+      - 'tests/test_art_study*.py'
       - 'tests/test_technique_profile.py'
       - 'tests/test_visual_analysis.py'
       - 'tests/test_vision_provider.py'
-      - 'tests/test_art_study_knowledge.py'
       - 'tests/test_visual_direction_and_critic.py'
       - '.github/workflows/creative-studio-ci.yml'
   pull_request:
     paths:
       - 'creative_intelligence/**'
       - 'backend/services/creative_*'
-      - 'backend/services/art_study_knowledge.py'
+      - 'backend/services/art_study_*.py'
       - 'backend/services/llm_provider.py'
       - 'backend/routes/creative_studio.py'
       - 'tests/test_creative_*.py'
       - 'tests/test_story_production_service.py'
-      - 'tests/test_art_study.py'
+      - 'tests/test_art_study*.py'
       - 'tests/test_technique_profile.py'
       - 'tests/test_visual_analysis.py'
       - 'tests/test_vision_provider.py'
-      - 'tests/test_art_study_knowledge.py'
       - 'tests/test_visual_direction_and_critic.py'
       - '.github/workflows/creative-studio-ci.yml'
 
@@ -59,6 +57,7 @@ jobs:
             backend/routes/creative_studio.py \
             backend/services/llm_provider.py \
             backend/services/art_study_knowledge.py \
+            backend/services/art_study_runtime.py \
             backend/services/creative_story_executor.py \
             backend/services/creative_critique_executor.py \
             backend/services/creative_revision_executor.py \
@@ -84,4 +83,5 @@ jobs:
             tests/test_visual_analysis.py \
             tests/test_vision_provider.py \
             tests/test_art_study_knowledge.py \
-            tests/test_visual_direction_and_critic.py
+            tests/test_visual_direction_and_critic.py \
+            tests/test_art_study_runtime.py
