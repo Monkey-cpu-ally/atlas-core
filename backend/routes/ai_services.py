@@ -266,11 +266,14 @@ class BlueprintRequest(BaseModel):
     requirements: List[str] = []
 
 
-@router.post("/blueprint")
-async def blueprint(req: BlueprintRequest):
+class BlueprintGenerateRequest(BaseModel):
+    concept: str
+
+
+async def _generate_blueprint(title: str, description: str, requirements: List[str]):
     if not EMERGENT_LLM_KEY:
         raise HTTPException(503, "AI services offline")
-    prompt = f"Title: {req.title}\nDescription: {req.description}\nRequirements: {req.requirements}"
+    prompt = f"Title: {title}\nDescription: {description}\nRequirements: {requirements}"
     system = "You are the ATLAS Blueprint Engine. Return a concise JSON engineering blueprint with components, interfaces, risks, verification, and next_steps."
     try:
         chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"blueprint-{datetime.now(timezone.utc).timestamp()}", system_message=system).with_model("openai", "gpt-4.1-mini")
@@ -280,6 +283,17 @@ async def blueprint(req: BlueprintRequest):
         raise
     except Exception as exc:
         raise HTTPException(502, f"Blueprint generation failed: {exc}") from exc
+
+
+@router.post("/blueprint")
+async def blueprint(req: BlueprintRequest):
+    return await _generate_blueprint(req.title, req.description, req.requirements)
+
+
+@router.post("/blueprint/generate")
+async def blueprint_generate(req: BlueprintGenerateRequest):
+    """Compatibility route for the established Blueprint Engine API contract."""
+    return await _generate_blueprint(req.concept, req.concept, [])
 
 
 @router.get("/voices")
