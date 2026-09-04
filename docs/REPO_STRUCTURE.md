@@ -163,6 +163,14 @@ Use this folder for:
 - setup notes
 - governance and cleanup plans
 
+Production architecture contracts live in `docs/architecture/`:
+
+- `ATLAS_PRODUCTION_READINESS_AUDIT.md`
+- `ADR-001-PRODUCTION-RUNTIME-OWNERSHIP.md`
+
+The HUD Intelligence Loop specification and implementation plan live at the
+`docs/` root for compatibility with the existing HUD governance index.
+
 ## Recommended Future Folders
 
 These folders should be added only when real implementation begins:

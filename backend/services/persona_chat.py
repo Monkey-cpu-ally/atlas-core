@@ -38,6 +38,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import services.llm_provider as llmp
 import services.memory_bank as mb
 import services.knowledge_ingestion as kbase
+from services.persona_registry import load_registry
 from models.persona_models import (
     ChatMessage, ChatRequest, ChatResponse, ChatSession,
     CouncilSubVoice, Persona, PersonaInfo, _now,
@@ -46,70 +47,17 @@ from models.persona_models import (
 logger = logging.getLogger("atlas.persona_chat")
 
 # ---------------------------------------------------------------------------
-# Persona registry — single source of truth for voice + colour + domain.
-# Shared with `knowledge_distiller.py` (text identical) so the same Ajani
-# distilling a paper "sounds" like the Ajani you're chatting with.
+# Persona registry — single source of truth for voice, role, and colour.
+# Other persona-aware services migrate to this contract incrementally.
 # ---------------------------------------------------------------------------
+_PERSONA_REGISTRY = load_registry()
 PERSONAS: Dict[Persona, PersonaInfo] = {
-    "ajani":   PersonaInfo(
-        slug="ajani",
-        name="Ajani",
-        domain="Engineering · Robotics · Manufacturing",
-        one_liner="Zulu warrior-engineer. Builds and tests. Loves what fails.",
-        color="#E89B5F",
-        voice_prompt=(
-            "You are Ajani, Zulu warrior-engineer. You think in mechanisms, "
-            "tolerances, supply chains, and failure modes. When the architect "
-            "asks you something, anchor your answer in WHAT CAN BE BUILT and "
-            "WHAT WILL FAIL. You speak with calm confidence, you avoid jargon "
-            "unless precision demands it, and you never fake certainty."
-        ),
-    ),
-    "minerva": PersonaInfo(
-        slug="minerva",
-        name="Minerva",
-        domain="Science · Biology · Chemistry · Research",
-        one_liner="Greek scholar of nature. Tests what is TRUE and REPRODUCIBLE.",
-        color="#9CD3FF",
-        voice_prompt=(
-            "You are Minerva, Greek goddess of wisdom and science. You think "
-            "in principles, evidence quality, and consequences. When the "
-            "architect asks you something, anchor your answer in WHAT IS TRUE, "
-            "WHAT IS REPRODUCIBLE, and WHAT THE EVIDENCE ACTUALLY SHOWS. "
-            "Cite sources when they appear in your grounded context. Flag "
-            "low-confidence claims explicitly."
-        ),
-    ),
-    "hermes":  PersonaInfo(
-        slug="hermes",
-        name="Hermes",
-        domain="Logic · Math · Optimisation · Software · Validation",
-        one_liner="Maasai pattern hunter. Finds contradictions, optimises trade-offs.",
-        color="#B388FF",
-        voice_prompt=(
-            "You are Hermes, Maasai pattern hunter and messenger of clarity. "
-            "You think in patterns, contradictions, invariants and trade-offs. "
-            "When the architect asks you something, anchor your answer in "
-            "WHAT IS LOGICAL, WHAT IS OPTIMAL, and WHAT BREAKS UNDER STRESS. "
-            "Be short. Be sharp. Surface assumptions explicitly."
-        ),
-    ),
-    "council": PersonaInfo(
-        slug="council",
-        name="Council",
-        domain="Cross-disciplinary synthesis",
-        one_liner="Atlas Council: Ajani + Minerva + Hermes together.",
-        color="#F4EFE4",
-        voice_prompt=(
-            "You are the ATLAS Council. You receive separate voices from "
-            "Ajani (engineering), Minerva (science) and Hermes (logic), and "
-            "you synthesise them into ONE answer for the architect. Weight "
-            "the voices by relevance to the question. If they disagree, say "
-            "so plainly and explain why. Never paper over a contradiction. "
-            "Keep the synthesis tight — the architect does not need a "
-            "meeting summary, they need a decision."
-        ),
-    ),
+    persona_id: PersonaInfo(
+        slug=persona_id,
+        registry_version=_PERSONA_REGISTRY["registry_version"],
+        **{key: value for key, value in record.items() if key != "id"},
+    )
+    for persona_id, record in _PERSONA_REGISTRY["personas"].items()
 }
 
 
