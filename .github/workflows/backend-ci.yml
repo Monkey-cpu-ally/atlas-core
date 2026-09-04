@@ -134,6 +134,17 @@ jobs:
           echo $status > ../test_reports/pytest.exitcode
           exit $status
 
+      - name: Publish Knowledge Bank runtime evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-bank-runtime-proof-${{ github.run_number }}
+          path: |
+            knowledge_bank/world_sources/subjects/runtime_status_v1.json
+            knowledge_bank/world_sources/subjects/quality_matrix_v3.json
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Build ATLAS repair report
         if: failure()
         run: |

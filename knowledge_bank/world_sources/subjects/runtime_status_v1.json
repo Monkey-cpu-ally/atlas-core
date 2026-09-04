@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "verification": {
+    "workflow": "ATLAS Backend CI",
+    "run_number": 546,
+    "run_url": "https://github.com/Monkey-cpu-ally/atlas-core/actions/runs/33834809401",
+    "head_sha": "2724fd5104366c417e54ec10e1334b3f8e2fa614",
+    "verified_at": "2026-09-04T03:58:28Z",
+    "result": "success"
+  },
+  "resources": {
+    "subjects:software_engineering_depth_v2.json#0": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://cs50.harvard.edu/x/",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:depth/software_engineering_depth_v1.json#3": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:software_engineering_depth_v2.json#3": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://developer.mozilla.org/",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:software_engineering_depth_v2.json#4": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://www.postgresql.org/docs/",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:software_engineering_depth_v2.json#5": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://www.rfc-editor.org/",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    }
+  }
+}

@@ -61,6 +61,21 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _verification_metadata() -> dict:
+    run_id = os.environ.get("GITHUB_RUN_ID")
+    server = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+    repository = os.environ.get("GITHUB_REPOSITORY")
+    run_url = f"{server}/{repository}/actions/runs/{run_id}" if run_id and repository else None
+    return {
+        "workflow": os.environ.get("GITHUB_WORKFLOW", "local runtime proof"),
+        "run_number": os.environ.get("GITHUB_RUN_NUMBER"),
+        "run_url": run_url,
+        "head_sha": os.environ.get("GITHUB_SHA"),
+        "verified_at": _utc_now(),
+        "result": "success" if not run_id else "pending-test-completion",
+    }
+
+
 def test_five_catalog_resources_ingest_and_retrieve():
     evidence = {}
     failures = []
@@ -125,8 +140,14 @@ def test_five_catalog_resources_ingest_and_retrieve():
                 }
                 failures.append(f"{item['id']}: {exc}")
 
+    verification = _verification_metadata()
+    verification["result"] = "success" if not failures else "failure"
     STATUS_PATH.write_text(
-        json.dumps({"schema_version": "1.0", "resources": evidence}, indent=2) + "\n",
+        json.dumps({
+            "schema_version": "1.0",
+            "verification": verification,
+            "resources": evidence,
+        }, indent=2) + "\n",
         encoding="utf-8",
     )
 

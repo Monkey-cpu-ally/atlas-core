@@ -55,10 +55,17 @@ def main() -> None:
         quality += 20 if authoritative(domain) else 0
 
         live = runtime.get(resource_id, {}) if isinstance(runtime.get(resource_id, {}), dict) else {}
-        ingested = bool(live.get("ingested", False))
-        retrievable = bool(live.get("retrieval_passed", live.get("retrieval_tested", False)))
+        # Runtime evidence belongs to one exact catalog resource. A stale ID or
+        # mismatched URL must never make a different resource look verified.
+        runtime_url_matches = bool(url and live.get("source_url") == url)
+        ingested = bool(runtime_url_matches and live.get("ingested", False))
+        retrievable = bool(runtime_url_matches and live.get(
+            "retrieval_passed", live.get("retrieval_tested", False)
+        ))
         provenance = bool(resource.get("provider") and url)
-        citation_ready = bool(live.get("citation_ready", provenance))
+        citation_ready = bool(
+            live.get("citation_ready", provenance) if runtime_url_matches else provenance
+        )
         usable = bool(ingested and retrievable and citation_ready)
 
         records.append({
@@ -74,7 +81,7 @@ def main() -> None:
             "retrieval_tested": retrievable,
             "citation_ready": citation_ready,
             "usable_knowledge": usable,
-            "runtime_status_present": resource_id in runtime,
+            "runtime_status_present": resource_id in runtime and runtime_url_matches,
         })
 
     total = len(records)
