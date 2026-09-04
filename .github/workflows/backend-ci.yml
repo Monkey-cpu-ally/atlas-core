@@ -9,7 +9,7 @@ on:
       - "knowledge_bank/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
-    branches: [main]
+    branches: [main, integration/knowledge-bookshelf-v1]
     paths:
       - "backend/**"
       - "atlas_core/**"

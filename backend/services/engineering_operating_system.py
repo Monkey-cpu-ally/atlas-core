@@ -7,6 +7,7 @@ performing unsafe autonomous implementation.
 """
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -103,7 +104,10 @@ def create_mission(
     }
     _MISSIONS[mission_id] = mission
     _event(mission_id=mission_id, event_type="mission_created", note="Engineering mission created.")
-    return mission
+    # Callers receive a point-in-time snapshot. Returning the registry's live
+    # dictionary allowed a later advance_mission call to mutate the original
+    # create_mission response in place.
+    return deepcopy(mission)
 
 
 def get_mission(mission_id: str) -> Optional[Dict[str, Any]]:
@@ -135,7 +139,7 @@ def advance_mission(*, mission_id: str, workflow_phase: str, note: str, actor: s
     mission["next_action"] = _next_action_for_phase(workflow_phase)
     mission["updated_at"] = _utc_now()
     _event(mission_id=mission_id, event_type="mission_advanced", note=note, actor=actor)
-    return mission
+    return deepcopy(mission)
 
 
 def create_task(*, mission_id: str, title: str, owner_ai: str, phase: str, priority: str = "medium", status: str = "todo", evidence_required: bool = True) -> Dict[str, Any]:
