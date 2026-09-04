@@ -35,7 +35,7 @@ PROOF_RESOURCES = [
         "url": "https://cs50.harvard.edu/x/",
     },
     {
-        "id": "subjects:software_engineering_depth_v2.json#1",
+        "id": "subjects:depth/software_engineering_depth_v1.json#3",
         "title": "MIT Introduction to Algorithms",
         "url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/",
     },
