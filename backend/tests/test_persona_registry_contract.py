@@ -21,11 +21,15 @@ def test_canonical_roles_and_colors_do_not_drift():
 
     assert personas["ajani"]["color"] == "#DC143C"
     assert "Strategy" in personas["ajani"]["domain"]
+    assert "contained or shut down" in personas["ajani"]["hard_rule"]
     assert personas["minerva"]["color"] == "#20B2AA"
     assert "Research" in personas["minerva"]["domain"]
+    assert "irreversible harm" in personas["minerva"]["hard_rule"]
     assert personas["hermes"]["color"] == "#F4EFE4"
     assert "Engineering" in personas["hermes"]["domain"]
+    assert "self-replication" in personas["hermes"]["hard_rule"]
     assert personas["council"]["color"] == "#9370DB"
+    assert "human approval" in personas["council"]["hard_rule"]
 
 
 def test_hud_generated_registry_matches_canonical_source():

@@ -29,6 +29,8 @@ export const AI_PERSONAS = {
     ],
     ...PERSONAS.ajani,
     slug: PERSONAS.ajani.id,
+    coreBelief: PERSONAS.ajani.core_belief,
+    hardRule: PERSONAS.ajani.hard_rule,
     pulseStyle: PERSONAS.ajani.pulse_style
   },
   minerva: {
@@ -55,6 +57,8 @@ export const AI_PERSONAS = {
     ],
     ...PERSONAS.minerva,
     slug: PERSONAS.minerva.id,
+    coreBelief: PERSONAS.minerva.core_belief,
+    hardRule: PERSONAS.minerva.hard_rule,
     pulseStyle: PERSONAS.minerva.pulse_style
   },
   hermes: {
@@ -74,6 +78,8 @@ export const AI_PERSONAS = {
     ],
     ...PERSONAS.hermes,
     slug: PERSONAS.hermes.id,
+    coreBelief: PERSONAS.hermes.core_belief,
+    hardRule: PERSONAS.hermes.hard_rule,
     pulseStyle: PERSONAS.hermes.pulse_style
   },
   trinity: {
@@ -87,6 +93,8 @@ export const AI_PERSONAS = {
     description: 'All three collaborate, cross-check each other, and surface contradictions. Triggered for complex, multi-domain, or high-stakes topics.',
     ...PERSONAS.council,
     slug: PERSONAS.council.id,
+    coreBelief: PERSONAS.council.core_belief,
+    hardRule: PERSONAS.council.hard_rule,
     pulseStyle: PERSONAS.council.pulse_style
   }
 };
