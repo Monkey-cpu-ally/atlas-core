@@ -1,6 +1,6 @@
 # ATLAS HUD Intelligence Loop V1 Implementation Plan
 
-**Status:** Proposed — no production implementation started  
+**Status:** Approved — Phase 1 contract spine started 2026-09-04
 **Companion specification:** `docs/HUD_INTELLIGENCE_LOOP_V1_SPECIFICATION.md`  
 **Scope boundary:** HUD-only unless the Architect explicitly expands it
 
@@ -40,7 +40,7 @@ approved.
 
 | ID | Decision | Recommended choice | Why |
 |---|---|---|---|
-| D-01 | Canonical HUD intelligence surface | Versioned `/api/hud/intelligence/*` facade over existing services | Keeps HUD contract stable while internals evolve |
+| D-01 | Canonical HUD intelligence surface | Versioned `/api/v1/hud/intelligence/*` facade over existing services | Keeps HUD contract stable while internals evolve |
 | D-02 | Bookshelf behavior | Resolve selected resource by stable ID server-side | Prevents prompt-built context from masquerading as evidence |
 | D-03 | Session deletion | Delete transcript; retain derived persona memory only with explicit disclosure and separate delete control | Preserves learning without hiding retention |
 | D-04 | Confidence display | `high / medium / low / unknown` plus basis | Honest and digestible; avoids fake precision |
@@ -228,7 +228,6 @@ require explicit review.
 
 ## 12. Immediate next milestone
 
-**M0 — Contract approval.** Review D-01 through D-07 and the drift table in the
-specification. After approval, Phase 1 begins with tests and versioned contracts
-behind a default-off flag; no visual redesign is part of that work.
-
+**M1 — Contract spine.** Phase 0 was approved on 2026-09-04. Phase 1 begins
+with the canonical persona registry and its backend/HUD drift tests, followed by
+the versioned request and response models behind a default-off feature flag.

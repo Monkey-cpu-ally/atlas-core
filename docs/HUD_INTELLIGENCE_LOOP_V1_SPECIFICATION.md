@@ -1,6 +1,6 @@
 # ATLAS HUD Intelligence Loop V1 Specification
 
-**Status:** Proposed — implementation blocked until Architect review  
+**Status:** Approved for Phase 1 implementation by the Architect on 2026-09-04
 **Scope:** HUD-only  
 **Version:** 1.0-draft  
 **Owner:** ATLAS UX Division + AI Systems  
@@ -87,9 +87,8 @@ Other panels can adopt the contract later, but are not V1 completion criteria.
 
 ### 5.2 Request contract
 
-The frontend sends a normalized request to one canonical orchestration surface.
-Exact route naming may be chosen during implementation, but the payload is
-locked for V1:
+The frontend sends a normalized request to the canonical
+`/api/v1/hud/intelligence/*` route family. The payload is locked for V1:
 
 ```json
 {
@@ -310,16 +309,17 @@ Locked motion remains: 6000 ms core breathing at 4%, 36000 ms ring idle,
 | Hidden systems | Policy says banks/graphs stay backstage | Legacy components exist and some docs register visible bank panels | V1 adds no launcher; only contextual evidence/results surface |
 | Visual tokens | Multiple docs contain conflicting persona colors | Risk of per-component identity drift | Resolve to locked HUD colors before implementation |
 
-## 10. Approval gate
+## 10. Approval record
 
-Production implementation may begin only after the Architect approves:
+The Architect approved implementation on 2026-09-04. The approval covers:
 
 1. This V1 scope and canonical loop.
 2. The request/response envelope.
 3. The explicit drift resolutions, especially persona identity, hidden systems,
    session retention, and Council consolidation.
+
+Phase changes remain gated by the acceptance criteria in this specification.
 4. The implementation sequence in the companion plan.
 
 Approval of this specification does not authorize non-HUD scope or autonomous
 consequential actions.
-
