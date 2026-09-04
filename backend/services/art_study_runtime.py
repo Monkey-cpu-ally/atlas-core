@@ -4,14 +4,14 @@ from __future__ import annotations
 from typing import Mapping
 
 from backend.services.art_study_knowledge import council_interpretations
-from creative_intelligence.technique_profile import TechniqueProfile
-from creative_intelligence.vision_provider import VisionProvider, analyze_to_technique_profile
+from creative_intelligence.vision_provider import VisionProvider, run_art_study_pipeline
 from creative_intelligence.visual_direction import build_visual_direction, generation_context
 
 
 def run_art_study(
     *,
     provider: VisionProvider,
+    source_reference: str,
     request: Mapping[str, object],
     source: Mapping[str, object],
     project_identity: str,
@@ -19,9 +19,14 @@ def run_art_study(
     minimum_confidence: float = 0.60,
 ) -> dict:
     """Execute provider -> evidence -> ArtStudy -> profile -> ATLAS visual direction."""
-    profile: TechniqueProfile = analyze_to_technique_profile(
-        provider, request, source, minimum_confidence=minimum_confidence
+    result = run_art_study_pipeline(
+        provider,
+        source_reference,
+        source,
+        request,
+        minimum_confidence=minimum_confidence,
     )
+    profile = result.profile
     direction = build_visual_direction(
         profile,
         project_identity=project_identity,
