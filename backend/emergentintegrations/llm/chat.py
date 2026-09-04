@@ -128,11 +128,37 @@ class LlmChat:
 
         if "five-phase blueprint" in system or ("philosophy" in system and "research" in system):
             return json.dumps({
-                "philosophy": "Build for measurable human value.",
-                "research": "Verify assumptions against trusted sources.",
-                "architecture": "Use modular interfaces and explicit constraints.",
-                "prototype": "Test the smallest safe implementation.",
-                "verification": "Measure behavior before promotion.",
+                "concept": user_text.split("CONCEPT:\n", 1)[-1].split("\n\n", 1)[0].strip(),
+                "domain": "other",
+                "phases": {
+                    "philosophy": {
+                        "core_belief": "Build for measurable human value.",
+                        "why_it_matters": "The system must solve the stated problem safely.",
+                        "ethical_anchors": ["Keep human review and reversible controls."],
+                    },
+                    "research": {
+                        "known": ["The concept requires evidence-backed design choices."],
+                        "unknown": ["Operating limits require verification."],
+                        "prior_art": ["Review trusted technical sources before selection."],
+                    },
+                    "blueprint": {
+                        "components": ["bounded prototype", "monitoring interface"],
+                        "data_flows": ["input -> validation -> controlled output"],
+                        "interfaces": ["human approval gate"],
+                    },
+                    "simulation": {
+                        "test_plan": ["Exercise nominal and failure conditions."],
+                        "success_criteria": ["Remain inside verified limits."],
+                        "risks": ["Unbounded control output"],
+                    },
+                    "physical": {
+                        "build_steps": ["Build the smallest safe prototype."],
+                        "safety_gates": ["Stop on limit violation."],
+                        "containment": ["Isolate energy and hazardous outputs."],
+                    },
+                },
+                "minerva_concerns": ["Confirm evidence quality and human impact."],
+                "hermes_validations": ["Test interfaces, limits, and failure behavior."],
             })
 
         if "ajani" in system:

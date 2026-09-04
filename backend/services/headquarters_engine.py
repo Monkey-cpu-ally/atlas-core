@@ -209,7 +209,7 @@ def mission_control() -> Dict[str, Any]:
             "status": "active",
         },
         "queue": [
-            "Verify World Knowledge Graph route mounting and route tests.",
+            "Verify World Knowledge Graph route mounting and route-level tests.",
             "Continue Knowledge Division roadmap after refinement hardening.",
             "Add Source Reliability Ranking after Phase 14 is stable.",
             "Create ATLAS System Inspector after Knowledge Validation passes Headquarters review.",

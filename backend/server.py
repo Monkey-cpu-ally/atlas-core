@@ -209,6 +209,22 @@ async def _wire_atlas_memory():
 
 
 @app.on_event("startup")
+async def _start_sentinel_autonomic_watcher():
+    """Start the fail-quiet Sentinel loop only when explicitly enabled."""
+    from services import sentinel_watcher
+
+    if sentinel_watcher.status()["enabled_env"]:
+        await sentinel_watcher.start()
+
+
+@app.on_event("shutdown")
+async def _stop_sentinel_autonomic_watcher():
+    from services import sentinel_watcher
+
+    await sentinel_watcher.stop()
+
+
+@app.on_event("startup")
 async def _wire_research_labs():
     try:
         from services import research_lab_engine as _research_labs

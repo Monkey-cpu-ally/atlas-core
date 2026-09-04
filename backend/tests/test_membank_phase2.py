@@ -195,7 +195,7 @@ def test_categories_layout(s):
     r = s.get(f"{MB}/categories")
     assert r.status_code == 200
     d = r.json()
-    assert d["permanent"] == ["blueprint", "council", "project", "user"]
+    assert d["permanent"] == ["agent", "blueprint", "council", "project", "user"]
     assert d["decaying"] == ["chat", "intake", "lesson", "manual", "research", "sandbox", "temporary"]
     assert d["all"] == sorted(set(d["permanent"]) | set(d["decaying"]))
 

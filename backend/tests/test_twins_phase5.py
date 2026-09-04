@@ -75,7 +75,7 @@ def test_categories(client):
     d = r.json()
     assert "robot" in d["categories"]
     assert set(d["simulation_kinds"]) == {
-        "blueprint", "assembly", "resource", "failure", "timeline", "cost",
+        "blueprint", "assembly", "resource", "failure", "timeline", "cost", "thermal",
     }
 
 

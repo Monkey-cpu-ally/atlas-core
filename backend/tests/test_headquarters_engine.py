@@ -50,10 +50,13 @@ def test_mission_control_blocks_new_phase_until_verification():
 def test_technical_debt_register_prioritizes_visible_debt():
     report = headquarters_engine.technical_debt_register()
     debt_ids = {item["debt_id"] for item in report["items"]}
+    active = [item for item in report["items"] if item["status"] in {"open", "active"}]
+    rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+    expected_highest = max(active, key=lambda item: rank[item["severity"]])["severity"]
 
     assert report["title"] == "ATLAS Technical Debt Register"
     assert report["active_count"] >= 1
-    assert report["highest_open_severity"] in {"high", "critical"}
+    assert report["highest_open_severity"] == expected_highest
     assert "DEBT-PERSIST-001" in debt_ids
     assert report["by_quality_gate"]["Engineering"] >= 1
 
