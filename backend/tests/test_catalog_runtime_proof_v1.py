@@ -75,9 +75,9 @@ PROOF_RESOURCES = [
         "url": "https://openstax.org/details/books/biology-2e",
     },
     {
-        "id": "subjects:biology.json#7",
-        "title": "PubMed",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/",
+        "id": "subjects:biology.json#8",
+        "title": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/",
     },
 ]
 
