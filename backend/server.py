@@ -31,6 +31,7 @@ from routes.weaver import router as weaver_router
 from routes.kbase import router as kbase_router
 from routes.robot import router as robot_router
 from routes.persona import router as persona_router
+from routes.hud_intelligence import router as hud_intelligence_router
 from routes.watchers import router as watchers_router, kbase_helper_router
 from routes.lessons import router as lessons_router
 from routes.self_improve import router as self_improve_router
@@ -123,6 +124,7 @@ app.include_router(weaver_router)
 app.include_router(kbase_router)
 app.include_router(robot_router)
 app.include_router(persona_router)
+app.include_router(hud_intelligence_router)
 app.include_router(watchers_router)
 app.include_router(kbase_helper_router)
 app.include_router(lessons_router)
