@@ -7,28 +7,19 @@ Uses routing.topic_router.route_topic to pick a lead, then either:
                               returns ordered responses, suitable for the
                               COUNCIL HUD tile.
 """
-import asyncio
 import logging
-import os
 from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import uuid4
 
-from dotenv import load_dotenv
-from emergentintegrations.llm.chat import LlmChat, UserMessage
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from routing.topic_router import AI_DISPLAY, route_topic
 
-load_dotenv()
 logger = logging.getLogger("atlas.council")
-
 router = APIRouter(prefix="/api/council", tags=["Council"])
 
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
-
-# Per-persona deliberation prompts — terse, opinionated, in character.
 PERSONA_SYSTEM = {
     "ajani":   ("You are Ajani, Zulu warrior-engineer. Speak in 2-3 short paragraphs. "
                 "Focus on physics, energy flow, and what can be built. African cadence."),
@@ -45,12 +36,11 @@ class RouteRequest(BaseModel):
 
 class DeliberateRequest(BaseModel):
     topic: str
-    order: Optional[List[str]] = None  # custom AI order; defaults to [ajani, minerva, hermes]
+    order: Optional[List[str]] = None
 
 
 @router.post("/route")
 async def route(req: RouteRequest):
-    """Return which AI should lead this topic, and why."""
     ai_id, kw = route_topic(req.topic)
     return {
         "topic": req.topic,
@@ -62,37 +52,29 @@ async def route(req: RouteRequest):
 
 
 async def _ask(persona: str, topic: str) -> str:
-    """Ask one persona via the Phase-1 multi-provider LLM layer.
-
-    Routes through `services.llm_provider.send` so a per-persona override
-    in `atlas_settings.persona_models` (Ollama, LM Studio, etc.) is
-    automatically honoured. Falls back gracefully to Emergent gpt-5.2 on
-    local-provider connection errors."""
+    """Ask one persona through the canonical multi-provider LLM layer."""
     from services.llm_provider import send as llm_send
 
-    system = PERSONA_SYSTEM[persona]
-    try:
-        result = await llm_send(
-            persona,
-            system,
-            f"Topic: {topic}\n\nWeigh in.",
-            session_id=f"council-{persona}-{uuid4().hex[:12]}",
-        )
-        return result.get("text") or f"({persona.capitalize()} did not respond — please retry.)"
-    except Exception as exc:
-        logger.warning("Council _ask %s failed: %s", persona, exc)
-        return f"({persona.capitalize()} did not respond — please retry.)"
+    result = await llm_send(
+        persona,
+        PERSONA_SYSTEM[persona],
+        f"Topic: {topic}\n\nWeigh in.",
+        session_id=f"council-{persona}-{uuid4().hex[:12]}",
+    )
+    text = result.get("text")
+    if not isinstance(text, str) or not text.strip():
+        raise RuntimeError(f"empty LLM response for {persona}")
+    return text
 
 
 @router.post("/deliberate")
 async def deliberate(req: DeliberateRequest):
-    """All three AIs answer the topic in sequence.
+    """All requested AIs answer through the canonical provider.
 
-    The COUNCIL tile renders these as three persona cards. Returns the
-    routed lead alongside, so the UI can crown one.
+    Provider availability is decided by services.llm_provider rather than by
+    this route. This keeps local providers and the explicit CI-only provider
+    usable without pretending EMERGENT_LLM_KEY is configured.
     """
-    if not EMERGENT_LLM_KEY:
-        raise HTTPException(503, "AI services offline (missing EMERGENT_LLM_KEY)")
     if not req.topic.strip():
         raise HTTPException(400, "topic is required")
 
@@ -108,15 +90,14 @@ async def deliberate(req: DeliberateRequest):
             text = await _ask(persona, req.topic)
         except Exception as exc:
             logger.warning("Council deliberation failed for %s: %s", persona, exc)
-            text = f"(unable to reach {persona}: {exc})"
+            raise HTTPException(503, f"AI services unavailable for {persona}") from exc
         voices.append({
             "persona": persona,
             "display": AI_DISPLAY[persona],
             "text": text,
-            "is_lead": (persona == lead),
+            "is_lead": persona == lead,
         })
 
-    # --- Phase 2: store the council deliberation as permanent memory --------
     try:
         from services import memory_bank as _mb
         deliberation_body = (
@@ -130,7 +111,7 @@ async def deliberate(req: DeliberateRequest):
             source_type="council",
             tags=[req.topic],
         )
-    except Exception as exc:    # noqa: BLE001 — never fail the council on memory
+    except Exception as exc:
         logger.warning("Council memory store failed: %s", exc)
 
     return {

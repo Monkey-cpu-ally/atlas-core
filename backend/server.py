@@ -46,6 +46,7 @@ from routes.mission_scheduler import router as mission_scheduler_router
 from routes.project_intelligence import router as project_intelligence_router
 from routes.external_access import router as external_access_router
 from routes.discovery_approval import router as discovery_approval_router
+from routes.discovery_engine import router as discovery_engine_router
 from routes.headquarters import router as headquarters_router
 from routes.system_inspector import router as system_inspector_router
 from routes.global_knowledge import router as global_knowledge_router
@@ -140,6 +141,7 @@ app.include_router(mission_scheduler_router)
 app.include_router(project_intelligence_router)
 app.include_router(external_access_router)
 app.include_router(discovery_approval_router)
+app.include_router(discovery_engine_router)
 app.include_router(headquarters_router)
 app.include_router(system_inspector_router)
 app.include_router(global_knowledge_router)
@@ -211,6 +213,31 @@ async def _wire_atlas_memory():
 
 
 @app.on_event("startup")
+async def _seed_runtime_catalogs():
+    """Provision canonical built-in runtime data after Mongo is reachable."""
+    seeders = []
+    from services import environments as _environments
+    from services import nir as _nir
+    from services import reference_twins as _reference_twins
+    from services import robot as _robot
+    from services import subjects as _subjects
+
+    seeders.extend([
+        ("subjects", _subjects.seed_if_needed),
+        ("environments", _environments.seed_if_needed),
+        ("NIR library", _nir.seed_library_if_needed),
+        ("reference twins", _reference_twins.seed_if_needed),
+        ("robot devices", _robot.seed_if_needed),
+    ])
+    for name, seed in seeders:
+        try:
+            result = await seed()
+            logging.getLogger(__name__).info("Runtime seed %s: %s", name, result)
+        except Exception as exc:
+            logging.getLogger(__name__).error("Runtime seed %s failed: %s", name, exc)
+
+
+@app.on_event("startup")
 async def _wire_research_labs():
     try:
         from services import research_lab_engine as _research_labs
@@ -220,6 +247,30 @@ async def _wire_research_labs():
         logging.getLogger(__name__).info("Research Labs hydrated: %s missions · %s discoveries", counts["missions"], counts["discoveries"])
     except Exception as exc:
         logging.getLogger(__name__).warning("Research Lab persistence skipped: %s", exc)
+
+
+@app.on_event("startup")
+async def _wire_discovery_engine():
+    try:
+        from services import discovery_approval_pipeline as _discovery_approval
+        from services import discovery_engine as _discovery_engine
+        from services import invention_ledger as _invention_ledger
+
+        _discovery_engine.attach_mongo(db)
+        _discovery_approval.attach_mongo(db)
+        _invention_ledger.attach_mongo(db)
+        await _discovery_engine.create_indexes()
+        await _discovery_approval.create_indexes()
+        await _invention_ledger.create_indexes()
+        ledger_counts = await _invention_ledger.hydrate_from_mongo()
+        engine_counts = await _discovery_engine.hydrate_from_mongo()
+        approval_counts = await _discovery_approval.hydrate_from_mongo()
+        logging.getLogger(__name__).info(
+            "Discovery Engine hydrated: %s investigations · %s approval drafts · %s invention ledgers",
+            engine_counts["investigations"], approval_counts["discovery_drafts"], ledger_counts["ledgers"],
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Discovery Engine persistence skipped: %s", exc)
 
 
 @app.on_event("startup")

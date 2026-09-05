@@ -15,9 +15,8 @@ def s():
     return sess
 
 
-# ----- Mastery curve runs ---------------------------------------------------
 class TestRuns:
-    LAB = f"TEST_pytest_{int(time.time())}"  # unique lab_key so we don't collide with real data
+    LAB = f"TEST_pytest_{int(time.time())}"
 
     def test_record_run_above_threshold(self, s):
         payload = {"lab_key": self.LAB, "values": {"sunlight": 80}, "score": 80, "output": 55.0, "stability": 78.0, "failure": False}
@@ -36,19 +35,15 @@ class TestRuns:
 
     def test_top3_cap_keeps_top_scores(self, s):
         lab = f"TEST_top3_{int(time.time())}"
-        # Submit 5 runs scores 50,60,70,80,90
         for sc in [50, 60, 70, 80, 90]:
             r = s.post(f"{API}/runs", json={"lab_key": lab, "values": {"x": sc}, "score": sc}, timeout=15)
             assert r.status_code == 200, r.text
             assert r.json()["recorded"] is True
-        # Read back
         r = s.get(f"{API}/runs/{lab}", timeout=15)
         assert r.status_code == 200
         d = r.json()
-        # Filter to today's runs
         today_scores = [run["score"] for run in d["runs"] if run.get("day")]
         assert len(today_scores) <= 3, f"Expected ≤3 runs today, got {today_scores}"
-        # Sort to compare top-3
         assert sorted(today_scores) == [70, 80, 90], f"Expected top-3 [70,80,90], got {sorted(today_scores)}"
 
     def test_runs_returned_chronological_ascending(self, s):
@@ -68,7 +63,6 @@ class TestRuns:
         assert len(r.json()["runs"]) <= 1
 
 
-# ----- Saved configs --------------------------------------------------------
 class TestSaved:
     @pytest.fixture(autouse=True)
     def _state(self):
@@ -87,12 +81,10 @@ class TestSaved:
         TestSaved.created_ids.append(d["id"])
 
     def test_list_saved_no_id_leak(self, s):
-        # create one first
         payload = {"name": "TEST_ListA", "lab_key": self.lab, "values": {"a": 1}}
         rc = s.post(f"{API}/saved", json=payload, timeout=15)
         assert rc.status_code == 200
         TestSaved.created_ids.append(rc.json()["id"])
-
         r = s.get(f"{API}/saved/{self.lab}", timeout=15)
         assert r.status_code == 200
         d = r.json()
@@ -108,17 +100,14 @@ class TestSaved:
         rd = s.delete(f"{API}/saved/{cid}", timeout=15)
         assert rd.status_code == 200
         assert rd.json() == {"deleted": cid}
-        # Delete non-existent
         r404 = s.delete(f"{API}/saved/does-not-exist-{int(time.time())}", timeout=15)
         assert r404.status_code == 404
 
     def test_cleanup(self, s):
-        # Best-effort delete of remaining TEST configs
         for cid in TestSaved.created_ids:
             s.delete(f"{API}/saved/{cid}", timeout=10)
 
 
-# ----- AI Suggest -----------------------------------------------------------
 class TestSuggest:
     def _power_payload(self, persona="ajani"):
         return {
@@ -141,9 +130,12 @@ class TestSuggest:
         assert r.status_code == 200, r.text
         d = r.json()
         assert d["persona"] == "ajani"
-        assert d["model"] == "claude-sonnet-4-5-20250929"
+        assert isinstance(d.get("model"), str) and d["model"]
+        assert isinstance(d.get("provider"), str) and d["provider"]
+        if os.environ.get("ATLAS_TEST_MODE") == "1":
+            assert d["model"] == "atlas-deterministic-ci-v1"
+            assert d["provider"] == "test"
         assert d["control"] in {"sunlight", "angle", "temperature", "battery"}
-        # within range
         ranges = {"sunlight": (0, 100), "angle": (0, 90), "temperature": (20, 120), "battery": (1, 24)}
         lo, hi = ranges[d["control"]]
         assert lo <= d["value"] <= hi
@@ -153,8 +145,9 @@ class TestSuggest:
         r = s.post(f"{API}/suggest", json=self._power_payload("foo_invalid"), timeout=45)
         assert r.status_code == 200, r.text
         d = r.json()
-        # persona echoed as lowercased input, fallback is internal
         assert d["control"] in {"sunlight", "angle", "temperature", "battery"}
+        assert isinstance(d.get("model"), str) and d["model"]
+        assert isinstance(d.get("provider"), str) and d["provider"]
 
     def test_suggest_missing_controls_returns_422(self, s):
         bad = {"lab_key": "power", "title": "x", "persona": "ajani",
