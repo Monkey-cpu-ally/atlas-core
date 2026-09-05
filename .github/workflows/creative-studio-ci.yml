@@ -58,6 +58,7 @@ jobs:
             backend/services/llm_provider.py \
             backend/services/art_study_knowledge.py \
             backend/services/art_study_runtime.py \
+            backend/services/art_study_provider_registry.py \
             backend/services/creative_story_executor.py \
             backend/services/creative_critique_executor.py \
             backend/services/creative_revision_executor.py \
@@ -84,4 +85,5 @@ jobs:
             tests/test_vision_provider.py \
             tests/test_art_study_knowledge.py \
             tests/test_visual_direction_and_critic.py \
-            tests/test_art_study_runtime.py
+            tests/test_art_study_runtime.py \
+            tests/test_art_study_api.py
