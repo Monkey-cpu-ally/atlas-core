@@ -4,10 +4,14 @@ ATLAS Core is the main repository for the ATLAS engineering operating system. It
 
 ## Primary ATLAS Roles
 
-- **Ajani** — strategy, execution, risk, business planning, operations, and practical decision-making.
-- **Hermes** — engineering, software, robotics, manufacturing, architecture, materials, validation, and tool use.
-- **Minerva** — research, science, education, culture, botany, environment, storytelling, and knowledge organization.
-- **Council** — combined review and synthesis when important decisions need more than one viewpoint.
+The executable persona registry in `backend/services/persona_chat.py` is the runtime source of truth. Documentation and routing must stay aligned with it.
+
+- **Ajani** — engineering, robotics, manufacturing, mechanisms, buildability, supply chains, and failure modes.
+- **Minerva** — science, biology, chemistry, research, evidence quality, reproducibility, education, and environmental knowledge.
+- **Hermes** — logic, mathematics, optimization, software, validation, contradictions, invariants, and trade-off analysis.
+- **Council** — cross-disciplinary synthesis across Ajani, Minerva, and Hermes; disagreements must be surfaced rather than hidden.
+
+See `docs/PERSONA_CONTRACTS.md` for the canonical persona contract and migration rule.
 
 ## Repository Map
 
