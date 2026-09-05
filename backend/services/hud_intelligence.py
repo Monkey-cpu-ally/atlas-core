@@ -77,7 +77,9 @@ def _resource_evidence(rows: List[Dict[str, Any]]) -> List[HudEvidence]:
             record_id=str(row.get("id", "")),
             kind="resource",
             title=str(row.get("title") or row.get("id") or "Knowledge resource"),
-            verification_status="verified" if row.get("verified") is True else "provisional",
+            verification_status=(
+                "verified" if str(row.get("status", "")).lower() == "verified" else "provisional"
+            ),
             source_url=row.get("url") or row.get("source_url"),
         )
         for row in rows
