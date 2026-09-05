@@ -1,6 +1,7 @@
 """Knowledge Bank bridge for validated ATLAS Art Study technique profiles."""
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Dict, List
 
@@ -9,6 +10,7 @@ from creative_intelligence.art_study import AI_ROLES
 from creative_intelligence.technique_profile import TechniqueProfile
 
 PERSONAS = ("ajani", "minerva", "hermes")
+SOURCE_TYPE = "art_study_technique_profile"
 
 
 def _profile_content(profile: TechniqueProfile) -> str:
@@ -17,6 +19,15 @@ def _profile_content(profile: TechniqueProfile) -> str:
     if not profile.principles_only or not profile.direct_imitation_forbidden:
         raise ValueError("unsafe technique profile cannot enter Knowledge Bank")
     return json.dumps(profile.as_dict(), sort_keys=True, separators=(",", ":"))
+
+
+def _profile_source_id(profile: TechniqueProfile) -> str:
+    """Stable identity for both single- and multi-source technique profiles."""
+    if len(profile.source_ids) == 1:
+        return profile.source_ids[0]
+    canonical = "\n".join(sorted(source.casefold() for source in profile.source_ids))
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:24]
+    return f"art-study:profile:{digest}"
 
 
 def interpretation_for(persona: str, profile: TechniqueProfile) -> Dict[str, object]:
@@ -38,16 +49,16 @@ def interpretation_for(persona: str, profile: TechniqueProfile) -> Dict[str, obj
 
 
 async def store_profile(profile: TechniqueProfile) -> Dict[str, object]:
-    """Persist one canonical shared-bank profile; fail closed if storage fails."""
+    """Persist validated craft knowledge permanently; fail closed on storage failure."""
     content = _profile_content(profile)
-    source_id = profile.source_ids[0] if len(profile.source_ids) == 1 else "art-study:multi-source"
-    row = await memory_bank.auto_store(
+    row = await memory_bank.store_memory(
         content,
         persona="council",
-        category="research",
-        source_type="art_study_technique_profile",
-        source_id=source_id,
+        category="council",
+        source_type=SOURCE_TYPE,
+        source_id=_profile_source_id(profile),
         tags=["art-study", "technique-profile", *profile.dimensions],
+        pinned=True,
     )
     if row is None:
         raise RuntimeError("Art Study Knowledge Bank persistence failed")
@@ -55,12 +66,16 @@ async def store_profile(profile: TechniqueProfile) -> Dict[str, object]:
 
 
 async def retrieve_profiles(query: str, *, top_k: int = 5) -> List[Dict[str, object]]:
+    """Retrieve from the permanent Council bank, overfetching before source filtering."""
     if not isinstance(query, str) or not query.strip():
         raise ValueError("query is required")
+    if top_k < 1:
+        raise ValueError("top_k must be at least 1")
     rows = await memory_bank.search_memory(
-        query.strip(), persona="council", category="research", top_k=top_k, min_score=0.0
+        query.strip(), persona="council", category="council", top_k=max(top_k * 10, 50), min_score=0.0
     )
-    return [row for row in rows if row.get("source_type") == "art_study_technique_profile"]
+    matches = [row for row in rows if row.get("source_type") == SOURCE_TYPE]
+    return matches[:top_k]
 
 
 def council_interpretations(profile: TechniqueProfile) -> Dict[str, Dict[str, object]]:
