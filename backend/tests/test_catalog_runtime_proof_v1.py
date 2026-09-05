@@ -79,6 +79,31 @@ PROOF_RESOURCES = [
         "title": "PubMed Central",
         "url": "https://pmc.ncbi.nlm.nih.gov/",
     },
+    {
+        "id": "subjects:depth/physics_depth_v1.json#1",
+        "title": "College Physics 2e",
+        "url": "https://openstax.org/details/books/college-physics-2e",
+    },
+    {
+        "id": "subjects:chemistry.json#0",
+        "title": "Chemistry 2e",
+        "url": "https://openstax.org/details/books/chemistry-2e",
+    },
+    {
+        "id": "subjects:robotics_depth_v2.json#2",
+        "title": "ROS 2 Documentation",
+        "url": "https://docs.ros.org/",
+    },
+    {
+        "id": "subjects:artificial_intelligence.json#12",
+        "title": "Artificial Intelligence Risk Management Framework",
+        "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+    },
+    {
+        "id": "subjects:electrical_engineering.json#0",
+        "title": "Circuits and Electronics",
+        "url": "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/",
+    },
 ]
 
 
