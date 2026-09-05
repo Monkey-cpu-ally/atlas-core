@@ -3,9 +3,12 @@ name: ATLAS Knowledge Bank Coverage Audit
 on:
   push:
     branches:
-      - main
       - feature/knowledge-connectors-v1
       - integration/knowledge-bookshelf-v1
+    paths:
+      - "knowledge_bank/world_sources/subjects/**"
+      - "knowledge-division/**"
+      - ".github/workflows/knowledge-bank-coverage-audit.yml"
   pull_request:
     branches: [main]
     paths:
@@ -34,6 +37,23 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Verify audit implementation is present
+        shell: bash
+        run: |
+          required=(
+            knowledge_bank/world_sources/subjects/coverage_audit.py
+            knowledge_bank/world_sources/subjects/quality_audit_v3.py
+            knowledge_bank/world_sources/subjects/catalog_index_v1.py
+            knowledge_bank/world_sources/subjects/learning_subjects.json
+            knowledge_bank/world_sources/subjects/learning_subjects_extension_v1.json
+          )
+          for path in "${required[@]}"; do
+            if [[ ! -f "$path" ]]; then
+              echo "::error file=$path::Knowledge Bank audit implementation is incomplete on this ref. Merge the Knowledge Bookshelf implementation before enabling this audit on the ref."
+              exit 1
+            fi
+          done
 
       - name: Compile auditors
         run: |
