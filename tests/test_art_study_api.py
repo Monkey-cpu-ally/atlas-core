@@ -1,8 +1,8 @@
 import pytest
 from fastapi import HTTPException
 
+import backend.routes.creative_studio as creative_route
 from backend.routes.creative_studio import ArtStudyRequest, analyze_art_study, get_art_study_contract
-from backend.services import art_study_provider_registry
 from creative_intelligence.vision_provider import VisionProvider
 
 
@@ -19,7 +19,7 @@ def body(rights="user_provided"):
 
 @pytest.fixture(autouse=True)
 def clean_registry():
-    art_study_provider_registry.clear(); yield; art_study_provider_registry.clear()
+    creative_route.art_study_provider_registry.clear(); yield; creative_route.art_study_provider_registry.clear()
 
 
 @pytest.mark.asyncio
@@ -30,7 +30,7 @@ async def test_art_study_api_fails_closed_without_provider():
 
 @pytest.mark.asyncio
 async def test_art_study_api_runs_full_safe_runtime_contract():
-    art_study_provider_registry.register(FakeVisionProvider())
+    creative_route.art_study_provider_registry.register(FakeVisionProvider())
     result=await analyze_art_study(body())
     assert result["technique_profile"]["source_ids"]==["api-study-1"]
     assert set(result["ai_interpretations"])=={"ajani","minerva","hermes"}
@@ -41,7 +41,7 @@ async def test_art_study_api_runs_full_safe_runtime_contract():
 
 @pytest.mark.asyncio
 async def test_art_study_api_rejects_unapproved_source_rights():
-    art_study_provider_registry.register(FakeVisionProvider())
+    creative_route.art_study_provider_registry.register(FakeVisionProvider())
     with pytest.raises(HTTPException) as exc: await analyze_art_study(body("scraped_unknown"))
     assert exc.value.status_code==422
 
