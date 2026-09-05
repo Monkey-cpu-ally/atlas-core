@@ -1,0 +1,18 @@
+{
+  "batch": "verified-earth-ocean-climate-datasets-v1",
+  "policy": "Only official, specifically identifiable data collections are counted. Catalog/portal landing pages are discovery connectors and do not count as individual resources.",
+  "resources": [
+    {"title":"World Ocean Database (WOD)","provider":"NOAA National Centers for Environmental Information","type":"dataset_collection","subjects":["Oceanography","Environmental Science"],"official_url":"https://www.ncei.noaa.gov/products/world-ocean-database","status":"verified","access":"public"},
+    {"title":"International Comprehensive Ocean-Atmosphere Data Set (ICOADS)","provider":"NOAA National Centers for Environmental Information","type":"dataset_collection","subjects":["Oceanography","Environmental Science"],"official_url":"https://www.ncei.noaa.gov/products/international-comprehensive-ocean-atmosphere-data-set","status":"verified","access":"public"},
+    {"title":"Global Historical Climatology Network - Daily (GHCN-Daily), Version 3","provider":"NOAA National Centers for Environmental Information","type":"dataset_collection","subjects":["Environmental Science"],"official_url":"https://www.ncei.noaa.gov/access/search/dataset-search/","status":"verified","access":"public"},
+    {"title":"Local Climatological Data (LCD), Version 2","provider":"NOAA National Centers for Environmental Information","type":"dataset_collection","subjects":["Environmental Science"],"official_url":"https://www.ncei.noaa.gov/access/search/dataset-search/","status":"verified","access":"public"},
+    {"title":"Global Summary of the Month (GSOM), Version 1","provider":"NOAA National Centers for Environmental Information","type":"dataset_collection","subjects":["Environmental Science"],"official_url":"https://www.ncei.noaa.gov/access","status":"verified","access":"public"},
+    {"title":"Global Summary of the Year (GSOY), Version 2","provider":"NOAA National Centers for Environmental Information","type":"dataset_collection","subjects":["Environmental Science"],"official_url":"https://www.ncei.noaa.gov/access","status":"verified","access":"public"},
+    {"title":"Integrated Surface Dataset (Global)","provider":"NOAA National Centers for Environmental Information","type":"dataset_collection","subjects":["Environmental Science"],"official_url":"https://www.ncei.noaa.gov/access","status":"verified","access":"public"},
+    {"title":"ANSS Comprehensive Earthquake Catalog (ComCat)","provider":"U.S. Geological Survey","type":"dataset_collection","subjects":["Environmental Science","Architecture"],"official_url":"https://earthquake.usgs.gov/data/comcat/","status":"verified","access":"public"},
+    {"title":"USGS Groundwater Data for the Nation","provider":"U.S. Geological Survey","type":"dataset_collection","subjects":["Environmental Science"],"official_url":"https://data.usgs.gov/datacatalog/","status":"verified","access":"public"},
+    {"title":"USGS Surface Water Data for the Nation","provider":"U.S. Geological Survey","type":"dataset_collection","subjects":["Environmental Science"],"official_url":"https://data.usgs.gov/datacatalog/","status":"verified","access":"public"},
+    {"title":"USGS Water Quality Data for the Nation","provider":"U.S. Geological Survey","type":"dataset_collection","subjects":["Environmental Science","Chemistry"],"official_url":"https://data.usgs.gov/datacatalog/","status":"verified","access":"public"},
+    {"title":"USGS Landsat Data Access","provider":"U.S. Geological Survey","type":"dataset_collection","subjects":["Environmental Science","Architecture"],"official_url":"https://data.usgs.gov/datacatalog/","status":"verified","access":"public"}
+  ]
+}

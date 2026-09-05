@@ -10,6 +10,9 @@ on:
       - "clients/atlas-unreal/**"
       - "visual-systems/**"
       - "shared/protocols/**"
+      - "knowledge-division/existing-resource-library-v1.json"
+      - "tests/test_knowledge_bookshelf_contract.py"
+      - "tests/test_teaching_contract.py"
       - "tests/test_visual_hub.py"
       - "tests/test_genesis_*.py"
       - ".github/workflows/visual-ecosystem.yml"
@@ -27,8 +30,24 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r backend/requirements.txt pytest
-      - name: Run visual and GENESIS smoke tests
-        run: pytest -q tests/test_visual_hub.py tests/test_genesis_*.py
+      - name: Run Knowledge Bookshelf contract
+        run: pytest -q tests/test_knowledge_bookshelf_contract.py tests/test_teaching_contract.py
+      - name: Run available visual and GENESIS smoke tests
+        shell: bash
+        run: |
+          shopt -s nullglob
+          tests=(tests/test_visual_hub.py tests/test_genesis_*.py)
+          available=()
+          for test_path in "${tests[@]}"; do
+            if [ -f "$test_path" ]; then
+              available+=("$test_path")
+            fi
+          done
+          if [ ${#available[@]} -eq 0 ]; then
+            echo "Visual/GENESIS smoke tests are not present on this branch; skipping backend visual smoke tests."
+            exit 0
+          fi
+          pytest -q "${available[@]}"
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -46,21 +65,33 @@ jobs:
 
   tauri-check:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: clients/atlas-desktop/src-tauri
     steps:
       - uses: actions/checkout@v4
+      - name: Detect Tauri desktop client
+        id: tauri
+        shell: bash
+        run: |
+          if [ -f clients/atlas-desktop/src-tauri/Cargo.toml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "ATLAS desktop Tauri client is not present on this branch; skipping cargo check."
+          fi
       - name: Install Linux Tauri dependencies
+        if: steps.tauri.outputs.present == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: Prepare frontend distribution placeholder
+        if: steps.tauri.outputs.present == 'true'
         run: |
-          mkdir -p ../../../frontend/build
-          printf '<!doctype html><html><body><div id="root"></div></body></html>' > ../../../frontend/build/index.html
+          mkdir -p frontend/build
+          printf '<!doctype html><html><body><div id="root"></div></body></html>' > frontend/build/index.html
       - uses: dtolnay/rust-toolchain@stable
+        if: steps.tauri.outputs.present == 'true'
       - name: Run cargo check
+        if: steps.tauri.outputs.present == 'true'
+        working-directory: clients/atlas-desktop/src-tauri
         env:
           RUST_BACKTRACE: full
         run: cargo check --verbose

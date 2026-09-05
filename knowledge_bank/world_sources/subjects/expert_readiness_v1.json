@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "standard": "atlas_expert_readiness",
+  "status": "active_target",
+  "scope": {
+    "subject_count": 48,
+    "applies_to": "every finalized taxonomy subject and subsubject",
+    "purpose": "Prevent resource presence from being misrepresented as expert capability."
+  },
+  "levels": [
+    "foundation",
+    "beginner",
+    "intermediate",
+    "advanced",
+    "undergraduate",
+    "graduate",
+    "expert_research"
+  ],
+  "expert_research_gate": {
+    "all_required": true,
+    "requirements": [
+      {
+        "id": "authoritative_sources",
+        "description": "Authoritative primary references or recognized institutional sources are mapped with provenance."
+      },
+      {
+        "id": "deep_study_material",
+        "description": "Advanced books, monographs, open course material, standards, or equivalent deep-study material is available with item-level rights verification."
+      },
+      {
+        "id": "current_research",
+        "description": "Research literature, datasets, or current technical evidence is available where the discipline requires it."
+      },
+      {
+        "id": "standards_and_constraints",
+        "description": "Applicable standards, regulations, safety constraints, uncertainty, and limitations are represented where relevant."
+      },
+      {
+        "id": "worked_application",
+        "description": "The knowledge can be applied through worked problems, design exercises, simulations, analyses, experiments, or discipline-appropriate projects."
+      },
+      {
+        "id": "verification_validation",
+        "description": "Outputs can be checked against requirements, evidence, test cases, reference solutions, peer-reviewed results, or discipline-appropriate verification and validation methods."
+      },
+      {
+        "id": "retrieval_verified",
+        "description": "ATLAS runtime retrieval has been tested and returns the intended source material."
+      },
+      {
+        "id": "citation_ready",
+        "description": "Answers can preserve source identity, provenance, version or date where applicable, and citation traceability."
+      },
+      {
+        "id": "assessment_passed",
+        "description": "A subject-specific expert assessment demonstrates synthesis, error detection, tradeoff reasoning, uncertainty handling, and application rather than memorization alone."
+      }
+    ]
+  },
+  "evidence_policy": {
+    "resource_presence_is_not_expertise": true,
+    "research_level_label_alone_is_not_expertise": true,
+    "no_credential_impersonation": true,
+    "professional_licensure_is_separate": true,
+    "do_not_infer_lower_or_higher_levels_without_evidence": true,
+    "do_not_mark_expert_until_runtime_and_assessment_gates_pass": true
+  },
+  "engineering_validation_model": {
+    "methods": ["analysis", "inspection", "demonstration", "test"],
+    "principle": "Verification checks compliance with requirements; validation checks fitness for intended use and stakeholder expectations.",
+    "reference": "NASA Systems Engineering Handbook"
+  },
+  "book_gate_relationship": {
+    "books_are_required_for_deep_study_where_appropriate": true,
+    "book_ingestion_stays_locked_until_resource_phase_gate_passes": true,
+    "expert_status_cannot_be_achieved_by_catalog_metadata_alone": true
+  },
+  "audit_trigger": "registered_default_branch_workflow_v1"
+}

@@ -3,14 +3,24 @@
 The public ATLAS repository can now install and test without the unavailable
 `emergentintegrations` wheel. The interface intentionally matches the subset
 used by ATLAS: `LlmChat(...).with_model(...).send_message(UserMessage(...))`.
+
+When ATLAS_TEST_MODE=1, this shim returns deterministic local responses rather
+than calling an external provider. Production behavior is unchanged.
 """
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 import httpx
+
+# Route modules import this compatibility layer before they snapshot
+# EMERGENT_LLM_KEY from the environment. In test mode expose a sentinel early
+# so their existing "configured" guard reaches the deterministic shim below.
+# The value is never used for a network request while ATLAS_TEST_MODE=1.
+if os.environ.get("ATLAS_TEST_MODE") == "1":
+    os.environ.setdefault("EMERGENT_LLM_KEY", "atlas-test-key-not-used")
 
 
 @dataclass(frozen=True)
@@ -40,6 +50,10 @@ class LlmChat:
     async def send_message(self, message: UserMessage) -> str:
         if not isinstance(message, UserMessage):
             raise TypeError("message must be a UserMessage")
+
+        if os.environ.get("ATLAS_TEST_MODE") == "1":
+            return self._test_response(message.text)
+
         if not self.api_key:
             raise RuntimeError("LLM API key is not configured")
 
@@ -72,6 +86,107 @@ class LlmChat:
         if not isinstance(content, str):
             raise RuntimeError("LLM response content was not text")
         return content
+
+    def _test_response(self, user_text: str) -> str:
+        """Return stable offline content for integration tests.
+
+        The compatibility shim is the network boundary, so keeping the fake
+        here lets route/service tests exercise their real persistence,
+        retrieval, parsing and orchestration code without provider secrets.
+        """
+        system = self.system_message.lower()
+
+        if "slider tweak" in system or '"control"' in system:
+            return json.dumps({
+                "control": "temperature",
+                "value": 80,
+                "reason": "Reduce thermal stress first; stable operating constraints protect output and hardware.",
+            })
+
+        if "ethical_score" in system and "ancestral_wisdom" in system:
+            return json.dumps({
+                "verdict": "approve_with_conditions",
+                "summary": "Proceed with bounded safeguards and human review.",
+                "ethical_score": 84,
+                "concerns": ["Validate downstream impacts."],
+                "conditions": ["Keep a reversible human approval gate."],
+                "alternatives": [],
+                "ancestral_wisdom": "Wisdom measures the path before the foot commits.",
+            })
+
+        if "feasibility_score" in system and "failure_modes" in system:
+            return json.dumps({
+                "verdict": "valid_with_constraints",
+                "summary": "The concept is technically viable with explicit safety constraints.",
+                "feasibility_score": 82,
+                "safety_score": 86,
+                "failure_modes": ["Thermal overload", "Unbounded control output"],
+                "constraints": ["Enforce tested operating limits", "Require fail-safe shutdown"],
+                "patterns": ["bounded control system"],
+                "next_steps": ["Run verification tests"],
+            })
+
+        if "five-phase blueprint" in system or ("philosophy" in system and "research" in system):
+            return json.dumps({
+                "concept": user_text.split("CONCEPT:\n", 1)[-1].split("\n\n", 1)[0].strip(),
+                "domain": "other",
+                "phases": {
+                    "philosophy": {
+                        "core_belief": "Build for measurable human value.",
+                        "why_it_matters": "The system must solve the stated problem safely.",
+                        "ethical_anchors": ["Keep human review and reversible controls."],
+                    },
+                    "research": {
+                        "known": ["The concept requires evidence-backed design choices."],
+                        "unknown": ["Operating limits require verification."],
+                        "prior_art": ["Review trusted technical sources before selection."],
+                    },
+                    "blueprint": {
+                        "components": ["bounded prototype", "monitoring interface"],
+                        "data_flows": ["input -> validation -> controlled output"],
+                        "interfaces": ["human approval gate"],
+                    },
+                    "simulation": {
+                        "test_plan": ["Exercise nominal and failure conditions."],
+                        "success_criteria": ["Remain inside verified limits."],
+                        "risks": ["Unbounded control output"],
+                    },
+                    "physical": {
+                        "build_steps": ["Build the smallest safe prototype."],
+                        "safety_gates": ["Stop on limit violation."],
+                        "containment": ["Isolate energy and hazardous outputs."],
+                    },
+                },
+                "minerva_concerns": ["Confirm evidence quality and human impact."],
+                "hermes_validations": ["Test interfaces, limits, and failure behavior."],
+            })
+
+        if "ajani" in system:
+            return (
+                "Ajani: Treat this as an engineering system. Check the architecture, load, "
+                "constraints, safety margins, interfaces, and verification evidence before "
+                "advancing the design."
+            )
+        if "minerva" in system:
+            return (
+                "Minerva: Connect the evidence to the learner. Explain the pattern clearly, "
+                "preserve the source context, and turn the knowledge into a practical lesson."
+            )
+        if "hermes" in system:
+            return (
+                "Hermes: Verify the pattern against the data, test edge cases, record failure "
+                "modes, and only promote claims that survive the evidence."
+            )
+        if "council" in system:
+            return (
+                "Council synthesis: Ajani checks structure, Minerva checks meaning, and Hermes "
+                "checks evidence. Advance only when all three views agree on the verified path."
+            )
+
+        return (
+            "ATLAS test response: verify the evidence, preserve traceability, apply explicit "
+            "engineering constraints, and record the result before the next phase."
+        )
 
     def _base_url(self) -> str:
         explicit = os.environ.get("ATLAS_LLM_BASE_URL")

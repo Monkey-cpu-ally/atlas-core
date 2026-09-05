@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "subject": "anatomy_physiology",
+  "status": "extension_seed_v1",
+  "resources": [
+    {
+      "id": "nih_nigms_science_education",
+      "title": "NIGMS Science Education Resources",
+      "provider": "National Institute of General Medical Sciences (NIH)",
+      "resource_type": "education_portal",
+      "url": "https://nigms.nih.gov/education",
+      "subsubjects": ["cellular_physiology", "tissues", "nervous_system", "cardiovascular_system", "respiratory_system", "digestive_system", "endocrine_system", "immune_system", "integrative_physiology"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "nih_stem_human_body",
+      "title": "NIH STEM Teaching Resources - The Human Body",
+      "provider": "National Institutes of Health / NIGMS",
+      "resource_type": "teaching_resources",
+      "url": "https://science.education.nih.gov/",
+      "subsubjects": ["cellular_physiology", "tissues", "musculoskeletal_system", "nervous_system", "cardiovascular_system", "respiratory_system", "digestive_system", "renal_system", "endocrine_system", "immune_system", "reproductive_system", "integrative_physiology"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    },
+    {
+      "id": "ncbi_bookshelf_life_science",
+      "title": "NCBI Bookshelf - Life Science and Healthcare",
+      "provider": "National Center for Biotechnology Information (NIH/NLM)",
+      "resource_type": "reference_library",
+      "url": "https://www.ncbi.nlm.nih.gov/books/",
+      "subsubjects": ["cellular_physiology", "tissues", "musculoskeletal_system", "nervous_system", "cardiovascular_system", "respiratory_system", "digestive_system", "renal_system", "endocrine_system", "immune_system", "reproductive_system", "integrative_physiology"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "access": "public_online_access_varies_by_title",
+      "storage_policy": "metadata_link_provenance_item_rights_required"
+    },
+    {
+      "id": "ninds_brain_education_ap",
+      "title": "NINDS Brain Education Resources",
+      "provider": "National Institute of Neurological Disorders and Stroke (NIH)",
+      "resource_type": "education_and_training",
+      "url": "https://www.ninds.nih.gov/health-information/public-education/brain-education-resources",
+      "subsubjects": ["nervous_system", "integrative_physiology"],
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "access": "public",
+      "storage_policy": "metadata_link_provenance"
+    }
+  ]
+}

@@ -31,6 +31,7 @@ from routes.weaver import router as weaver_router
 from routes.kbase import router as kbase_router
 from routes.robot import router as robot_router
 from routes.persona import router as persona_router
+from routes.hud_intelligence import router as hud_intelligence_router
 from routes.watchers import router as watchers_router, kbase_helper_router
 from routes.lessons import router as lessons_router
 from routes.self_improve import router as self_improve_router
@@ -124,6 +125,7 @@ app.include_router(weaver_router)
 app.include_router(kbase_router)
 app.include_router(robot_router)
 app.include_router(persona_router)
+app.include_router(hud_intelligence_router)
 app.include_router(watchers_router)
 app.include_router(kbase_helper_router)
 app.include_router(lessons_router)
@@ -208,6 +210,22 @@ from atlas_core.memory.memory import attach_mongo_on_startup as _atlas_attach_mo
 @app.on_event("startup")
 async def _wire_atlas_memory():
     await _atlas_attach_mongo()
+
+
+@app.on_event("startup")
+async def _start_sentinel_autonomic_watcher():
+    """Start the fail-quiet Sentinel loop only when explicitly enabled."""
+    from services import sentinel_watcher
+
+    if sentinel_watcher.status()["enabled_env"]:
+        await sentinel_watcher.start()
+
+
+@app.on_event("shutdown")
+async def _stop_sentinel_autonomic_watcher():
+    from services import sentinel_watcher
+
+    await sentinel_watcher.stop()
 
 
 @app.on_event("startup")

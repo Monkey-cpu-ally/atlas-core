@@ -1,6 +1,7 @@
 """ATLAS Discovery Approval routes."""
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -49,7 +50,11 @@ async def create_draft(req: DraftRequest):
     try:
         draft = dap.create_draft(**req.model_dump())
         await dap.persist_draft(draft)
-        return draft
+        # Return an API snapshot, not the mutable in-process object. Reviews
+        # and Council decisions intentionally update the stored draft later;
+        # callers that retained the original response must still see the state
+        # that was returned when the draft was created.
+        return deepcopy(draft)
     except dap.DiscoveryApprovalError as exc:
         raise HTTPException(422, str(exc)) from exc
 

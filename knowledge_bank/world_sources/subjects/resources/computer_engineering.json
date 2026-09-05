@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0",
+  "subject": "computer_engineering",
+  "status": "extension_gap_fill_v3",
+  "resources": [
+    {
+      "id": "nand2tetris",
+      "title": "From Nand to Tetris: Building a Modern Computer From First Principles",
+      "provider": "Nand to Tetris",
+      "resource_type": "project_based_course",
+      "subsubjects": ["digital_logic", "computer_architecture", "microprocessors", "memory_systems", "hardware_description_languages", "hardware_software_codesign"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "url": "https://www.nand2tetris.org/",
+      "status": "verified",
+      "storage_policy": "Course materials are CC BY-NC-SA 3.0; preserve attribution and license, and do not publish project solutions.",
+      "notes": "Project-based path from Boolean logic and memory through CPU/computer architecture; hardware portion requires no prior knowledge."
+    },
+    {
+      "id": "mit_6_004_2009",
+      "title": "Computation Structures",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["digital_logic", "computer_architecture", "microprocessors", "memory_systems", "computer_interfacing", "hardware_software_codesign"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-004-computation-structures-spring-2009/",
+      "status": "verified",
+      "storage_policy": "Preserve MIT OCW attribution/license and verify individual asset terms before ingestion.",
+      "notes": "Hands-on digital systems course progressing from MOS/gates and FSMs to a gate-level RISC processor, caches, virtual memory, I/O, pipelining and parallel processing."
+    },
+    {
+      "id": "riscv_ratified_specs",
+      "title": "RISC-V Ratified Specifications Library",
+      "provider": "RISC-V International",
+      "resource_type": "open_standard_specification_library",
+      "subsubjects": ["computer_architecture", "microprocessors", "firmware", "memory_systems", "hardware_software_codesign"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://docs.riscv.org/reference/home/index.html",
+      "status": "verified",
+      "storage_policy": "Store metadata, links, version identifiers, and permitted open-standard text with provenance."
+    },
+    {
+      "id": "riscv_unprivileged_isa",
+      "title": "RISC-V Instruction Set Manual - Unprivileged Architecture",
+      "provider": "RISC-V International",
+      "resource_type": "processor_isa_specification",
+      "subsubjects": ["digital_logic", "computer_architecture", "microprocessors", "firmware", "memory_systems", "hardware_software_codesign"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://docs.riscv.org/reference/isa/unpriv/unpriv-index.html",
+      "status": "verified",
+      "storage_policy": "Preserve specification version and provenance; store only content permitted by source terms."
+    },
+    {
+      "id": "riscv_privileged_isa",
+      "title": "RISC-V Instruction Set Manual - Privileged Architecture",
+      "provider": "RISC-V International",
+      "resource_type": "processor_system_architecture_specification",
+      "subsubjects": ["computer_architecture", "microprocessors", "firmware", "memory_systems", "real_time_systems", "hardware_software_codesign", "edge_computing"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://docs.riscv.org/reference/isa/priv/priv-index.html",
+      "status": "verified",
+      "storage_policy": "Preserve ratification/version state and provenance; do not substitute draft material for ratified specifications."
+    },
+    {
+      "id": "nist_device_integrity",
+      "title": "NIST SP 1800-34: Validating the Integrity of Computing Devices",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "computer_hardware_security_practice_guide",
+      "subsubjects": ["embedded_systems", "firmware", "computer_interfacing", "hardware_software_codesign", "edge_computing"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://csrc.nist.gov/pubs/sp/1800/34/final",
+      "status": "verified",
+      "storage_policy": "Store public NIST material, metadata, links, and provenance."
+    },
+    {
+      "id": "amd_vivado_logic_simulation_ug937",
+      "title": "Vivado Design Suite Tutorial: Logic Simulation (UG937)",
+      "provider": "AMD",
+      "resource_type": "fpga_hdl_simulation_tutorial",
+      "subsubjects": ["hardware_description_languages", "fpga_systems", "digital_logic", "hardware_software_codesign"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://docs.amd.com/r/en-US/ug937-vivado-design-suite-simulation-tutorial",
+      "status": "verified",
+      "storage_policy": "Store metadata and link; preserve document ID, release/version, and source terms before any local text ingestion."
+    },
+    {
+      "id": "amd_vivado_getting_started_ug910",
+      "title": "Vivado Design Suite User Guide: Getting Started (UG910)",
+      "provider": "AMD",
+      "resource_type": "fpga_design_environment_guide",
+      "subsubjects": ["fpga_systems", "digital_logic", "hardware_description_languages"],
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "url": "https://docs.amd.com/r/en-US/ug910-vivado-getting-started",
+      "status": "verified",
+      "storage_policy": "Store metadata and link; preserve document version and rights/provenance."
+    },
+    {
+      "id": "altera_quartus_design_entry_hdl",
+      "title": "Quartus Prime Design Software Support Resources - Design Entry",
+      "provider": "Altera / Intel",
+      "resource_type": "fpga_hdl_training_and_design_reference",
+      "subsubjects": ["hardware_description_languages", "fpga_systems", "digital_logic"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://www.intel.com/content/www/us/en/support/programmable/support-resources/design-guidance/quartus-support.html",
+      "status": "verified",
+      "storage_policy": "Store metadata and link; preserve vendor documentation provenance and course-specific terms."
+    }
+  ],
+  "known_gaps": [
+    "foundation coverage is now stronger for digital logic and architecture, but embedded systems, firmware, interfacing, real-time systems and edge computing still need dedicated beginner curricula",
+    "graduate/research readiness needs neutral advanced architecture, embedded/real-time design, verification and research evidence rather than specification documents alone",
+    "vendor FPGA resources improve HDL/FPGA coverage but do not replace neutral advanced digital-design curricula"
+  ]
+}

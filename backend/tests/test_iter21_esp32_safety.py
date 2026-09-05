@@ -128,10 +128,13 @@ def sim_process(registered_device):
     """Launch the python sim against the LOCAL backend (skip public ingress)."""
     log_path = "/tmp/sim_iter21.log"
     log_fh = open(log_path, "w")
+    sim_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "hardware", "esp32", "sim", "atlas_node_sim.py")
+    )
     proc = subprocess.Popen(
         [
             sys.executable,
-            "/app/hardware/esp32/sim/atlas_node_sim.py",
+            sim_path,
             "--device-id", registered_device["id"],
             "--backend", LOCAL_BACKEND,
             "--interval", "2",

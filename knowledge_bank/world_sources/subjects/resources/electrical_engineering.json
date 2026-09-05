@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0",
+  "subject": "electrical_engineering",
+  "status": "extension_gap_fill_v2",
+  "resources": [
+    {
+      "id": "mit_6_002_circuits_electronics",
+      "title": "Circuits and Electronics",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["circuit_analysis", "analog_systems", "digital_systems", "instrumentation", "microelectronics"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/",
+      "access": "lectures_notes_problem_sets_exams_labs",
+      "local_ingestion": "verify_item_license",
+      "notes": "Core EE curriculum covering lumped circuits, MOS devices, amplifiers, energy storage, frequency response, analog/digital circuits, design and laboratory measurement."
+    },
+    {
+      "id": "mit_6_003_signals_systems",
+      "title": "Signals and Systems",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["signal_processing", "communications", "circuit_analysis", "digital_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/",
+      "access": "lectures_notes_problem_sets_exams",
+      "local_ingestion": "verify_item_license",
+      "notes": "Continuous/discrete-time signals, Fourier/Laplace/Z representations, sampling, LTI systems and applications to feedback, communications and signal processing."
+    },
+    {
+      "id": "mit_6_071j_electronics_measurement",
+      "title": "Introduction to Electronics, Signals, and Measurement",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "hands_on_undergraduate_course",
+      "subsubjects": ["circuit_analysis", "analog_systems", "instrumentation", "signal_processing"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/",
+      "access": "lecture_notes_problem_sets_exams_laboratory_examples",
+      "local_ingestion": "verify_item_license",
+      "notes": "Practical hands-on electronics, measurement and signals curriculum; explicitly requires no prior electronics experience, supporting a foundation-level entry mapping."
+    },
+    {
+      "id": "nist_electronics",
+      "title": "NIST Electronics",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_research_portal",
+      "subsubjects": ["circuit_analysis", "analog_systems", "digital_systems", "instrumentation", "microelectronics"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/electronics",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nist_electromagnetic_technologies",
+      "title": "Fundamental Electromagnetic Technologies and Standards",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_research_and_metrology_program",
+      "subsubjects": ["electromagnetics", "communications", "signal_processing", "instrumentation", "microelectronics"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/programs-projects/fundamental-electromagnetic-technologies-and-standards",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nist_power_electronics",
+      "title": "Emerging Power Electronic Devices",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_power_electronics_research_program",
+      "subsubjects": ["power_electronics", "instrumentation", "microelectronics", "power_systems"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/programs-projects/emerging-power-electronic-devices",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nrel_power_systems",
+      "title": "NREL Power Systems Engineering Research",
+      "provider": "National Renewable Energy Laboratory",
+      "resource_type": "official_power_and_grid_research",
+      "subsubjects": ["power_systems", "power_electronics", "renewable_energy_systems"],
+      "levels": ["intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nrel.gov/grid/",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "nist_high_frequency_electronics",
+      "title": "High-Frequency Electronics",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "official_electronics_metrology_program",
+      "subsubjects": ["electromagnetics", "communications", "signal_processing", "instrumentation", "microelectronics"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/programs-projects/high-frequency-electronics",
+      "access": "public",
+      "local_ingestion": "metadata_link_and_public_material_provenance"
+    },
+    {
+      "id": "khan_academy_electrical_engineering",
+      "title": "Electrical Engineering",
+      "provider": "Khan Academy",
+      "resource_type": "introductory_course_collection",
+      "subsubjects": ["circuit_analysis", "analog_systems", "signal_processing", "microelectronics"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://www.khanacademy.org/science/electrical-engineering",
+      "access": "public_web_learning_resources",
+      "local_ingestion": "metadata_link_only_until_item_rights_verified",
+      "notes": "Begins with current, voltage, power, units and circuit analysis, then covers amplifiers, semiconductor devices, electrostatics, and signals and systems."
+    },
+    {
+      "id": "openstax_university_physics_volume_2_electricity_magnetism",
+      "title": "University Physics Volume 2: Electricity and Magnetism",
+      "provider": "OpenStax",
+      "resource_type": "open_textbook",
+      "subsubjects": ["circuit_analysis", "electromagnetics", "electric_machines"],
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "url": "https://openstax.org/books/university-physics-volume-2/pages/preface",
+      "access": "public_reading_and_provider_license",
+      "local_ingestion": "metadata_link_only_unless_openstax_grants_required_ai_ingestion_permission",
+      "notes": "Electricity-and-magnetism unit covers fields, potential, current, resistance, DC/AC circuits, magnetic fields, induction, generators, back EMF, inductance and electromagnetic waves. OpenStax currently states that the book may not be ingested into or used to train generative-AI offerings without permission."
+    },
+    {
+      "id": "doe_office_electricity_educational_resources",
+      "title": "Electricity and Power-Grid Educational Resources",
+      "provider": "U.S. Department of Energy Office of Electricity",
+      "resource_type": "government_education_collection",
+      "subsubjects": ["power_systems", "renewable_energy_systems"],
+      "levels": ["foundation", "beginner"],
+      "url": "https://www.energy.gov/oe/educational-resources",
+      "access": "public_government_educational_material",
+      "local_ingestion": "preserve_document_provenance_and_check_third_party_components",
+      "notes": "Electricity 101, grid learning and smart-grid primers explain generation, transmission, distribution, consumption and integration of energy resources."
+    },
+    {
+      "id": "mit_6_685_electric_machines",
+      "title": "Electric Machines",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["electric_machines"],
+      "levels": ["advanced", "graduate", "research"],
+      "url": "https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/",
+      "access": "course_notes_problem_sets_exams_and_solutions",
+      "local_ingestion": "verify_item_license",
+      "notes": "Graduate course on electromechanical-system principles, machine analysis and design. The provider explicitly notes examples from current research; research mapping denotes exposure to research problems, not independent research competence."
+    },
+    {
+      "id": "mit_6_02_digital_communication_systems",
+      "title": "Introduction to EECS II: Digital Communication Systems",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["communications", "digital_systems", "signal_processing"],
+      "levels": ["beginner", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/",
+      "access": "lecture_materials_assignments_exams_and_open_textbook",
+      "local_ingestion": "verify_item_license",
+      "notes": "Introductory undergraduate course covering bits, signals and packets as foundations of digital communication systems; prerequisites remain part of the course context."
+    },
+    {
+      "id": "mit_6_622_power_electronics_introduction",
+      "title": "Introduction to Power Electronics",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "introductory_lecture_within_graduate_course",
+      "subsubjects": ["power_electronics"],
+      "levels": ["foundation", "beginner"],
+      "url": "https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/resources/mit6_622s23_lecture_01_mp4/",
+      "access": "lecture_video_and_downloadable_course_material",
+      "local_ingestion": "verify_item_license",
+      "notes": "The first lecture explicitly introduces the history, function, needs and goals of power electronics. Foundation and beginner apply to this introductory lecture only, not to the graduate course as a whole."
+    },
+    {
+      "id": "all_about_circuits_digital_textbook",
+      "title": "Digital Circuits Electronics Textbook",
+      "provider": "All About Circuits",
+      "resource_type": "introductory_technical_textbook",
+      "subsubjects": ["digital_systems", "communications"],
+      "levels": ["foundation", "beginner", "intermediate"],
+      "url": "https://www.allaboutcircuits.com/textbook/digi/",
+      "access": "public_web_textbook",
+      "local_ingestion": "metadata_link_only_until_content_license_is_verified",
+      "notes": "Starts with binary numeration and Boolean logic, then covers gates, combinational and sequential circuits, conversion, storage, computing and an introductory digital-communication chapter."
+    }
+  ],
+  "known_gaps": [
+    "Several foundation cells rely on introductory sections within broader resources and still need redundant hands-on curricula.",
+    "Electric machines now has a dedicated graduate curriculum plus introductory physics coverage; a dedicated beginner machine-design course remains desirable.",
+    "research portals and metrology programs are evidence/reference layers and do not by themselves establish graduate or research learner readiness"
+  ],
+  "notes": [
+    "Mappings use the exact electrical_engineering taxonomy keys already present in the manifest.",
+    "MIT courses provide assessed curriculum material; NIST/NREL resources remain research, standards, measurement and grid reference infrastructure.",
+    "No source is promoted to levels or subsubjects it does not directly support.",
+    "Level mappings are resource-specific: an introductory lecture may be foundation-level even when its parent course is graduate-level.",
+    "Catalog coverage does not prove ATLAS can ingest, retrieve, cite or apply the material."
+  ]
+}

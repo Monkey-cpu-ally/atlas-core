@@ -1,0 +1,52 @@
+{
+  "subject": "psychology",
+  "status": "seeded_not_complete",
+  "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+  "resources": [
+    {"title":"Psychology 2e","provider":"OpenStax","type":"open_textbook","levels":["foundation","beginner","intermediate","undergraduate"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","biological_psychology","learning_and_behavior","personality","research_methods","statistics","clinical_psychology","industrial_organizational_psychology"],"url":"https://openstax.org/details/books/psychology-2e","access":"open","ingestion":"full_text_when_license_terms_are_preserved","notes":"Introductory psychology text covering psychological research and statistics, disorders and treatment, and industrial-organizational psychology. Level labels describe introductory-through-undergraduate catalog use rather than mastery."},
+    {"title":"Introduction to Psychology","provider":"MIT OpenCourseWare","type":"university_course","levels":["beginner","undergraduate"],"subsubjects":["cognitive_psychology","social_psychology","biological_psychology","learning_and_behavior"],"url":"https://ocw.mit.edu/search/?q=introduction+to+psychology","access":"open","ingestion":"course_metadata_and_permitted_materials"},
+    {"title":"Noba Psychology Modules","provider":"Noba Project","type":"open_educational_modules","levels":["beginner","intermediate","undergraduate"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","biological_psychology","learning_and_behavior","personality","research_methods","statistics"],"url":"https://nobaproject.com/","access":"open_educational_resource","ingestion":"license_aware"},
+    {"title":"PubMed Psychology and Behavioral Science Literature","provider":"NCBI / NIH","type":"research_index","levels":["graduate","research"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","biological_psychology","clinical_psychology","educational_psychology","human_factors"],"url":"https://pubmed.ncbi.nlm.nih.gov/","access":"mixed","ingestion":"metadata_abstracts_and_open_full_text_only"},
+    {"title":"APA PsycNet","provider":"American Psychological Association","type":"scholarly_index","levels":["advanced","graduate","research"],"subsubjects":["cognitive_psychology","developmental_psychology","social_psychology","personality","clinical_psychology","industrial_organizational_psychology","learning_and_behavior","research_methods"],"url":"https://psycnet.apa.org/","access":"mixed_restricted","ingestion":"metadata_and_citations_only_unless_authorized","notes":"Scholarly discovery index for psychological literature, including learning and behavior and research-methods scholarship. It is not treated as a standalone curriculum."},
+    {"title":"arXiv Quantitative Biology and Computation Research","provider":"arXiv","type":"research_repository","levels":["graduate","research"],"subsubjects":["cognitive_psychology","biological_psychology","human_factors","statistics"],"url":"https://arxiv.org/","access":"open_metadata_mixed_license_content","ingestion":"license_aware"},
+    {
+      "id": "open_textbook_library_educational_psychology_2020",
+      "title": "Educational Psychology",
+      "provider": "Open Textbook Library / SUNY Create",
+      "type": "open_textbook",
+      "resource_type": "open_textbook",
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "subsubjects": ["educational_psychology"],
+      "url": "https://open.umn.edu/opentextbooks/textbooks/educational-psychology-2020",
+      "access": "open_textbook_cc_by_nc_sa",
+      "ingestion": "license_aware_attribution_noncommercial_sharealike",
+      "notes": "Introductory educational-psychology textbook covering scientific practice, learner development, learning, motivation, diversity, instruction, classroom management, and assessment. Advanced denotes later applied sections within the undergraduate text, not graduate expertise."
+    },
+    {
+      "id": "nasa_human_factors_learning",
+      "title": "NASA Human Factors Learning and Guidance",
+      "provider": "NASA Safety and Mission Assurance",
+      "type": "training_and_technical_guidance",
+      "resource_type": "training_and_technical_guidance",
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "subsubjects": ["human_factors"],
+      "url": "https://sma.nasa.gov/sma-disciplines/human-factors",
+      "access": "public_training_catalog_and_guidance",
+      "ingestion": "metadata_link_and_item_level_rights_review",
+      "notes": "NASA learning catalog and guidance includes an introductory course with basic human-factors concepts plus investigation and classification training. It supports foundational through applied undergraduate study, not clinical practice or independent certification."
+    },
+    {
+      "id": "nist_sematech_engineering_statistics_handbook_psychology",
+      "title": "NIST/SEMATECH e-Handbook of Statistical Methods",
+      "provider": "National Institute of Standards and Technology",
+      "type": "advanced_statistics_reference",
+      "resource_type": "advanced_statistics_reference",
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "subsubjects": ["statistics", "research_methods"],
+      "url": "https://www.itl.nist.gov/div898/handbook/",
+      "access": "public_government_technical_reference",
+      "ingestion": "preserve_section_provenance_and_government_source_metadata",
+      "notes": "Advanced statistical-methods reference applicable to psychological experimental design and analysis. Cross-disciplinary use must preserve the NIST engineering-statistics context."
+    }
+  ]
+}

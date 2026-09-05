@@ -4,6 +4,11 @@ import { Loader2, BookOpen, Beaker } from 'lucide-react';
 import { useAtlasJob } from '../../hooks/useAtlasJob';
 import InteractiveSandbox, { pickLabForTopic } from './InteractiveSandbox';
 
+const LEARNING_LEVELS = [
+  'foundation', 'beginner', 'intermediate', 'advanced',
+  'undergraduate', 'graduate', 'research',
+];
+
 const BAND_META = {
   simple:      { label: 'Simple understanding',      color: '#9CD3FF' },
   systems:     { label: 'Systems understanding',     color: '#28C8BE' },
@@ -42,8 +47,9 @@ function splitLesson(markdown) {
  * the sandbox is shown immediately even before a lesson is generated, so
  * the architect can experiment hands-on without typing a topic first.
  */
-export default function TeachingWorkbench({ aiColor, forceSandbox = false }) {
-  const [topic, setTopic] = useState('');
+export default function TeachingWorkbench({ aiColor, forceSandbox = false, initialTopic = '', initialLevel = 'advanced' }) {
+  const [topic, setTopic] = useState(initialTopic);
+  const [learningLevel, setLearningLevel] = useState(initialLevel);
   const [sandboxOpen, setSandboxOpen] = useState(Boolean(forceSandbox));
   const [sandboxLab, setSandboxLab] = useState('power');
   const job = useAtlasJob();
@@ -62,7 +68,7 @@ export default function TeachingWorkbench({ aiColor, forceSandbox = false }) {
 
   const onTeach = () => {
     if (!topic.trim()) return;
-    job.run('/api/atlas/teach', { topic });
+    job.run('/api/atlas/teach', { topic, learning_level: learningLevel });
   };
 
   // Toggle hands-on lab — when opening, auto-route to the lab that matches
@@ -94,6 +100,24 @@ export default function TeachingWorkbench({ aiColor, forceSandbox = false }) {
         rows={3}
         data-testid="teach-topic-input"
       />
+
+      <label className="bp-field-label" htmlFor="teaching-level">
+        Knowledge depth
+      </label>
+      <select
+        id="teaching-level"
+        className="bp-select"
+        value={learningLevel}
+        onChange={(event) => setLearningLevel(event.target.value)}
+        data-testid="teach-learning-level"
+      >
+        {LEARNING_LEVELS.map(level => (
+          <option key={level} value={level}>{level.toUpperCase()}</option>
+        ))}
+      </select>
+      <p className="bp-help">
+        Depth changes what you learn. ATLAS still explains it clearly, in short ADHD-friendly chunks.
+      </p>
 
       <div className="bp-actions">
         <button
@@ -134,6 +158,7 @@ export default function TeachingWorkbench({ aiColor, forceSandbox = false }) {
           <h4>
             Taught by {lesson.teacher?.toUpperCase()}
             {lesson.lead_via_council ? ' · selected by council' : ''}
+            {lesson.learning_level ? ` · ${lesson.learning_level.toUpperCase()} DEPTH` : ''}
           </h4>
           {Object.keys(BAND_META).map((band) => {
             const body = sections[band];

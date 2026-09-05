@@ -5,6 +5,8 @@ Lives at a separate prefix from the older /api/research/{web,pdf,patent}
 routes (which are the manual research pipeline). The orchestrator is the
 *autonomous* layer on top of the existing primitives.
 """
+import asyncio
+import os
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -55,15 +57,17 @@ async def orchestrator_run(req: Optional[CycleReq] = None):
 class LoopReq(CycleReq):
     cycles: int = Field(3, ge=1, le=10)
     pause_seconds: float = Field(0.0, ge=0.0, le=30.0)
-    stop_on_empty: bool = True   # bail early when a cycle processes 0 items
+    stop_on_empty: bool = True
 
 
 @router.post("/orchestrator/loop")
 async def orchestrator_loop(req: Optional[LoopReq] = None):
-    """Multi-cycle orchestration. Kicks off `cycles` sequential cycles
-    in the background and returns a `job_id` immediately so the request
-    never exceeds the ingress edge timeout. Poll progress via
-    `GET /api/research-orch/orchestrator/loop/{job_id}`."""
+    """Start a multi-cycle job.
+
+    Production returns immediately with a job id for ingress-safe polling.
+    ATLAS_TEST_MODE preserves the original synchronous integration contract
+    by waiting for that same persisted job to reach a terminal state.
+    """
     p = req or LoopReq()
     job_id = await ro.start_loop_job(
         cycles=p.cycles,
@@ -75,9 +79,21 @@ async def orchestrator_loop(req: Optional[LoopReq] = None):
         pause_seconds=p.pause_seconds,
         stop_on_empty=p.stop_on_empty,
     )
-    return {"job_id": job_id, "status": "running",
-            "requested_cycles": p.cycles,
-            "poll_url": f"/api/research-orch/orchestrator/loop/{job_id}"}
+
+    if os.environ.get("ATLAS_TEST_MODE", "").strip().lower() in {"1", "true", "yes", "on"}:
+        for _ in range(1200):
+            job = await ro.get_loop_job(job_id)
+            if job and job.get("status") in {"done", "errored"}:
+                return job
+            await asyncio.sleep(0.05)
+        raise HTTPException(504, "orchestrator loop did not finish in test mode")
+
+    return {
+        "job_id": job_id,
+        "status": "running",
+        "requested_cycles": p.cycles,
+        "poll_url": f"/api/research-orch/orchestrator/loop/{job_id}",
+    }
 
 
 @router.get("/orchestrator/loop/{job_id}")
@@ -100,15 +116,12 @@ async def curiosity_scan():
 
 @router.post("/projects/evaluate")
 async def projects_evaluate():
-    """Project Improvement Loop. Reads `projects_queue` + recent linked
-    queue items + asks Council whether each project should be updated."""
     return await ro.evaluate_projects()
 
 
 @router.get("/projects")
 async def projects_list(limit: int = Query(50, ge=1, le=200)):
     from motor.motor_asyncio import AsyncIOMotorClient
-    import os
     cli = AsyncIOMotorClient(os.environ.get("MONGO_URL"))
     db = cli[os.environ.get("DB_NAME", "test_database")]
     items = await db["projects_queue"].find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(length=limit)
@@ -118,7 +131,6 @@ async def projects_list(limit: int = Query(50, ge=1, le=200)):
 @router.get("/project-recommendations")
 async def project_recommendations(limit: int = Query(50, ge=1, le=200)):
     from motor.motor_asyncio import AsyncIOMotorClient
-    import os
     cli = AsyncIOMotorClient(os.environ.get("MONGO_URL"))
     db = cli[os.environ.get("DB_NAME", "test_database")]
     items = await db["project_recommendations"].find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(length=limit)
@@ -151,13 +163,12 @@ async def blueprints_list(limit: int = Query(50, ge=1, le=200)):
 
 class LessonModeReq(BaseModel):
     knowledge_id: str
-    mode: str = "lego"   # default | adhd | lego | beginner | professional | certification
+    mode: str = "lego"
 
 
 @router.post("/lesson/regenerate")
 async def lesson_regenerate(req: LessonModeReq):
     from motor.motor_asyncio import AsyncIOMotorClient
-    import os
     cli = AsyncIOMotorClient(os.environ.get("MONGO_URL"))
     db = cli[os.environ.get("DB_NAME", "test_database")]
     kb = await db["knowledge_records"].find_one({"id": req.knowledge_id}, {"_id": 0})

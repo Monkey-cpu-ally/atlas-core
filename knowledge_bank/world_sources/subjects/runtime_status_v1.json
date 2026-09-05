@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "verification": {
+    "workflow": "ATLAS Backend CI",
+    "run_number": "555",
+    "run_url": "https://github.com/Monkey-cpu-ally/atlas-core/actions/runs/33928075625",
+    "head_sha": "5a85356cd5f45da11167e900e53d7fe862a54fe2",
+    "verified_at": "2026-09-04T23:06:54.156742+00:00",
+    "result": "success"
+  },
+  "resources": {
+    "subjects:software_engineering_depth_v2.json#0": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://cs50.harvard.edu/x/",
+      "knowledge_record_id": "6bc8e063dff04db8a2733605eddab26b",
+      "memory_bank_id": "376751f0-e287-42d7-bfd6-fbdda7c8e79f",
+      "retrieval_memory_id": "376751f0-e287-42d7-bfd6-fbdda7c8e79f",
+      "verified_at": "2026-09-04T23:06:51.392775+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:depth/software_engineering_depth_v1.json#3": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/",
+      "knowledge_record_id": "2798b24c3b384a869b7df2d0705c0850",
+      "memory_bank_id": "31bb875f-3b52-456d-899d-ef4c26293ede",
+      "retrieval_memory_id": "31bb875f-3b52-456d-899d-ef4c26293ede",
+      "verified_at": "2026-09-04T23:06:51.532347+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:software_engineering_depth_v2.json#3": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://developer.mozilla.org/",
+      "knowledge_record_id": "023513ec7ebb4d80b52b47807a98b820",
+      "memory_bank_id": "6adc444e-1c1c-4b6f-8322-f713a0795b1b",
+      "retrieval_memory_id": "6adc444e-1c1c-4b6f-8322-f713a0795b1b",
+      "verified_at": "2026-09-04T23:06:51.793578+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:software_engineering_depth_v2.json#4": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://www.postgresql.org/docs/",
+      "knowledge_record_id": "bd0c35a46a7f4dd186182cfbc5ba4a53",
+      "memory_bank_id": "6d4d5f12-778e-4662-b50c-51bdeb8787b4",
+      "retrieval_memory_id": "6d4d5f12-778e-4662-b50c-51bdeb8787b4",
+      "verified_at": "2026-09-04T23:06:52.542511+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:software_engineering_depth_v2.json#5": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://www.rfc-editor.org/",
+      "knowledge_record_id": "1b4a1893533f405f97bcc97d13cee3dc",
+      "memory_bank_id": "20d54094-f797-4c53-a5b5-bee5d72f1aa0",
+      "retrieval_memory_id": "20d54094-f797-4c53-a5b5-bee5d72f1aa0",
+      "verified_at": "2026-09-04T23:06:52.713449+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:depth/mathematics_depth_v1.json#4": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://openstax.org/details/books/precalculus-2e",
+      "knowledge_record_id": "7916f3b7e2174ebfa003ffd783a5f9c8",
+      "memory_bank_id": "43737011-564d-4065-9c9b-dd97b2f9a492",
+      "retrieval_memory_id": "43737011-564d-4065-9c9b-dd97b2f9a492",
+      "verified_at": "2026-09-04T23:06:52.996728+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:depth/mathematics_depth_v1.json#6": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/",
+      "knowledge_record_id": "5488bbb5fd5347f0b5da85ebdc41dfe8",
+      "memory_bank_id": "d360f994-22bd-4cb4-aaaa-9336ff1ed0fa",
+      "retrieval_memory_id": "d360f994-22bd-4cb4-aaaa-9336ff1ed0fa",
+      "verified_at": "2026-09-04T23:06:53.130058+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:depth/mathematics_depth_v1.json#9": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://arxiv.org/archive/math",
+      "knowledge_record_id": "980858efdf5b4b2aab6eb298f2ad39ca",
+      "memory_bank_id": "d5b3ea64-1eb3-4457-ac80-bf6c1f83d9a9",
+      "retrieval_memory_id": "d5b3ea64-1eb3-4457-ac80-bf6c1f83d9a9",
+      "verified_at": "2026-09-04T23:06:53.473293+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:biology.json#0": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://openstax.org/details/books/biology-2e",
+      "knowledge_record_id": "6159f2de7c1d45c5a7d6928c35e742cc",
+      "memory_bank_id": "eec0204b-03ff-41a3-a3ce-7e137974baad",
+      "retrieval_memory_id": "eec0204b-03ff-41a3-a3ce-7e137974baad",
+      "verified_at": "2026-09-04T23:06:53.748797+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    },
+    "subjects:biology.json#8": {
+      "ingested": true,
+      "retrieval_tested": true,
+      "citation_ready": true,
+      "source_url": "https://pmc.ncbi.nlm.nih.gov/",
+      "knowledge_record_id": "de762eec2a9a4d79b34b1987cedcef49",
+      "memory_bank_id": "b39a4e5d-6517-4c1e-a65c-51afb542d50d",
+      "retrieval_memory_id": "b39a4e5d-6517-4c1e-a65c-51afb542d50d",
+      "verified_at": "2026-09-04T23:06:54.156669+00:00",
+      "proof": "live /api/kbase/ingest -> /api/membank/search"
+    }
+  }
+}

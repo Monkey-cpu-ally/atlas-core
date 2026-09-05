@@ -1,0 +1,18 @@
+{
+  "subject": "mathematics",
+  "phase": "depth_v1",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"Khan Academy Arithmetic","provider":"Khan Academy","type":"course","subsubjects":["arithmetic"],"levels":["foundation","beginner"],"url":"https://www.khanacademy.org/math/arithmetic","access":"open_learning"},
+    {"title":"Khan Academy Algebra 1","provider":"Khan Academy","type":"course","subsubjects":["pre_algebra","algebra"],"levels":["beginner","intermediate"],"url":"https://www.khanacademy.org/math/algebra","access":"open_learning"},
+    {"title":"Khan Academy Geometry","provider":"Khan Academy","type":"course","subsubjects":["geometry"],"levels":["beginner","intermediate"],"url":"https://www.khanacademy.org/math/geometry","access":"open_learning"},
+    {"title":"Khan Academy Trigonometry","provider":"Khan Academy","type":"course","subsubjects":["trigonometry"],"levels":["intermediate","advanced"],"url":"https://www.khanacademy.org/math/trigonometry","access":"open_learning"},
+    {"title":"Precalculus 2e","provider":"OpenStax","type":"open_textbook","subsubjects":["precalculus","algebra","trigonometry"],"levels":["intermediate","advanced"],"url":"https://openstax.org/details/books/precalculus-2e","access":"full_text"},
+    {"title":"Introductory Statistics 2e","provider":"OpenStax","type":"open_textbook","subsubjects":["statistics","probability"],"levels":["advanced","undergraduate"],"url":"https://openstax.org/details/books/introductory-statistics-2e","access":"full_text"},
+    {"title":"Linear Algebra","provider":"MIT OpenCourseWare","type":"course","subsubjects":["linear_algebra"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/","access":"lectures_notes_problem_sets_exams"},
+    {"title":"Differential Equations","provider":"MIT OpenCourseWare","type":"course","subsubjects":["differential_equations"],"levels":["undergraduate"],"url":"https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/","access":"lectures_notes_problem_sets_exams"},
+    {"title":"Real Analysis","provider":"MIT OpenCourseWare","type":"course","subsubjects":["real_analysis"],"levels":["advanced","undergraduate","graduate"],"url":"https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/","access":"course_materials"},
+    {"title":"arXiv Mathematics","provider":"arXiv","type":"research_repository","subsubjects":["abstract_algebra","real_analysis","complex_analysis","topology","mathematical_logic","optimization","probability","statistics"],"levels":["graduate","research"],"url":"https://arxiv.org/archive/math","access":"papers"}
+  ],
+  "coverage_status": "expanded_not_complete"
+}

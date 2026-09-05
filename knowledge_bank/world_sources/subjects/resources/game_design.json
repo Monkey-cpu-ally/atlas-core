@@ -1,0 +1,162 @@
+{
+  "subject": "game_design",
+  "population_status": "gap_fill_v3",
+  "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+  "resources": [
+    {
+      "id": "mit_cms608_2014",
+      "title": "Game Design",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "course",
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "subsubjects": ["game_design_foundations", "game_mechanics", "systems_design", "game_production"],
+      "url": "https://ocw.mit.edu/courses/cms-608-game-design-spring-2014/",
+      "access": "assignments_student_work_course_materials",
+      "local_ingestion": "verify_item_license",
+      "notes": "Practical design and analysis of games through team projects, rules design, iteration and extensive playtesting."
+    },
+    {
+      "id": "mit_cms608_2008",
+      "title": "Game Design",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "course",
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "subsubjects": ["game_design_foundations", "game_mechanics", "systems_design", "game_production"],
+      "url": "https://ocw.mit.edu/courses/cms-608-game-design-spring-2008/",
+      "access": "lecture_notes_assignments_projects_examples",
+      "local_ingestion": "verify_item_license",
+      "notes": "Historical and analytical game-design course with original game projects, documented testing, mechanics analysis and iteration."
+    },
+    {
+      "id": "mit_res3003_unity",
+      "title": "Learn to Build Your Own Videogame with the Unity Game Engine and Microsoft Kinect",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "hands_on_workshop",
+      "levels": ["foundation", "beginner", "intermediate", "undergraduate"],
+      "subsubjects": ["game_design_foundations", "game_programming", "game_production", "ux_and_accessibility"],
+      "url": "https://ocw.mit.edu/courses/res-3-003-learn-to-build-your-own-videogame-with-the-unity-game-engine-and-microsoft-kinect-january-iap-2017/",
+      "access": "lecture_tutorial_demonstration_videos_projects",
+      "local_ingestion": "verify_item_license",
+      "notes": "No prior programming or game-design experience required; guided and team projects cover videogame creation, Unity, GitHub collaboration, 3D objects, gesture input and team management."
+    },
+    {
+      "id": "mit_cms611j",
+      "title": "Creating Video Games",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "production_course",
+      "levels": ["advanced", "undergraduate"],
+      "subsubjects": ["game_design_foundations", "game_mechanics", "systems_design", "game_programming", "game_production", "ux_and_accessibility"],
+      "url": "https://ocw.mit.edu/courses/cms-611j-creating-video-games-fall-2014/",
+      "access": "lecture_slides_readings_videos_student_projects",
+      "local_ingestion": "verify_item_license",
+      "notes": "Multidisciplinary teams design, develop, test and focus-test original digital games; emphasizes iteration across design, audio, aesthetics, fiction, programming and production."
+    },
+    {
+      "id": "mit_cms300",
+      "title": "Introduction to Videogame Studies",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "analysis_course",
+      "levels": ["beginner", "intermediate", "undergraduate", "graduate"],
+      "subsubjects": ["game_design_foundations", "game_mechanics", "ux_and_accessibility"],
+      "url": "https://ocw.mit.edu/courses/cms-300-introduction-to-videogame-studies-fall-2011/",
+      "access": "lecture_notes_readings_written_assignments",
+      "local_ingestion": "verify_item_license",
+      "notes": "Interdisciplinary study and analysis of videogames; no programming prerequisite, with additional work for graduate students."
+    },
+    {
+      "id": "mit_11127j_games_learning",
+      "title": "Computer Games and Simulations for Education and Exploration",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "applied_game_design_course",
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "subsubjects": ["game_design_foundations", "systems_design", "game_production", "ux_and_accessibility"],
+      "url": "https://ocw.mit.edu/courses/11-127j-computer-games-and-simulations-for-education-and-exploration-spring-2015/",
+      "access": "projects_with_examples_course_materials",
+      "local_ingestion": "verify_item_license",
+      "notes": "Students design games and examine learning outcomes, research/development issues and field testing."
+    },
+    {
+      "id": "arxiv_game_design",
+      "title": "Game Design and Game Technology Research Discovery",
+      "provider": "arXiv",
+      "resource_type": "research_repository",
+      "levels": ["graduate", "research"],
+      "subsubjects": ["game_ai", "game_programming", "systems_design", "ux_and_accessibility"],
+      "url": "https://arxiv.org/",
+      "access": "metadata_and_fulltext_when_available",
+      "local_ingestion": "paper_license_and_evidence_review_required",
+      "notes": "Research discovery only; individual papers require provenance, evidence-quality, version and license verification before use."
+    },
+    {
+      "id": "berkeley_cs188_pacman",
+      "title": "CS 188 Pacman Projects",
+      "provider": "University of California, Berkeley",
+      "resource_type": "assessed_ai_programming_projects",
+      "levels": ["beginner", "intermediate", "undergraduate"],
+      "subsubjects": ["game_ai", "game_programming"],
+      "url": "https://inst.eecs.berkeley.edu/~cs188/sp24/projects/",
+      "access": "project_specifications_and_supporting_materials",
+      "local_ingestion": "metadata_link_only_until_item_license_verified",
+      "notes": "Structured Pacman projects apply search, multi-agent reasoning, reinforcement learning and probabilistic inference. Beginner mapping denotes the first scaffolded project sequence, not beginner-level computer science overall."
+    },
+    {
+      "id": "cmu_15466_game_programming",
+      "title": "Computer Game Programming",
+      "provider": "Carnegie Mellon University",
+      "resource_type": "advanced_university_course",
+      "levels": ["advanced", "undergraduate"],
+      "subsubjects": ["game_programming", "systems_design", "game_production"],
+      "url": "https://graphics.cs.cmu.edu/courses/15-466-f17/",
+      "access": "public_course_schedule_notes_and_assignments",
+      "local_ingestion": "metadata_link_only_until_item_license_verified",
+      "notes": "Advanced implementation course covering real-time game systems and production-oriented programming; it is not mapped to foundation or beginner levels."
+    },
+    {
+      "id": "unity_ml_agents",
+      "title": "Unity ML-Agents Toolkit Documentation",
+      "provider": "Unity Technologies",
+      "resource_type": "official_game_ai_toolkit_and_learning_environment_documentation",
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "subsubjects": ["game_ai", "game_programming", "systems_design"],
+      "url": "https://unity-technologies.github.io/ml-agents/",
+      "access": "public_documentation_and_open_source_repository",
+      "local_ingestion": "preserve_version_and_license_provenance",
+      "notes": "Official documentation for training intelligent agents in Unity environments. Mapping reflects implementation practice; documentation alone does not establish research mastery."
+    },
+    {
+      "id": "game_accessibility_guidelines",
+      "title": "Game Accessibility Guidelines",
+      "provider": "Game Accessibility Guidelines",
+      "resource_type": "practical_accessibility_reference",
+      "levels": ["foundation", "beginner", "intermediate", "advanced", "undergraduate"],
+      "subsubjects": ["ux_and_accessibility"],
+      "url": "https://gameaccessibilityguidelines.com/",
+      "access": "public_web_guidelines",
+      "local_ingestion": "metadata_link_only_until_content_license_verified",
+      "notes": "Practical guidance organized by basic, intermediate and advanced implementation effort. It strengthens applied accessibility coverage but is not treated as a graduate curriculum or research corpus."
+    },
+    {
+      "id": "fdg_proceedings",
+      "title": "Foundations of Digital Games Proceedings",
+      "provider": "Foundations of Digital Games Conference",
+      "resource_type": "peer_reviewed_research_proceedings",
+      "levels": ["graduate", "research"],
+      "subsubjects": ["game_design_foundations", "game_mechanics", "systems_design", "game_ai", "game_programming", "game_production", "ux_and_accessibility"],
+      "url": "https://fdgconf.com/",
+      "access": "conference_programs_and_linked_proceedings",
+      "local_ingestion": "paper_level_license_provenance_and_evidence_review_required",
+      "notes": "Peer-reviewed research venue spanning game design, technical systems, AI, production and player experience. Proceedings support research discovery; each paper must still pass item-level evidence and rights checks."
+    }
+  ],
+  "all_levels_populated": false,
+  "known_gaps": [
+    "Foundation-level game mechanics, systems design and game AI still need dedicated no-prerequisite curricula before full catalog coverage can be claimed.",
+    "Beginner systems-design coverage remains thinner than core design, programming and production coverage.",
+    "Research proceedings and repositories are evidence-discovery layers; they do not by themselves establish learner mastery or runtime retrieval quality."
+  ],
+  "notes": [
+    "Mappings use only the existing game_design taxonomy keys.",
+    "Level assignments are resource-specific and intentionally conservative.",
+    "Catalog coverage does not prove ATLAS can ingest, retrieve, cite or apply the material."
+  ]
+}

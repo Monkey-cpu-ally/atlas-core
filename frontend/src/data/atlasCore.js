@@ -1,4 +1,7 @@
 // Atlas Core Data - AI Personas, Projects, and Fields
+import personaRegistry from '../generated/personas.v1.json';
+
+const PERSONAS = personaRegistry.personas;
 
 export const AI_PERSONAS = {
   ajani: {
@@ -23,7 +26,12 @@ export const AI_PERSONAS = {
       { id: 'ROBOTIC-ARMS', name: 'Robotic Arms & Modular Manufacturing', codename: 'FORGE-HAND', phase: 'Philosophy', description: 'Jarvis-style guided robotic arm assembly systems' },
       { id: 'LIQUID-ARMOR', name: 'Liquid / Non-Newtonian Armor Materials', codename: 'FLUID-SHIELD', phase: 'Philosophy', description: 'Impact-absorbing materials that flow freely but lock rigid on impact' },
       { id: 'MORPHING', name: 'Morphing Structures & Shape-Shifting Aircraft', codename: 'SHIFT-WING', phase: 'Philosophy', description: 'Shape-shifting aircraft and adaptive building facades' }
-    ]
+    ],
+    ...PERSONAS.ajani,
+    slug: PERSONAS.ajani.id,
+    coreBelief: PERSONAS.ajani.core_belief,
+    hardRule: PERSONAS.ajani.hard_rule,
+    pulseStyle: PERSONAS.ajani.pulse_style
   },
   minerva: {
     name: 'Minerva',
@@ -46,7 +54,12 @@ export const AI_PERSONAS = {
       { id: 'MYTHOLOGIES', name: 'Original Mythologies & Lore Systems', codename: 'PANTHEON-WEAVE', phase: 'Philosophy', description: 'Building original mythology systems with real-world depth and consistency' },
       { id: 'COMICS', name: 'Comic Book & Graphic Novel Development', codename: 'INK-LEGACY', phase: 'Philosophy', description: 'Afro-centric comics with horror-influenced storytelling' },
       { id: 'DNA-STORAGE', name: 'DNA-Based Data Storage', codename: 'HELIX-VAULT', phase: 'Philosophy', description: 'Encoding data in synthetic DNA for millennia-scale storage' }
-    ]
+    ],
+    ...PERSONAS.minerva,
+    slug: PERSONAS.minerva.id,
+    coreBelief: PERSONAS.minerva.core_belief,
+    hardRule: PERSONAS.minerva.hard_rule,
+    pulseStyle: PERSONAS.minerva.pulse_style
   },
   hermes: {
     name: 'Hermes',
@@ -62,7 +75,12 @@ export const AI_PERSONAS = {
       { id: 'ATOMIC-ARCH', name: 'Atomic Architect System', codename: 'DAEDALUS-FORGE', phase: 'Philosophy', description: 'Building materials atom by atom — ultimate manufacturing' },
       { id: 'BIO-NANO', name: 'Bio-Nanotechnology Integration System', codename: 'SYMBIONT-MESH', phase: 'Research', description: 'Living nanotech that integrates with biological systems as extensions of the body' },
       { id: 'QUANTUM-ENCRYPT', name: 'Quantum Encryption & Secure Systems', codename: 'GHOST-CIPHER', phase: 'Philosophy', description: 'Post-quantum secure encryption for privacy, identity, and generational inheritance' }
-    ]
+    ],
+    ...PERSONAS.hermes,
+    slug: PERSONAS.hermes.id,
+    coreBelief: PERSONAS.hermes.core_belief,
+    hardRule: PERSONAS.hermes.hard_rule,
+    pulseStyle: PERSONAS.hermes.pulse_style
   },
   trinity: {
     name: 'Trinity Counsel',
@@ -72,7 +90,12 @@ export const AI_PERSONAS = {
     coreBelief: 'Three perspectives reveal what one cannot see.',
     hardRule: 'Surface contradictions. Never hide disagreement.',
     pulseStyle: 'flash',
-    description: 'All three collaborate, cross-check each other, and surface contradictions. Triggered for complex, multi-domain, or high-stakes topics.'
+    description: 'All three collaborate, cross-check each other, and surface contradictions. Triggered for complex, multi-domain, or high-stakes topics.',
+    ...PERSONAS.council,
+    slug: PERSONAS.council.id,
+    coreBelief: PERSONAS.council.core_belief,
+    hardRule: PERSONAS.council.hard_rule,
+    pulseStyle: PERSONAS.council.pulse_style
   }
 };
 

@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0",
+  "subject": "materials_science_engineering",
+  "status": "extension_gap_fill_v2",
+  "resources": [
+    {
+      "id": "mit_fundamentals_materials_science",
+      "title": "Fundamentals of Materials Science",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["materials_structure", "thermodynamics_of_materials", "phase_transformations", "metals_alloys", "ceramics", "polymers", "electronic_materials", "biomaterials", "materials_characterization"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-012-fundamentals-of-materials-science-fall-2005/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT OpenCourseWare undergraduate materials-science curriculum with lecture notes, problem sets, written assignments and exams."
+    },
+    {
+      "id": "mit_structure_of_materials",
+      "title": "Structure of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["materials_structure", "polymers", "ceramics", "materials_characterization", "phase_transformations"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-012sx-structure-of-materials-spring-2019/",
+      "access_policy": "Free Open Learning Library / OCW course materials; preserve source licensing and provenance.",
+      "provenance": "Official MIT materials-structure sequence covering amorphous and crystalline materials, polymers, defects, diffusion and X-ray diffraction, with lecture videos and exams."
+    },
+    {
+      "id": "mit_materials_processing",
+      "title": "Materials Processing",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["metals_alloys", "ceramics", "polymers", "electronic_materials", "materials_structure", "phase_transformations"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-044-materials-processing-spring-2013/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT course on heat transfer, diffusion, fluid flow and industrial-scale processing of metals, polymers, ceramics and electronic materials; includes assignments and exams."
+    },
+    {
+      "id": "mit_mechanical_behavior_materials",
+      "title": "Mechanical Behavior of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "undergraduate_course",
+      "subsubjects": ["metals_alloys", "ceramics", "polymers", "biomaterials", "materials_characterization", "failure_analysis", "materials_structure"],
+      "levels": ["intermediate", "advanced", "undergraduate"],
+      "url": "https://ocw.mit.edu/courses/3-032-mechanical-behavior-of-materials-fall-2007/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT course covering elastic/plastic deformation, creep and fracture with integrated laboratory experiments, assignments and exams."
+    },
+    {
+      "id": "mit_electronic_mechanical_properties_materials",
+      "title": "Electronic and Mechanical Properties of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["electronic_materials", "metals_alloys", "ceramics", "polymers", "composites", "biomaterials", "materials_structure", "failure_analysis"],
+      "levels": ["advanced", "undergraduate", "graduate"],
+      "url": "https://ocw.mit.edu/courses/3-225-electronic-and-mechanical-properties-of-materials-fall-2007/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT graduate course covering electrical, optical, magnetic and mechanical properties across metals, semiconductors, ceramics and polymers, with problem sets and exams."
+    },
+    {
+      "id": "mit_grad_mechanical_behavior_materials",
+      "title": "Mechanical Behavior of Materials",
+      "provider": "MIT OpenCourseWare",
+      "resource_type": "graduate_course",
+      "subsubjects": ["metals_alloys", "ceramics", "polymers", "electronic_materials", "biomaterials", "materials_characterization", "failure_analysis", "materials_structure"],
+      "levels": ["advanced", "graduate"],
+      "url": "https://ocw.mit.edu/courses/3-22-mechanical-behavior-of-materials-spring-2008/",
+      "access_policy": "OpenCourseWare materials; retain MIT OCW licensing and item provenance.",
+      "provenance": "Official MIT graduate course extending deformation, creep, fracture and fatigue into research-linked special topics, with projects, problem sets and exams."
+    },
+    {
+      "id": "nist_materials_topics",
+      "title": "NIST Materials",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "government_research_portal",
+      "subsubjects": ["materials_structure", "metals_alloys", "ceramics", "polymers", "composites", "electronic_materials", "biomaterials", "materials_characterization", "failure_analysis", "computational_materials"],
+      "levels": ["beginner", "intermediate", "advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/materials",
+      "access_policy": "Public web resources; verify rights and terms for each linked dataset or publication before local ingestion.",
+      "provenance": "Official NIST materials science portal."
+    },
+    {
+      "id": "nist_materials_genome_initiative",
+      "title": "Materials Genome Initiative at NIST",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "government_research_program",
+      "subsubjects": ["materials_structure", "thermodynamics_of_materials", "phase_transformations", "materials_characterization", "computational_materials"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://www.nist.gov/mgi",
+      "access_policy": "Metadata, tools, reports, and linked resources are public; preserve item-level licensing and provenance.",
+      "provenance": "Official NIST Materials Genome Initiative program."
+    },
+    {
+      "id": "nist_materials_data_repository",
+      "title": "NIST Materials Data Repository",
+      "provider": "National Institute of Standards and Technology",
+      "resource_type": "scientific_data_repository",
+      "subsubjects": ["thermodynamics_of_materials", "phase_transformations", "materials_characterization", "computational_materials"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://materialsdata.nist.gov/",
+      "access_policy": "Public repository discovery; usage terms can be defined by individual data providers and must be retained per record.",
+      "provenance": "Official NIST Materials Data Repository."
+    },
+    {
+      "id": "nasa_materials_processes_standards",
+      "title": "NASA Technical Standards - Materials and Processes, Parts",
+      "provider": "National Aeronautics and Space Administration",
+      "resource_type": "government_engineering_standards_catalog",
+      "subsubjects": ["metals_alloys", "ceramics", "polymers", "composites", "materials_characterization", "failure_analysis"],
+      "levels": ["advanced", "undergraduate", "graduate", "research"],
+      "url": "https://standards.nasa.gov/materials-and-processes-parts",
+      "access_policy": "Use standards metadata and official public documents according to their stated distribution and rights; do not assume third-party endorsed standards are freely reproducible.",
+      "provenance": "Official NASA Technical Standards System, technical discipline 6000."
+    }
+  ],
+  "coverage_notes": {
+    "intentional_gaps": ["foundation-level instruction remains incomplete", "dedicated composites curriculum remains thinner than core structure/processing coverage", "specialized biomaterials instruction remains thinner than general materials coverage", "advanced hands-on characterization and computational-materials training require additional exact instructional sources", "research portals and graduate courses do not by themselves establish expert readiness", "expert readiness requires runtime retrieval, practical projects, verification/validation and passed assessment"],
+    "policy": "Coverage is conservative. Assessed courses support instructional cells; portals, repositories and standards catalogs are retained as research/reference evidence and are not treated as blanket learner-competence or ingestion evidence."
+  }
+}

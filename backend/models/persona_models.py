@@ -119,7 +119,15 @@ class PersonaInfo(BaseModel):
     name: str
     domain: str
     one_liner: str
+    core_belief: str
+    teaching_lens: str
+    hard_rule: str
     color: str
+    color_token: str
+    title: str
+    pulse_style: str
+    registry_version: str
+    prompt_version: str
     voice_prompt: str
 
 

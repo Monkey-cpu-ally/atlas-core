@@ -1,0 +1,12 @@
+{
+  "subject": "philosophy",
+  "population_status": "seeded",
+  "levels": ["foundation","beginner","intermediate","advanced","undergraduate","graduate","research"],
+  "resources": [
+    {"title":"Problems of Philosophy (24.00)","provider":"MIT OpenCourseWare","type":"course","levels":["beginner","intermediate","undergraduate"],"subsubjects":["logic","ethics","epistemology","metaphysics","philosophy_of_science","philosophy_of_mind"],"url":"https://ocw.mit.edu/courses/24-00-problems-of-philosophy-fall-2019/","access":"open_course_materials","ingestion":"metadata_and_permitted_course_materials"},
+    {"title":"MIT Philosophy Course Collection","provider":"MIT Philosophy / MIT OpenCourseWare","type":"course_collection","levels":["beginner","intermediate","advanced","undergraduate","graduate"],"subsubjects":["logic","ethics","epistemology","metaphysics","philosophy_of_science","philosophy_of_mind","political_philosophy","aesthetics"],"url":"https://philosophy.mit.edu/courses/","access":"public_course_information_and_open_materials_where_available","ingestion":"metadata_and_permitted_course_materials"},
+    {"title":"Stanford Encyclopedia of Philosophy","provider":"Stanford University","type":"scholarly_reference","levels":["intermediate","advanced","undergraduate","graduate","research"],"subsubjects":["logic","ethics","epistemology","metaphysics","philosophy_of_science","philosophy_of_mind","political_philosophy","aesthetics","philosophy_of_technology"],"url":"https://plato.stanford.edu/","access":"free_to_read_copyrighted_reference","ingestion":"metadata_and_short_excerpts_only_unless_permission_allows"},
+    {"title":"Public-domain Philosophy Books","provider":"Project Gutenberg","type":"ebook_archive","levels":["foundation","beginner","intermediate","advanced","undergraduate"],"subsubjects":["ancient_philosophy","modern_philosophy","ethics","political_philosophy"],"url":"https://www.gutenberg.org/","access":"public_domain_and_license_labeled","ingestion":"full_text_when_license_permits"}
+  ],
+  "all_levels_populated": false
+}

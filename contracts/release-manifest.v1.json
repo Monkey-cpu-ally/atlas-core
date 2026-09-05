@@ -1,0 +1,44 @@
+{
+  "manifest_version": "1.0.0",
+  "release_channel": "production-hardening",
+  "baseline": {
+    "branch": "integration/knowledge-bookshelf-v1",
+    "commit": "a003cd6d6b783e966c57c7cc70b1943b779a418a",
+    "verified_at": "2026-09-04T16:16:13Z"
+  },
+  "contracts": {
+    "persona_registry": {
+      "version": "1.0.0",
+      "path": "contracts/personas.v1.json"
+    },
+    "hud_intelligence_loop": {
+      "version": "1.0.0",
+      "specification_path": "docs/HUD_INTELLIGENCE_LOOP_V1_SPECIFICATION.md",
+      "implementation_plan_path": "docs/HUD_INTELLIGENCE_LOOP_V1_IMPLEMENTATION_PLAN.md"
+    }
+  },
+  "authoritative_runtime": {
+    "composition_root": "backend/server.py",
+    "persona_orchestration": "backend/services/persona_chat.py",
+    "persona_registry_loader": "backend/services/persona_registry.py",
+    "model_gateway": "backend/services/llm_provider.py",
+    "memory_service": "backend/services/memory_bank.py",
+    "knowledge_service": "backend/services/knowledge_ingestion.py",
+    "web_hud": "frontend/src/components/HUDInterface.js",
+    "unity_hud_status": "adapter-target"
+  },
+  "compatibility": {
+    "legacy_persona_chat_api": "/api/persona/{persona}/chat",
+    "legacy_council_alias": "trinity",
+    "target_intelligence_api": "/api/v1/hud/intelligence"
+  },
+  "required_checks": [
+    "ATLAS Backend CI",
+    "ATLAS Frontend HUD CI",
+    "Frontend HUD Check",
+    "Visual Ecosystem",
+    "Creative Intelligence CI",
+    "ATLAS Knowledge Bank Coverage Audit"
+  ],
+  "hardware_policy": "planning-only-or-explicit-human-approval"
+}
