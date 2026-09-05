@@ -11,11 +11,20 @@ from services.creative_story_executor import register_story_executor
 from services.creative_critique_executor import register_critique_executor
 from services.creative_revision_executor import register_revision_executor
 from services.creative_master_executor import register_master_executor
+from services.art_study_runtime import run_art_study
+from services import art_study_provider_registry
 register_story_executor(); register_critique_executor(); register_revision_executor(); register_master_executor()
 router=APIRouter(prefix="/api/creative-studio",tags=["creative-studio"]); job_store=CreativeJobStore()
 class CreativeJobCreate(BaseModel):
     project_id:str=Field(min_length=1,max_length=160); stage:str; artifact_id:str|None=Field(default=None,max_length=200); parent_job_id:str|None=Field(default=None,max_length=200)
 class CreativeJobExecute(BaseModel): payload:dict=Field(default_factory=dict)
+class ArtStudyRequest(BaseModel):
+    source_reference:str=Field(min_length=1,max_length=500)
+    source:dict
+    request:dict=Field(default_factory=dict)
+    project_identity:str=Field(min_length=1,max_length=240)
+    project_constraints:list[str]=Field(min_length=1)
+    minimum_confidence:float=Field(default=0.60,ge=0.0,le=1.0)
 def _rubric_payload(r): return {"name":r.name,"passing_score":r.passing_score,"dimensions":[{"name":d.name,"question":d.question,"failure_signals":list(d.failure_signals)} for d in r.dimensions]}
 def _reference_payload(r): return {"id":r.reference_id,"title":r.title,"kind":r.kind,"category":r.category,"study":list(r.study),"disciplines":list(r.disciplines),"techniques":list(r.techniques),"strengths":list(r.strengths),"study_targets":list(r.study_targets),"limitations":list(r.limitations),"provenance":list(r.provenance),"relationships":list(r.relationships)}
 @router.get("/references")
@@ -34,6 +43,16 @@ async def synthesize_references(q:str=Query(min_length=1,max_length=240),limit:i
     try: synthesis=library.synthesize(q,limit=limit,minimum_references=minimum_references,project_identity=project_identity,project_constraints=project_constraints or ())
     except ValueError as exc: raise HTTPException(status_code=422,detail=str(exc)) from exc
     return {"query":synthesis.query,"project_identity":synthesis.project_identity,"project_constraints":list(synthesis.project_constraints),"diversity_dimensions":list(synthesis.diversity_dimensions),"references":[{**_reference_payload(m.reference),"score":m.score,"matched_terms":list(m.matched_terms)} for m in synthesis.references],"principles":list(synthesis.principles),"study_targets":list(synthesis.study_targets),"limitations":list(synthesis.limitations),"provenance":list(synthesis.provenance),"synthesis_contract":{"multi_reference":True,"deterministic":True,"principle_only":True,"provenance_preserved":True,"anti_imitation_boundaries_preserved":True,"project_identity_overrides_reference_influence":True,"project_constraints_preserved":True,"constraints_are_not_inspiration":True,"diversity_aware_selection":True}}
+@router.get("/art-study/contract")
+async def get_art_study_contract():
+    return {"provider":art_study_provider_registry.contract(),"principles_only":True,"direct_imitation_forbidden":True,"project_identity_authoritative":True,"rights_declaration_required":True,"validated_evidence_required":True}
+@router.post("/art-study/analyze")
+async def analyze_art_study(body:ArtStudyRequest):
+    provider=art_study_provider_registry.get()
+    if provider is None: raise HTTPException(status_code=503,detail="Art Study vision provider is not configured")
+    try:
+        return run_art_study(provider=provider,source_reference=body.source_reference,request=body.request,source=body.source,project_identity=body.project_identity,project_constraints=body.project_constraints,minimum_confidence=body.minimum_confidence)
+    except ValueError as exc: raise HTTPException(status_code=422,detail=str(exc)) from exc
 @router.get("/rubrics")
 async def get_rubrics(): return {"quality_principles":list(QUALITY_PRINCIPLES),"story":_rubric_payload(STORY),"visual_art":_rubric_payload(VISUAL_ART),"mediums":{n:_rubric_payload(r) for n,r in MEDIUMS.items()}}
 @router.get("/critic-council")
