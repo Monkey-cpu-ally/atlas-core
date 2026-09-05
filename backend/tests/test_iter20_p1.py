@@ -4,7 +4,7 @@ Coverage:
   1. WorldWatch seed idempotency + 17 feeds (11 RSS + 6 patent)
   2. WorldWatch run picks up all feeds including Dezeen (BOM fix) + patents
   3. WorldWatch updates include patent items with patents.google.com URLs
-  4. Multi-cycle /api/research-orch/orchestrator/loop endpoint (cycles=2)
+  4. Async multi-cycle /api/research-orch/orchestrator/loop job contract
   5. Loop endpoint with stop_on_empty=True early-bail semantics
   6. Memory Bank store uses sentence-transformers (provider_used='st')
   7. Memory Bank search returns non-zero cosine semantic recall
@@ -29,6 +29,21 @@ def s():
     sess = requests.Session()
     sess.headers.update({"Content-Type": "application/json"})
     return sess
+
+
+def _wait_for_loop_job(s, poll_url, timeout=LONG_T):
+    """Poll the durable orchestrator job until it reaches a terminal state."""
+    url = poll_url if poll_url.startswith("http") else f"{BASE_URL}{poll_url}"
+    deadline = time.time() + timeout
+    last = None
+    while time.time() < deadline:
+        r = s.get(url, timeout=SHORT_T)
+        assert r.status_code == 200, r.text[:500]
+        last = r.json()
+        if last.get("status") in {"done", "errored"}:
+            return last
+        time.sleep(0.25)
+    pytest.fail(f"orchestrator job did not finish within {timeout}s: {last}")
 
 
 # ---------- 1. WorldWatch seed + feed counts ----------
@@ -104,9 +119,8 @@ class TestWorldWatchRun:
 # ---------- 3. Multi-cycle orchestrator loop ----------
 class TestOrchestratorLoop:
     def test_loop_runs_2_cycles_sequentially(self, s):
-        """The orchestrator loop takes ~2min for 2 cycles. Cloudflare/ingress
-        edge timeout (~100s) returns 502 on the public URL — fall back to
-        localhost backend to verify the endpoint logic works."""
+        """The loop endpoint must return immediately with a durable job ID;
+        execution proof is obtained from the polling endpoint."""
         payload = {
             "cycles": 2,
             "discover_per_feed": 1,
@@ -114,14 +128,17 @@ class TestOrchestratorLoop:
             "generate_lessons": False,
             "stop_on_empty": False,
         }
-        url = f"{BASE_URL}/api/research-orch/orchestrator/loop"
-        r = s.post(url, json=payload, timeout=LONG_T)
-        if r.status_code == 502:
-            # Cloudflare/ingress timed out the long-running req — call backend directly
-            r = s.post("http://localhost:8001/api/research-orch/orchestrator/loop",
-                       json=payload, timeout=LONG_T)
+        r = s.post(f"{BASE_URL}/api/research-orch/orchestrator/loop",
+                   json=payload, timeout=SHORT_T)
         assert r.status_code == 200, r.text[:500]
-        body = r.json()
+        accepted = r.json()
+        assert accepted.get("status") == "running", accepted
+        assert accepted.get("job_id"), accepted
+        assert accepted.get("requested_cycles") == 2, accepted
+        assert accepted.get("poll_url"), accepted
+
+        body = _wait_for_loop_job(s, accepted["poll_url"])
+        assert body.get("status") == "done", body
         assert body.get("requested_cycles") == 2, body
         assert body.get("executed_cycles") == 2, body
         runs = body.get("runs") or []
@@ -138,8 +155,8 @@ class TestOrchestratorLoop:
             assert k in totals, f"missing totals key: {k}"
 
     def test_loop_stop_on_empty_bails_early(self, s):
-        """After previous loop, queue is drained → stop_on_empty=True should
-        early-bail and mark the last run with bailed=True."""
+        """stop_on_empty=True may terminate the durable job before all
+        requested cycles; if so the final run must carry bailed=True."""
         payload = {
             "cycles": 5,
             "discover_per_feed": 1,
@@ -147,18 +164,23 @@ class TestOrchestratorLoop:
             "generate_lessons": False,
             "stop_on_empty": True,
         }
-        url = f"{BASE_URL}/api/research-orch/orchestrator/loop"
-        r = s.post(url, json=payload, timeout=LONG_T)
-        if r.status_code == 502:
-            r = s.post("http://localhost:8001/api/research-orch/orchestrator/loop",
-                       json=payload, timeout=LONG_T)
+        r = s.post(f"{BASE_URL}/api/research-orch/orchestrator/loop",
+                   json=payload, timeout=SHORT_T)
         assert r.status_code == 200, r.text[:500]
-        body = r.json()
+        accepted = r.json()
+        assert accepted.get("status") == "running", accepted
+        assert accepted.get("job_id"), accepted
+        assert accepted.get("requested_cycles") == 5, accepted
+        assert accepted.get("poll_url"), accepted
+
+        body = _wait_for_loop_job(s, accepted["poll_url"])
+        assert body.get("status") == "done", body
         runs = body.get("runs") or []
         assert body.get("executed_cycles") == len(runs)
-        # If executed < requested, last run must be marked bailed
         if body.get("executed_cycles", 5) < 5:
-            assert runs[-1].get("bailed") is True, f"early exit but no bailed flag: {runs[-1]}"
+            assert runs and runs[-1].get("bailed") is True, (
+                f"early exit but no bailed flag: {runs[-1] if runs else None}"
+            )
 
 
 # ---------- 4. Memory Bank: sentence-transformers ----------
